@@ -1,7 +1,9 @@
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.Services.Datasets.Services.UnitTests;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -10,7 +12,9 @@ namespace CalculateFunding.Services.Datasets.Services
         private Reference _relationship;
         private DatasetDefinition _datasetDefinition;
         private bool _definesScope;
-        
+        private DatasetRelationshipType? _datasetRelationshipType = null;
+        private PublishedSpecificationConfiguration _publishedSpecificationConfiguration = null;
+
         public DataRelationshipSummaryBuilder WithDefinesScope(bool definesScope)
         {
             _definesScope = definesScope;
@@ -31,7 +35,21 @@ namespace CalculateFunding.Services.Datasets.Services
 
             return this;
         }
-        
+
+        public DataRelationshipSummaryBuilder WithRelationshipType(DatasetRelationshipType relationshipType)
+        {
+            _datasetRelationshipType = relationshipType;
+
+            return this;
+        }
+
+        public DataRelationshipSummaryBuilder WithPublishedSpecificationConfiguration(PublishedSpecificationConfiguration publishedSpecificationConfiguration)
+        {
+            _publishedSpecificationConfiguration = publishedSpecificationConfiguration;
+
+            return this;
+        }
+
         public DatasetRelationshipSummary Build()
         {
             return new DatasetRelationshipSummary
@@ -39,7 +57,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetDefinition = _datasetDefinition,
                 Relationship = _relationship ?? new ReferenceBuilder()
                                    .Build(),
-                DefinesScope = _definesScope
+                DefinesScope = _definesScope,
+                RelationshipType = _datasetRelationshipType ?? DatasetRelationshipType.Uploaded,
+                PublishedSpecificationConfiguration = _publishedSpecificationConfiguration
             };
         }
     }

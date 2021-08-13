@@ -46,13 +46,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     propertyType = SyntaxFactory.IdentifierName("DateTime");
                     break;
                 case FieldType.NullableOfDecimal:
-                    propertyType = SyntaxFactory.IdentifierName("Nullable(Of Decimal)");
+                    propertyType = SyntaxFactory.IdentifierName("Decimal?");
                     break;
                 case FieldType.NullableOfInteger:
-                    propertyType = SyntaxFactory.IdentifierName("Nullable(Of Integer)");
+                    propertyType = SyntaxFactory.IdentifierName("Integer?");
                     break;
                 case FieldType.NullableOfBoolean:
-                    propertyType = SyntaxFactory.IdentifierName("Nullable(Of Boolean)");
+                    propertyType = SyntaxFactory.IdentifierName("Boolean?");
                     break;
                 default:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword));

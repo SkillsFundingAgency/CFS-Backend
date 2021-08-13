@@ -60,7 +60,7 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<Dataset>(item);
 
             OnDatasetEventFailure function = scope.ServiceProvider.GetService<OnDatasetEventFailure>();
 

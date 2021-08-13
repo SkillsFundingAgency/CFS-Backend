@@ -9,7 +9,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
-using CalculateFunding.Services.Publishing.Excel;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
@@ -31,7 +30,6 @@ namespace CalculateFunding.Services.Publishing
         private readonly IAsyncPolicy _datasetsApiClientPolicy;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly ILogger _logger;
-        private readonly IRelationshipDataExcelWriter _excelWriter;
 
         public DatasetsDataCopyService(
             IJobManagement jobManagement,
@@ -39,8 +37,7 @@ namespace CalculateFunding.Services.Publishing
             IDatasetsApiClient datasetsApiClient,
             ISpecificationService specificationService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
-            IPublishedFundingRepository publishedFundingRepository,
-            IRelationshipDataExcelWriter excelWriter) : base(jobManagement, logger)
+            IPublishedFundingRepository publishedFundingRepository) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -48,14 +45,12 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(publishingResiliencePolicies?.DatasetsApiClient, nameof(publishingResiliencePolicies.DatasetsApiClient));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
-            Guard.ArgumentNotNull(excelWriter, nameof(excelWriter));
-
+            
             _logger = logger;
             _datasetsApiClient = datasetsApiClient;
             _specificationService = specificationService;
             _datasetsApiClientPolicy = publishingResiliencePolicies.DatasetsApiClient;
             _publishedFundingRepository = publishedFundingRepository;
-            _excelWriter = excelWriter;
         }
 
         public override async Task Process(Message message)
@@ -113,11 +108,11 @@ namespace CalculateFunding.Services.Publishing
                     DatasetVersionUpdateModel datasetVersionUpdateModel = new DatasetVersionUpdateModel()
                     {
                         DatasetId = relationship.DatasetId,
-                        Filename = relationship.Name,
+                        Filename = $"{relationship.Name}.xlsx",
                         FundingStreamId = specificationSummary.FundingStreams.First().Id
                     };
                     ValidatedApiResponse<NewDatasetVersionResponseModel> datasetUpdateResponse =
-                        await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.DatasetVersionUpdate(datasetVersionUpdateModel));
+                        await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.DatasetVersionUpdateAndPersist(datasetVersionUpdateModel));
 
                     if (!datasetUpdateResponse.StatusCode.IsSuccess() || datasetUpdateResponse.Content == null)
                     {
@@ -126,8 +121,6 @@ namespace CalculateFunding.Services.Publishing
 
                     datasetVersion = datasetUpdateResponse.Content;
                 }
-
-                byte[] excelData = _excelWriter.WriteToExcel(relationship.Name, excelDataItems);
 
                 DatasetMetadataViewModel datasetMetadataViewModel = new DatasetMetadataViewModel()
                 {
@@ -138,14 +131,15 @@ namespace CalculateFunding.Services.Publishing
                     FundingStreamId = datasetVersion.FundingStreamId,
                     Filename = datasetVersion.Filename,
                     Name = datasetVersion.Name,
-                    Stream = excelData
+                    Version = datasetVersion.Version,
+                    ExcelData = excelDataItems
                 };
 
                 HttpStatusCode fileUploadStatus = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.UploadDatasetFile(datasetVersion.Filename, datasetMetadataViewModel));
 
                 if (!fileUploadStatus.IsSuccess())
                 {
-                    LogAndThrowException($"Failed to upload the dataset file, dataset id - {relationship.DatasetId}, file name - {datasetVersion.Filename}. Status Code - {fileUploadStatus}");
+                    LogAndThrowException($"Failed to upload the dataset file, dataset id - {datasetVersion.DatasetId}, file name - {datasetVersion.Filename}. Status Code - {fileUploadStatus}");
                 }
 
                 AssignDatasourceModel assignDatasourceModel = new AssignDatasourceModel()

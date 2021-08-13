@@ -37,7 +37,6 @@ using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Batches;
 using CalculateFunding.Services.Publishing.Errors;
-using CalculateFunding.Services.Publishing.Excel;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
@@ -346,8 +345,6 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IPublishedProviderCsvTransform, PublishedProviderEstateCsvTransform>();
             builder.AddScoped<ICreateGeneratePublishedProviderEstateCsvJobs, CreateGeneratePublishedProviderEstateCsvJobs>();
             builder.AddScoped<IPublishedFundingCsvJobsService, PublishedFundingCsvJobsService>();
-
-            builder.AddSingleton<IRelationshipDataExcelWriter, RelationshipDataExcelWriter>();
 
             builder
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>()

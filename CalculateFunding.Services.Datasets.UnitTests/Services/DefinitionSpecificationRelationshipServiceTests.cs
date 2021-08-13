@@ -40,7 +40,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
 using Serilog;
+using DatasetRelationshipType = CalculateFunding.Models.Datasets.DatasetRelationshipType;
+using FieldType = CalculateFunding.Models.Datasets.Schema.FieldType;
 using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
+using PublishedSpecificationConfiguration = CalculateFunding.Models.Datasets.PublishedSpecificationConfiguration;
+using PublishedSpecificationItem = CalculateFunding.Models.Datasets.PublishedSpecificationItem;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Datasets.Services

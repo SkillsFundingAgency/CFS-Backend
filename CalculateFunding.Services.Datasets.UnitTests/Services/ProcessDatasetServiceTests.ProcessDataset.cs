@@ -47,6 +47,7 @@ using FieldDefinition = CalculateFunding.Models.Datasets.Schema.FieldDefinition;
 using VersionReference = CalculateFunding.Models.VersionReference;
 using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Datasets.Services.UnitTests;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -84,11 +85,13 @@ namespace CalculateFunding.Services.Datasets.Services
         private string _relationshipId;
         private string _relationshipName;
         private string _upin;
+        private string _ukprn;
         private string _laCode;
         private string _providerId;
         private string _jobId;
 
         private const string Upin = nameof(Upin);
+        private const string UKPRN = nameof(UKPRN);
         private const string LaCode = nameof(LaCode);
         private const string BlobPath = "dataset-id/v1/ds.xlsx";
         private const string CreateInstructAllocationJob = JobConstants.DefinitionNames.CreateInstructAllocationJob;
@@ -139,6 +142,7 @@ namespace CalculateFunding.Services.Datasets.Services
             _relationshipId = NewRandomString();
             _relationshipName = NewRandomString();
             _upin = NewRandomString();
+            _ukprn = NewRandomString();
             _providerId = NewRandomString();
             _laCode = NewRandomString();
             _jobId = NewRandomString();
@@ -444,7 +448,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await WhenTheProcessDatasetMessageIsProcessed();
 
             ThenTheErrorWasLogged(
-                $"No dataset relationship found for build project with id : {BuildProjectId} with data definition id {DataDefintionId} and relationshipId '{_relationshipId}'");
+                $"No dataset relationship found for build project with id : {BuildProjectId} with relationshipId '{_relationshipId}'");
             AndNoResultsWereSaved();
         }
 
@@ -947,6 +951,84 @@ namespace CalculateFunding.Services.Datasets.Services
                 NewApiProviderSummary(_ => _.WithId(secondProviderId)
                     .WithUPIN(secondProviderUpin)));
             AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin }, new ApiProvider { ProviderId = secondProviderId, UPIN = secondProviderUpin } })));
+
+            await WhenTheProcessDatasetMessageIsProcessed();
+
+            ThenXProviderSourceDatasetsWereUpdate(2);
+        }
+
+        [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndReleasedRelationshipTableResultsWithMultipleProviderIds_SavesDatasetForEachProvider()
+        {
+            string secondProviderUkprn = NewRandomString();
+
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion));
+            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
+               ("user-id", UserId), ("user-name", Username));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
+                    rf => rf.WithId(DataDefintionId)))
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
+                tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(UKPRN)
+                    .WithIdentifierFieldType(IdentifierFieldType.UKPRN)
+                    .WithFieldType(FieldType.Integer)
+                    .WithRequired(true)),
+                    NewFieldDefinition(fld => fld.WithName($"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_1_Funding Line Name")
+                    .WithFieldType(FieldType.NullableOfDecimal)),
+                    NewFieldDefinition(fld => fld.WithName($"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_1_Calculation Name")
+                    .WithFieldType(FieldType.NullableOfDecimal))
+                )))
+                .WithId(SpecificationId)
+            );
+
+            AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
+                summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
+                    .WithName(_relationshipName)))
+                    .WithPublishedSpecificationConfiguration(NewPublishedSpecificationConfiguration(psc => 
+                        psc.WithSpecificationId(SpecificationId)
+                        .WithFundingLines(new PublishedSpecificationItem {
+                            TemplateId = 1,
+                            Name = "Funding Line Name",
+                            FieldType = FieldType.NullableOfDecimal
+                        })
+                        .WithCalculations(new PublishedSpecificationItem
+                        {
+                            TemplateId = 1,
+                            Name = "Calculation Name",
+                            FieldType = FieldType.NullableOfDecimal
+                        })))
+                    .WithRelationshipType(DatasetRelationshipType.ReleasedData)))));
+
+            ICloudBlob cloudBlob = NewCloudBlob();
+
+            AndTheCloudBlob(BlobPath, cloudBlob);
+
+            Stream tableStream = NewStream(new byte[1]);
+
+            AndTheCloudStream(cloudBlob, tableStream);
+            AndThePopulationOfProviderSummariesForSpecification(false, false);
+
+            TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
+                row => row.WithFields((UKPRN, _ukprn))),
+                NewRowLoadResult(row => row.WithFields((UKPRN, secondProviderUkprn)))));
+
+            AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
+            AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition.AsJson(false), tableLoadResult);
+            string secondProviderId = NewRandomString();
+            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
+                .WithUPIN(_ukprn)),
+                NewApiProviderSummary(_ => _.WithId(secondProviderId)
+                    .WithUKPRN(secondProviderUkprn)));
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UKPRN = _ukprn }, new ApiProvider { ProviderId = secondProviderId, UKPRN = secondProviderUkprn } })));
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
@@ -1851,6 +1933,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(tableLoadResults);
         }
 
+        private void AndTheTableLoadResultsFromExcel(Stream stream, string definition, params TableLoadResult[] tableLoadResults)
+        {
+            _excelDatasetReader
+                .Read(Arg.Is(stream), Arg.Is<DatasetDefinition>(_ => _.AsJson(false) == definition))
+                .Returns(tableLoadResults);
+        }
+
         private void AndTheCloudStream(ICloudBlob cloudBlob, Stream stream)
         {
             _blobClient
@@ -1959,6 +2048,15 @@ namespace CalculateFunding.Services.Datasets.Services
             setUp?.Invoke(projectBuilder);
 
             return projectBuilder.Build();
+        }
+
+        public PublishedSpecificationConfiguration NewPublishedSpecificationConfiguration(Action<PublishedSpecificationConfigurationBuilder> setUp = null)
+        {
+            PublishedSpecificationConfigurationBuilder publishedSpecificationConfigurationBuilder = new PublishedSpecificationConfigurationBuilder();
+
+            setUp?.Invoke(publishedSpecificationConfigurationBuilder);
+
+            return publishedSpecificationConfigurationBuilder.Build();
         }
 
         private DatasetDefinition NewDatasetDefinition(Action<DatasetDefinitionBuilder> setUp = null)

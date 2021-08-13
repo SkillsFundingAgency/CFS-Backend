@@ -992,6 +992,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     'fundingLines' : ARRAY(
                                         SELECT fundingLine.name,
                                         fundingLine['value'],
+                                        fundingLine['templateLineId'],
                                         ARRAY(
                                             SELECT distributionPeriod['value'],
                                             ARRAY(
@@ -1004,7 +1005,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                             FROM distributionPeriod IN fundingLine.distributionPeriods
                                         ) AS distributionPeriods
                                         FROM fundingLine IN c.content.current.fundingLines  {joinPredicate}
-                                    )
+                                    ),
+                                    'calculations' : c.content.current.calculations
                                 }} AS current,
                                 {{
                                     'id': c.content.released.id,
@@ -1039,6 +1041,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     'fundingLines' : ARRAY(
                                         SELECT fundingLine.name,
                                         fundingLine['value'],
+                                        fundingLine['templateLineId'],
                                         ARRAY(
                                             SELECT distributionPeriod['value'],
                                             ARRAY(
@@ -1051,7 +1054,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                             FROM distributionPeriod IN fundingLine.distributionPeriods
                                         ) AS distributionPeriods
                                         FROM fundingLine IN c.content.released.fundingLines  {joinPredicate}
-                                    )
+                                    ),
+                                    'calculations' : c.content.current.calculations
                                 }} AS released
                                FROM     publishedProviders c
                                WHERE    c.documentType = 'PublishedProvider'

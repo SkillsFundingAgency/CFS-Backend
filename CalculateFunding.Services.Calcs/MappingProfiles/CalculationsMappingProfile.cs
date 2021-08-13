@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets;
 using GraphCalculation = CalculateFunding.Models.Graph.Calculation;
 using GraphFundingLine = CalculateFunding.Models.Graph.FundingLine;
 using CalcEngineModels = CalculateFunding.Common.ApiClient.CalcEngine.Models;
@@ -22,12 +23,16 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.CalculationSummary, CalculationSummaryModel>();
             CreateMap<Common.ApiClient.Calcs.Models.CalculationVersion, CalculationResponseModel>();
             CreateMap<DatasetRelationshipSummary, Common.ApiClient.Calcs.Models.DatasetRelationshipSummary>();
+            CreateMap<PublishedSpecificationConfiguration, Common.ApiClient.Calcs.Models.PublishedSpecificationConfiguration>();
+            CreateMap<PublishedSpecificationItem, Common.ApiClient.Calcs.Models.PublishedSpecificationItem>();
             CreateMap<DatasetDefinition, Common.ApiClient.Calcs.Models.Schema.DatasetDefinition>();
             CreateMap<TableDefinition, Common.ApiClient.Calcs.Models.Schema.TableDefinition>();
             CreateMap<FieldDefinition, Common.ApiClient.Calcs.Models.Schema.FieldDefinition>();
             CreateMap<FieldType, Common.ApiClient.Calcs.Models.Schema.FieldType>();
             CreateMap<IdentifierFieldType, Common.ApiClient.Calcs.Models.Schema.IdentifierFieldType>();
             CreateMap<Common.ApiClient.Calcs.Models.DatasetRelationshipSummary, DatasetRelationshipSummary>();
+            CreateMap<Common.ApiClient.Calcs.Models.PublishedSpecificationConfiguration, PublishedSpecificationConfiguration> ();
+            CreateMap<Common.ApiClient.Calcs.Models.PublishedSpecificationItem, PublishedSpecificationItem>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.DatasetDefinition, DatasetDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.TableDefinition, TableDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldDefinition, FieldDefinition>();

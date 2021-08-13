@@ -12,6 +12,9 @@ namespace CalculateFunding.Services.Datasets.MappingProfiles
         public CalculationsMappingProfile()
         {
             CreateMap<DatasetRelationshipSummary, Common.ApiClient.Calcs.Models.DatasetRelationshipSummary>();
+            CreateMap<PublishedSpecificationConfiguration, Common.ApiClient.Calcs.Models.PublishedSpecificationConfiguration>();
+            CreateMap<PublishedSpecificationItem, Common.ApiClient.Calcs.Models.PublishedSpecificationItem>();
+            CreateMap<FieldType, Common.ApiClient.Calcs.Models.Schema.FieldType>();
             CreateMap<DatasetDefinition, Common.ApiClient.Calcs.Models.Schema.DatasetDefinition>();
             CreateMap<TableDefinition, Common.ApiClient.Calcs.Models.Schema.TableDefinition>();
             CreateMap<FieldDefinition, Common.ApiClient.Calcs.Models.Schema.FieldDefinition>();
@@ -25,6 +28,8 @@ namespace CalculateFunding.Services.Datasets.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.Schema.TableDefinition, TableDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.DatasetDefinition, DatasetDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.DatasetRelationshipSummary, DatasetRelationshipSummary>();
+            CreateMap<Common.ApiClient.Calcs.Models.PublishedSpecificationConfiguration, PublishedSpecificationConfiguration>();
+            CreateMap<Common.ApiClient.Calcs.Models.PublishedSpecificationItem, PublishedSpecificationItem>();
             CreateMap<Common.ApiClient.Calcs.Models.Build, Build>();
             CreateMap<Common.ApiClient.Calcs.Models.BuildProject, BuildProject>();
             CreateMap<Common.ApiClient.Calcs.Models.Job, Job>();

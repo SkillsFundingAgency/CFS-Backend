@@ -35,21 +35,11 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(assembly, nameof(logger));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
-            IEnumerable<Type> types = Enumerable.Empty<Type>();
+            _datasetTypes = new Dictionary<string, Type>();
 
             _assembly = assembly;
 
-            types = _assembly.GetTypes().Where(x => x.GetFields().Any(p => p.IsStatic && p.Name == "DatasetDefinitionId"));
-
-            _datasetTypes = new Dictionary<string, Type>();
-
-            foreach (var type in types)
-            {
-                FieldInfo field = type.GetField("DatasetDefinitionId");
-                string definitionName = field.GetValue(null).ToString();
-
-                _datasetTypes.Add(definitionName, type);
-            }
+            GetTypes("DatasetDefinitionId", "SpecificationId");
 
             _allocationType = _assembly.GetTypes().FirstOrDefault(x => x.IsClass && x.BaseType.Name.Contains("BaseCalculation"));
 
@@ -115,6 +105,24 @@ namespace CalculateFunding.Services.CalcEngine
             ObjectActivator createdActivator = _activator.GetActivator(ctor, type.FullName);
 
             return createdActivator(args);
+        }
+
+        private void GetTypes(params string[] fields)
+        {
+            IEnumerable<Type> types = Enumerable.Empty<Type>();
+
+            foreach (string fieldName in fields)
+            {
+                types = _assembly.GetTypes().Where(x => x.GetFields().Any(p => p.IsStatic && p.Name == fieldName));
+
+                foreach (var type in types)
+                {
+                    FieldInfo field = type.GetField(fieldName);
+                    string definitionName = field.GetValue(null).ToString();
+
+                    _datasetTypes.Add(definitionName, type);
+                }
+            }
         }
 
         private List<(MemberInfo, T)> PopulateMembers<T>(List<MemberInfo> executeFuncs, Func<IList<CustomAttributeData>, T> func) where T : class
@@ -397,13 +405,20 @@ namespace CalculateFunding.Services.CalcEngine
 
         private Type GetDatasetType(ProviderSourceDataset dataset)
         {
-            if (!string.IsNullOrWhiteSpace(dataset.DataDefinitionId))
+            if (dataset.DatasetRelationshipType == DatasetRelationshipType.ReleasedData)
             {
-                return DatasetType(dataset.DataDefinitionId);
+                return DatasetType(dataset.TargetSpecificationId);
             }
             else
             {
-                return DatasetType(dataset.DataDefinition.Id);
+                if (!string.IsNullOrWhiteSpace(dataset.DataDefinitionId))
+                {
+                    return DatasetType(dataset.DataDefinitionId);
+                }
+                else
+                {
+                    return DatasetType(dataset.DataDefinition.Id);
+                }
             }
         }
 

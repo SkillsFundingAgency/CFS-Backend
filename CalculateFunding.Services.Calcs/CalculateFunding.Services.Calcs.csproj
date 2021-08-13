@@ -8,8 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.ApiClient.CalcEngine" Version="2.1.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="8.1.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="6.27.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="8.2.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="7.0.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="4.4.22" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.12.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="4.10.0" />

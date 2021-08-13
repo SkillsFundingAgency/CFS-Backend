@@ -53,6 +53,7 @@ using CalculateFunding.Services.Core.Caching.FileSystem;
 using Serilog;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
+using CalculateFunding.Services.Datasets.Excel;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Datasets.Startup))]
 
@@ -109,6 +110,7 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddSingleton<IConverterDataMergeLogger, ConverterDataMergeLogger>();
             builder.AddSingleton<IConverterEligibleProviderService, ConverterEligibleProviderService>();
             builder.AddSingleton<IConverterWizardActivityCsvGenerationGeneratorService, ConverterWizardActivityCsvGenerationGeneratorService>();
+            builder.AddSingleton<IRelationshipDataExcelWriter, RelationshipDataExcelWriter>();
             builder.AddSingleton<IConverterActivityReportRepository>(ctx =>
             {
                 AzureStorageSettings storageSettings = new AzureStorageSettings();

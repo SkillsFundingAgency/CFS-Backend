@@ -115,6 +115,15 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _datasetService.DatasetVersionUpdate(datasetVersionUpdateModel, user);
         }
 
+        [Route("api/datasets/dataset-version-update-and-persist")]
+        [HttpPost]
+        [Produces(typeof(NewDatasetVersionResponseModel))]
+        public Task<IActionResult> DatasetVersionUpdateAndPersist([FromBody] DatasetVersionUpdateModel datasetVersionUpdateModel)
+        {
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            return _datasetService.DatasetVersionUpdateAndPersist(datasetVersionUpdateModel, user);
+        }
+
         [Route("api/datasets/datasets-search")]
         [HttpPost]
         [Produces(typeof(DatasetSearchResults))]

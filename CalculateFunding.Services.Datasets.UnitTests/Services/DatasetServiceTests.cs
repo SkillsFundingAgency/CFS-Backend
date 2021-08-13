@@ -1257,8 +1257,6 @@ namespace CalculateFunding.Services.Datasets.Services
             const string filename = "file.xls";
             const string fundingStreamId = "DSG";
 
-            byte[] byteArray = Encoding.UTF8.GetBytes(filename);
-
             DatasetMetadataViewModel datasetMetadataViewModel = new DatasetMetadataViewModel
             {
                 AuthorId = authorId,
@@ -1266,7 +1264,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 DataDefinitionId = dataDefinitionId,
                 DatasetId = datasetId,
                 Name = datasetName,
-                Stream = byteArray,
+                ExcelData = new[] { new RelationshipDataSetExcelData("1234") },
                 FundingStreamId = fundingStreamId,
                 ConverterEligible = true
             };
@@ -1314,7 +1312,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             cloudBlob.Metadata["description"]
                 .Should()
-                .Be(datasetMetadataViewModel.Description);
+                .Be("<Null>");
 
             cloudBlob.Metadata["fundingStreamId"]
                 .Should()

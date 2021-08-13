@@ -1,7 +1,7 @@
-﻿using CalculateFunding.Services.Publishing.Models;
+﻿using CalculateFunding.Models.Datasets;
 using System.Collections.Generic;
 
-namespace CalculateFunding.Services.Publishing.Excel
+namespace CalculateFunding.Services.Datasets.Excel
 {
     public interface IRelationshipDataExcelWriter
     {

@@ -25,6 +25,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Services.Datasets.UnitTests.Builders;
+using CalculateFunding.Services.Datasets.Excel;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -62,7 +63,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
             ISpecificationsApiClient specificationsApiClient = null,
             IPolicyRepository policyRepository = null,
-            IDatasetDataMergeService datasetDataMergeService = null)
+            IDatasetDataMergeService datasetDataMergeService = null,
+            IRelationshipDataExcelWriter relationshipDataExcelWriter = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -86,12 +88,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 policyRepository ?? CreatePolicyRepository(),
                 calcsRepository ?? CreateCalcsRepository(),
-                datasetDataMergeService ?? CreateDatasetDataMergeService());
+                datasetDataMergeService ?? CreateDatasetDataMergeService(),
+                relationshipDataExcelWriter ?? CreateRelationshipDataExcelWriter());
         }
 
         protected IDatasetDataMergeService CreateDatasetDataMergeService()
         {
             return Substitute.For<IDatasetDataMergeService>();
+        }
+
+        protected IRelationshipDataExcelWriter CreateRelationshipDataExcelWriter()
+        {
+            return Substitute.For<IRelationshipDataExcelWriter>();
         }
 
         protected IPolicyRepository CreatePolicyRepository()

@@ -1,5 +1,5 @@
-﻿using CalculateFunding.Services.Publishing.Excel;
-using CalculateFunding.Services.Publishing.Models;
+﻿using CalculateFunding.Services.Datasets.Excel;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using OfficeOpenXml;
 

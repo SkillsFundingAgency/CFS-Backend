@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IActionResult> DatasetVersionUpdate(DatasetVersionUpdateModel model, Reference author);
 
+        Task<IActionResult> DatasetVersionUpdateAndPersist(DatasetVersionUpdateModel model, Reference author);
+
         Task<IActionResult> GetDatasetByDatasetId(string datasetId);
 
         Task<IActionResult> GetDatasetByName(HttpRequest request);

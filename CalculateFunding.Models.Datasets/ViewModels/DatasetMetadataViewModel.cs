@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models.Datasets.ViewModels
+﻿using System.Collections.Generic;
+
+namespace CalculateFunding.Models.Datasets.ViewModels
 {
     public class DatasetMetadataViewModel
     {
@@ -9,7 +11,8 @@
         public string FundingStreamId { get; set; }
         public string AuthorId { get; set; }
         public string AuthorName { get; set; }
-        public byte[] Stream { get; set; }
+        public int? Version { get; set; }
+        public IEnumerable<RelationshipDataSetExcelData> ExcelData { get; set; }
         public bool ConverterEligible { get; set; }
     }
 }

@@ -5,9 +5,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Publishing.Excel;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -30,7 +28,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private readonly Mock<IDatasetsApiClient> _datasetsApiClient;
         private readonly Mock<ISpecificationService> _specificationService;
         private readonly Mock<IPublishedFundingRepository> _publishedFundingRepository;
-        private readonly Mock<IRelationshipDataExcelWriter> _excelWriter;
 
         private readonly IDatasetsDataCopyService _service;
 
@@ -41,7 +38,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _datasetsApiClient = new Mock<IDatasetsApiClient>();
             _specificationService = new Mock<ISpecificationService>();
             _publishedFundingRepository = new Mock<IPublishedFundingRepository>();
-            _excelWriter = new Mock<IRelationshipDataExcelWriter>();
 
             IPublishingResiliencePolicies policies = PublishingResilienceTestHelper.GenerateTestPolicies();
 
@@ -51,8 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                         _datasetsApiClient.Object,
                                         _specificationService.Object,
                                         policies,
-                                        _publishedFundingRepository.Object,
-                                        _excelWriter.Object);
+                                        _publishedFundingRepository.Object);
         }
 
         [TestMethod]
@@ -99,7 +94,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task Process_GivenDatasetFileIsFailedToUplaod_ThrowsException()
+        public async Task Process_GivenDatasetFileIsFailedToUpload_ThrowsException()
         {
             // Arrange
             string specificationId = NewRandomString();
@@ -166,7 +161,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AndSpecificationSummaryForSpecificaiton(specificationId, specificationSummary);
             AndPublishProvidersForSpecification(specificationId, publishedProviders);
             GivenDatasetVersionUpdate(datasetId, relationshipName, fundingStreamId, datasetVersionResponse);
-            GivenRelationshipExcelWriterReturnExcelForDatasetData(relationshipName, excelData);
             GivenFailedToUploadOfDatasetFile(datasetVersionResponse, HttpStatusCode.BadRequest);
 
             // Act
@@ -175,7 +169,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Assert
             result
                .Should()
-               .Throw<Exception>()
+               .ThrowAsync<Exception>()
+               .Result
                .Which
                .Message
                .Should()
@@ -185,7 +180,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AssertSpecificationSummaryRetrievedBySpecificationId(specificationId);
             AssertPublishedProvidersForSpecificationRetrievedForBatchProcessing(specificationId);
             AssertDatasetVersionUpdateHasBeenCalled(fundingStreamId, relationshipName, datasetId);
-            AssertExcelDatasetData(relationshipName, expectedDatasetData, Ukprn1);
             AssertDatasetFileUpload(datasetVersionResponse);
             AssertThatRelationshipUpdatedNotCalled(relationshipId, datasetId, datasetVersionVersion);
         }
@@ -296,7 +290,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AndSpecificationSummaryForSpecificaiton(specificationId, specificationSummary);
             AndPublishProvidersForSpecification(specificationId, publishedProviders);
             GivenDatasetVersionUpdate(datasetId, relationshipName, fundingStreamId, datasetVersionResponse);
-            GivenRelationshipExcelWriterReturnExcelForDatasetData(relationshipName, excelData);
             AndSuccessfulUploadOfDatasetFile(datasetVersionResponse);
             AndAssignDatasetVersionToRelationship(datasetId, relationshipId, datasetVersionVersion);
 
@@ -308,7 +301,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AssertSpecificationSummaryRetrievedBySpecificationId(specificationId);
             AssertPublishedProvidersForSpecificationRetrievedForBatchProcessing(specificationId);
             AssertDatasetVersionUpdateHasBeenCalled(fundingStreamId, relationshipName, datasetId);
-            AssertExcelDatasetData(relationshipName, expectedDatasetData, Ukprn1, Ukprn2, Ukprn3);
             AssertDatasetFileUpload(datasetVersionResponse);
             AssertThatRelationshipUpdatedWithNewDatasetVersion(relationshipId, datasetId, datasetVersionVersion);
         }
@@ -417,7 +409,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             GivenRelationshipsForSpecification(specificationId, relationships);
             AndSpecificationSummaryForSpecificaiton(specificationId, specificationSummary);
             AndPublishProvidersForSpecification(specificationId, publishedProviders);
-            GivenRelationshipExcelWriterReturnExcelForDatasetData(relationshipName, excelData);
             AndSuccessfulUploadOfDatasetFile(datasetVersionResponse);
             AndAssignDatasetVersionToRelationship(datasetId, relationshipId, datasetVersionVersion);
             GivenDatasetCreateAndPersistNewDataset(relationshipName, datasetVersionResponse);
@@ -430,7 +421,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AssertSpecificationSummaryRetrievedBySpecificationId(specificationId);
             AssertPublishedProvidersForSpecificationRetrievedForBatchProcessing(specificationId);
             AssertCreateAndPersistNewDatasetHasBeenCalled(relationshipName);
-            AssertExcelDatasetData(relationshipName, expectedDatasetData, Ukprn1, Ukprn2, Ukprn3);
             AssertDatasetFileUpload(datasetVersionResponse);
             AssertThatRelationshipUpdatedWithNewDatasetVersion(relationshipId, datasetId, datasetVersionVersion);
         }
@@ -462,21 +452,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                                                 m.FundingStreamId == datasetVersionResponse.FundingStreamId)), Times.Once);
         }
 
-        private void AssertExcelDatasetData(string relationshipName, IEnumerable<RelationshipDataSetExcelData> expectedDatasetData, string providerUkprn1, string providerUkprn2 = null, string providerUkprn3 = null)
-        {
-            _excelWriter.Verify(x => x.WriteToExcel(
-                            It.Is<string>(a => a == relationshipName),
-                            It.Is<IEnumerable<RelationshipDataSetExcelData>>(d =>
-                                                AreEqual(d.Single(a => a.Ukprn == providerUkprn1), expectedDatasetData.Single(e => e.Ukprn == providerUkprn1)) &&
-                                                (providerUkprn2 == null || AreEqual(d.Single(a => a.Ukprn == providerUkprn2), expectedDatasetData.Single(e => e.Ukprn == providerUkprn2))) &&
-                                                (providerUkprn3 == null || AreEqual(d.Single(a => a.Ukprn == providerUkprn3), expectedDatasetData.Single(e => e.Ukprn == providerUkprn3)))))
-            , Times.Once);
-        }
-
         private void AssertDatasetVersionUpdateHasBeenCalled(string fundingStreamId, string relationshipName, string datasetId)
         {
-            _datasetsApiClient.Verify(x => x.DatasetVersionUpdate(
-                             It.Is<DatasetVersionUpdateModel>(x => x.DatasetId == datasetId && x.Filename == relationshipName && x.FundingStreamId == fundingStreamId)), Times.Once);
+            _datasetsApiClient.Verify(x => x.DatasetVersionUpdateAndPersist(
+                             It.Is<DatasetVersionUpdateModel>(x => x.DatasetId == datasetId && x.Filename == $"{relationshipName}.xlsx" && x.FundingStreamId == fundingStreamId)), Times.Once);
         }
 
         private void AssertCreateAndPersistNewDatasetHasBeenCalled(string relationshipName)
@@ -559,15 +538,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .ReturnsAsync(responseCode);
         }
 
-        private void GivenRelationshipExcelWriterReturnExcelForDatasetData(string relationshipName, byte[] excelData)
-        {
-            _excelWriter.Setup(x => x.WriteToExcel(It.Is<string>(a => a == relationshipName), It.IsAny<IEnumerable<RelationshipDataSetExcelData>>()))
-            .Returns(excelData);
-        }
-
         private void GivenDatasetVersionUpdate(string datasetId, string relationshipName, string fundingStreamId, NewDatasetVersionResponseModel datasetVersionResponse)
         {
-            _datasetsApiClient.Setup(x => x.DatasetVersionUpdate(It.Is<DatasetVersionUpdateModel>(x => x.DatasetId == datasetId && x.Filename == relationshipName && x.FundingStreamId == fundingStreamId)))
+            _datasetsApiClient.Setup(x => x.DatasetVersionUpdateAndPersist(It.Is<DatasetVersionUpdateModel>(x => x.DatasetId == datasetId && x.Filename == $"{relationshipName}.xlsx" && x.FundingStreamId == fundingStreamId)))
                  .ReturnsAsync(new ValidatedApiResponse<NewDatasetVersionResponseModel>(HttpStatusCode.OK, datasetVersionResponse));
         }
 

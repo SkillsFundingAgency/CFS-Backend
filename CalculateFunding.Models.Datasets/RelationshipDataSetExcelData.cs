@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CalculateFunding.Services.Publishing.Models
+namespace CalculateFunding.Models.Datasets
 {
     public class RelationshipDataSetExcelData
     {

@@ -9,10 +9,18 @@ namespace CalculateFunding.Services.Datasets.Services
         private FieldType? _fieldType;
         private string _name;
         private bool _isAggregate;
+        private bool _required;
 
         public FieldDefinitionBuilder WithFieldType(FieldType fieldType)
         {
             _fieldType = fieldType;
+
+            return this;
+        }
+
+        public FieldDefinitionBuilder WithRequired(bool required)
+        {
+            _required = required;
 
             return this;
         }
@@ -42,10 +50,10 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return new FieldDefinition
             {
-                Id = NewRandomString(),
                 Name = _name ?? NewRandomString(),
                 IsAggregable = _isAggregate,
-                IdentifierFieldType = _identifierFieldType.GetValueOrDefault(NewRandomEnum<IdentifierFieldType>()),
+                Required = _required,
+                IdentifierFieldType = _identifierFieldType,
                 Type = _fieldType.GetValueOrDefault(NewRandomEnum<FieldType>())
             };
         }

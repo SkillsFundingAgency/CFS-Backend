@@ -21,11 +21,17 @@ namespace CalculateFunding.Models.Datasets
         [JsonProperty("dataDefinition")]
         public Reference DataDefinition { get; set; }
 
+        [JsonProperty("targetSpecificationId")]
+        public string TargetSpecificationId { get; set; }
+
         [JsonProperty("dataRelationship")]
         public Reference DataRelationship { get; set; }
 
         [JsonProperty("datasetRelationshipSummary")]
         public Reference DatasetRelationshipSummary { get; set; }
+
+        [JsonProperty("datasetRelationshipType")]
+        public DatasetRelationshipType? DatasetRelationshipType { get; set; }
 
         [JsonProperty("dataGranularity")]
         public DataGranularity DataGranularity { get; set; }

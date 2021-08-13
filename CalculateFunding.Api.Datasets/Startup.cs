@@ -56,6 +56,7 @@ using CalculateFunding.Services.Datasets.Converter;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.Datasets.Excel;
 
 namespace CalculateFunding.Api.Datasets
 {
@@ -314,6 +315,9 @@ namespace CalculateFunding.Api.Datasets
                 .AddSingleton<ISearchRepository<DatasetDefinitionIndex>, SearchRepository<DatasetDefinitionIndex>>();
             builder
                 .AddSingleton<ISearchRepository<DatasetVersionIndex>, SearchRepository<DatasetVersionIndex>>();
+            
+            builder
+                .AddSingleton<IRelationshipDataExcelWriter, RelationshipDataExcelWriter>();
 
             builder.AddServiceBus(Configuration);
 

@@ -28,6 +28,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.DataImporter.Validators.Models;
+using CalculateFunding.Services.Datasets.Excel;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentValidation;
@@ -82,6 +83,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IPolicyRepository _policyRepository;
         private readonly ICalcsRepository _calcsRepository;
         private readonly IDatasetDataMergeService _datasetDataMergeService;
+        private readonly IRelationshipDataExcelWriter _excelWriter;
 
         public DatasetService(
             IBlobClient blobClient,
@@ -105,7 +107,8 @@ namespace CalculateFunding.Services.Datasets
             ISpecificationsApiClient specificationsApiClient,
             IPolicyRepository policyRepository,
             ICalcsRepository calcsRepository,
-            IDatasetDataMergeService datasetDataMergeService) : base(jobManagement, logger)
+            IDatasetDataMergeService datasetDataMergeService,
+            IRelationshipDataExcelWriter excelWriter) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -130,6 +133,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(datasetDataMergeService, nameof(datasetDataMergeService));
+            Guard.ArgumentNotNull(excelWriter, nameof(excelWriter));
 
             _blobClient = blobClient;
             _logger = logger;
@@ -154,6 +158,7 @@ namespace CalculateFunding.Services.Datasets
             _policyRepository = policyRepository;
             _calcsRepository = calcsRepository;
             _datasetDataMergeService = datasetDataMergeService;
+            _excelWriter = excelWriter;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -206,7 +211,7 @@ namespace CalculateFunding.Services.Datasets
                 Version = 1,
                 Date = DateTimeOffset.Now,
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
-                BlobName = model.Filename,
+                BlobName = filePath,
                 UploadedBlobFilePath = filePath,
                 ChangeType = DatasetChangeType.NewVersion,
                 RowCount = model.RowCount,
@@ -291,6 +296,89 @@ namespace CalculateFunding.Services.Datasets
 
             return new OkObjectResult(responseModel);
         }
+
+        public async Task<IActionResult> DatasetVersionUpdateAndPersist(DatasetVersionUpdateModel model, Reference author)
+        {
+            if (model == null)
+            {
+                _logger.Warning($"Null model was provided to {nameof(DatasetVersionUpdate)}");
+                return new BadRequestObjectResult("Null model name was provided");
+            }
+
+            BadRequestObjectResult validationResult = (await _datasetVersionUpdateModelValidator.ValidateAsync(model)).PopulateModelState();
+
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
+
+            Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(model.DatasetId);
+            if (dataset == null)
+            {
+                _logger.Warning("Dataset was not found with ID {datasetId} when trying to add new dataset version", model.DatasetId);
+
+                return new PreconditionFailedResult($"Dataset was not found with ID {model.DatasetId} when trying to add new dataset version");
+            }
+
+            int version = await _versionDatasetRepository.GetNextVersionNumber(dataset.Current);
+            string filePath = GetUploadedBlobFilepath(model.Filename, model.DatasetId, version);
+
+            string blobUrl = _blobClient.GetBlobSasUrl(GetUploadedBlobFilepath(model.Filename, model.DatasetId, version),
+                DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
+
+            DatasetVersion newVersion = (DatasetVersion)dataset.Current.Clone();
+
+            newVersion.Author = new Reference(author.Id, author.Name);
+            newVersion.Version = version;
+            newVersion.Date = DateTimeOffset.Now;
+            newVersion.PublishStatus = Models.Versioning.PublishStatus.Draft;
+            newVersion.BlobName = filePath;
+            newVersion.UploadedBlobFilePath = filePath;
+            newVersion.ChangeType = DatasetChangeType.NewVersion;
+
+            dataset.Current = newVersion;
+
+            HttpStatusCode versionStatusCode = await _versionDatasetRepository.SaveVersion(newVersion);
+            if (!versionStatusCode.IsSuccess())
+            {
+                _logger.Error($"Failed to create dataset version for: {dataset.Name} with status code {versionStatusCode}");
+
+                throw new InvalidOperationException($"Failed to create dataset version for: {dataset.Name} with status code {versionStatusCode}");
+            }
+
+            HttpStatusCode datasetStatusCode = await _datasetRepository.SaveDataset(dataset);
+            if (!datasetStatusCode.IsSuccess())
+            {
+                _logger.Error($"Failed to create dataset for: {dataset.Name} with status code {datasetStatusCode}");
+
+                throw new InvalidOperationException($"Failed to create dataset for id: {dataset.Name} with status code {datasetStatusCode}");
+            }
+
+            List<IndexError> indexErrors = (await IndexDatasetInSearch(dataset)).ToList();
+            indexErrors.AddRange(await IndexDatasetVersionInSearch(dataset, newVersion));
+
+            if (indexErrors.Any())
+            {
+                string errors = string.Join(";", indexErrors.Select(m => m.ErrorMessage).ToArraySafe());
+
+                _logger.Error($"Failed to save dataset for: {dataset.Name} in search with errors {errors}");
+
+                throw new InvalidOperationException($"Failed to save dataset for: {dataset.Name} in search with errors {errors}");
+            }
+
+            NewDatasetVersionResponseModel responseModel = _mapper.Map<NewDatasetVersionResponseModel>(model);
+
+            responseModel.DatasetId = dataset.Id;
+            responseModel.BlobUrl = blobUrl;
+            responseModel.Author = author;
+            responseModel.DefinitionId = dataset.Definition?.Id;
+            responseModel.Name = dataset.Name;
+            responseModel.Filename = model.Filename;
+            responseModel.Version = version;
+            responseModel.FundingStreamId = model.FundingStreamId;
+
+            return new OkObjectResult(responseModel);
+        }
         
         public async Task<IActionResult> DatasetVersionUpdate(DatasetVersionUpdateModel model, Reference author)
         {
@@ -325,7 +413,7 @@ namespace CalculateFunding.Services.Datasets
             responseModel.DatasetId = dataset.Id;
             responseModel.BlobUrl = blobUrl;
             responseModel.Author = author;
-            responseModel.DefinitionId = dataset.Definition.Id;
+            responseModel.DefinitionId = dataset.Definition?.Id;
             responseModel.Name = dataset.Name;
             responseModel.Version = version;
             responseModel.FundingStreamId = model.FundingStreamId;
@@ -899,20 +987,20 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<IActionResult> UploadDatasetFile(string filename, DatasetMetadataViewModel model)
         {
-            string uploadedBlobFilepath = GetUploadedBlobFilepath(filename, model.DatasetId, 1);
+            string uploadedBlobFilepath = GetUploadedBlobFilepath(filename, model.DatasetId, model.Version ?? 1);
             ICloudBlob blob = _blobClient.GetBlockBlobReference(uploadedBlobFilepath);
 
-            using (MemoryStream stream = new MemoryStream(model.Stream))
+            using (MemoryStream stream = new MemoryStream(_excelWriter.WriteToExcel(model.Name, model.ExcelData)))
             {
                 await blob.UploadFromStreamAsync(stream);
             }
 
-            blob.Metadata["dataDefinitionId"] = model.DataDefinitionId;
+            blob.Metadata["dataDefinitionId"] = model.DataDefinitionId??"<Null>";
             blob.Metadata["datasetId"] = model.DatasetId;
             blob.Metadata["authorId"] = model.AuthorId;
             blob.Metadata["authorName"] = model.AuthorName;
-            blob.Metadata["name"] = model.Name;
-            blob.Metadata["description"] = model.Description;
+            blob.Metadata["name"] = model.Name ;
+            blob.Metadata["description"] = model.Description ?? "<Null>";
             blob.Metadata["fundingStreamId"] = model.FundingStreamId;
             blob.Metadata["converterWizard"] = model.ConverterEligible.ToString();
             blob.SetMetadata();

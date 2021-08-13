@@ -1,12 +1,12 @@
 ﻿using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Models.Datasets;
 using OfficeOpenXml;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CalculateFunding.Services.Publishing.Excel
+namespace CalculateFunding.Services.Datasets.Excel
 {
     public class RelationshipDataExcelWriter : IRelationshipDataExcelWriter
     {

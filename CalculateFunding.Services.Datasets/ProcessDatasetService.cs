@@ -544,7 +544,7 @@ namespace CalculateFunding.Services.Datasets
             bool forceRefreshScopedProviders,
             string correlationId)
         {
-            string dataDefinitionId = dataset.Definition.Id;
+            string dataDefinitionId = dataset.Definition?.Id;
 
             DatasetVersion datasetVersion = (await _datasetVersionRepository.GetVersions(dataset.Id))?.SingleOrDefault(v => v.Version == version);
             
@@ -556,14 +556,18 @@ namespace CalculateFunding.Services.Datasets
 
             string fullBlobName = datasetVersion.BlobName;
 
-            DatasetDefinition datasetDefinition =
-                (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId))?.FirstOrDefault();
+            DatasetDefinition datasetDefinition = null;
 
-            if (datasetDefinition == null)
+            if (dataDefinitionId != null)
             {
-                _logger.Error($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+                datasetDefinition = (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId))?.FirstOrDefault();
 
-                throw new NonRetriableException($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+                if (datasetDefinition == null)
+                {
+                    _logger.Error($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+
+                    throw new NonRetriableException($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+                }
             }
 
             BuildProject buildProject = await _calcsRepository.GetBuildProjectBySpecificationId(specification.Id);
@@ -575,13 +579,18 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException($"Unable to find a build project for id: {specification.Id}");
             }
 
-            TableLoadResult loadResult = await GetTableResult(fullBlobName, datasetDefinition);
+            TableLoadResult loadResult = null;
 
-            if (loadResult == null)
+            if (datasetDefinition != null)
             {
-                _logger.Error($"Failed to load table result");
+                loadResult = await GetTableResult(fullBlobName, datasetDefinition);
 
-                throw new NonRetriableException($"Failed to load table result");
+                if (loadResult == null)
+                {
+                    _logger.Error($"Failed to load table result");
+
+                    throw new NonRetriableException($"Failed to load table result");
+                }
             }
 
             await PersistDataset(loadResult,
@@ -593,7 +602,8 @@ namespace CalculateFunding.Services.Datasets
                 version,
                 user,
                 forceRefreshScopedProviders,
-                correlationId);
+                correlationId,
+                fullBlobName);
 
             return buildProject;
         }
@@ -640,7 +650,8 @@ namespace CalculateFunding.Services.Datasets
             int version,
             Reference user,
             bool forceRefreshScopedProviders,
-            string correlationId)
+            string correlationId,
+            string fullBlobName)
         {
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
 
@@ -654,8 +665,22 @@ namespace CalculateFunding.Services.Datasets
 
             if (relationshipSummary == null)
             {
-                _logger.Error($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationshipId '{relationshipId}'");
+                _logger.Error($"No dataset relationship found for build project with id : {buildProject.Id} with relationshipId '{relationshipId}'");
                 return;
+            }
+
+            if (relationshipSummary.RelationshipType == DatasetRelationshipType.ReleasedData)
+            {
+                datasetDefinition = GetReleasedDataDefinition(relationshipSummary.PublishedSpecificationConfiguration);
+                
+                loadResult = await GetTableResult(fullBlobName, datasetDefinition);
+
+                if (loadResult == null)
+                {
+                    _logger.Error($"Failed to load table result");
+
+                    throw new NonRetriableException($"Failed to load table result");
+                }
             }
 
             ConcurrentDictionary<string, ProviderSourceDataset> existingCurrent = new ConcurrentDictionary<string, ProviderSourceDataset>();
@@ -706,7 +731,8 @@ namespace CalculateFunding.Services.Datasets
                             DefinesScope = relationshipSummary.DefinesScope,
                             DataRelationship = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name),
                             DatasetRelationshipSummary = new Reference(relationshipSummary.Id, relationshipSummary.Name),
-                            ProviderId = providerId
+                            ProviderId = providerId,
+                            DatasetRelationshipType = relationshipSummary.RelationshipType
                         };
 
                         sourceDataset.Current = new ProviderSourceDatasetVersion
@@ -731,9 +757,9 @@ namespace CalculateFunding.Services.Datasets
                     {
                         Dictionary<string, object> rows = new Dictionary<string, object>();
 
-                        foreach (uint fundingLineTemplateId in relationshipSummary.PublishedSpecificationConfiguration.FundingLines.Select(_ => _.TemplateId))
+                        foreach (PublishedSpecificationItem fundingLine in relationshipSummary.PublishedSpecificationConfiguration.FundingLines)
                         {
-                            string key = $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{fundingLineTemplateId}";
+                            string key = $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{fundingLine.TemplateId}_{fundingLine.Name}";
 
                             if (row.Fields.ContainsKey(key))
                             {
@@ -741,9 +767,9 @@ namespace CalculateFunding.Services.Datasets
                             }
                         }
 
-                        foreach (uint calcTemplateId in relationshipSummary.PublishedSpecificationConfiguration.Calculations.Select(_ => _.TemplateId))
+                        foreach (PublishedSpecificationItem calcTemplate in relationshipSummary.PublishedSpecificationConfiguration.Calculations)
                         {
-                            string key = $"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{calcTemplateId}";
+                            string key = $"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{calcTemplate.TemplateId}_{calcTemplate.Name}";
 
                             if (row.Fields.ContainsKey(key))
                             {
@@ -752,6 +778,7 @@ namespace CalculateFunding.Services.Datasets
                         }
 
                         sourceDataset.Current.Rows.Add(rows);
+                        sourceDataset.TargetSpecificationId = relationshipSummary.PublishedSpecificationConfiguration.SpecificationId;
                     }
                     else
                     {
@@ -919,6 +946,50 @@ namespace CalculateFunding.Services.Datasets
                     throw new RetriableException(errorMessage);
                 }
             }
+        }
+
+        private static DatasetDefinition GetReleasedDataDefinition(PublishedSpecificationConfiguration configuration)
+        {
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = configuration.SpecificationId,
+                TableDefinitions = new List<TableDefinition>
+                {
+                    new TableDefinition
+                    {
+                        FieldDefinitions = new List<FieldDefinition>
+                        {
+                            new FieldDefinition
+                            {
+                                IdentifierFieldType = IdentifierFieldType.UKPRN,
+                                Type = FieldType.Integer,
+                                Name = "UKPRN",
+                                Required = true
+                            }
+                        }
+                    }
+                }
+            };
+
+            foreach (PublishedSpecificationItem publishedSpecificationItem in configuration.FundingLines)
+            {
+                datasetDefinition.TableDefinitions.First().FieldDefinitions.Add(new FieldDefinition
+                {
+                    Name = $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{publishedSpecificationItem.TemplateId}_{publishedSpecificationItem.Name}",
+                    Type = publishedSpecificationItem.FieldType
+                });
+            }
+
+            foreach (PublishedSpecificationItem publishedSpecificationItem in configuration.Calculations)
+            {
+                datasetDefinition.TableDefinitions.First().FieldDefinitions.Add(new FieldDefinition
+                {
+                    Name = $"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{publishedSpecificationItem.TemplateId}_{publishedSpecificationItem.Name}",
+                    Type = publishedSpecificationItem.FieldType
+                });
+            }
+
+            return datasetDefinition;
         }
 
         private static IEnumerable<string> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row, IEnumerable<ProviderSummary> providerSummaries)
