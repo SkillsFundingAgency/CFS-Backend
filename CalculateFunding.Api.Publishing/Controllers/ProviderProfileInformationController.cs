@@ -1,10 +1,12 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Profiling;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Publishing.Controllers
 {
@@ -13,16 +15,20 @@ namespace CalculateFunding.Api.Publishing.Controllers
     {
         private readonly IProfileTotalsService _profileTotalsService;
         private readonly IProfileHistoryService _profileHistoryService;
+        private readonly IAvailableFundingLinePeriodsService _availableFundingLinePeriodsService;
 
         public ProviderProfileInformationController(
             IProfileTotalsService profileTotalsService,
-            IProfileHistoryService profileHistoryService)
+            IProfileHistoryService profileHistoryService,
+            IAvailableFundingLinePeriodsService availableFundingLinePeriodsService)
         {
             Guard.ArgumentNotNull(profileTotalsService, nameof(profileTotalsService));
             Guard.ArgumentNotNull(profileHistoryService, nameof(profileHistoryService));
+            Guard.ArgumentNotNull(availableFundingLinePeriodsService, nameof(availableFundingLinePeriodsService));
 
             _profileTotalsService = profileTotalsService;
             _profileHistoryService = profileHistoryService;
+            _availableFundingLinePeriodsService = availableFundingLinePeriodsService;
         }
 
         /// <summary>
@@ -153,6 +159,12 @@ namespace CalculateFunding.Api.Publishing.Controllers
             [FromRoute] string providerId)
         {
             return await _profileHistoryService.GetProfileHistory(fundingStreamId, fundingPeriodId, providerId);
+        }
+
+        [HttpGet("api/specifications/{specificationId}/availablePeriodsForVariationPointers")]
+        public async Task<ActionResult<IEnumerable<AvailableVariationPointerFundingLine>>> GetAvailableFundingLinePeriodsForVariationPointers([FromRoute] string specificationId)
+        {
+            return await _availableFundingLinePeriodsService.GetAvailableFundingLineProfilePeriodsForVariationPointers(specificationId);
         }
     }
 }

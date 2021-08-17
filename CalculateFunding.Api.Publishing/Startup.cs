@@ -1,4 +1,3 @@
-using System;
 using AutoMapper;
 using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.ApiClient;
@@ -61,6 +60,7 @@ using Microsoft.FeatureManagement;
 using Polly;
 using Polly.Bulkhead;
 using Serilog;
+using System;
 using BlobClient = CalculateFunding.Common.Storage.BlobClient;
 using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
 using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
@@ -397,6 +397,8 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IProfilingService, ProfilingService>()
                 .AddSingleton<IHealthChecker, ProfilingService>()
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
+
+            builder.AddSingleton<IAvailableFundingLinePeriodsService, AvailableFundingLinePeriodsService>();
 
             builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");

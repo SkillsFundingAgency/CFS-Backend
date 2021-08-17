@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <None Remove="Resources\FundingStreamPaymentDatesTemplate.json" />
+      <None Remove="Resources\FundingTemplateTemplate.json" />
       <None Remove="Resources\ProfilePatternTemplate.json" />
       <None Remove="Resources\ProviderSourceDatasetTemplate.json" />
       <None Remove="Resources\ProviderVersionBlobTemplate.json" />
@@ -17,6 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <EmbeddedResource Include="Resources\FundingTemplateTemplate.json" />
       <EmbeddedResource Include="Resources\ProviderSourceDatasetTemplate.json" />
       <EmbeddedResource Include="Resources\FundingStreamPaymentDatesTemplate.json" />
       <EmbeddedResource Include="Resources\ProfilePatternTemplate.json" />
@@ -28,7 +30,7 @@
 
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="6.0.1" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="7.0.0" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using CalculateFunding.Api.Publishing.Controllers;
+using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -20,6 +21,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
 
         private IProfileTotalsService _profileTotalsService;
         private IProfileHistoryService _profileHistoryService;
+        private IAvailableFundingLinePeriodsService _availableFundingLinePeriodsService;
 
         private string _fundingStreamId;
         private string _fundPeriodId;
@@ -33,10 +35,12 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         {
             _profileTotalsService = Substitute.For<IProfileTotalsService>();
             _profileHistoryService = Substitute.For<IProfileHistoryService>();
+            _availableFundingLinePeriodsService = Substitute.For<IAvailableFundingLinePeriodsService>();
 
             _controller = new ProviderProfileInformationController(
                 _profileTotalsService,
-                _profileHistoryService);
+                _profileHistoryService,
+                _availableFundingLinePeriodsService);
 
             _fundingStreamId = NewRandomString();
             _fundPeriodId = NewRandomString();
