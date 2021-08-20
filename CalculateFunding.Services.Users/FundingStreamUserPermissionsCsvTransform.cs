@@ -40,12 +40,8 @@ namespace CalculateFunding.Services.Users
                     = userFundingStreamPermission.FundingStreamPermission.CanEditSpecification;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanApproveSpecification)]
                     = userFundingStreamPermission.FundingStreamPermission.CanApproveSpecification;
-                row[nameof(userFundingStreamPermission.FundingStreamPermission.CanDeleteSpecification)]
-                    = userFundingStreamPermission.FundingStreamPermission.CanDeleteSpecification;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanEditCalculations)]
                     = userFundingStreamPermission.FundingStreamPermission.CanEditCalculations;
-                row[nameof(userFundingStreamPermission.FundingStreamPermission.CanDeleteCalculations)]
-                    = userFundingStreamPermission.FundingStreamPermission.CanDeleteCalculations;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanMapDatasets)]
                     = userFundingStreamPermission.FundingStreamPermission.CanMapDatasets;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanChooseFunding)]
@@ -60,8 +56,6 @@ namespace CalculateFunding.Services.Users
                     = userFundingStreamPermission.FundingStreamPermission.CanCreateProfilePattern;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanEditProfilePattern)]
                     = userFundingStreamPermission.FundingStreamPermission.CanEditProfilePattern;
-                row[nameof(userFundingStreamPermission.FundingStreamPermission.CanDeleteProfilePattern)]
-                    = userFundingStreamPermission.FundingStreamPermission.CanDeleteProfilePattern;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanAssignProfilePattern)]
                     = userFundingStreamPermission.FundingStreamPermission.CanAssignProfilePattern;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanApplyCustomProfilePattern)]
@@ -76,8 +70,6 @@ namespace CalculateFunding.Services.Users
                     = userFundingStreamPermission.FundingStreamPermission.CanCreateTemplates;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanEditTemplates)]
                     = userFundingStreamPermission.FundingStreamPermission.CanEditTemplates;
-                row[nameof(userFundingStreamPermission.FundingStreamPermission.CanDeleteTemplates)]
-                    = userFundingStreamPermission.FundingStreamPermission.CanDeleteTemplates;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanApproveTemplates)]
                     = userFundingStreamPermission.FundingStreamPermission.CanApproveTemplates;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanRefreshPublishedQa)]
