@@ -22,5 +22,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<Job> ReMapSpecificationReference(string specificationId, string datasetRelationshipId);
 
         Task<ObsoleteItem> CreateObsoleteItem(ObsoleteItem obsoleteItem);
+
+        Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId);
     }
 }

@@ -247,6 +247,8 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             const string relationshipName = "test--name";
+            string specificationName = new RandomString();
+            string fundingStreamId = new RandomString();
 
             DatasetRelationshipSummary payload = new DatasetRelationshipSummary
             {
@@ -268,7 +270,12 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 new Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel
                 {
-                     DatasetId = "ds-1",
+                    RelationshipType = Common.ApiClient.DataSets.Models.DatasetRelationshipType.ReleasedData,
+                    PublishedSpecificationConfiguration = new Common.ApiClient.DataSets.Models.PublishedSpecificationConfiguration
+                    {
+                        SpecificationId = SpecificationId
+                    },
+                    DatasetId = "ds-1",
                     DatasetName = "ds 1",
                     Definition = new Common.ApiClient.DataSets.Models.DatasetDefinitionViewModel
                     {
@@ -294,7 +301,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(
+                SpecificationId, 
+                specificationName: specificationName,
+                fundingStreamId: fundingStreamId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
@@ -335,7 +345,13 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             sourceCodeService
                 .Received(1)
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>());
+                .Compile(
+                    Arg.Is<BuildProject>(_ => _.DatasetRelationships
+                        .Any(dr => dr.TargetSpecificationName == specificationName & dr.TargetSpecificationFundingStreamId == fundingStreamId)), 
+                    Arg.Any<IEnumerable<Calculation>>(), 
+                    Arg.Any<IEnumerable<ObsoleteItem>>(), 
+                    Arg.Any<CompilerOptions>()
+                );
         }
 
         [TestMethod]
@@ -4013,11 +4029,15 @@ namespace CalculateFunding.Services.Calcs.Services
             return jobs;
         }
 
-        private static ApiClientSpecModels.SpecificationSummary CreateApiClientSpecificationSummary(string specificationId = null, ProviderSource source = ProviderSource.CFS)
+        private static ApiClientSpecModels.SpecificationSummary CreateApiClientSpecificationSummary(
+            string specificationId = null, 
+            ProviderSource source = ProviderSource.CFS,
+            string specificationName = null,
+            string fundingStreamId = null)
         {
             Reference fundingStream = new Reference
             {
-                Id = new RandomString(),
+                Id = fundingStreamId ?? new RandomString(),
                 Name = new RandomString()
             };
 
@@ -4025,7 +4045,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = specificationId ?? new RandomString(),
                 ProviderSource = source,
-                Name = "Specification 1",
+                Name = specificationName ?? "Specification 1",
                 FundingStreams = new[] {
                     fundingStream
                 },

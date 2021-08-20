@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -18,7 +19,6 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
@@ -46,6 +46,10 @@ using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using PublishedSpecificationConfiguration = CalculateFunding.Models.Datasets.PublishedSpecificationConfiguration;
 using PublishedSpecificationItem = CalculateFunding.Models.Datasets.PublishedSpecificationItem;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using FundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
+using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
+using Relationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
+using Calculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -3897,14 +3901,16 @@ namespace CalculateFunding.Services.Datasets.Services
             uint fundingLineIdOne = NewRandomUint();
             uint fundingLineIdOneDup = fundingLineIdOne;
             uint fundingLineIdTwo = NewRandomUint();
-            uint calculationIdOne = NewRandomUint();
-            uint calculationIdOneDup = calculationIdOne;
-            uint calculationIdTwo = NewRandomUint();
+            uint calculationTemplateIdOne = NewRandomUint();
+            uint calculationTemplateIdOneDup = calculationTemplateIdOne;
+            uint calculationTemplateIdTwo = NewRandomUint();
             string fundingLineOne = NewRandomString();
             string fundingLineTwo = NewRandomString();
             string calculationOne = NewRandomString();
             string calculationTwo = NewRandomString();
             string templateId = NewRandomString();
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
 
             ILogger logger = CreateLogger();
 
@@ -3928,8 +3934,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 },
                 Calculations = new[]
                 {
-                    new PublishedSpecificationItem() { TemplateId = calculationIdOne, Name = calculationOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne), FieldType = FieldType.NullableOfDecimal},
-                    new PublishedSpecificationItem() { TemplateId = calculationIdTwo, Name = calculationTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationTwo), FieldType = FieldType.String}
+                    new PublishedSpecificationItem() { TemplateId = calculationTemplateIdOne, Name = calculationOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne), FieldType = FieldType.NullableOfDecimal},
+                    new PublishedSpecificationItem() { TemplateId = calculationTemplateIdTwo, Name = calculationTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationTwo), FieldType = FieldType.String}
                 }
             };
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -3960,12 +3966,94 @@ namespace CalculateFunding.Services.Datasets.Services
                 },
                     Calculations = new[]
                 {
-                    new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdOne, Name = calculationOne, Type = Common.TemplateMetadata.Enums.CalculationType.Number}
+                    new TemplateMetadataCalculation(){TemplateCalculationId = calculationTemplateIdOne, Name = calculationOne, Type = Common.TemplateMetadata.Enums.CalculationType.Number}
                 }
                 }, null));
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository,
-                specificationsApiClient: specificationsApiClient, policiesApiClient: policiesApiClient);
+            IEnumerable<Common.ApiClient.Graph.Models.Entity<FundingLine>> fundingLineEntities = new List<Common.ApiClient.Graph.Models.Entity<FundingLine>>
+            {
+                new Common.ApiClient.Graph.Models.Entity<FundingLine>
+                {
+                    Node = new FundingLine
+                    {
+                        FundingLineId = $"{fundingStreamId}_{fundingLineIdOne}"
+                    },
+                    Relationships = new List<Relationship>
+                    {
+                        new Relationship
+                        {
+                            Type = FundingLineCalculationRelationship.FromIdField.ToLowerInvariant(),
+                            One = new Calculation
+                            {
+                                SpecificationId = specificationId
+                            }
+                        }
+                    }
+                }
+            };
+
+            IGraphApiClient graphApiClient = CreateGraphApiClient();
+            graphApiClient
+                .GetAllEntitiesRelatedToFundingLines(Arg.Is<string[]>(_ => 
+                    _.Count() == 2 && 
+                    _.FirstOrDefault() == $"{specificationId}-{fundingStreamId}_{fundingLineIdOne}" &&
+                    _.LastOrDefault() == $"{specificationId}-{fundingStreamId}_{fundingLineIdTwo}"))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<FundingLine>>>(HttpStatusCode.OK, fundingLineEntities));
+
+            Models.Calcs.TemplateMapping templateMapping = new Models.Calcs.TemplateMapping
+            {
+                TemplateMappingItems = new List<Models.Calcs.TemplateMappingItem>
+                {
+                    new Models.Calcs.TemplateMappingItem
+                    {
+                        TemplateId = calculationTemplateIdOne,
+                        CalculationId = calculationIdOne
+                    },
+                    new Models.Calcs.TemplateMappingItem
+                    {
+                        TemplateId = calculationTemplateIdTwo,
+                        CalculationId = calculationIdTwo
+                    },
+                }
+            };
+
+            IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>> calculationEntities = new List<Common.ApiClient.Graph.Models.Entity<Calculation>>
+            {
+                new Common.ApiClient.Graph.Models.Entity<Calculation>
+                {
+                    Node = new Calculation
+                    {
+                        CalculationId = calculationIdOne
+                    },
+                    Relationships = new List<Relationship>
+                    {
+                        new Relationship
+                        {
+                            Type = Models.Graph.CalculationRelationship.ToIdField.ToLowerInvariant()
+                        }
+                    }
+                }
+            };
+
+            graphApiClient
+                .GetAllEntitiesRelatedToCalculations(Arg.Is<string[]>(_ =>
+                    _.Count() == 2 &&
+                    _.FirstOrDefault() == calculationIdOne &&
+                    _.LastOrDefault() == calculationIdTwo))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>>>(HttpStatusCode.OK, calculationEntities));
+
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+            calcsRepository
+                .GetTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId))
+                .Returns(templateMapping);
+
+            DefinitionSpecificationRelationshipService service = CreateService(
+                logger: logger, 
+                datasetRepository: datasetRepository,
+                specificationsApiClient: specificationsApiClient, 
+                policiesApiClient: policiesApiClient,
+                graphApiClient: graphApiClient,
+                calcsRepository: calcsRepository);
 
             IActionResult result = await service.GetFundingLineCalculations(datasetDefinitionId);
 
@@ -3983,14 +4071,18 @@ namespace CalculateFunding.Services.Datasets.Services
             resultAsPublishedSpecificationConfiguration.FundingLines.Should().HaveCount(2);
             resultAsPublishedSpecificationConfiguration.FundingLines.Single(s => s.TemplateId == fundingLineIdOne).IsObsolete.Should().BeFalse();
             resultAsPublishedSpecificationConfiguration.FundingLines.Single(s => s.TemplateId == fundingLineIdOne).IsSelected.Should().BeTrue();
+            resultAsPublishedSpecificationConfiguration.FundingLines.Single(s => s.TemplateId == fundingLineIdOne).IsUsedInCalculation.Should().BeTrue();
             resultAsPublishedSpecificationConfiguration.FundingLines.Single(s => s.TemplateId == fundingLineIdTwo).IsObsolete.Should().BeFalse();
             resultAsPublishedSpecificationConfiguration.FundingLines.Single(s => s.TemplateId == fundingLineIdTwo).IsSelected.Should().BeFalse();
+            resultAsPublishedSpecificationConfiguration.FundingLines.Single(s => s.TemplateId == fundingLineIdTwo).IsUsedInCalculation.Should().BeFalse();
 
             resultAsPublishedSpecificationConfiguration.Calculations.Should().HaveCount(2);
-            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationIdOne).IsObsolete.Should().BeFalse();
-            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationIdOne).IsSelected.Should().BeTrue();
-            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationIdTwo).IsObsolete.Should().BeTrue();
-            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationIdTwo).IsSelected.Should().BeTrue();
+            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationTemplateIdOne).IsObsolete.Should().BeFalse();
+            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationTemplateIdOne).IsSelected.Should().BeTrue();
+            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationTemplateIdOne).IsUsedInCalculation.Should().BeTrue();
+            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationTemplateIdTwo).IsObsolete.Should().BeTrue();
+            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationTemplateIdTwo).IsSelected.Should().BeTrue();
+            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationTemplateIdTwo).IsUsedInCalculation.Should().BeFalse();
         }
 
         private DefinitionSpecificationRelationshipService CreateService(
@@ -4006,7 +4098,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IValidator<ValidateDefinitionSpecificationRelationshipModel> validateRelationshipModelValidator = null,
             IVersionRepository<DefinitionSpecificationRelationshipVersion> relationshipVersionRepository = null,
             IPoliciesApiClient policiesApiClient = null,
-            IValidator<UpdateDefinitionSpecificationRelationshipModel> updateRelationshipModelValidator = null)
+            IValidator<UpdateDefinitionSpecificationRelationshipModel> updateRelationshipModelValidator = null,
+            IGraphApiClient graphApiClient = null)
         {
             return new DefinitionSpecificationRelationshipService(
                 datasetRepository ?? CreateDatasetRepository(),
@@ -4023,7 +4116,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 validateRelationshipModelValidator ?? CreateValidateRelationshipModelValidator(),
                 relationshipVersionRepository ?? CreateRelationshipVersionRepository(),
                 policiesApiClient ?? CreatePoliciesApiClient(),
-                updateRelationshipModelValidator ?? CreateUpdateRelationshipModelValidator());
+                updateRelationshipModelValidator ?? CreateUpdateRelationshipModelValidator(),
+                graphApiClient ?? CreateGraphApiClient());
         }
 
         private static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
@@ -4123,6 +4217,11 @@ namespace CalculateFunding.Services.Datasets.Services
         private static IPoliciesApiClient CreatePoliciesApiClient()
         {
             return Substitute.For<IPoliciesApiClient>();
+        }
+
+        private static IGraphApiClient CreateGraphApiClient()
+        {
+            return Substitute.For<IGraphApiClient>();
         }
 
         private static IVersionRepository<DefinitionSpecificationRelationshipVersion> CreateRelationshipVersionRepository()

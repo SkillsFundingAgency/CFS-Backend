@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;

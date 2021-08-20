@@ -65,6 +65,8 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
             CreateMap<Common.ApiClient.DataSets.Models.FieldDefinition, FieldDefinition>();
             CreateMap<Common.ApiClient.DataSets.Models.FieldType, FieldType>();
             CreateMap<Common.ApiClient.DataSets.Models.IdentifierFieldType, IdentifierFieldType>();
+            CreateMap<Common.ApiClient.DataSets.Models.PublishedSpecificationConfiguration, Models.Datasets.PublishedSpecificationConfiguration>();
+            CreateMap<Common.ApiClient.DataSets.Models.PublishedSpecificationItem, Models.Datasets.PublishedSpecificationItem>();
         }
 
         private void CreateGraphMappingProfiles()

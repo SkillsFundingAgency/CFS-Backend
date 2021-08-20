@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.Calcs\CalculateFunding.Models.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Graph\CalculateFunding.Models.Graph.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
   </ItemGroup>
   

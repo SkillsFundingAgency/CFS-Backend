@@ -8,8 +8,25 @@ namespace CalculateFunding.Services.Compiler.Interfaces
 {
     public interface ICalculationAnalysis
     {
-        IEnumerable<CalculationRelationship> DetermineRelationshipsBetweenCalculations(Func<string, string> GetSourceCodeName, IEnumerable<Calculation> calculations);
-        IEnumerable<FundingLineCalculationRelationship> DetermineRelationshipsBetweenFundingLinesAndCalculations(Func<string, string> GetSourceCodeName, IEnumerable<Calculation> calculations, IDictionary<string, Funding> fundingLines);
+        IEnumerable<CalculationRelationship> DetermineRelationshipsBetweenCalculations(
+            Func<string, string> GetSourceCodeName, 
+            IEnumerable<Calculation> calculations);
+        
+        IEnumerable<CalculationRelationship> DetermineRelationshipsBetweenReleasedDataCalculations(
+            Func<string, string> GetSourceCodeName,
+            IEnumerable<Calculation> sourceCalculations,
+            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries,
+            IEnumerable<TemplateMapping> templateMappings);
+        
+        IEnumerable<FundingLineCalculationRelationship> DetermineRelationshipsBetweenFundingLinesAndCalculations(
+            Func<string, string> GetSourceCodeName, 
+            IEnumerable<Calculation> calculations, 
+            IDictionary<string, Funding> fundingLines);
+
+        IEnumerable<FundingLineCalculationRelationship> DetermineRelationshipsBetweenReleasedDataFundingLinesAndCalculations(
+            Func<string, string> GetSourceCodeName,
+            IEnumerable<Calculation> sourceCalculations,
+            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries);
 
         IEnumerable<CalculationEnumRelationship> DetermineRelationshipsBetweenCalculationsAndEnums(IEnumerable<Calculation> calculations);
     }

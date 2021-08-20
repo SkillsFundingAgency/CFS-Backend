@@ -17,6 +17,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using System;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -87,7 +88,7 @@ namespace CalculateFunding.Services.Datasets
 
                 FundingConfiguration fundingConfiguration = fundingConfigurationApiResponse.Content;
 
-                allowedPublishedFundingStreamsIdsToReference.AddRange(fundingConfiguration.AllowedPublishedFundingStreamsIdsToReference);
+                allowedPublishedFundingStreamsIdsToReference.AddRange(fundingConfiguration.AllowedPublishedFundingStreamsIdsToReference ?? Array.Empty<string>());
             }
 
             ApiResponse<IEnumerable<SpecificationSummary>> specificationSelectedForFundingSummaryApiResponse =

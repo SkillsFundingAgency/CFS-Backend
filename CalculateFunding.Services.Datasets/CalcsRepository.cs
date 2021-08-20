@@ -97,5 +97,13 @@ namespace CalculateFunding.Services.Datasets
 
             return _mapper.Map<Job>(apiResponse?.Content);
         }
+
+        public async Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId)
+        {
+            ApiResponse<Common.ApiClient.Calcs.Models.TemplateMapping> apiResponse = await _apiClientPolicy.ExecuteAsync(() =>
+                _apiClient.GetTemplateMapping(specificationId, fundingStreamId));
+
+            return _mapper.Map<TemplateMapping>(apiResponse?.Content);
+        }
     }
 }

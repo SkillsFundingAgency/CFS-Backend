@@ -57,6 +57,7 @@ using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Datasets.Excel;
+using CalculateFunding.Common.Config.ApiClient.Graph;
 
 namespace CalculateFunding.Api.Datasets
 {
@@ -307,6 +308,7 @@ namespace CalculateFunding.Api.Datasets
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
+            builder.AddGraphInterServiceClient(Configuration);
 
             builder.AddSearch(Configuration);
             builder
@@ -437,7 +439,8 @@ namespace CalculateFunding.Api.Datasets
                 ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                RelationshipVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                RelationshipVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                GraphApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
             };
         }
     }

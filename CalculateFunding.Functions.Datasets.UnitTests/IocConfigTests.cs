@@ -29,7 +29,9 @@ namespace CalculateFunding.Functions.Datasets.UnitTests
                 { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
                 { "providersClient:ApiKey", "Local" },
                 { "policiesClient:ApiEndpoint", "https://localhost:7013/api/" },
-                { "policiesClient:ApiKey", "Local" }
+                { "policiesClient:ApiKey", "Local" },
+                { "graphClient:ApiEndpoint", "https://localhost:7020/api/" },
+                { "graphClient:ApiKey", "Local" }
             };
 
             return configData;

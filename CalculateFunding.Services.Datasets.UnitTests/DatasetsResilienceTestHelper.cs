@@ -21,7 +21,8 @@ namespace CalculateFunding.Services.Datasets
                 ProvidersApiClient = Policy.NoOpAsync(),
                 PoliciesApiClient = Policy.NoOpAsync(),
                 CalculationsApiClient = Policy.NoOpAsync(),
-                RelationshipVersionRepository = Policy.NoOpAsync()
+                RelationshipVersionRepository = Policy.NoOpAsync(),
+                GraphApiClient = Policy.NoOpAsync()
             };
         }
     }

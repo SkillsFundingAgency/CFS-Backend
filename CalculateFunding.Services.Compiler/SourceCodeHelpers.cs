@@ -78,6 +78,26 @@ namespace CalculateFunding.Services.Compiler
             return calcNamesFound;
         }
 
+        public static IEnumerable<string> GetReferencedReleasedDataCalculations(IEnumerable<string> calculationNames, string sourceCode)
+        {
+            if (string.IsNullOrWhiteSpace(sourceCode))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            IList<string> calcNamesFound = new List<string>();
+
+            foreach (string calcName in calculationNames)
+            {
+                if (sourceCode.ToLower().Contains($" {calcName.ToLower()}"))
+                {
+                    calcNamesFound.Add(calcName);
+                }
+            }
+
+            return calcNamesFound;
+        }
+
         public static bool IsCalcReferencedInAnAggregate(IDictionary<string, string> functions, string calcNameToCheck)
         {
             foreach (KeyValuePair<string,string> function in functions.Where(m => m.Key != calcNameToCheck))

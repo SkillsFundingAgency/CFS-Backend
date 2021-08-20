@@ -809,7 +809,8 @@ namespace CalculateFunding.Services.Calcs.Analysis
             }
 
             requestPages = new PagedContext<AmendRelationshipRequestModel>(fundingLineCalculationRelationships
-                    .Select(_ => new AmendRelationshipRequestModel
+                .Where(_ => _.CalculationTwoId != null)    
+                .Select(_ => new AmendRelationshipRequestModel
                     {
                         IdA = _.FundingLine.SpecificationFundingLineId,
                         IdB = _.CalculationTwoId

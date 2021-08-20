@@ -20,6 +20,9 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("targetSpecificationName")]
         public string TargetSpecificationName { get; set; }
 
+        [JsonProperty("targetSpecificationFundingStreamId")]
+        public string TargetSpecificationFundingStreamId { get; set; }
+
         [JsonProperty("dataGranularity")]
         public DataGranularity DataGranularity { get; set; }
 

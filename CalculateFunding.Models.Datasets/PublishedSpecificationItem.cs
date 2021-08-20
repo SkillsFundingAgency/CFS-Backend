@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Datasets.Schema;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Datasets
 {
@@ -15,5 +16,10 @@ namespace CalculateFunding.Models.Datasets
         public bool IsObsolete { get; set; }
 
         public bool IsSelected { get; set; }
+
+        public bool IsUsedInCalculation { get; set; }
+
+        [JsonIgnore]
+        public string CalculationId { get; set; }
     }
 }

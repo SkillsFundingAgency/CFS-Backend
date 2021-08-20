@@ -1,5 +1,4 @@
 ﻿using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.DeadletterProcessor;
 using Polly;
 
 namespace CalculateFunding.Services.Datasets
@@ -27,6 +26,8 @@ namespace CalculateFunding.Services.Datasets
         public AsyncPolicy JobsApiClient { get; set; }
 
         public AsyncPolicy ProvidersApiClient { get; set; }
+
+        public AsyncPolicy GraphApiClient { get; set; }
 
         public AsyncPolicy PoliciesApiClient { get; set; }
 

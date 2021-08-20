@@ -75,6 +75,70 @@ namespace CalculateFunding.Services.Compiler.UnitTests
         }
 
         [TestMethod]
+        public void GetReferencedReleasedDataCalculations_GivenListOfCalcsAndSourceCodeContainsTwoCalcs_ReturnsTwoCalcs()
+        {
+            //Arrange
+            string sourceCode = " calc1 + calc2";
+
+            IEnumerable<string> calcNames = new[] { "calc1", "calc2", "calc3" };
+
+            //Act
+            IEnumerable<string> results = SourceCodeHelpers.GetReferencedReleasedDataCalculations(calcNames, sourceCode);
+
+            //Assert
+            results
+                .Count()
+                .Should()
+                .Be(2);
+
+            results
+                .ElementAt(0)
+                .Should()
+                .Be("calc1");
+
+            results
+                .ElementAt(1)
+                .Should()
+                .Be("calc2");
+        }
+
+        [TestMethod]
+        public void GetReferencedReleasedDataCalculations_GivenListOfCalcsAndSourceCodeDoesNotContainCalc_ReturnsEmptyList()
+        {
+            //Arrange
+            string sourceCode = " calc4 + calc5";
+
+            IEnumerable<string> calcNames = new[] { "calc1", "calc2", "calc3" };
+
+            //Act
+            IEnumerable<string> results = SourceCodeHelpers.GetReferencedReleasedDataCalculations(calcNames, sourceCode);
+
+            //Assert
+            results
+                .Any()
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public void GetReferencedReleasedDataCalculations_GivenAnEmptySourceCodeString_ReturnsEmptyList()
+        {
+            //Arrange
+            string sourceCode = "";
+
+            IEnumerable<string> calcNames = new[] { "calc1", "calc2", "calc3" };
+
+            //Act
+            IEnumerable<string> results = SourceCodeHelpers.GetReferencedReleasedDataCalculations(calcNames, sourceCode);
+
+            //Assert
+            results
+                .Any()
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
         public void IsCalcfReferencedInAnAggregate_GivenCalcIsNotReferencedInAnAggregate_ReturnsFalse()
         {
             //Arrange

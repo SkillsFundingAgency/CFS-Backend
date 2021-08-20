@@ -10,6 +10,9 @@ using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using Funding = CalculateFunding.Models.Calcs.Funding;
 using FundingLine = CalculateFunding.Models.Calcs.FundingLine;
 using FundingLineCalculation = CalculateFunding.Models.Calcs.FundingLineCalculation;
+using System.Linq;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 
 namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
 {
@@ -18,6 +21,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
     {
         private CalculationAnalysis _analysis;
         private IEnumerable<CalculationRelationship> _relationships;
+        private IEnumerable<CalculationRelationship> _releasedDataCalculationRelationships;
         private IEnumerable<CalculationEnumRelationship> _enumRelationships;
         private IEnumerable<FundingLineCalculationRelationship> _fundingLineRelationships;
 
@@ -31,7 +35,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
         [DynamicData(nameof(MissingCalculationExamples), DynamicDataSourceType.Method)]
         public void ThrowsArgumentExceptionIfNoCalculationsSuppliedToAnalyse(IEnumerable<Calculation> calculations)
         {
-            Action invocation = () => WhenTheCalculationsAreAnalysed(calculations);
+            Action invocation = () => WhenTheCalculationsAreAnalysed(calculations, null, null);
 
             invocation
                 .Should()
@@ -40,13 +44,19 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
 
         [TestMethod]
         [DynamicData(nameof(CalculationRelationshipExamples), DynamicDataSourceType.Method)]
-        public void LocatesRelatedCalculationsFromSourceCode(IEnumerable<Calculation> calculations,
+        public void LocatesRelatedCalculationsFromSourceCode(
+            IEnumerable<Calculation> calculations,
+            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries,
+            IEnumerable<TemplateMapping> templateMappings,
             IEnumerable<CalculationRelationship> expectedCalculationRelationships,
+            IEnumerable<CalculationRelationship> expectedReleasedDataCalculationRelationships,
             IEnumerable<CalculationEnumRelationship> expectedEnumCalculationRelationships)
         {
-            WhenTheCalculationsAreAnalysed(calculations);
+            WhenTheCalculationsAreAnalysed(calculations, datasetRelationshipSummaries, templateMappings);
 
             ThenTheCalculationRelationshipsShouldMatch(expectedCalculationRelationships);
+
+            ThenTheReleasedDataCalculationRelationshipsShouldMatch(expectedReleasedDataCalculationRelationships);
 
             ThenTheCalculationEnumRelationshipsShouldMatch(expectedEnumCalculationRelationships);
         }
@@ -73,6 +83,17 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                 .BeEquivalentTo(expectedCalculationRelationships);
         }
 
+        private void ThenTheReleasedDataCalculationRelationshipsShouldMatch(IEnumerable<CalculationRelationship> expectedReleasedDataCalculationRelationships)
+        {
+            _releasedDataCalculationRelationships
+                .Should()
+                .NotBeNull();
+
+            _releasedDataCalculationRelationships
+                .Should()
+                .BeEquivalentTo(expectedReleasedDataCalculationRelationships);
+        }
+
         private void ThenTheCalculationEnumRelationshipsShouldMatch(IEnumerable<CalculationEnumRelationship> expectedEnumCalculationRelationships)
         {
             _enumRelationships
@@ -95,9 +116,15 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                 .BeEquivalentTo(expectedFundingLineRelationships);
         }
 
-        private void WhenTheCalculationsAreAnalysed(IEnumerable<Calculation> calculations)
+        private void WhenTheCalculationsAreAnalysed(
+            IEnumerable<Calculation> calculations,
+            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries,
+            IEnumerable<TemplateMapping> templateMappings)
         {
             _relationships = _analysis.DetermineRelationshipsBetweenCalculations(@namespace => @namespace, calculations);
+
+            _releasedDataCalculationRelationships = 
+                _analysis.DetermineRelationshipsBetweenReleasedDataCalculations(@namespace => @namespace, calculations, datasetRelationshipSummaries, templateMappings);
 
             _enumRelationships = _analysis.DetermineRelationshipsBetweenCalculationsAndEnums(calculations);
         }
@@ -229,7 +256,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                         .WithSpecificationId(specificationId))
                 ),
                 fundings,
-                new FundingLineCalculationRelationship[0]
+                Array.Empty<FundingLineCalculationRelationship>()
             };
         }
 
@@ -244,11 +271,18 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
             string calcThreeId = NewRandomString();
             string calcFourName = nameof(calcFourName);
             string calcFourId = NewRandomString();
+            string calcFiveName = nameof(calcFiveName);
+            string calcFiveId = NewRandomString();
             string enumValue = NewRandomString();
+
+            string targetSpecificationName = "Spec12345";
+            string targetSpecificationId = NewRandomString();
+
+            uint templateCalculationOneId = 1;
 
             Calculation calculation = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcOneName)
-                                .WithDataType(Models.Calcs.CalculationDataType.Enum)
+                                .WithDataType(CalculationDataType.Enum)
                                 .WithSourceCode($"return {calcOneName}Options.{enumValue}")))
                         .WithId(calcOneId)
                         .WithSpecificationId(specificationId));
@@ -269,14 +303,38 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcFourName)
                                 .WithSourceCode("return 0")))
-                        .WithId(calcFourId)
+                        .WithId(calcFourId)),
+                    NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
+                            => cv.WithSourceCodeName(calcFiveName)
+                                .WithSourceCode($"return Datasets.{targetSpecificationName}.Calc_{templateCalculationOneId}_{calcFourName}")))
+                        .WithId(calcFiveId)
                         .WithSpecificationId(specificationId))
                 ),
+                DatasetRelationshipSummaries(
+                    NewDatasetRelationshipSummary(_ => _
+                        .WithTargetSpecificationName(targetSpecificationName)
+                        .WithTargetSpecificationId(targetSpecificationId)
+                        .WithPublishedSpecificationConfigurationCalculations(
+                            PublishedSpecificationItems(
+                                NewPublishedSpecificationItem(psi => psi
+                                    .WithTemplateId(templateCalculationOneId)
+                                    .WithSourceCodeName(calcFourName)))))),
+                TemplateMappings(
+                    NewTemplateMapping(_ => _
+                        .WithSpecificationId(targetSpecificationId)
+                        .WithItems(
+                            NewTemplateMappingItem(tmi => tmi
+                                .WithTemplateId(templateCalculationOneId)
+                                .WithCalculationId(calcFourId))))),
                 CalculationRelationships(NewCalculationRelationship(_ => _.WithCalculationOneId(calcTwoId)
                         .WithCalculationTwoId(calcOneId)),
                     NewCalculationRelationship(_ => _.WithCalculationOneId(calcThreeId)
                         .WithCalculationTwoId(calcOneId)),
                     NewCalculationRelationship(_ => _.WithCalculationOneId(calcThreeId)
+                        .WithCalculationTwoId(calcFourId))),
+                CalculationRelationships(
+                    NewCalculationRelationship(_ => _
+                        .WithCalculationOneId(calcFiveId)
                         .WithCalculationTwoId(calcFourId))),
                 CalulationEnumRelationships(NewCalculationEnumRelationship(_ => _.WithCalculation(new Models.Graph.Calculation{SpecificationId = calculation.SpecificationId,
                             CalculationId = calculation.Id,
@@ -314,9 +372,12 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                         .WithId(calcFourId)
                         .WithSpecificationId(specificationId))
                 ),
+                Array.Empty<DatasetRelationshipSummary>(),
+                Array.Empty<TemplateMapping>(),
                 CalculationRelationships(NewCalculationRelationship(_ => _.WithCalculationOneId(calcTwoId)
                         .WithCalculationTwoId(calcOneId))),
-                new CalculationEnumRelationship[0]
+                Array.Empty<CalculationRelationship>(),
+                Array.Empty<CalculationEnumRelationship>()
             };
             yield return new object[]
             {
@@ -341,8 +402,11 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                         .WithId(calcFourId)
                         .WithSpecificationId(specificationId))
                 ),
-                new CalculationRelationship[0],
-                new CalculationEnumRelationship[0]
+                Array.Empty<DatasetRelationshipSummary>(),
+                Array.Empty<TemplateMapping>(),
+                Array.Empty<CalculationRelationship>(),
+                Array.Empty<CalculationRelationship>(),
+                Array.Empty<CalculationEnumRelationship>()
             };
         }
 
@@ -356,6 +420,16 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
             return fundingLines;
         }
 
+        private static DatasetRelationshipSummary[] DatasetRelationshipSummaries(params DatasetRelationshipSummary[] datasetRelationshipSummaries)
+        {
+            return datasetRelationshipSummaries;
+        }
+
+        private static TemplateMapping[] TemplateMappings(params TemplateMapping[] templateMappings)
+        {
+            return templateMappings;
+        }
+
         private static CalculationRelationship[] CalculationRelationships(params CalculationRelationship[] calculationRelationships)
         {
             return calculationRelationships;
@@ -366,10 +440,15 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
             return calculationEnumRelationships;
         }
 
+        private static PublishedSpecificationItem[] PublishedSpecificationItems(params PublishedSpecificationItem[] publishedSpecificationItems)
+        {
+            return publishedSpecificationItems;
+        }
+
         private static IEnumerable<object[]> MissingCalculationExamples()
         {
             yield return new[] {(object) null};
-            yield return new object[] {new Calculation[0]};
+            yield return new object[] { Array.Empty<Calculation>() };
         }
 
         private static Calculation NewCalculation(Action<CalculationBuilder> setUp = null)
@@ -405,6 +484,51 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
             setUp?.Invoke(calculationRelationshipBuilder);
 
             return calculationRelationshipBuilder.Build();
+        }
+
+        private static DatasetRelationshipSummary NewDatasetRelationshipSummary(Action<DatasetRelationshipSummaryBuilder> setUp = null)
+        {
+            DatasetRelationshipSummaryBuilder datasetRelationshipSummaryBuilder = new DatasetRelationshipSummaryBuilder();
+
+            setUp?.Invoke(datasetRelationshipSummaryBuilder);
+
+            return datasetRelationshipSummaryBuilder.Build();
+        }
+
+        private static PublishedSpecificationConfiguration NewPublishedSpecificationConfiguration(Action<PublishedSpecificationConfigurationBuilder> setUp = null)
+        {
+            PublishedSpecificationConfigurationBuilder publishedSpecificationConfigurationBuilder = new PublishedSpecificationConfigurationBuilder();
+
+            setUp?.Invoke(publishedSpecificationConfigurationBuilder);
+
+            return publishedSpecificationConfigurationBuilder.Build();
+        }
+
+        private static PublishedSpecificationItem NewPublishedSpecificationItem(Action<PublishedSpecificationItemBuilder> setUp = null)
+        {
+            PublishedSpecificationItemBuilder publishedSpecificationItemBuilder = new PublishedSpecificationItemBuilder();
+
+            setUp?.Invoke(publishedSpecificationItemBuilder);
+
+            return publishedSpecificationItemBuilder.Build();
+        }
+
+        private static TemplateMapping NewTemplateMapping(Action<TemplateMappingBuilder> setUp = null)
+        {
+            TemplateMappingBuilder templateMappingBuilder = new TemplateMappingBuilder();
+
+            setUp?.Invoke(templateMappingBuilder);
+
+            return templateMappingBuilder.Build();
+        }
+
+        private static TemplateMappingItem NewTemplateMappingItem(Action<TemplateMappingItemBuilder> setUp = null)
+        {
+            TemplateMappingItemBuilder templateMappingItemBuilder = new TemplateMappingItemBuilder();
+
+            setUp?.Invoke(templateMappingItemBuilder);
+
+            return templateMappingItemBuilder.Build();
         }
 
         private static CalculationEnumRelationship NewCalculationEnumRelationship(Action<CalculationEnumRelationshipBuilder> setUp = null)

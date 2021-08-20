@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -38,6 +39,10 @@ using Polly;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using TemplateMetadataCalculationType = CalculateFunding.Common.TemplateMetadata.Enums.CalculationType;
+using FundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
+using Calculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using CalculationRelationship = CalculateFunding.Models.Graph.CalculationRelationship;
+using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -51,15 +56,17 @@ namespace CalculateFunding.Services.Datasets
         private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _createRelationshipModelValidator;
         private readonly IValidator<ValidateDefinitionSpecificationRelationshipModel> _validateRelationshipModelValidator;
         private readonly IValidator<UpdateDefinitionSpecificationRelationshipModel> _updateRelationshipModelValidator;
+        private readonly IGraphApiClient _graphApiClient;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IMessengerService _messengerService;
         private readonly ICalcsRepository _calcsRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly IJobManagement _jobManagement;
         private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
-        private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
-        private readonly Polly.AsyncPolicy _relationshipRepositoryPolicy;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
+        private readonly AsyncPolicy _policiesApiClientPolicy;
+        private readonly AsyncPolicy _relationshipRepositoryPolicy;
+        private readonly AsyncPolicy _graphApiClientPolicy;
         private readonly AsyncPolicy _datasetRepositoryPolicy;
         private readonly IVersionRepository<DefinitionSpecificationRelationshipVersion> _relationshipVersionRepository;
         private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
@@ -78,7 +85,8 @@ namespace CalculateFunding.Services.Datasets
             IValidator<ValidateDefinitionSpecificationRelationshipModel> validateRelationshipModelValidator,
             IVersionRepository<DefinitionSpecificationRelationshipVersion> relationshipVersionRepository,
             IPoliciesApiClient policiesApiClient,
-            IValidator<UpdateDefinitionSpecificationRelationshipModel> updateRelationshipModelValidator)
+            IValidator<UpdateDefinitionSpecificationRelationshipModel> updateRelationshipModelValidator,
+            IGraphApiClient graphApiClient)
         {
             Guard.ArgumentNotNull(dateTimeProvider, nameof(dateTimeProvider));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
@@ -92,12 +100,14 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.SpecificationsApiClient, nameof(datasetsResiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.PoliciesApiClient, nameof(datasetsResiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.GraphApiClient, nameof(datasetsResiliencePolicies.GraphApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.DatasetRepository, nameof(datasetsResiliencePolicies.DatasetRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.RelationshipVersionRepository, nameof(datasetsResiliencePolicies.RelationshipVersionRepository));
             Guard.ArgumentNotNull(validateRelationshipModelValidator, nameof(validateRelationshipModelValidator));
             Guard.ArgumentNotNull(relationshipVersionRepository, nameof(relationshipVersionRepository));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(updateRelationshipModelValidator, nameof(updateRelationshipModelValidator));
+            Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
 
             _datasetRepository = datasetRepository;
             _versionDatasetRepository = versionDatasetRepository;
@@ -113,11 +123,12 @@ namespace CalculateFunding.Services.Datasets
             _policiesApiClientPolicy = datasetsResiliencePolicies.PoliciesApiClient;
             _datasetRepositoryPolicy = datasetsResiliencePolicies.DatasetRepository;
             _relationshipRepositoryPolicy = datasetsResiliencePolicies.RelationshipVersionRepository;
+            _graphApiClientPolicy = datasetsResiliencePolicies.GraphApiClient;
             _relationshipVersionRepository = relationshipVersionRepository;
             _validateRelationshipModelValidator = validateRelationshipModelValidator;
             _policiesApiClient = policiesApiClient;
             _updateRelationshipModelValidator = updateRelationshipModelValidator;
-
+            _graphApiClient = graphApiClient;
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
@@ -700,7 +711,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (relationships.IsNullOrEmpty())
             {
-                relationships = new DefinitionSpecificationRelationship[0];
+                relationships = Array.Empty<DefinitionSpecificationRelationship>();
             }
 
             IList<DatasetSpecificationRelationshipViewModel> relationshipViewModels = new List<DatasetSpecificationRelationshipViewModel>();
@@ -997,7 +1008,7 @@ namespace CalculateFunding.Services.Datasets
         private async Task<PublishedSpecificationConfiguration> CreatePublishedSpecificationConfiguration(string targetSpecificationId,
             PublishedSpecificationConfiguration originalPublishedSpecificationConfiguration)
         {
-            List<PublishedSpecificationItem> GetFundingLines(TemplateMetadataDistinctContents metadata, string templateId)
+            async Task<List<PublishedSpecificationItem>> GetFundingLines(TemplateMetadataDistinctContents metadata, string templateId)
             {
                 List<PublishedSpecificationItem> fundingLines = new List<PublishedSpecificationItem>();
                 IEnumerable<PublishedSpecificationItem> currentFundingLines = originalPublishedSpecificationConfiguration.FundingLines;
@@ -1007,7 +1018,7 @@ namespace CalculateFunding.Services.Datasets
                     PublishedSpecificationItem currentFundingLine = currentFundingLines.FirstOrDefault(x => x.TemplateId == fundingLine.TemplateLineId);
                     if (currentFundingLine != null)
                     {
-                        fundingLines.Add(new PublishedSpecificationItem()
+                        fundingLines.Add(new PublishedSpecificationItem
                         {
                             TemplateId = currentFundingLine.TemplateId,
                             Name = currentFundingLine.Name,
@@ -1017,7 +1028,7 @@ namespace CalculateFunding.Services.Datasets
                     }
                     else
                     {
-                        fundingLines.Add(new PublishedSpecificationItem()
+                        fundingLines.Add(new PublishedSpecificationItem
                         {
                             TemplateId = fundingLine.TemplateLineId,
                             Name = fundingLine.Name,
@@ -1029,7 +1040,7 @@ namespace CalculateFunding.Services.Datasets
                 IEnumerable<PublishedSpecificationItem> obsoleteFundingLines = currentFundingLines.Where(fl => !metadata.FundingLines.Any(m => m.TemplateLineId == fl.TemplateId));
                 foreach (PublishedSpecificationItem obsoleteFundingLine in obsoleteFundingLines)
                 {
-                    fundingLines.Add(new PublishedSpecificationItem()
+                    fundingLines.Add(new PublishedSpecificationItem
                     {
                         TemplateId = obsoleteFundingLine.TemplateId,
                         Name = obsoleteFundingLine.Name,
@@ -1039,10 +1050,30 @@ namespace CalculateFunding.Services.Datasets
                     });
                 }
 
+                IEnumerable<string> fundingLineIds = fundingLines.Select(_ => $"{originalPublishedSpecificationConfiguration.SpecificationId}-{originalPublishedSpecificationConfiguration.FundingStreamId}_{_.TemplateId}");
+                ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<FundingLine>>> fundingLineGraphApiResponse =
+                    await _graphApiClientPolicy.ExecuteAsync(() => _graphApiClient.GetAllEntitiesRelatedToFundingLines(fundingLineIds.ToArray()));
+
+                if (!fundingLineGraphApiResponse.StatusCode.IsSuccess() || fundingLineGraphApiResponse.Content == null)
+                {
+                    _logger.Error($"Failed to retrieve entities for Funding line ids={fundingLineIds.AsJson()}");
+                    return fundingLines;
+                }
+
+                IEnumerable<Common.ApiClient.Graph.Models.Entity<FundingLine>> graphFundingLines = fundingLineGraphApiResponse.Content;
+                IEnumerable<Common.ApiClient.Graph.Models.Entity<FundingLine>> graphFundingLinesWithCalculationRelationship =
+                    graphFundingLines.Where(_ =>
+                        _.Relationships != null &&
+                        _.Relationships.Any(r => r.Type.ToLowerInvariant() == FundingLineCalculationRelationship.FromIdField.ToLowerInvariant()) &&
+                        _.Relationships.Any(r => ((object)r.One).AsJson().AsPoco<Calculation>()?.SpecificationId == targetSpecificationId));
+
+                IEnumerable<string> releasedDataSourceFundingLineTemplateIds = graphFundingLinesWithCalculationRelationship.Select(g => g.Node.FundingLineId.Split('_')[1]);
+                fundingLines.Where(fl => releasedDataSourceFundingLineTemplateIds.Contains(fl.TemplateId.ToString())).ForEach(c => c.IsUsedInCalculation = true);
+
                 return fundingLines;
             }
 
-            List<PublishedSpecificationItem> GetCalculations(TemplateMetadataDistinctContents metadata, string templateId)
+            async Task<List<PublishedSpecificationItem>> GetCalculations(TemplateMetadataDistinctContents metadata, string templateId, TemplateMapping templateMapping)
             {
                 List<PublishedSpecificationItem> calculations = new List<PublishedSpecificationItem>();
                 IEnumerable<PublishedSpecificationItem> currentCalculations = originalPublishedSpecificationConfiguration.Calculations;
@@ -1052,7 +1083,7 @@ namespace CalculateFunding.Services.Datasets
                     PublishedSpecificationItem currentCalculation = currentCalculations.FirstOrDefault(x => x.TemplateId == calculation.TemplateCalculationId);
                     if (currentCalculation != null)
                     {
-                        calculations.Add(new PublishedSpecificationItem()
+                        calculations.Add(new PublishedSpecificationItem
                         {
                             TemplateId = currentCalculation.TemplateId,
                             Name = currentCalculation.Name,
@@ -1062,7 +1093,7 @@ namespace CalculateFunding.Services.Datasets
                     }
                     else
                     {
-                        calculations.Add(new PublishedSpecificationItem()
+                        calculations.Add(new PublishedSpecificationItem
                         {
                             TemplateId = calculation.TemplateCalculationId,
                             Name = calculation.Name,
@@ -1074,7 +1105,7 @@ namespace CalculateFunding.Services.Datasets
                 IEnumerable<PublishedSpecificationItem> obsoleteCalculations = currentCalculations.Where(fl => !metadata.Calculations.Any(m => m.TemplateCalculationId == fl.TemplateId));
                 foreach (PublishedSpecificationItem obsoleteCalculation in obsoleteCalculations)
                 {
-                    calculations.Add(new PublishedSpecificationItem()
+                    calculations.Add(new PublishedSpecificationItem
                     {
                         TemplateId = obsoleteCalculation.TemplateId,
                         Name = obsoleteCalculation.Name,
@@ -1083,6 +1114,27 @@ namespace CalculateFunding.Services.Datasets
                         IsObsolete = true
                     });
                 }
+
+                calculations.ForEach(c => c.CalculationId = templateMapping.TemplateMappingItems.SingleOrDefault(tm => tm.TemplateId == c.TemplateId)?.CalculationId);
+                string[] calculationIds = calculations.Select(_ => _.CalculationId).Where(_ => _ != null).ToArray();
+
+                ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>>> calculationGraphApiResponse =
+                    await _graphApiClientPolicy.ExecuteAsync(() => _graphApiClient.GetAllEntitiesRelatedToCalculations(calculationIds));
+
+                if (!calculationGraphApiResponse.StatusCode.IsSuccess() || calculationGraphApiResponse.Content == null)
+                {
+                    _logger.Error($"Failed to retrieve GetAllEntitiesRelatedToCalculations Graph for CalculationIds={calculationIds.AsJson()}");
+                    return calculations;
+                }
+
+                IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>> graphCalculations = calculationGraphApiResponse.Content;
+                IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>> graphCalculationsWithCalculationRelationship =
+                    graphCalculations.Where(_ => 
+                        _.Relationships != null && 
+                        _.Relationships.Any(r => r.Type == CalculationRelationship.ToIdField.ToLowerInvariant() || r.Type == CalculationRelationship.FromIdField.ToLowerInvariant()));
+
+                IEnumerable<string> releasedDataSourceCalculationIds = graphCalculationsWithCalculationRelationship.Select(g => g.Node.CalculationId);
+                calculations.Where(c => releasedDataSourceCalculationIds.Contains(c.CalculationId)).ForEach(c => c.IsUsedInCalculation = true);
 
                 return calculations;
             }
@@ -1093,7 +1145,7 @@ namespace CalculateFunding.Services.Datasets
         private async Task<PublishedSpecificationConfiguration> CreatePublishedSpecificationConfiguration(string targetSpecificationId,
             IEnumerable<uint> fundingLineIds, IEnumerable<uint> calculationIds)
         {
-            List<PublishedSpecificationItem> GetFundingLines(TemplateMetadataDistinctContents metadata, string templateId)
+            async Task<List<PublishedSpecificationItem>> GetFundingLines(TemplateMetadataDistinctContents metadata, string templateId)
             {
                 List<PublishedSpecificationItem> fundingLines = new List<PublishedSpecificationItem>();
 
@@ -1124,7 +1176,7 @@ namespace CalculateFunding.Services.Datasets
                 return fundingLines;
             }
 
-            List<PublishedSpecificationItem> GetCalculations(TemplateMetadataDistinctContents metadata, string templateId)
+            async Task<List<PublishedSpecificationItem>> GetCalculations(TemplateMetadataDistinctContents metadata, string templateId, TemplateMapping templateMapping)
             {
                 List<PublishedSpecificationItem> calculations = new List<PublishedSpecificationItem>();
 
@@ -1160,8 +1212,8 @@ namespace CalculateFunding.Services.Datasets
         }
 
         private async Task<PublishedSpecificationConfiguration> BuildPublishedSpecificationConfiguration(string specificationId,
-            Func<TemplateMetadataDistinctContents, string, List<PublishedSpecificationItem>> GetFundingLines,
-            Func<TemplateMetadataDistinctContents, string, List<PublishedSpecificationItem>> GetCalculations)
+            Func<TemplateMetadataDistinctContents, string, Task<List<PublishedSpecificationItem>>> GetFundingLines,
+            Func<TemplateMetadataDistinctContents, string, TemplateMapping, Task<List<PublishedSpecificationItem>>> GetCalculations)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -1197,13 +1249,15 @@ namespace CalculateFunding.Services.Datasets
 
             TemplateMetadataDistinctContents metadata = metadataResponse.Content;
 
+            TemplateMapping templateMapping = await _calcsRepository.GetTemplateMapping(specificationId, fundingStreamId);
+
             return new PublishedSpecificationConfiguration()
             {
                 SpecificationId = specificationId,
                 FundingStreamId = fundingStreamId,
                 FundingPeriodId = fundingPeriodId,
-                FundingLines = GetFundingLines(metadata, templateId),
-                Calculations = GetCalculations(metadata, templateId)
+                FundingLines = await GetFundingLines(metadata, templateId),
+                Calculations = await GetCalculations(metadata, templateId, templateMapping)
             };
         }
 

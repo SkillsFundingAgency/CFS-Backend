@@ -37,6 +37,50 @@ namespace CalculateFunding.Services.Compiler.Analysis
             });
         }
 
+        public IEnumerable<CalculationRelationship> DetermineRelationshipsBetweenReleasedDataCalculations(
+            Func<string, string> GetSourceCodeName,
+            IEnumerable<Calculation> sourceCalculations,
+            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries,
+            IEnumerable<TemplateMapping> templateMappings)
+        {
+            Guard.IsNotEmpty(sourceCalculations, nameof(sourceCalculations));
+
+            string calculationPrefix = CodeGenerationDatasetTypeConstants.CalculationPrefix;
+
+            Dictionary<string, string> calculationIdsBySourceCodeName = new Dictionary<string, string>();
+
+            foreach (DatasetRelationshipSummary datasetRelationshipSummary in datasetRelationshipSummaries)
+            {
+                if(datasetRelationshipSummary.PublishedSpecificationConfiguration == null)
+                {
+                    continue;
+                }
+
+                datasetRelationshipSummary.PublishedSpecificationConfiguration.Calculations
+                    .ToDictionary(_ => 
+                        $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.TargetSpecificationName)}.{calculationPrefix}_{_.TemplateId}_{_.SourceCodeName}", 
+                        _ => templateMappings
+                            .SingleOrDefault(tm => tm.SpecificationId == datasetRelationshipSummary.PublishedSpecificationConfiguration.SpecificationId)
+                            .TemplateMappingItems
+                            .SingleOrDefault(tmi => tmi.TemplateId == _.TemplateId)
+                            .CalculationId)
+                    .ForEach(_ => calculationIdsBySourceCodeName.Add(_.Key, _.Value));
+            }
+
+            return sourceCalculations.SelectMany(_ =>
+            {
+                IEnumerable<string> relatedCalculationNames = SourceCodeHelpers.GetReferencedReleasedDataCalculations(calculationIdsBySourceCodeName.Keys, _.Current.SourceCode);
+
+                return relatedCalculationNames.Select(rel => new CalculationRelationship
+                {
+                    CalculationOneId = _.Id,
+                    CalculationTwoId = calculationIdsBySourceCodeName.TryGetValue(rel, out string twoId) ?
+                        twoId :
+                        throw new InvalidOperationException($"Could not locate a calculation id for sourceCodeName {rel}")
+                });
+            }).ToList();
+        }
+
         public IEnumerable<CalculationEnumRelationship> DetermineRelationshipsBetweenCalculationsAndEnums(IEnumerable<Calculation> calculations)
         {
             Guard.IsNotEmpty(calculations, nameof(calculations));
@@ -76,11 +120,14 @@ namespace CalculateFunding.Services.Compiler.Analysis
             return calculationEnumRelationships;
         }
 
-        public IEnumerable<FundingLineCalculationRelationship> DetermineRelationshipsBetweenFundingLinesAndCalculations(Func<string, string> GetSourceCodeName, IEnumerable<Calculation> calculations, IDictionary<string, Funding> fundingLines)
+        public IEnumerable<FundingLineCalculationRelationship> DetermineRelationshipsBetweenFundingLinesAndCalculations(
+            Func<string, string> GetSourceCodeName, 
+            IEnumerable<Calculation> calculations, 
+            IDictionary<string, Funding> fundingLines)
         {
             Guard.IsNotEmpty(fundingLines, nameof(fundingLines));
 
-            IEnumerable<FundingLineCalculationRelationship> relationships = new FundingLineCalculationRelationship[0];
+            IEnumerable<FundingLineCalculationRelationship> relationships = Array.Empty<FundingLineCalculationRelationship>();
 
             foreach (Funding funding in fundingLines.Values)
             {
@@ -105,6 +152,52 @@ namespace CalculateFunding.Services.Compiler.Analysis
             }
 
             return relationships.ToList();
+        }
+
+        public IEnumerable<FundingLineCalculationRelationship> DetermineRelationshipsBetweenReleasedDataFundingLinesAndCalculations(
+            Func<string, string> GetSourceCodeName, 
+            IEnumerable<Calculation> sourceCalculations,
+            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries)
+        {
+            string fundingLinePrefix = CodeGenerationDatasetTypeConstants.FundingLinePrefix;
+
+            IEnumerable<FundingLineCalculationRelationship> relationships = Array.Empty<FundingLineCalculationRelationship>();
+            List<FundingLineReleasedDataRelationshipSummary> fundingLineRelationshipSummaries = new List<FundingLineReleasedDataRelationshipSummary>();
+
+            foreach (DatasetRelationshipSummary datasetRelationshipSummary in datasetRelationshipSummaries)
+            {
+                if (datasetRelationshipSummary.PublishedSpecificationConfiguration == null)
+                {
+                    continue;
+                }
+
+                datasetRelationshipSummary.PublishedSpecificationConfiguration.FundingLines
+                    .ForEach(_ => fundingLineRelationshipSummaries.Add(new FundingLineReleasedDataRelationshipSummary
+                    {
+                        FundingLineReferenceSourceCode = $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.TargetSpecificationName)}.{fundingLinePrefix}_{_.TemplateId}_{_.SourceCodeName}",
+                        FundingLineGraphId = $"{datasetRelationshipSummary.PublishedSpecificationConfiguration.FundingStreamId}_{_.TemplateId}",
+                        FundingLineTargetSpecificationId = datasetRelationshipSummary.PublishedSpecificationConfiguration.SpecificationId,
+                        FundingLineName = _.Name
+                    }));
+            }
+
+            return sourceCalculations.SelectMany(_ =>
+            {
+                IEnumerable<string> relatedCalculationNames = SourceCodeHelpers.GetReferencedReleasedDataCalculations(
+                    fundingLineRelationshipSummaries.Select(s => s.FundingLineReferenceSourceCode),
+                    _.Current.SourceCode);
+
+                return relatedCalculationNames.Select(rel => new FundingLineCalculationRelationship
+                {
+                    CalculationOneId = _.Id,
+                    FundingLine = new GraphFundingLine { 
+                        SpecificationId = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineTargetSpecificationId,
+                        FundingLineId = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineGraphId,
+                        FundingLineName = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineName
+                    },
+                    CalculationTwoId = null
+                });
+            }).ToList();
         }
     }
 }

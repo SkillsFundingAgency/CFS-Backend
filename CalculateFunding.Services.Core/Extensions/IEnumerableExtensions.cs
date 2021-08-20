@@ -76,7 +76,7 @@ namespace System.Linq
 
         public static IEnumerable<T> Flatten<T>(this IEnumerable<T> enumerable, Func<T, IEnumerable<T>> func)
         {
-            enumerable ??= new T[0];
+            enumerable ??= Array.Empty<T>();
             
             return enumerable.SelectMany(c => func(c).Flatten(func)).Concat(enumerable);
         }

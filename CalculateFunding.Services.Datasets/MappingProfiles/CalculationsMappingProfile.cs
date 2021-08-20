@@ -3,7 +3,6 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Datasets.ViewModels;
 
 namespace CalculateFunding.Services.Datasets.MappingProfiles
 {
@@ -33,6 +32,8 @@ namespace CalculateFunding.Services.Datasets.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.Build, Build>();
             CreateMap<Common.ApiClient.Calcs.Models.BuildProject, BuildProject>();
             CreateMap<Common.ApiClient.Calcs.Models.Job, Job>();
+            CreateMap<Common.ApiClient.Calcs.Models.TemplateMapping, TemplateMapping>();
+            CreateMap<Common.ApiClient.Calcs.Models.TemplateMappingItem, TemplateMappingItem>();
         }
     }
 }

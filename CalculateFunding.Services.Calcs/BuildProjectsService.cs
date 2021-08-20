@@ -880,7 +880,10 @@ namespace CalculateFunding.Services.Calcs
 
                 foreach (DatasetSpecificationRelationshipViewModel datasetRelationshipModel in datasetRelationshipModels)
                 {
-                    buildproject.DatasetRelationships.Add(new DatasetRelationshipSummary
+                    SpecificationSummary specificationSummary = datasetRelationshipModel.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ?
+                            (await GetSpecificationSummary(datasetRelationshipModel.PublishedSpecificationConfiguration.SpecificationId)) : null;
+
+                    DatasetRelationshipSummary datasetRelationshipSummary = new DatasetRelationshipSummary
                     {
                         DatasetDefinitionId = datasetRelationshipModel.Definition?.Id,
                         DatasetId = datasetRelationshipModel.DatasetId,
@@ -891,11 +894,16 @@ namespace CalculateFunding.Services.Calcs
                         Name = datasetRelationshipModel.Name,
                         DatasetDefinition = datasetDefinitions.FirstOrDefault(m => m.Id == datasetRelationshipModel.Definition?.Id),
                         RelationshipType = datasetRelationshipModel.RelationshipType,
-                        TargetSpecificationName = datasetRelationshipModel.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ? 
-                            (await GetSpecificationSummary(datasetRelationshipModel.PublishedSpecificationConfiguration.SpecificationId)).Name : 
+                        TargetSpecificationName = datasetRelationshipModel.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ?
+                            specificationSummary.Name :
+                            string.Empty,
+                        TargetSpecificationFundingStreamId = datasetRelationshipModel.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ?
+                            specificationSummary.FundingStreams.FirstOrDefault().Id :
                             string.Empty,
                         PublishedSpecificationConfiguration = datasetRelationshipModel.PublishedSpecificationConfiguration
-                    });
+                    };
+
+                    buildproject.DatasetRelationships.Add(datasetRelationshipSummary);
                 }
             }
 
