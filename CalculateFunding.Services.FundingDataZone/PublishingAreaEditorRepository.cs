@@ -275,6 +275,36 @@ namespace CalculateFunding.Services.FundingDataZone
 	WHERE
 		p.[ProviderSnapshotId] = @providerSnapShot
 
+	INSERT INTO Predecessors
+	(
+		[ProviderId],
+		[UKPRN]
+	)
+	SELECT
+		Provider.[Id],
+		pr.[UKPRN]
+	FROM 
+		Provider
+	INNER JOIN Provider p ON Provider.Ukprn = p.Ukprn
+	INNER JOIN Predecessors pr ON p.Id = pr.ProviderId 
+	WHERE 
+		p.ProviderSnapShotId=@providerSnapShot AND Provider.ProviderSnapShotId=@cloneProviderSnapshot
+
+	INSERT INTO Successors
+	(
+		[ProviderId],
+		[UKPRN]
+	)
+	SELECT
+		Provider.[Id],
+		sr.[UKPRN]
+	FROM 
+		Provider
+	INNER JOIN Provider p ON Provider.Ukprn = p.Ukprn
+	INNER JOIN Successors sr ON p.Id = sr.ProviderId 
+	WHERE 
+		p.ProviderSnapShotId=@providerSnapShot AND Provider.ProviderSnapShotId=@cloneProviderSnapshot
+
 	IF @@ERROR <> 0
 	BEGIN
 		-- Rollback the transaction
