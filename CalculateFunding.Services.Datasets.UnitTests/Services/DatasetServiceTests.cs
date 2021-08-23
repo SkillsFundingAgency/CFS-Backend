@@ -1247,6 +1247,89 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task UploadRawDatasetFile_GivenNewFile_ReturnsOkResult()
+        {
+            const string authorId = "authId";
+            const string authorName = "Change Author";
+            const string datasetId = "ds1";
+            const string datasetName = "ds1";
+            const string dataDefinitionId = "dd1";
+            const string filename = "file.xls";
+            const string fundingStreamId = "DSG";
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(filename);
+
+            DatasetMetadataViewModelRaw datasetMetadataViewModelRaw = new DatasetMetadataViewModelRaw
+            {
+                AuthorId = authorId,
+                AuthorName = authorName,
+                DataDefinitionId = dataDefinitionId,
+                DatasetId = datasetId,
+                Name = datasetName,
+                Stream = byteArray,
+                FundingStreamId = fundingStreamId,
+                ConverterEligible = true
+            };
+
+            IBlobClient blobClient = CreateBlobClient();
+
+            ICloudBlob cloudBlob = CreateBlob();
+
+            DatasetService datasetService = CreateDatasetService(blobClient: blobClient);
+
+            blobClient.GetBlockBlobReference($"{datasetMetadataViewModelRaw.DatasetId}/v1/file.uploaded.xls")
+                .Returns(cloudBlob);
+
+            // Act
+            IActionResult result = await datasetService.UploadDatasetFileRaw(filename, datasetMetadataViewModelRaw);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            await cloudBlob
+                .Received()
+                .UploadFromStreamAsync(Arg.Any<Stream>());
+
+            cloudBlob.Metadata["dataDefinitionId"]
+                .Should()
+                .Be(datasetMetadataViewModelRaw.DataDefinitionId);
+
+            cloudBlob.Metadata["datasetId"]
+                .Should()
+                .Be(datasetMetadataViewModelRaw.DatasetId);
+
+            cloudBlob.Metadata["authorId"]
+                .Should()
+                .Be(datasetMetadataViewModelRaw.AuthorId);
+
+            cloudBlob.Metadata["authorName"]
+                .Should()
+                .Be(datasetMetadataViewModelRaw.AuthorName);
+
+            cloudBlob.Metadata["name"]
+                .Should()
+                .Be(datasetMetadataViewModelRaw.Name);
+
+            cloudBlob.Metadata["description"]
+                .Should()
+                .Be(datasetMetadataViewModelRaw.Description);
+
+            cloudBlob.Metadata["fundingStreamId"]
+                .Should()
+                .Be(datasetMetadataViewModelRaw.FundingStreamId);
+
+            cloudBlob.Metadata["converterWizard"]
+                .Should()
+                .Be(datasetMetadataViewModelRaw.ConverterEligible.ToString());
+
+            cloudBlob
+                .Received()
+                .SetMetadata();
+        }
+
+        [TestMethod]
         public async Task UploadDatasetFile_GivenNewFile_ReturnsOkResult()
         {
             const string authorId = "authId";

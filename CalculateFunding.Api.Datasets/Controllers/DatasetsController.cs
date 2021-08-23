@@ -287,6 +287,14 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return await _datasetService.UploadDatasetFile(filename, datasetMetadataViewModel);
         }
 
+        [HttpPost("api/datasets/upload-raw-dataset-file/{filename}")]
+        [DisableRequestSizeLimit]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UploadRawDatasetFile([FromRoute] string filename, [FromBody] DatasetMetadataViewModelRaw datasetMetadataViewModelRaw)
+        {
+            return await _datasetService.UploadDatasetFileRaw(filename, datasetMetadataViewModelRaw);
+        }
+
         [Route("api/datasets/reindex")]
         [HttpGet]
         [Produces(typeof(string))]

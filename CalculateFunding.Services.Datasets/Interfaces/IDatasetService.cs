@@ -31,6 +31,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         
         Task<IActionResult> DownloadOriginalDatasetUploadFile(string datasetId, string datasetVersion);
 
+        Task<IActionResult> UploadDatasetFileRaw(string filename, DatasetMetadataViewModelRaw model);
+
         Task<IActionResult> UploadDatasetFile(string filename, DatasetMetadataViewModel model);
 
         Task<IActionResult> Reindex();
