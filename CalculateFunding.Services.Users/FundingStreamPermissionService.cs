@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -38,7 +39,7 @@ namespace CalculateFunding.Services.Users
         private readonly Polly.AsyncPolicy _fundingStreamPermissionVersionRepositoryPolicy;
         private readonly Polly.AsyncPolicy _cacheProviderPolicy;
         private readonly IUsersCsvGenerator _usersCsvGenerator;
-
+        private readonly IEnvironmentProvider _environmentProvider;
         public FundingStreamPermissionService(
             IUserRepository userRepository,
             ISpecificationsApiClient specificationsApiClient,
@@ -47,7 +48,8 @@ namespace CalculateFunding.Services.Users
             IMapper mapper,
             ILogger logger,
             IUsersResiliencePolicies policies,
-            IUsersCsvGenerator usersCsvGenerator)
+            IUsersCsvGenerator usersCsvGenerator,
+            IEnvironmentProvider environmentProvider)
         {
             Guard.ArgumentNotNull(userRepository, nameof(userRepository));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -60,6 +62,7 @@ namespace CalculateFunding.Services.Users
             Guard.ArgumentNotNull(policies?.FundingStreamPermissionVersionRepositoryPolicy, nameof(policies.FundingStreamPermissionVersionRepositoryPolicy));
             Guard.ArgumentNotNull(policies?.CacheProviderPolicy, nameof(policies.CacheProviderPolicy));
             Guard.ArgumentNotNull(usersCsvGenerator, nameof(usersCsvGenerator));
+            Guard.ArgumentNotNull(environmentProvider, nameof(environmentProvider));
 
             _userRepository = userRepository;
             _specificationsApiClient = specificationsApiClient;
@@ -68,6 +71,7 @@ namespace CalculateFunding.Services.Users
             _mapper = mapper;
             _logger = logger;
             _usersCsvGenerator = usersCsvGenerator;
+            _environmentProvider = environmentProvider;
 
             _userRepositoryPolicy = policies.UserRepositoryPolicy;
             _specificationsApiClientPolicy = policies.SpecificationApiClient;
@@ -326,12 +330,26 @@ namespace CalculateFunding.Services.Users
             {
                 FundingStreamId = fundingStreamId,
                 ReportRunTime = DateTime.UtcNow,
-                Environment = "DEV"
+                Environment = GetEnvironmentReportName()
             };
 
             FundingStreamPermissionCurrentDownloadModel downloadModel = await _usersCsvGenerator.Generate(message);
 
             return new OkObjectResult(downloadModel);
+        }
+
+        private string GetEnvironmentReportName()
+        {
+            return _environmentProvider.GetEnvironment() switch
+            {
+                Core.Helpers.CFSEnvironment.Dev => "DEV",
+                Core.Helpers.CFSEnvironment.Test => "TEST",
+                Core.Helpers.CFSEnvironment.Integration => "INTEGRATION",
+                Core.Helpers.CFSEnvironment.Sandbox => "SANDBOX",
+                Core.Helpers.CFSEnvironment.Preproduction => "PREPROD",
+                Core.Helpers.CFSEnvironment.Production => "PROD",
+                _ => "DEV",
+            };
         }
 
         public async Task<IActionResult> GetAdminUsersForFundingStream(string fundingStreamId)

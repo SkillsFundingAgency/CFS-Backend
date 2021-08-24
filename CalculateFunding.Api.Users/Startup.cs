@@ -128,10 +128,13 @@ namespace CalculateFunding.Api.Users
             builder
              .AddSingleton<ISearchRepository<UserIndex>, SearchRepository<UserIndex>>();
 
+
             builder
                 .AddSingleton<ICsvUtils, CsvUtils>()
                 .AddSingleton<IFileSystemAccess, FileSystemAccess>()
                 .AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
+
+            builder.AddCFSEnvironmentProvider();
 
             builder.AddSingleton<IBlobClient>(ctx =>
             {

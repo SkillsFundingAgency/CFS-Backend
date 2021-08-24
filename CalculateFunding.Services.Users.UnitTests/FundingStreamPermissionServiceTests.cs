@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Services.Core.Interfaces.Helpers;
 
 namespace CalculateFunding.Services.Users
 {
@@ -26,7 +27,8 @@ namespace CalculateFunding.Services.Users
             IMapper mapper = null,
             ILogger logger = null,
             IUsersResiliencePolicies policies = null,
-            IUsersCsvGenerator usersCsvGenerator = null)
+            IUsersCsvGenerator usersCsvGenerator = null,
+            IEnvironmentProvider environmentProvider = null)
         {
             return new FundingStreamPermissionService(
                 userRepository ?? CreateUserRepository(),
@@ -36,7 +38,13 @@ namespace CalculateFunding.Services.Users
                 mapper ?? CreateMappingConfiguration(),
                 logger ?? CreateLogger(),
                 policies ?? CreatePoliciesNoOp(),
-                usersCsvGenerator ?? CreateUsersCsvGenerator());
+                usersCsvGenerator ?? CreateUsersCsvGenerator(),
+                environmentProvider ?? CreateEnvironmentProvider());
+        }
+
+        public IEnvironmentProvider CreateEnvironmentProvider()
+        {
+            return Substitute.For<IEnvironmentProvider>();
         }
 
         public IUserRepository CreateUserRepository()

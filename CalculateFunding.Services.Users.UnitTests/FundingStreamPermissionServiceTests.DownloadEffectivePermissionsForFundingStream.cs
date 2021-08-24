@@ -1,4 +1,6 @@
 ﻿using CalculateFunding.Models.Users;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Users.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -44,10 +46,17 @@ namespace CalculateFunding.Services.Users
             };
 
             usersCsvGenerator
-                .Generate(Arg.Is<UserPermissionCsvGenerationMessage>(_ => _.FundingStreamId == FundingStreamId))
+                .Generate(Arg.Is<UserPermissionCsvGenerationMessage>(_ => _.FundingStreamId == FundingStreamId && _.Environment == "TEST"))
                 .Returns(downloadModel);
 
-            FundingStreamPermissionService service = CreateService(usersCsvGenerator: usersCsvGenerator);
+            IEnvironmentProvider environmentProvider = CreateEnvironmentProvider();
+            environmentProvider
+                .GetEnvironment()
+                .Returns(CFSEnvironment.Test);
+
+            FundingStreamPermissionService service = CreateService(
+                usersCsvGenerator: usersCsvGenerator,
+                environmentProvider: environmentProvider);
 
             // Act
             IActionResult result = await service.DownloadEffectivePermissionsForFundingStream(FundingStreamId);

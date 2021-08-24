@@ -73,6 +73,8 @@ namespace CalculateFunding.Functions.Users
                .AddSingleton<IFundingStreamPermissionService, FundingStreamPermissionService>()
                .AddSingleton<IHealthChecker, FundingStreamPermissionService>();
 
+            builder.AddCFSEnvironmentProvider();
+
             builder
               .AddSingleton<IUserIndexingService, UserIndexingService>();
 

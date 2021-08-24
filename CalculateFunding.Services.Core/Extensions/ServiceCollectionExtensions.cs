@@ -10,6 +10,8 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AppConfiguration;
 using CalculateFunding.Services.Core.FeatureToggles;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.ApplicationInsights;
@@ -313,6 +315,16 @@ namespace CalculateFunding.Services.Core.Extensions
             {
                 builder.AddScoped<IConfigurationRefresherProvider, LocalAppConfigurationRefreshProvider>();
             }
+        }
+
+        public static void AddCFSEnvironmentProvider(this IServiceCollection builder)
+        {
+            string CFSEnvironment = Environment.GetEnvironmentVariable("CFS_ENVIRONMENT");
+
+            builder.AddSingleton<IEnvironmentProvider>(ctx =>
+            {
+                return new EnvironmentProvider(CFSEnvironment);
+            });
         }
     }
 }
