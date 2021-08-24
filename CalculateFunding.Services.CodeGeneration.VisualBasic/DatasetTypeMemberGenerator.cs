@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
@@ -21,7 +22,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
-        public IEnumerable<StatementSyntax> GetMembers(DatasetRelationshipSummary dataset)
+        public IEnumerable<StatementSyntax> GetMembers(DatasetRelationshipSummary dataset,
+            IEnumerable<ObsoleteItem> obsoleteItems)
         {
             DatasetDefinition datasetDefinition = dataset.DatasetDefinition;
             DatasetRelationshipType relationshipType = dataset.RelationshipType;
@@ -43,7 +45,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             if (relationshipType == DatasetRelationshipType.Uploaded)
             {
-                foreach (StatementSyntax member in datasetDefinition.TableDefinitions.First().FieldDefinitions.Select(GetMember))
+                foreach (StatementSyntax member in datasetDefinition.TableDefinitions.First().FieldDefinitions.Select(_ => GetMember(_)))
                 {
                     members.Add(member);
                 }
@@ -73,7 +75,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                         Description = item.Name,
                         Type = item.FieldType,
                         IsAggregable = false
-                    }));
+                    },
+                    item.IsObsolete || obsoleteItems.AnyWithNullCheck(_ => _.DatasetFieldId == item.TemplateId.ToString() && _.ItemType == ObsoleteItemType.DatasetField)));
                 }
 
                 foreach (PublishedSpecificationItem item in publishedSpecificationConfiguration.FundingLines)
@@ -85,7 +88,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                         Description = item.Name,
                         Type = item.FieldType,
                         IsAggregable = false
-                    }));
+                    },
+                    item.IsObsolete || obsoleteItems.AnyWithNullCheck(_ => _.DatasetFieldId == item.TemplateId.ToString() && _.ItemType == ObsoleteItemType.DatasetField)));
                 }
             }
 
@@ -124,12 +128,16 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 .FirstOrDefault();
         }
 
-        private StatementSyntax GetMember(FieldDefinition fieldDefinition)
+        private StatementSyntax GetMember(FieldDefinition fieldDefinition, bool isObsolete = false)
         {
             TypeSyntax propertyType = GetType(fieldDefinition.Type);
             StringBuilder builder = new StringBuilder();
             builder.AppendLine($"<Field(Id := \"{fieldDefinition.Id}\", Name := \"{fieldDefinition.Name}\")>");
-            builder.AppendLine($"<IsAggregable(IsAggregable := \"{fieldDefinition.IsAggregable.ToString()}\")>");
+            builder.AppendLine($"<IsAggregable(IsAggregable := \"{fieldDefinition.IsAggregable}\")>");
+            if (isObsolete)
+            { 
+                builder.AppendLine("<ObsoleteItem()>");
+            }
             builder.AppendLine($"<Description(Description := \"{fieldDefinition.Description?.Replace("\"", "\"\"")}\")>");
             builder.AppendLine($"Public Property {_typeIdentifierGenerator.GenerateIdentifier(fieldDefinition.Name)}() As {_typeIdentifierGenerator.GenerateIdentifier($"{propertyType}")}");
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
@@ -22,7 +23,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             _datasetTypeMemberGenerator = new DatasetTypeMemberGenerator(_typeIdentifierGenerator);
         }
 
-        public IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject)
+        public IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject,
+            IEnumerable<ObsoleteItem> obsoleteItems)
         {
             ClassBlockSyntax wrapperSyntaxTree = SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("Datasets")
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))));
@@ -47,7 +49,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                                         SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
                             new SyntaxList<InheritsStatementSyntax>(),
                             new SyntaxList<ImplementsStatementSyntax>(),
-                            SyntaxFactory.List(_datasetTypeMemberGenerator.GetMembers(dataset)),
+                            SyntaxFactory.List(_datasetTypeMemberGenerator.GetMembers(dataset, obsoleteItems)),
                             SyntaxFactory.EndClassStatement()
                         );
 

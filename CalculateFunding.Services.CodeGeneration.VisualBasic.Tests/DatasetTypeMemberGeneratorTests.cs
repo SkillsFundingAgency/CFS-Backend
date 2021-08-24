@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
@@ -43,7 +44,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
                 .Build();
 
             DatasetTypeMemberGenerator sut = new DatasetTypeMemberGenerator(typeIdentifierGenerator);
-            IEnumerable<StatementSyntax> result = sut.GetMembers(datasetRelationshipSummary);
+            IEnumerable<StatementSyntax> result = sut.GetMembers(datasetRelationshipSummary, null);
 
             IEnumerable<PropertyStatementSyntax> properties = result.OfType<PropertyStatementSyntax>();
             properties.Should().HaveCount(3);
@@ -81,6 +82,21 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
                         Name = "Funding Line 1",
                         SourceCodeName = "FL1",
                         FieldType = FieldType.String
+                    },
+                    new PublishedSpecificationItem
+                    {
+                        TemplateId = 3,
+                        Name = "Funding Line 2",
+                        SourceCodeName = "FL2",
+                        FieldType = FieldType.String,
+                        IsObsolete = true
+                    },
+                    new PublishedSpecificationItem
+                    {
+                        TemplateId = 4,
+                        Name = "Funding Line 3",
+                        SourceCodeName = "FL3",
+                        FieldType = FieldType.String
                     }
                 })
                 .WithPublishedSpecificationConfigurationCalculations(new List<PublishedSpecificationItem>
@@ -96,7 +112,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
                 .Build();
 
             DatasetTypeMemberGenerator sut = new DatasetTypeMemberGenerator(typeIdentifierGenerator);
-            IEnumerable<StatementSyntax> result = sut.GetMembers(datasetRelationshipSummary);
+            IEnumerable<StatementSyntax> result = sut.GetMembers(datasetRelationshipSummary, new[] { 
+                new ObsoleteItem
+                {
+                    DatasetFieldId = "4",
+                    ItemType = ObsoleteItemType.DatasetField
+                } 
+            });
 
             IEnumerable<FieldDeclarationSyntax> fields = result.OfType<FieldDeclarationSyntax>();
             fields.Should().HaveCount(2);
@@ -108,12 +130,24 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
                 .Should().Be(targetSpecificationName);
 
             IEnumerable<PropertyStatementSyntax> properties = result.OfType<PropertyStatementSyntax>();
-            properties.Should().HaveCount(4);
+            properties.Should().HaveCount(6);
 
             string fl1Property = properties.Where(s => s.Identifier.ValueText == $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_1_FundingLine1").First().ToFullString();
             fl1Property.Should().Contain($"Id := \"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_1\"");
             fl1Property.Should().Contain($"Public Property {CodeGenerationDatasetTypeConstants.FundingLinePrefix}_1_FundingLine1() As String");
             fl1Property.Should().Contain("IsAggregable := \"False\"");
+
+            string fl2Property = properties.Where(s => s.Identifier.ValueText == $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_3_FundingLine2").First().ToFullString();
+            fl2Property.Should().Contain($"Id := \"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_3\"");
+            fl2Property.Should().Contain("<ObsoleteItem()>");
+            fl2Property.Should().Contain($"Public Property {CodeGenerationDatasetTypeConstants.FundingLinePrefix}_3_FundingLine2() As String");
+            fl2Property.Should().Contain("IsAggregable := \"False\"");
+
+            string fl3Property = properties.Where(s => s.Identifier.ValueText == $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_4_FundingLine3").First().ToFullString();
+            fl3Property.Should().Contain($"Id := \"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_4\"");
+            fl3Property.Should().Contain("<ObsoleteItem()>");
+            fl3Property.Should().Contain($"Public Property {CodeGenerationDatasetTypeConstants.FundingLinePrefix}_4_FundingLine3() As String");
+            fl3Property.Should().Contain("IsAggregable := \"False\"");
 
             string calc2Property = properties.Where(s => s.Identifier.ValueText == $"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_2_Calculation2").First().ToFullString();
             calc2Property.Should().Contain($"Id := \"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_2\"");

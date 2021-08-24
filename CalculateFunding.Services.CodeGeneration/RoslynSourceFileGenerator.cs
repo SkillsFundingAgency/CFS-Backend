@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.CodeGeneration
             List<SourceFile> sourceFiles = new List<SourceFile>();
             sourceFiles.AddRange(GenerateStaticSourceFiles());
 
-            sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject));
+            sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject, obsoleteItems));
 
             sourceFiles.AddRange(GenerateCalculationSourceFiles(buildProject, calculations, compilerOptions, obsoleteItems));
 
@@ -43,7 +43,8 @@ namespace CalculateFunding.Services.CodeGeneration
             CompilerOptions compilerOptions,
             IEnumerable<ObsoleteItem> obsoleteItems);
 
-        protected abstract IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject);
+        protected abstract IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject,
+            IEnumerable<ObsoleteItem> obsoleteItems);
 
         protected IEnumerable<SourceFile> GenerateStaticSourceFiles()
         {

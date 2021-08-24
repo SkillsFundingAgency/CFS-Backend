@@ -34,10 +34,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return calculationTypeGenerator.GenerateCalcs(calculations, buildProject.FundingLines, obsoleteItems ?? ArraySegment<ObsoleteItem>.Empty);
         }
 
-        protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject)
+        protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject,
+            IEnumerable<ObsoleteItem> obsoleteItems)
         {
             DatasetTypeGenerator datasetTypeGenerator = new DatasetTypeGenerator();
-            return datasetTypeGenerator.GenerateDatasetSourceFiles(buildProject);
+            return datasetTypeGenerator.GenerateDatasetSourceFiles(buildProject, obsoleteItems);
         }
 
         public override string GetIdentifier(string name)
