@@ -145,7 +145,8 @@ namespace CalculateFunding.Services.Jobs.Repositories
                                     r.content.messageBody AS messageBody, 
                                     r.content.created AS created, 
                                     r.content.completed AS completed, 
-                                    r.content.outcome AS outcome, 
+                                    r.content.outcome AS outcome,
+                                    r.content.Outcomes AS outcomes,
                                     r.content.lastUpdated AS lastUpdated 
                             FROM    r 
                             WHERE   r.documentType = 'Job' 
@@ -199,7 +200,8 @@ namespace CalculateFunding.Services.Jobs.Repositories
                     Created = (DateTimeOffset)latestJob.created,
                     Completed = (DateTimeOffset?)latestJob.completed,
                     Outcome = latestJob.outcome,
-                    LastUpdated = (DateTimeOffset)latestJob.lastUpdated
+                    LastUpdated = (DateTimeOffset)latestJob.lastUpdated,
+                    Outcomes = latestJob.outcomes == null ? new List<Outcome>() : ((JArray)latestJob.outcomes).ToObject<List<Outcome>>(),
                 };
             }
 
