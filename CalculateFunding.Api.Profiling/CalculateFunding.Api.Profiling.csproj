@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.WebApi" Version="2.3.1" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.15.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.18" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="3.1.3" />
