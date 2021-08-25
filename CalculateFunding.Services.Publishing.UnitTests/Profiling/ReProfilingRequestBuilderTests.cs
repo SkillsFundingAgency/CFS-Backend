@@ -357,7 +357,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             string fundingPeriodId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string specificationId = NewRandomString();
-            string profilePattern = NewRandomString();
             decimal fundingLineTotal = NewRandomAmount();
             bool midYear = new RandomBoolean();
             ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
@@ -400,7 +399,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 fundingPeriodId,
                 providerId,
                 fundingLineCode,
-                profilePattern,
+                null,
                 profileConfigurationType,
                 fundingLineTotal,
                 midYear);
@@ -415,7 +414,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     FundingLineTotal = fundingLineTotal,
                     FundingPeriodId = fundingPeriodId,
                     FundingStreamId = fundingStreamId,
-                    ProfilePatternKey = profilePattern,
+                    ProfilePatternKey = null,
                     MidYear = midYear,
                     VariationPointerIndex = 0,
                     ExistingPeriods = new[]
@@ -485,7 +484,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                                         .WithTypeValue("April"))
                                     )
                         .WithFundingLineId(fundingLineCode)
-                        .WithNoPatternKey()));
+                        .WithProfilePatternKey(profilePattern)));
 
             ReProfileRequest reProfileRequest = await WhenTheReProfileRequestIsBuilt(specificationId,
                 fundingStreamId,

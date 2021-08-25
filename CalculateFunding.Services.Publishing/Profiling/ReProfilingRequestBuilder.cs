@@ -67,7 +67,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
             ProfilePeriod[] orderedProfilePeriodsForFundingLine = await GetOrderedProfilePeriodsForFundingLine(fundingStreamId,
                 fundingPeriodId,
                 providerId,
-                fundingLineCode);
+                fundingLineCode,
+                profilePatternKey);
 
             int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine, providerId);
 
@@ -93,7 +94,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
         private async Task<ProfilePeriod[]> GetOrderedProfilePeriodsForFundingLine(string fundingStreamId,
             string fundingPeriodId,
             string providerId,
-            string fundingLineCode)
+            string fundingLineCode,
+            string profilePatternKey)
         {
             PublishedProvider publishedProvider = await _publishedFundingResilience.ExecuteAsync(() => _publishedFunding.GetPublishedProvider(fundingStreamId,
                 fundingPeriodId,
@@ -123,8 +125,6 @@ namespace CalculateFunding.Services.Publishing.Profiling
             }
 
             IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = apiResponse.Content;
-
-            string profilePatternKey = publishedProvider?.Current?.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
 
             FundingStreamPeriodProfilePattern fundingStreamPeriodProfilePattern = profilePatterns?.SingleOrDefault(_ => _.FundingLineId == fundingLineCode && _.ProfilePatternKey == profilePatternKey);
 
