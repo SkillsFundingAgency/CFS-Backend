@@ -351,7 +351,7 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                 throw new Exception(message);
             }
 
-            foreach (ObsoleteItem obsoleteItem in obsoleteItemsResponse.Content)
+            foreach (ObsoleteItem obsoleteItem in obsoleteItemsResponse.Content.Where(_ => !_.IsReleasedData))
             {
                 Task<HttpStatusCode>[] tasks = obsoleteItem.CalculationIds.Select(_ => _calculationsPolicy.ExecuteAsync(() => _calculations.RemoveObsoleteItem(obsoleteItem.Id, _))).ToArraySafe();
 

@@ -26,6 +26,7 @@ using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Services.Datasets.UnitTests.Builders;
 using CalculateFunding.Services.Datasets.Excel;
+using CalculateFunding.Common.ApiClient.Graph;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -64,7 +65,8 @@ namespace CalculateFunding.Services.Datasets.Services
             ISpecificationsApiClient specificationsApiClient = null,
             IPolicyRepository policyRepository = null,
             IDatasetDataMergeService datasetDataMergeService = null,
-            IRelationshipDataExcelWriter relationshipDataExcelWriter = null)
+            IRelationshipDataExcelWriter relationshipDataExcelWriter = null,
+            IGraphApiClient graphApiClient = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -89,7 +91,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository ?? CreatePolicyRepository(),
                 calcsRepository ?? CreateCalcsRepository(),
                 datasetDataMergeService ?? CreateDatasetDataMergeService(),
-                relationshipDataExcelWriter ?? CreateRelationshipDataExcelWriter());
+                relationshipDataExcelWriter ?? CreateRelationshipDataExcelWriter(),
+                graphApiClient ?? CreateGraphClient());
         }
 
         protected IDatasetDataMergeService CreateDatasetDataMergeService()
@@ -101,7 +104,10 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return Substitute.For<IRelationshipDataExcelWriter>();
         }
-
+        protected IGraphApiClient CreateGraphClient()
+        {
+            return Substitute.For<IGraphApiClient>();
+        }
         protected IPolicyRepository CreatePolicyRepository()
         {
             return Substitute.For<IPolicyRepository>();

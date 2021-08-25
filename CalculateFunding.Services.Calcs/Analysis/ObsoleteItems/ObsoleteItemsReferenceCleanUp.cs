@@ -31,28 +31,28 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
             _noOccRetryResilience = resilience.CalculationsRepositoryNoOCCRetry;
         }
 
-        protected async Task UpdateObsoleteEnum(DocumentEntity<ObsoleteItem> obsoleteEnum)
+        protected async Task UpdateObsoleteItem(DocumentEntity<ObsoleteItem> obsoleteItem)
         {
-            if (obsoleteEnum.Content.IsEmpty)
+            if (obsoleteItem.Content.IsEmpty)
             {
-                await _noOccRetryResilience.ExecuteAsync(() => _calculations.DeleteObsoleteItem(obsoleteEnum.Id, obsoleteEnum.ETag));
+                await _noOccRetryResilience.ExecuteAsync(() => _calculations.DeleteObsoleteItem(obsoleteItem.Id, obsoleteItem.ETag));
             }
             else
             {
-                await _noOccRetryResilience.ExecuteAsync(() => _calculations.UpdateObsoleteItem(obsoleteEnum.Content, obsoleteEnum.ETag));
+                await _noOccRetryResilience.ExecuteAsync(() => _calculations.UpdateObsoleteItem(obsoleteItem.Content, obsoleteItem.ETag));
             }
         }
 
         protected IEnumerable<DocumentEntity<ObsoleteItem>> GetObsoleteDocumentsForCalculation(string calculationId)
             => _calculations.GetObsoleteItemDocumentsForCalculation(calculationId, _obsoleteItemType);
 
-        protected bool RemovedCalculationFromObsoleteEnum(ObsoleteItem obsoleteEnum,
+        protected bool RemovedCalculationFromObsoleteItem(ObsoleteItem obsoleteItem,
             string sourceCode,
             string calculationId)
         {
-            if (!sourceCode.Contains(obsoleteEnum.CodeReference, StringComparison.InvariantCultureIgnoreCase))
+            if (!sourceCode.Contains(obsoleteItem.CodeReference, StringComparison.InvariantCultureIgnoreCase))
             {
-                return obsoleteEnum.TryRemoveCalculationId(calculationId);
+                return obsoleteItem.TryRemoveCalculationId(calculationId);
             }
 
             return false;
@@ -70,13 +70,13 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
             string sourceCode = calculation.Current.SourceCode;
             string calculationId = calculation.Id;
 
-            IEnumerable<DocumentEntity<ObsoleteItem>> obsoleteEnumsInCalculation = GetObsoleteDocumentsForCalculation(calculationId);
+            IEnumerable<DocumentEntity<ObsoleteItem>> obsoleteItemsInCalculation = GetObsoleteDocumentsForCalculation(calculationId);
 
-            foreach (DocumentEntity<ObsoleteItem> document in obsoleteEnumsInCalculation)
+            foreach (DocumentEntity<ObsoleteItem> document in obsoleteItemsInCalculation)
             {
-                if (RemovedCalculationFromObsoleteEnum(document.Content, sourceCode, calculationId))
+                if (RemovedCalculationFromObsoleteItem(document.Content, sourceCode, calculationId))
                 {
-                    await UpdateObsoleteEnum(document);
+                    await UpdateObsoleteItem(document);
                 }
             }
         }

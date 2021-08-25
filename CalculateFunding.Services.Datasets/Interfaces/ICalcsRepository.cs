@@ -17,12 +17,14 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForSpecification(string specificationId);
 
+        Task<HttpStatusCode> RemoveObsoleteItem(string obsoleteItemId, string calculationId);
         Task<HttpStatusCode> CompileAndSaveAssembly(string specificationId);
 
         Task<Job> ReMapSpecificationReference(string specificationId, string datasetRelationshipId);
 
         Task<ObsoleteItem> CreateObsoleteItem(ObsoleteItem obsoleteItem);
 
+        Task<HttpStatusCode> AddCalculationToObsoleteItem(string obsoleteItemId, string calculationId);
         Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId);
     }
 }

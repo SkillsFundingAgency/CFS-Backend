@@ -82,6 +82,14 @@ namespace CalculateFunding.Services.Datasets
             return apiResponse.Content;
         }
 
+        public async Task<HttpStatusCode> RemoveObsoleteItem(string obsoleteItemId, string calculationId)
+        {
+            Guard.IsNullOrWhiteSpace(obsoleteItemId, nameof(obsoleteItemId));
+            Guard.IsNullOrWhiteSpace(calculationId, nameof(calculationId));
+
+            return await _apiClientPolicy.ExecuteAsync(() => _apiClient.RemoveObsoleteItem(obsoleteItemId, calculationId));
+        }
+
         public async Task<ObsoleteItem> CreateObsoleteItem(ObsoleteItem obsoleteItem)
         {
             Guard.ArgumentNotNull(obsoleteItem, nameof(obsoleteItem));
@@ -89,6 +97,14 @@ namespace CalculateFunding.Services.Datasets
             ApiResponse<ObsoleteItem> apiResponse = await _apiClientPolicy.ExecuteAsync(() => _apiClient.CreateObsoleteItem(obsoleteItem));
 
             return apiResponse.Content;
+        }
+
+        public async Task<HttpStatusCode> AddCalculationToObsoleteItem(string obsoleteItemId, string calculationId)
+        {
+            Guard.ArgumentNotNull(obsoleteItemId, nameof(obsoleteItemId));
+            Guard.ArgumentNotNull(calculationId, nameof(calculationId));
+
+            return await _apiClientPolicy.ExecuteAsync(() => _apiClient.AddCalculationToObsoleteItem(obsoleteItemId, calculationId));
         }
 
         public async Task<Job> ReMapSpecificationReference(string specificationId, string datasetRelationshipId)

@@ -81,6 +81,7 @@ namespace CalculateFunding.Functions.Calcs
             
             builder.AddSingleton<IObsoleteReferenceCleanUp, EnumReferenceCleanUp>();
             builder.AddSingleton<IObsoleteReferenceCleanUp, FundingLineReferenceCleanUp>();
+            builder.AddSingleton<IObsoleteReferenceCleanUp, DataFieldReferenceCleanUp>();
             builder.AddSingleton<IObsoleteItemCleanup, ObsoleteItemCleanup>();
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

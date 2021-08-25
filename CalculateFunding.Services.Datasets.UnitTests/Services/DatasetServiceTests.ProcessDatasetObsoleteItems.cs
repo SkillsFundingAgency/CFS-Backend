@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems;
+using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -20,7 +21,14 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using GraphEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
+using GraphEntityFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.FundingLine>;
+using CalculationRelationship = CalculateFunding.Models.Graph.CalculationRelationship;
+using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
+using Relationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 using static CalculateFunding.Tests.Common.Helpers.ConstraintHelpers;
+using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -32,8 +40,10 @@ namespace CalculateFunding.Services.Datasets.Services
         private Mock<IDatasetRepository> _datasetRepository;
         private Mock<IPolicyRepository> _policyRepository;
         private Mock<ICalcsRepository> _calcsRepository;
+        private Mock<IGraphApiClient> _graph;
         private Message _message;
         private string _specificationId;
+        private string _specificationName;
         private string _fundingStreamId;
         private string _fundingPeriodId;
         private uint[] _calculationIds;
@@ -47,8 +57,10 @@ namespace CalculateFunding.Services.Datasets.Services
             _datasetRepository = CreateMockDatasetsRepository();
             _policyRepository = CreateMockPolicyRepository();
             _calcsRepository = CreateMockCalcsRepository();
+            _graph = CreateMockGraphApiClient();
 
             _specificationId = NewRandomString();
+            _specificationName = "SpecificationName";
             _fundingStreamId = NewRandomString();
             _fundingPeriodId = NewRandomString();
 
@@ -58,7 +70,8 @@ namespace CalculateFunding.Services.Datasets.Services
             _datasetService = CreateDatasetService(specificationsApiClient: _specificationsApiClient.Object,
                                                 datasetRepository: _datasetRepository.Object,
                                                 policyRepository: _policyRepository.Object,
-                                                calcsRepository: _calcsRepository.Object);
+                                                calcsRepository: _calcsRepository.Object,
+                                                graphApiClient: _graph.Object);
 
             _message = new Message();
         }
@@ -74,8 +87,8 @@ namespace CalculateFunding.Services.Datasets.Services
                                         .WithPublishedSpecificationConfiguration(
                                             new PublishedSpecificationConfiguration
                                             {
-                                                Calculations = _calculationIds.Select(_ => new PublishedSpecificationItem { TemplateId = _}),
-                                                FundingLines = _fundingLineIds.Select(_ => new PublishedSpecificationItem { TemplateId = _ })
+                                                Calculations = _calculationIds.Select(_ => new PublishedSpecificationItem { TemplateId = _, SourceCodeName = _.ToString() }),
+                                                FundingLines = _fundingLineIds.Select(_ => new PublishedSpecificationItem { TemplateId = _, SourceCodeName = _.ToString() })
                                             }
                                     ))
                                 ));
@@ -84,6 +97,19 @@ namespace CalculateFunding.Services.Datasets.Services
             
             AndDefinitionSpecificationRelationships(relationshipOne, relationshipTwo, relationshipThree);
             AndTheTemplateContents();
+
+            string calculationReferencingReleasedDataFundingLine = Guid.NewGuid().ToString();
+            string obsoleteFundingLineItemId = Guid.NewGuid().ToString();
+            AndTheCalculationReferencesObsoleteFundingLine(calculationReferencingReleasedDataFundingLine, $"Datasets.{_specificationName}.{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{_fundingLineIds.First()}_{_fundingLineIds.First()}");
+            AndTheObsoleteItemsAreCreatedSuccessfully(obsoleteFundingLineItemId, _fundingLineIds.First().ToString());
+            AndCalculationAddedToObsoleteItem(obsoleteFundingLineItemId, calculationReferencingReleasedDataFundingLine);
+
+            string obsoleteCalculationItemId = Guid.NewGuid().ToString();
+            string calculationReferencingReleasedDataCalculation = Guid.NewGuid().ToString();
+            AndTheCalculationReferencesObsoleteCalculation(calculationReferencingReleasedDataCalculation, $"Datasets.{_specificationName}.{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{_calculationIds.First()}_{_calculationIds.First()}");
+            AndTheObsoleteItemsAreCreatedSuccessfully(obsoleteCalculationItemId, _calculationIds.First().ToString());
+            AndCalculationAddedToObsoleteItem(obsoleteCalculationItemId, calculationReferencingReleasedDataCalculation);
+
             AndDatasetRelationshipsSavedSuccessfully();
             await WhenProcessDatasetObsoleteItems();
             ThenObsoleteItemsSaved();
@@ -126,7 +152,7 @@ namespace CalculateFunding.Services.Datasets.Services
                                         .WithPublishedSpecificationConfiguration(
                                             new PublishedSpecificationConfiguration
                                             {
-                                                Calculations = _calculationIds.Select(_ => new PublishedSpecificationItem { TemplateId = _ }),
+                                                Calculations = _calculationIds.Select(_ => new PublishedSpecificationItem { TemplateId = _, IsObsolete = true }),
                                                 FundingLines = _fundingLineIds.Select(_ => new PublishedSpecificationItem { TemplateId = _ })
                                             }
                                     ))
@@ -151,6 +177,18 @@ namespace CalculateFunding.Services.Datasets.Services
             await _datasetService.ProcessDatasetObsoleteItems(_message);
         }
 
+        private void AndTheObsoleteItemsAreCreatedSuccessfully(string obsoleteItem, string datasetFieldId)
+        {
+            _calcsRepository.Setup(_ => _.CreateObsoleteItem(It.Is<ObsoleteItem>(obsoleteItem =>
+                    obsoleteItem.SpecificationId == _specificationId &&
+                    obsoleteItem.IsReleasedData == true &&
+                    obsoleteItem.DatasetFieldId == datasetFieldId)))
+            .ReturnsAsync(new ObsoleteItem
+            {
+                Id = obsoleteItem
+            });
+        }
+
         private void ThenObsoleteItemsSaved()
         {
             _calcsRepository.Verify(_ => _.CreateObsoleteItem(It.Is<ObsoleteItem>(obsoleteItem => 
@@ -162,6 +200,12 @@ namespace CalculateFunding.Services.Datasets.Services
                     obsoleteItem.SpecificationId == _specificationId &&
                     obsoleteItem.IsReleasedData == true &&
                     obsoleteItem.DatasetFieldId == _calculationIds.First().ToString())), Times.Once);
+        }
+
+        private void AndCalculationAddedToObsoleteItem(string obsoleteItemId, string calculationId)
+        {
+            _calcsRepository.Setup(_ => _.AddCalculationToObsoleteItem(obsoleteItemId, calculationId))
+                .ReturnsAsync(HttpStatusCode.OK);
         }
 
         private void AndDatasetRelationshipsSavedSuccessfully()
@@ -202,11 +246,17 @@ namespace CalculateFunding.Services.Datasets.Services
             return new Mock<ICalcsRepository>();
         }
 
+        private Mock<IGraphApiClient> CreateMockGraphApiClient()
+        {
+            return new Mock<IGraphApiClient>();
+        }
+
         private void AndSpecification()
         {
             _specificationsApiClient.Setup(_ => _.GetSpecificationSummaryById(_specificationId))
                 .ReturnsAsync(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK,
                     NewSpecificationSummary(_ => _.WithId(_specificationId)
+                                                    .WithName(_specificationName)
                                                     .WithFundingStreamIds(new[] { _fundingStreamId })
                                                     .WithFundingPeriodId(_fundingPeriodId)
                                                     .WithTemplateVersions(( _fundingStreamId, TemplateVersion ))),
@@ -230,6 +280,42 @@ namespace CalculateFunding.Services.Datasets.Services
                 _fundingPeriodId,
                 TemplateVersion))
             .ReturnsAsync(new TemplateMetadataDistinctContents());
+        }
+
+        private void AndTheCalculationReferencesObsoleteFundingLine(string calculationId, string fundingLineSourceName)
+        {
+            _graph.Setup(_ => _.GetAllEntitiesRelatedToFundingLine(fundingLineSourceName))
+                .ReturnsAsync(new ApiResponse<IEnumerable<GraphEntityFundingLine>>(HttpStatusCode.OK,
+                    new[] { 
+                        new GraphEntityFundingLine { 
+                            Relationships = new[] { 
+                                new Relationship {
+                                    One = new GraphCalculation {
+                                        CalculationId = calculationId
+                                    },
+                                    Type = FundingLineCalculationRelationship.FromIdField
+                                } 
+                            }
+                        } 
+                    }));
+        }
+
+        private void AndTheCalculationReferencesObsoleteCalculation(string calculationId, string calculationSourceName)
+        {
+            _graph.Setup(_ => _.GetAllEntitiesRelatedToCalculation(calculationSourceName))
+                .ReturnsAsync(new ApiResponse<IEnumerable<GraphEntityCalculation>>(HttpStatusCode.OK,
+                    new[] {
+                        new GraphEntityCalculation {
+                            Relationships = new[] {
+                                new Relationship {
+                                    One = new GraphCalculation {
+                                        CalculationId = calculationId
+                                    },
+                                    Type = CalculationRelationship.FromIdField
+                                }
+                            }
+                        }
+                    }));
         }
 
         private Reference NewReference(Action<ReferenceBuilder> setUp = null)

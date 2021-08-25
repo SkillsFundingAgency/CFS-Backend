@@ -55,6 +55,15 @@ using CalculateFunding.Common.ApiClient.Policies.Models;
 using ObsoleteItem = CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems.ObsoleteItem;
 using ObsoleteItemType = CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems.ObsoleteItemType;
 using DatasetFieldType = CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems.DatasetFieldType;
+using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using GraphEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
+using GraphEntityFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.FundingLine>;
+using CalculateFunding.Common.Helpers;
+using CalculateFunding.Common.ApiClient.Graph;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculationRelationship = CalculateFunding.Models.Graph.CalculationRelationship;
+using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -84,6 +93,8 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICalcsRepository _calcsRepository;
         private readonly IDatasetDataMergeService _datasetDataMergeService;
         private readonly IRelationshipDataExcelWriter _excelWriter;
+        private readonly IGraphApiClient _graph;
+        private readonly VisualBasicTypeIdentifierGenerator _typeIdentifierGenerator;
 
         public DatasetService(
             IBlobClient blobClient,
@@ -108,7 +119,8 @@ namespace CalculateFunding.Services.Datasets
             IPolicyRepository policyRepository,
             ICalcsRepository calcsRepository,
             IDatasetDataMergeService datasetDataMergeService,
-            IRelationshipDataExcelWriter excelWriter) : base(jobManagement, logger)
+            IRelationshipDataExcelWriter excelWriter,
+            IGraphApiClient graphApiClient) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -134,6 +146,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(datasetDataMergeService, nameof(datasetDataMergeService));
             Guard.ArgumentNotNull(excelWriter, nameof(excelWriter));
+            Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
 
             _blobClient = blobClient;
             _logger = logger;
@@ -159,6 +172,8 @@ namespace CalculateFunding.Services.Datasets
             _calcsRepository = calcsRepository;
             _datasetDataMergeService = datasetDataMergeService;
             _excelWriter = excelWriter;
+            _graph = graphApiClient;
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -1484,30 +1499,36 @@ namespace CalculateFunding.Services.Datasets
                 if (definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration != null && 
                     !definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.FundingLines.IsNullOrEmpty())
                 {
+                    // reset all obsolete flags so that if they don't get re-flagged then they have come back into the template
+                    foreach (PublishedSpecificationItem publishedConfigurationItem in definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.FundingLines.Where(_ => _.IsObsolete))
+                    {
+                        publishedConfigurationItem.IsObsolete = false;
+                        hasChanges = true;
+                    }
+
                     IEnumerable<uint> metadataFundingLineIds = (metadata.FundingLines ?? Enumerable.Empty<TemplateMetadataFundingLine>()).Select(x => x.TemplateLineId).Distinct().ToList();
                     IEnumerable<PublishedSpecificationItem> missingFundingLines = definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.FundingLines.DistinctBy(_ => _.TemplateId).Where(x => !x.IsObsolete && !metadataFundingLineIds.Contains(x.TemplateId)).ToList();
 
                     if (missingFundingLines.Any())
                     {
-                        foreach (PublishedSpecificationItem publishedSpecificationItem in missingFundingLines)
-                        {
-                            publishedSpecificationItem.IsObsolete = true;
-
-                            if (!obsoleteDataFieldsForRelationship.ContainsKey(publishedSpecificationItem.TemplateId.ToString()))
+                        if (await ProcessObsoleteItems(definitionSpecificationRelationship.Current.Specification.Id,
+                            definitionSpecificationRelationship.Id,
+                            definitionSpecificationRelationship.Name,
+                            specificationSummary.Name,
+                            missingFundingLines,
+                            CodeGenerationDatasetTypeConstants.FundingLinePrefix,
+                            obsoleteDataFieldsForRelationship,
+                            async(_) =>
                             {
-                                await _calcsRepository.CreateObsoleteItem(new ObsoleteItem
-                                {
-                                    SpecificationId = definitionSpecificationRelationship.Current.Specification.Id,
-                                    DatasetRelationshipId = definitionSpecificationRelationship.Id,
-                                    DatasetRelationshipName = definitionSpecificationRelationship.Name,
-                                    DatasetFieldId = publishedSpecificationItem.TemplateId.ToString(),
-                                    DatasetFieldName = publishedSpecificationItem.Name,
-                                    DatasetDatatype = publishedSpecificationItem.FieldType.AsMatchingEnum<DatasetFieldType>(),
-                                    IsReleasedData = true,
-                                    ItemType = ObsoleteItemType.DatasetField
-                                });
-                            }
+                                ApiResponse<IEnumerable<GraphEntityFundingLine>> fundingLineEntities = await _graph.GetAllEntitiesRelatedToFundingLine(_);
 
+                                return fundingLineEntities?.Content?
+                                .Where(_ => _.Relationships != null)
+                                .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(FundingLineCalculationRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
+                                .Select(rel => ((object)rel.One).AsJson().AsPoco<GraphCalculation>())
+                                .Distinct();
+                            }))
+                        {
                             hasChanges = true;
                         }
                     }
@@ -1516,30 +1537,36 @@ namespace CalculateFunding.Services.Datasets
                 if (definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration != null && 
                     !definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.Calculations.IsNullOrEmpty())
                 {
+                    // reset all obsolete flags so that if they don't get re-flagged then they have come back into the template
+                    foreach (PublishedSpecificationItem publishedConfigurationItem in definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.Calculations.Where(_ => _.IsObsolete))
+                    {
+                        publishedConfigurationItem.IsObsolete = false;
+                        hasChanges = true;
+                    }
+
                     IEnumerable<uint> metadataCalculationIds = (metadata.Calculations ?? Enumerable.Empty<TemplateMetadataCalculation>()).Select(x => x.TemplateCalculationId).Distinct().ToList();
                     IEnumerable<PublishedSpecificationItem> missingCalculations = definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.Calculations.DistinctBy(_ => _.TemplateId).Where(x => !x.IsObsolete && !metadataCalculationIds.Contains(x.TemplateId)).ToList();
 
                     if (missingCalculations.Any())
                     {
-                        foreach (PublishedSpecificationItem publishedSpecificationItem in missingCalculations)
-                        {
-                            publishedSpecificationItem.IsObsolete = true;
-
-                            if (!obsoleteDataFieldsForRelationship.ContainsKey(publishedSpecificationItem.TemplateId.ToString()))
+                        if (await ProcessObsoleteItems(definitionSpecificationRelationship.Current.Specification.Id,
+                            definitionSpecificationRelationship.Id,
+                            definitionSpecificationRelationship.Name,
+                            specificationSummary.Name,
+                            missingCalculations,
+                            CodeGenerationDatasetTypeConstants.CalculationPrefix,
+                            obsoleteDataFieldsForRelationship,
+                            async (_) =>
                             {
-                                await _calcsRepository.CreateObsoleteItem(new ObsoleteItem
-                                {
-                                    SpecificationId = definitionSpecificationRelationship.Current.Specification.Id,
-                                    DatasetRelationshipId = definitionSpecificationRelationship.Id,
-                                    DatasetRelationshipName = definitionSpecificationRelationship.Name,
-                                    DatasetFieldId = publishedSpecificationItem.TemplateId.ToString(),
-                                    DatasetFieldName = publishedSpecificationItem.Name,
-                                    DatasetDatatype = publishedSpecificationItem.FieldType.AsMatchingEnum<DatasetFieldType>(),
-                                    IsReleasedData = true,
-                                    ItemType = ObsoleteItemType.DatasetField
-                                });
-                            }
+                                ApiResponse<IEnumerable<GraphEntityCalculation>> calculationEntities = await _graph.GetAllEntitiesRelatedToCalculation(_);
 
+                                return calculationEntities?.Content?
+                                .Where(_ => _.Relationships != null)
+                                .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(CalculationRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
+                                .Select(rel => ((object)rel.One).AsJson().AsPoco<GraphCalculation>())
+                                .Distinct();
+                            }))
+                        {
                             hasChanges = true;
                         }
                     }
@@ -1557,6 +1584,95 @@ namespace CalculateFunding.Services.Datasets
                 }
             }
         }
+
+        private async Task<bool> ProcessObsoleteItems(string specificationId,
+            string relationshipId,
+            string relationshipName,
+            string targetSpecificationName,
+            IEnumerable<PublishedSpecificationItem> publishedItems, 
+            string prefix,
+            IDictionary<string, ObsoleteItem> obsoleteDataFieldsForRelationship,
+            Func<string, Task<IEnumerable<GraphCalculation>>> getGraphEntities)
+        {
+            bool hasChanges = false;
+
+            foreach (PublishedSpecificationItem publishedSpecificationItem in publishedItems)
+            {
+                publishedSpecificationItem.IsObsolete = true;
+                ObsoleteItem obsoleteItem = null;
+
+                IEnumerable<GraphCalculation> calculations = await getGraphEntities($"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(targetSpecificationName)}.{prefix}_{publishedSpecificationItem.TemplateId}_{publishedSpecificationItem.SourceCodeName}");
+
+                if (calculations.IsNullOrEmpty())
+                {
+                    continue;
+                }
+
+                if (!obsoleteDataFieldsForRelationship.ContainsKey(publishedSpecificationItem.TemplateId.ToString()))
+                {
+                    obsoleteItem = await _calcsRepository.CreateObsoleteItem(new ObsoleteItem
+                    {
+                        SpecificationId = specificationId,
+                        DatasetRelationshipId = relationshipId,
+                        DatasetRelationshipName = relationshipName,
+                        DatasetFieldId = publishedSpecificationItem.TemplateId.ToString(),
+                        DatasetFieldName = publishedSpecificationItem.Name,
+                        DatasetDatatype = publishedSpecificationItem.FieldType.AsMatchingEnum<DatasetFieldType>(),
+                        IsReleasedData = true,
+                        ItemType = ObsoleteItemType.DatasetField
+                    });
+                }
+                else
+                {
+                    obsoleteItem = obsoleteDataFieldsForRelationship[publishedSpecificationItem.TemplateId.ToString()];
+                }
+
+                Task<HttpStatusCode>[] tasks = calculations?.Select(_ => _calcsRepository.AddCalculationToObsoleteItem(obsoleteItem.Id, _.CalculationId)).ToArray();
+
+                await TaskHelper.WhenAllAndThrow(tasks);
+
+                tasks.ForEach(_ =>
+                {
+                    if (!_.Result.IsSuccess())
+                    {
+                        string message = $"Unable to add calculation to obsolete item - {obsoleteItem.Id}.";
+
+                        _logger.Information(message);
+
+                        throw new Exception(message);
+                    }
+                });
+
+                hasChanges = true;
+            }
+
+            return hasChanges;
+        }
+
+        private async Task ClearDownObsoleteItems(string specificationId)
+        {
+            IEnumerable<ObsoleteItem> obsoleteItems = await _calcsRepository.GetObsoleteItemsForSpecification(specificationId);
+
+            foreach (ObsoleteItem obsoleteItem in obsoleteItems.Where(_ => _.IsReleasedData))
+            {
+                Task<HttpStatusCode>[] tasks = obsoleteItem.CalculationIds.Select(_ => _calcsRepository.RemoveObsoleteItem(obsoleteItem.Id, _)).ToArraySafe();
+
+                await TaskHelper.WhenAllAndThrow(tasks);
+
+                tasks.ForEach(_ =>
+                {
+                    if (!_.Result.IsSuccess())
+                    {
+                        string message = $"Unable to delete obsolete item - {obsoleteItem.Id}.";
+
+                        _logger.Information(message);
+
+                        throw new Exception(message);
+                    }
+                });
+            }
+        }
+
 
         private async Task<Dataset> SaveNewDatasetAndVersion(
             ICloudBlob blob,

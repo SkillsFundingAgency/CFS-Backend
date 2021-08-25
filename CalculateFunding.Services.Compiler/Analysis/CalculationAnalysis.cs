@@ -175,7 +175,6 @@ namespace CalculateFunding.Services.Compiler.Analysis
                     .ForEach(_ => fundingLineRelationshipSummaries.Add(new FundingLineReleasedDataRelationshipSummary
                     {
                         FundingLineReferenceSourceCode = $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.TargetSpecificationName)}.{fundingLinePrefix}_{_.TemplateId}_{_.SourceCodeName}",
-                        FundingLineGraphId = $"{datasetRelationshipSummary.PublishedSpecificationConfiguration.FundingStreamId}_{_.TemplateId}",
                         FundingLineTargetSpecificationId = datasetRelationshipSummary.PublishedSpecificationConfiguration.SpecificationId,
                         FundingLineName = _.Name
                     }));
@@ -192,7 +191,7 @@ namespace CalculateFunding.Services.Compiler.Analysis
                     CalculationOneId = _.Id,
                     FundingLine = new GraphFundingLine { 
                         SpecificationId = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineTargetSpecificationId,
-                        FundingLineId = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineGraphId,
+                        FundingLineId = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineReferenceSourceCode,
                         FundingLineName = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineName
                     },
                     CalculationTwoId = null
