@@ -151,7 +151,7 @@ namespace CalculateFunding.Services.Calcs
         {
             IDictionary<string, string> facetDictionary = BuildFacetDictionary(searchModel);
 
-            IEnumerable<Task<SearchResults<CalculationIndex>>> searchTasks = new Task<SearchResults<CalculationIndex>>[0];
+            IEnumerable<Task<SearchResults<CalculationIndex>>> searchTasks = System.Array.Empty<Task<SearchResults<CalculationIndex>>>();
 
             if (searchModel.IncludeFacets)
             {
@@ -168,7 +168,8 @@ namespace CalculateFunding.Services.Calcs
                                 SearchFields = new List<string>{ "name" },
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
-                                QueryType = QueryType.Full
+                                QueryType = QueryType.Full,
+                                OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
                             });
                         })
                     });

@@ -360,6 +360,44 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task SearchCalculation_GivenValidModelAndIncludesSortExpression_CallsSearchOnce()
+        {
+            //Arrange
+            IEnumerable<string> orderByExpression = new List<string> { "name asc" };
+
+            SearchModel model = new SearchModel
+            {
+                PageNumber = 1,
+                Top = 50,
+                OrderBy = orderByExpression
+            };
+
+            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(_ => _.OrderBy.Contains(orderByExpression.FirstOrDefault())))
+                .Returns(searchResults);
+
+            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(model);
+
+            //Assert
+            result
+                 .Should()
+                 .BeOfType<OkObjectResult>();
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
+        }
+
+        [TestMethod]
         public async Task SearchCalculation_GivenValidModelAndPageNumber2_CallsSearchWithCorrectSkipValue()
         {
             //Arrange
