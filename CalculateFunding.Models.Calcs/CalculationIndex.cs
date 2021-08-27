@@ -25,7 +25,7 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("specificationName")]
         public string SpecificationName { get; set; }
 
-        [IsFilterable, IsRetrievable(true)]
+        [IsFilterable, IsRetrievable(true), IsSortable]
         [JsonProperty("valueType")]
         public string ValueType { get; set; }
 
