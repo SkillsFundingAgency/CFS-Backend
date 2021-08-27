@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -11,11 +12,13 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalcModels = CalculateFunding.Common.ApiClient.Calcs.Models;
 
 namespace CalculateFunding.Services.Results.UnitTests
 {
@@ -56,12 +59,62 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
+        public async Task QueueCsvGenerationMessages_GivenMissingTemplateMappings_LogsError()
+        {
+            //Arrange
+            string fundingStreamId = new RandomString();
+            string specificationId = new RandomString();
+
+            IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = new[]
+            {
+                new SpecModel.SpecificationSummary {
+                    Id = specificationId,
+                    FundingStreams = new[] { NewReference(_ => _.WithId(fundingStreamId)) }
+                }
+            };
+
+            string errorMessage = $"Specification: {specificationId} has missing calculations in template mapping";
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaries()
+                .Returns(new ApiResponse<IEnumerable<SpecModel.SpecificationSummary>>(HttpStatusCode.OK, specificationSummaries));
+
+            ICalculationsApiClient calculationsApiClient = CreateCalculationsApiClient();
+            calculationsApiClient
+                .GetTemplateMapping(specificationId, fundingStreamId)
+                .Returns(new ApiResponse<CalcModels.TemplateMapping>(HttpStatusCode.OK,
+                    new CalcModels.TemplateMapping {
+                        FundingStreamId = fundingStreamId,
+                        SpecificationId = specificationId,
+                        TemplateMappingItems = new[] { 
+                            new CalcModels.TemplateMappingItem()
+                        }
+                    }));
+
+            ILogger logger = CreateLogger();
+
+            ResultsService resultsService = CreateResultsService(logger, specificationsApiClient: specificationsApiClient, calculationsApiClient: calculationsApiClient);
+
+            //Act
+            await resultsService.QueueCsvGenerationMessages();
+
+            //Assert
+            logger
+                .Received(1)
+                .Error(errorMessage);
+        }
+
+        [TestMethod]
         public async Task QueueCsvGenerationMessages_GivenSpecificationSummariesFoundButNoResults_DoesNotCreateNewMessages()
         {
             //Arrange
             IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = new[]
             {
-                new SpecModel.SpecificationSummary { Id = "spec-1" }
+                new SpecModel.SpecificationSummary { 
+                    Id = "spec-1",
+                    FundingStreams = new[] { NewReference() }
+                }
             };
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -111,7 +164,10 @@ namespace CalculateFunding.Services.Results.UnitTests
             //Arrange
             IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = new[]
             {
-                new SpecModel.SpecificationSummary { Id = SpecificationId }
+                new SpecModel.SpecificationSummary { 
+                    Id = SpecificationId ,
+                    FundingStreams = new[] { NewReference() }
+                }
             };
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -169,8 +225,14 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = new[]
             {
-                new SpecModel.SpecificationSummary { Id = SpecificationOneId },
-                new SpecModel.SpecificationSummary { Id = SpecificationTwoId }
+                new SpecModel.SpecificationSummary { 
+                    Id = SpecificationOneId,
+                    FundingStreams = new[] { NewReference() }
+                },
+                new SpecModel.SpecificationSummary { 
+                    Id = SpecificationTwoId ,
+                    FundingStreams = new[] { NewReference() }
+                }
             };
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();

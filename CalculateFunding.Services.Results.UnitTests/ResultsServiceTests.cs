@@ -1380,6 +1380,15 @@ namespace CalculateFunding.Services.Results.UnitTests
             };
         }
 
+        static Reference NewReference(Action<ReferenceBuilder> setup = null)
+        {
+            ReferenceBuilder referenceBuilder = new ReferenceBuilder();
+
+            setup?.Invoke(referenceBuilder);
+
+            return referenceBuilder.Build();
+        }
+
         static DocumentEntity<ProviderResult> CreateDocumentEntityWithNullCalculationResult()
         {
             return new DocumentEntity<ProviderResult>

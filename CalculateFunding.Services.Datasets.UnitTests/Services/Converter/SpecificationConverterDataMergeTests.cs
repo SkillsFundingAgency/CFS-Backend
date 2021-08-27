@@ -135,31 +135,6 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         }
 
         [TestMethod]
-        public void DeosntCreateParentQueueConverterDatasetMergeJobWhenJobRunning()
-        {
-            string specificationId = NewRandomString();
-            string runningJobId = Guid.NewGuid().ToString();
-            Reference author = NewReference();
-
-            SpecificationConverterMergeRequest request = NewSpecificationMergeRequest(_ => _.WithSpecificationId(specificationId)
-                .WithAuthor(author));
-
-            GivenTheJobIsRunning(specificationId, JobConstants.DefinitionNames.QueueConverterDatasetMergeJob, runningJobId);
-
-            Func<Task> invocation = () => WhenTheJobIsQueued(request);
-
-            invocation
-                .Should()
-                .ThrowAsync<NonRetriableException>()
-                .Result
-                .Which
-                .Message
-                .Should()
-                .Be($"Unable to queue a new converter job as one is already running job id:{runningJobId}.");
-        }
-
-
-        [TestMethod]
         public void GuardsAgainstMissingMessageWhenProcessesJob()
         {
             Func<Task> invocation = () => WhenTheMessageIsProcessed(null);

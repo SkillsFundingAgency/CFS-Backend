@@ -12,7 +12,6 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Converter;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -69,16 +68,6 @@ namespace CalculateFunding.Services.Datasets.Converter
             string specificationId = request.SpecificationId;
 
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-
-            IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(specificationId,
-                new string[] {
-                    JobConstants.DefinitionNames.QueueConverterDatasetMergeJob
-            });
-
-            if (!jobTypesRunning.IsNullOrEmpty())
-            {
-                throw new NonRetriableException($"Unable to queue a new converter job as one is already running job id:{jobTypesRunning.First().JobId}.");
-            }
 
             Reference author = request.Author;
 

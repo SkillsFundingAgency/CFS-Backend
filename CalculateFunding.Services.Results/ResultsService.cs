@@ -565,7 +565,31 @@ namespace CalculateFunding.Services.Results
 
             foreach (SpecModel.SpecificationSummary spec in specificationApiResponse.Content)
             {
-                await QueueCsvGenerationMessageIfNewCalculationResults(spec.Id, spec.Name);
+                IEnumerable<CalcModels.TemplateMappingItem> allMappings = Array.Empty<CalcModels.TemplateMappingItem>();
+                
+                foreach (Reference reference in spec.FundingStreams)
+                {
+                    ApiModels.ApiResponse<CalcModels.TemplateMapping> templateMapping = await _calculationsApiClientPolicy.ExecuteAsync(() => _calculationsApiClient.GetTemplateMapping(spec.Id, reference.Id));
+
+                    if (templateMapping?.Content == null)
+                    {
+                        continue;
+                    }
+
+                    allMappings = allMappings.Concat(templateMapping.Content.TemplateMappingItems);
+                }
+
+                if (allMappings.Any(_ => _.CalculationId == null))
+                {
+                    string errorMessage = $"Specification: {spec.Id} has missing calculations in template mapping";
+                    // log the error but don't stop queueing jobs
+                    _logger.Error(errorMessage);
+                }
+                else
+                {
+                    // only queue a report if there are no missing mappings
+                    await QueueCsvGenerationMessageIfNewCalculationResults(spec.Id, spec.Name);
+                }
             }
         }
 
