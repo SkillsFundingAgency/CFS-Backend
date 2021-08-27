@@ -52,7 +52,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
             string profilePatternKey,
             ProfileConfigurationType configurationType,
             decimal? fundingLineTotal = null,
-            bool midYear = false)
+            bool midYear = false,
+            DateTimeOffset? providerOpenedDate = null)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
@@ -70,6 +71,16 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 fundingLineCode,
                 profilePatternKey);
 
+            ProfilePeriod firstPeriod = orderedProfilePeriodsForFundingLine.First();
+
+            bool? midYearCatchup = null;
+
+            if (midYear)
+            {
+                // if the provider opened before the start of the period then we need to use the mid year catch up strategy
+                midYearCatchup = providerOpenedDate == null ? false : providerOpenedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && providerOpenedDate.Value.Year < firstPeriod.Year;
+            }
+
             int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine, providerId);
 
             IEnumerable<ExistingProfilePeriod> existingProfilePeriods = BuildExistingProfilePeriods(orderedProfilePeriodsForFundingLine, paidUpToIndex);
@@ -86,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 FundingLineTotal = fundingLineTotal.GetValueOrDefault(existingFundingLineTotal),
                 ExistingFundingLineTotal = existingFundingLineTotal,
                 ExistingPeriods = existingProfilePeriods,
-                MidYear = midYear,
+                MidYearCatchup = midYearCatchup,
                 VariationPointerIndex = paidUpToIndex
             };
         }

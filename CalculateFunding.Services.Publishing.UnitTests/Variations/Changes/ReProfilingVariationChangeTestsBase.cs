@@ -175,7 +175,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     key,
                     ProfileConfigurationType.RuleBased,
                     fundingLine.Value,
-                    false))
+                    false,
+                    null))
                 .ReturnsAsync(reProfileRequest);
 
         private void AndTheReProfileResponseMapping(ReProfileResponse reProfileResponse,

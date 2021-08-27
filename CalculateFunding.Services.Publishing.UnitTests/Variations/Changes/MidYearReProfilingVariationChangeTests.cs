@@ -26,7 +26,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     key,
                     ProfileConfigurationType.RuleBased,
                     fundingLine.Value,
-                    true))
+                    true,
+                    null))
                 .ReturnsAsync(reProfileRequest);
     }
 }

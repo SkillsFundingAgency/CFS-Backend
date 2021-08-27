@@ -1,5 +1,6 @@
 using CalculateFunding.Services.Profiling.Models;
 using CalculateFunding.Services.Profiling.Tests.TestHelpers;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Profiling.Tests
 {
@@ -10,12 +11,14 @@ namespace CalculateFunding.Services.Profiling.Tests
         private string _fundingStreamId;
         private decimal? _fundingValue;
         private decimal? _existingFundingLineTotal;
+        private IEnumerable<ExistingProfilePeriod> _existingProfilePeriods;
         private string _profilePatternKey;
-        private bool _midYear;
+        private int? _variationPointer;
+        private bool? _midYearCatchup;
         
-        public ReProfileRequestBuilder WithMidYear(bool midYear)
+        public ReProfileRequestBuilder WithMidYearCatchup(bool? midYearCatchup)
         {
-            _midYear = midYear;
+            _midYearCatchup = midYearCatchup;
 
             return this;
         }
@@ -55,24 +58,40 @@ namespace CalculateFunding.Services.Profiling.Tests
             return this;
         }
 
+        public ReProfileRequestBuilder WithExistingProfilePeriods(IEnumerable<ExistingProfilePeriod> existingProfilePeriods)
+        {
+            _existingProfilePeriods = existingProfilePeriods;
+
+            return this;
+        }
+
         public ReProfileRequestBuilder WithProfilePatternKey(string profilePatternKey)
         {
             _profilePatternKey = profilePatternKey;
 
             return this;
         }
-        
+
+        public ReProfileRequestBuilder WithVariationPointer(int variationPointer)
+        {
+            _variationPointer = variationPointer;
+
+            return this;
+        }
+
         public ReProfileRequest Build()
         {
             return new ReProfileRequest
             {
-                ProfilePatternKey =  _profilePatternKey ?? NewRandomString(),
+                ProfilePatternKey = _profilePatternKey ?? NewRandomString(),
                 FundingLineCode = _fundingLineCode ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingLineTotal = _fundingValue.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue)),
                 ExistingFundingLineTotal = _existingFundingLineTotal.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue)),
-                MidYear = _midYear
+                ExistingPeriods = _existingProfilePeriods,
+                VariationPointerIndex = _variationPointer,
+                MidYearCatchup = _midYearCatchup
             };
         }
         

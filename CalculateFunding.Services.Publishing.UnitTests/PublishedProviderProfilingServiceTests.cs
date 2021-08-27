@@ -461,7 +461,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     profilePatternKey,
                     configurationType,
                     fundingLineTotal,
-                    false))
+                    false,
+                    null))
                 .ReturnsAsync(profileRequest);
         }
         

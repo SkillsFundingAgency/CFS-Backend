@@ -13,6 +13,7 @@
     <None Remove="Resources\existing.json" />
     <None Remove="Resources\NMSS-003.json" />
     <None Remove="Resources\PESPORTSPREM.json" />
+    <None Remove="Resources\RPA-001.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +24,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\delivery.json" />
     <EmbeddedResource Include="Resources\existing.json" />
+    <EmbeddedResource Include="Resources\RPA-001.json" />
   </ItemGroup>
 
 

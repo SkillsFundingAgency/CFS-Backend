@@ -276,16 +276,16 @@ namespace CalculateFunding.Services.Profiling.Tests
         }
 
         [TestMethod]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithInitialFundingStrategyIfRequestIsMidYear()
+        [DataRow("ReProfileRemainingFundingForPeriod")]
+        [DataRow(null)]
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithInitialFundingStrategyIfRequestIsMidYear(string key)
         {
             decimal newFundingTotal = NewRandomTotal();
             
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
                 .WithExistingFundingValue(newFundingTotal * -1)
-                .WithMidYear(true));
+                .WithMidYearCatchup(false));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
-
-            string key = NewRandomString();
 
             FundingStreamPeriodProfilePattern profilePattern = NewFundingStreamPeriodProfilePattern(_ =>
                 _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
@@ -297,7 +297,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
 
             GivenTheProfilePattern(request, profilePattern);
-            AndTheReProfilingStrategy(key);
+            AndTheReProfilingStrategy(key ?? "ReProfileRemainingFundingForPeriod");
             AndTheProfiling(request, profilePattern, profileResponse);
             AndTheReProfilingStrategyResponse(profileResponse, request, profilePattern, NewReProfileStrategyResult(_ => 
                 _.WithDistributionPeriods(distributionPeriods1)

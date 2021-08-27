@@ -317,7 +317,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     FundingPeriodId = fundingPeriodId,
                     FundingStreamId = fundingStreamId,
                     ProfilePatternKey = profilePattern,
-                    MidYear = midYear,
+                    MidYearCatchup = midYear == true ? (bool?)false : null,
                     VariationPointerIndex = 0,
                     ExistingPeriods = new []
                     {
@@ -415,7 +415,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     FundingPeriodId = fundingPeriodId,
                     FundingStreamId = fundingStreamId,
                     ProfilePatternKey = null,
-                    MidYear = midYear,
+                    MidYearCatchup = midYear == true ? (bool?)false : null,
                     VariationPointerIndex = 0,
                     ExistingPeriods = new[]
                     {
@@ -507,7 +507,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     FundingPeriodId = fundingPeriodId,
                     FundingStreamId = fundingStreamId,
                     ProfilePatternKey = profilePattern,
-                    MidYear = midYear,
+                    MidYearCatchup = midYear == true ? (bool?)false : null,
                     VariationPointerIndex = 0,
                     ExistingPeriods = new[]
                     {

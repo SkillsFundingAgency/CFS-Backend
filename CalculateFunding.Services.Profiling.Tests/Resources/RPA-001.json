@@ -1,0 +1,143 @@
+{
+    "fundingPeriodId": "AC-2122",
+    "fundingStreamId": "RPA",
+    "roundingStrategy": "MidpointTwoDecimalPlaces",
+    "fundingLineId": "RPA-001",
+    "profilePatternKey": null,
+    "fundingStreamPeriodStartDate": "2021-09-01T00:00:00",
+    "fundingStreamPeriodEndDate": "2022-08-31T23:59:59",
+    "allowUserToEditProfilePattern": false,
+    "profilePattern": [
+      {
+        "periodType": "CalendarMonth",
+        "period": "September",
+        "periodStartDate": "2021-09-01T00:00:00",
+        "periodEndDate": "2021-09-30T23:59:59",
+        "periodYear": 2021,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "October",
+        "periodStartDate": "2021-10-01T00:00:00",
+        "periodEndDate": "2020-10-31T23:59:59",
+        "periodYear": 2021,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "November",
+        "periodStartDate": "2021-11-01T00:00:00",
+        "periodEndDate": "2020-11-30T23:59:59",
+        "periodYear": 2021,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "December",
+        "periodStartDate": "2021-12-01T00:00:00",
+        "periodEndDate": "2020-12-31T23:59:59",
+        "periodYear": 2021,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "January",
+        "periodStartDate": "2022-01-01T00:00:00",
+        "periodEndDate": "2022-01-31T23:59:59",
+        "periodYear": 2022,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "February",
+        "periodStartDate": "2022-02-01T00:00:00",
+        "periodEndDate": "2022-02-28T23:59:59",
+        "periodYear": 2022,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "March",
+        "periodStartDate": "2022-03-01T00:00:00",
+        "periodEndDate": "2022-03-31T23:59:59",
+        "periodYear": 2022,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "April",
+        "periodStartDate": "2022-04-01T00:00:00",
+        "periodEndDate": "2022-04-30T23:59:59",
+        "periodYear": 2022,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "May",
+        "periodStartDate": "2022-05-01T00:00:00",
+        "periodEndDate": "2022-05-31T23:59:59",
+        "periodYear": 2022,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "June",
+        "periodStartDate": "2022-06-01T00:00:00",
+        "periodEndDate": "2022-06-30T23:59:59",
+        "periodYear": 2022,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "July",
+        "periodStartDate": "2022-07-01T00:00:00",
+        "periodEndDate": "2022-07-31T23:59:59",
+        "periodYear": 2022,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33333
+      },
+      {
+        "periodType": "CalendarMonth",
+        "period": "August",
+        "periodStartDate": "2022-08-01T00:00:00",
+        "periodEndDate": "2022-08-31T23:59:59",
+        "periodYear": 2022,
+        "occurrence": 1,
+        "distributionPeriod": "AC-2122",
+        "periodPatternPercentage": 8.33337
+      }
+    ],
+    "profilePatternDisplayName": "Risk Protection Arrangements",
+    "profilePatternDescription": "Risk Protection Arrangements",
+    "providerTypeSubTypes": null,
+    "reProfilingConfiguration": {
+      "reProfilingEnabled": true,
+      "increasedAmountStrategyKey": "ReProfileFutureDistributionPeriodsWithAdjustments",
+      "decreasedAmountStrategyKey": "ReProfileFutureDistributionPeriodsWithAdjustments",
+      "sameAmountStrategyKey": "ReProfileFutureDistributionPeriodsWithAdjustments",
+      "initialFundingStrategyKey": "ReProfileRemainingFundingForPeriod"
+    },
+    "id": "AC-2122-RPA-RPA-001"
+}

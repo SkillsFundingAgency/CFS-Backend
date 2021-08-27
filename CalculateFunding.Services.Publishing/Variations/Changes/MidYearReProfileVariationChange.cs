@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 profilePatternKey,
                 ProfileConfigurationType.RuleBased,
                 fundingLine.Value,
-                true);
+                true,
+                refreshState.Provider?.DateOpened);
     }
 }

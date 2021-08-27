@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
             return GetEnumerator();
         }
 
-        private static int MonthNumberFor(string monthName)
+        public static int MonthNumberFor(string monthName)
         {
             return DateTime.ParseExact(monthName, "MMMM", CultureInfo.InvariantCulture)
                 .Month * 100;

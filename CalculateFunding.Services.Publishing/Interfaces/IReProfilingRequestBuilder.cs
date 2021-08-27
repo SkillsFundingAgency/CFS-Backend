@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 
@@ -13,6 +14,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string profilePatternKey,
             ProfileConfigurationType configurationType,
             decimal? fundingLineTotal = null,
-            bool midYear = false);
+            bool midYear = false,
+            DateTimeOffset? providerOpened = null);
     }
 }

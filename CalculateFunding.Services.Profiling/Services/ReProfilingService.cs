@@ -100,8 +100,8 @@ namespace CalculateFunding.Services.Profiling.Services
 
         private static string GetReProfilingStrategyKey(ReProfileRequest reProfileRequest,
             FundingStreamPeriodProfilePattern profilePattern) =>
-            reProfileRequest.MidYear ? 
-                profilePattern.GetReProfilingStrategyKeyForInitialFunding() :  
+            reProfileRequest.MidYearCatchup != null ?
+                (reProfileRequest.MidYearCatchup.Value ? profilePattern.GetReProfilingStrategyKeyForInitialFundingCatchup() : profilePattern.GetReProfilingStrategyKeyForInitialFunding()) :
                 profilePattern.GetReProfilingStrategyKeyForFundingAmountChange(reProfileRequest.FundingLineTotalChange);
 
         private static void VerifyProfileAmountsReturnedMatchRequestedFundingLineValue(ReProfileRequest reProfileRequest,

@@ -48,9 +48,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
         public static void FeatureSetup(Microsoft.VisualStudio.TestTools.UnitTesting.TestContext testContext)
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Refresh1619Variations", "\tIn order to refresh funding for GAG\r\n\tAs a funding approver\r\n\tI want to refresh " +
-                    "funding for all approved providers within a specification\r\n\tAnd for variations w" +
-                    "ith the allocations or provider data to be taken into account ", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Refresh1619Variations", "\tIn order to refresh funding for 1619\r\n\tAs a funding approver\r\n\tI want to refresh" +
+                    " funding for all approved providers within a specification\r\n\tAnd for variations " +
+                    "with the allocations or provider data to be taken into account ", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         

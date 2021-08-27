@@ -1,5 +1,5 @@
 ﻿Feature: Refresh1619Variations
-	In order to refresh funding for GAG
+	In order to refresh funding for 1619
 	As a funding approver
 	I want to refresh funding for all approved providers within a specification
 	And for variations with the allocations or provider data to be taken into account 

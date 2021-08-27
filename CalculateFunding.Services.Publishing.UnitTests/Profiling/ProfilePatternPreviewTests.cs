@@ -293,7 +293,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     request.ProfilePatternKey,
                     request.ConfigurationType,
                     null,
-                    false),
+                    false,
+                    null),
                 Times.Once);
 
         private void GivenTheReProfileRequest(ProfilePreviewRequest previewRequest,
@@ -306,7 +307,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     previewRequest.ProfilePatternKey,
                     previewRequest.ConfigurationType,
                     null,
-                    false))
+                    false,
+                    null))
                 .ReturnsAsync(reProfileRequest);
 
         private void AndTheReProfileResponse(ReProfileRequest request,

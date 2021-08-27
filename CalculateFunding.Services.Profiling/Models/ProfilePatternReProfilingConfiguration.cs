@@ -28,12 +28,11 @@ namespace CalculateFunding.Services.Profiling.Models
         [JsonProperty("sameAmountStrategyKey")]
         public string SameAmountStrategyKey { get; set; }
         
-        /// <summary>
-        ///     Is this configuration meant to support new opener or
-        ///  allocations mid year
-        /// </summary>
         [JsonProperty("initialFundingStrategyKey")]
         public string InitialFundingStrategyKey { get; set; }
+
+        [JsonProperty("initialFundingStrategyWithCatchupKey")]
+        public string InitialFundingStrategyWithCatchupKey { get; set; }
 
         public string GetReProfilingStrategyKeyForFundingAmountChange(decimal change)
         {

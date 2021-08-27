@@ -22,6 +22,7 @@ namespace CalculateFunding.Services.Profiling.Tests
     public partial class CalculateProfileServiceTests
     {
         private const string NamespaceResourcesResideIn = "CalculateFunding.Services.Profiling.Tests";
+        
         [TestMethod, TestCategory("UnitTest")]
         public async Task CalculateProfileService_ShouldCorrectlyCalculateNormalPESportsPremium()
         {
@@ -514,19 +515,25 @@ namespace CalculateFunding.Services.Profiling.Tests
 
         }
 
+        
         [TestMethod, TestCategory("UnitTest")]
-        public async Task CalculateProfileService_ShouldCalculateBasedOnMidpointRoundingTwoDecimalPlaces()
+        [DynamicData(nameof(MidPointRoundingTwoDecimalPlacesExamples), DynamicDataSourceType.Method)]
+        public async Task CalculateProfileService_ShouldCalculateBasedOnMidpointRoundingTwoDecimalPlaces(string fundingStreamId,
+            string fundingPeriod,
+            string fundigLineCode,
+            decimal fundingLineTotal,
+            List<DeliveryProfilePeriod> expectedDeleveryPeriods)
         {
             // arrange
             FundingStreamPeriodProfilePattern pattern = TestResource.FromJson<FundingStreamPeriodProfilePattern>(
-             NamespaceResourcesResideIn, "Resources.NMSS-003.json");
+             NamespaceResourcesResideIn, $"Resources.{fundigLineCode}.json");
 
-            // first period rouonds down
+            // first period rounds down
             ProfileRequest peSportsPremReq1 = new ProfileRequest(
-                fundingStreamId: "NMSS",
-                fundingPeriodId: "AY-2122",
-                fundingLineCode: "NMSS-003",
-                fundingValue: 1326.27M);
+                fundingStreamId: fundingStreamId,
+                fundingPeriodId: fundingPeriod,
+                fundingLineCode: fundigLineCode,
+                fundingValue: fundingLineTotal);
 
             IProfilePatternRepository mockProfilePatternRepository = Substitute.For<IProfilePatternRepository>();
             mockProfilePatternRepository
@@ -546,121 +553,11 @@ namespace CalculateFunding.Services.Profiling.Tests
             OkObjectResult responseAsOkObjectResult = responseResult as OkObjectResult;
             AllocationProfileResponse response = responseAsOkObjectResult.Value as AllocationProfileResponse;
 
-            response.DeliveryProfilePeriods.Length.Should().Be(12);
+            response.DeliveryProfilePeriods.Length.Should().Be(expectedDeleveryPeriods.Count);
 
             response.DeliveryProfilePeriods
             .Should()
-            .BeEquivalentTo(new List<DeliveryProfilePeriod>()
-            {
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "August",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2021,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2122",
-                    ProfileValue = 884.22M,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "September",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2021,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2122",
-                    ProfileValue = 0,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "October",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2021,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2122",
-                    ProfileValue = 0,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "November",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2021,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2122",
-                    ProfileValue = 0,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "December",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2021,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2122",
-                    ProfileValue = 0,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "January",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2022,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2122",
-                    ProfileValue = 0,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "February",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2022,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2122",
-                    ProfileValue = 0,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "March",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2022,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2122",
-                    ProfileValue = 0,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "April",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2022,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2223",
-                    ProfileValue = 442.05M,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "May",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2022,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2223",
-                    ProfileValue = 0,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "June",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2022,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2223",
-                    ProfileValue = 0,
-                },
-                new DeliveryProfilePeriod()
-                {
-                    TypeValue = "July",
-                    Type = PeriodType.CalendarMonth,
-                    Year = 2022,
-                    Occurrence = 1,
-                    DistributionPeriod = "FY-2223",
-                    ProfileValue = 0,
-                },
-            });
+            .BeEquivalentTo(expectedDeleveryPeriods);
         }
 
         private ICalculateProfileService GetCalculateProfileServiceWithMockedDependencies(
@@ -680,6 +577,247 @@ namespace CalculateFunding.Services.Profiling.Tests
                 },
                 new Mock<IProducerConsumerFactory>().Object,
                 new FundingValueProfiler());
+        }
+
+        public static IEnumerable<object[]> MidPointRoundingTwoDecimalPlacesExamples()
+        {
+            yield return new object[]
+            {
+                "NMSS",
+                "AY-2122",
+                "NMSS-003",
+                1326.27M,
+                new List<DeliveryProfilePeriod>()
+                {
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "August",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2021,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2122",
+                        ProfileValue = 884.22M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "September",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2021,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2122",
+                        ProfileValue = 0,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "October",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2021,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2122",
+                        ProfileValue = 0,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "November",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2021,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2122",
+                        ProfileValue = 0,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "December",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2021,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2122",
+                        ProfileValue = 0,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "January",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2122",
+                        ProfileValue = 0,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "February",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2122",
+                        ProfileValue = 0,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "March",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2122",
+                        ProfileValue = 0,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "April",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2223",
+                        ProfileValue = 442.05M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "May",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2223",
+                        ProfileValue = 0,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "June",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2223",
+                        ProfileValue = 0,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "July",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "FY-2223",
+                        ProfileValue = 0,
+                    }
+                }
+            };
+
+            yield return new object[]
+            {
+                "RPA",
+                "AC-2122",
+                "RPA-001",
+                -17730M,
+                new List<DeliveryProfilePeriod>()
+                {
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "September",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2021,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "October",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2021,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "November",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2021,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "December",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2021,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "January",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "February",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "March",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "April",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "May",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "June",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "July",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    },
+                    new DeliveryProfilePeriod()
+                    {
+                        TypeValue = "August",
+                        Type = PeriodType.CalendarMonth,
+                        Year = 2022,
+                        Occurrence = 1,
+                        DistributionPeriod = "AC-2122",
+                        ProfileValue = -1477.50M,
+                    }
+                }
+            };
         }
     }
 }
