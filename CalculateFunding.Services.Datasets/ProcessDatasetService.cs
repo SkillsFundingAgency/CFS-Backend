@@ -869,13 +869,16 @@ namespace CalculateFunding.Services.Datasets
                 await _bulkProviderSourceDatasetRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values);
             }
 
-            if (_featureToggle.IsProviderResultsSpecificationCleanupEnabled() && existingCurrent.Any())
+            // only need to delete source datasets which aren't already deleted
+            IEnumerable<ProviderSourceDataset> cleanupDatasets = existingCurrent.Where(_ => _.Value.Deleted != true).Select(_ => _.Value.Content);
+
+            if (_featureToggle.IsProviderResultsSpecificationCleanupEnabled() && cleanupDatasets.AnyWithNullCheck())
             {
-                _logger.Information($"Removing {existingCurrent.Count()} missing source datasets");
+                _logger.Information($"Removing {cleanupDatasets.Count()} missing source datasets");
 
-                await _bulkProviderSourceDatasetRepository.DeleteCurrentProviderSourceDatasets(existingCurrent.Values.Select(_ => _.Content));
+                await _bulkProviderSourceDatasetRepository.DeleteCurrentProviderSourceDatasets(cleanupDatasets);
 
-                foreach (IEnumerable<ProviderSourceDataset> providerSourceDataSets in existingCurrent.Values.Select(_ => _.Content).Partition(1000))
+                foreach (IEnumerable<ProviderSourceDataset> providerSourceDataSets in cleanupDatasets.Partition(1000))
                 {
                     await SendProviderSourceDatasetCleanupMessageToTopic(specification.Id, ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup, providerSourceDataSets);
                 }
