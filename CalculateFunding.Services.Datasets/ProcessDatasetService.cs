@@ -683,16 +683,16 @@ namespace CalculateFunding.Services.Datasets
                 }
             }
 
-            ConcurrentDictionary<string, ProviderSourceDataset> existingCurrent = new ConcurrentDictionary<string, ProviderSourceDataset>();
+            ConcurrentDictionary<string, DocumentEntity<ProviderSourceDataset>> existingCurrent = new ConcurrentDictionary<string, DocumentEntity<ProviderSourceDataset>>();
 
-            IEnumerable<ProviderSourceDataset> existingCurrentDatasets = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+            IEnumerable<DocumentEntity<ProviderSourceDataset>> existingCurrentDatasets = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
                 _providersResultsRepository.GetCurrentProviderSourceDatasets(specification.Id, relationshipId));
 
             if (existingCurrentDatasets.AnyWithNullCheck())
             {
-                foreach (ProviderSourceDataset currentDataset in existingCurrentDatasets)
+                foreach (DocumentEntity<ProviderSourceDataset> currentDataset in existingCurrentDatasets)
                 {
-                    existingCurrent.TryAdd(currentDataset.ProviderId, currentDataset);
+                    existingCurrent.TryAdd(currentDataset.Content.ProviderId, currentDataset);
                 }
             }
 
@@ -823,39 +823,40 @@ namespace CalculateFunding.Services.Datasets
                 createVersionTasks[resultByProviderId] = Task.Run(async () =>
                 {
                     string providerId = providerSourceDataset.Key;
-                            ProviderSourceDataset sourceDataset = providerSourceDataset.Value;
+                    ProviderSourceDataset sourceDataset = providerSourceDataset.Value;
 
-                            if (existingCurrent.ContainsKey(providerId))
-                            {
-                                ProviderSourceDatasetVersion newVersion = (ProviderSourceDatasetVersion)existingCurrent[providerId].Current.Clone();
+                    if (existingCurrent.ContainsKey(providerId))
+                    {
+                        ProviderSourceDatasetVersion newVersion = (ProviderSourceDatasetVersion)existingCurrent[providerId].Content.Current.Clone();
 
-                                string existingDatasetJson = JsonConvert.SerializeObject(existingCurrent[providerId].Current.Rows);
-                                string latestDatasetJson = JsonConvert.SerializeObject(sourceDataset.Current.Rows);
+                        string existingDatasetJson = JsonConvert.SerializeObject(existingCurrent[providerId].Content.Current.Rows);
+                        string latestDatasetJson = JsonConvert.SerializeObject(sourceDataset.Current.Rows);
 
-                                if (existingDatasetJson != latestDatasetJson)
-                                {
-                                     newVersion = await _bulkSourceDatasetsVersionRepository.CreateVersion(newVersion,
-                                        existingCurrent[providerId].Current,
-                                        providerId);
+                        // if it's been deleted then the rows will match but if the code has reached here then we always want to undelete and create a new version
+                        if (existingDatasetJson != latestDatasetJson || existingCurrent[providerId].Deleted)
+                        {
+                                newVersion = await _bulkSourceDatasetsVersionRepository.CreateVersion(newVersion,
+                                existingCurrent[providerId].Content.Current,
+                                providerId);
                                     
-                                    newVersion.Author = user;
-                                    newVersion.Rows = sourceDataset.Current.Rows;
+                            newVersion.Author = user;
+                            newVersion.Rows = sourceDataset.Current.Rows;
 
-                                    sourceDataset.Current = newVersion;
+                            sourceDataset.Current = newVersion;
 
-                                    updateCurrentDatasets.TryAdd(providerId, sourceDataset);
+                            updateCurrentDatasets.TryAdd(providerId, sourceDataset);
 
-                                    historyToSave.Add(newVersion);
-                                }
+                            historyToSave.Add(newVersion);
+                        }
 
-                                existingCurrent.TryRemove(providerId, out ProviderSourceDataset _);
-                            }
-                            else
-                            {
-                                updateCurrentDatasets.TryAdd(providerId, sourceDataset);
+                        existingCurrent.TryRemove(providerId, out DocumentEntity<ProviderSourceDataset> _);
+                    }
+                    else
+                    {
+                        updateCurrentDatasets.TryAdd(providerId, sourceDataset);
 
-                                historyToSave.Add(sourceDataset.Current);
-                            }
+                        historyToSave.Add(sourceDataset.Current);
+                    }
                 });
             }
 
@@ -872,9 +873,9 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Information($"Removing {existingCurrent.Count()} missing source datasets");
 
-                await _bulkProviderSourceDatasetRepository.DeleteCurrentProviderSourceDatasets(existingCurrent.Values);
+                await _bulkProviderSourceDatasetRepository.DeleteCurrentProviderSourceDatasets(existingCurrent.Values.Select(_ => _.Content));
 
-                foreach (IEnumerable<ProviderSourceDataset> providerSourceDataSets in existingCurrent.Values.Partition<ProviderSourceDataset>(1000))
+                foreach (IEnumerable<ProviderSourceDataset> providerSourceDataSets in existingCurrent.Values.Select(_ => _.Content).Partition(1000))
                 {
                     await SendProviderSourceDatasetCleanupMessageToTopic(specification.Id, ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup, providerSourceDataSets);
                 }

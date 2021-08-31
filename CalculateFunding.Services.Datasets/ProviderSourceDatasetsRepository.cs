@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
@@ -55,7 +56,7 @@ namespace CalculateFunding.Services.Datasets
             return _cosmosRepository.QuerySql<ProviderSourceDatasetHistory>(cosmosDbQuery, -1);
         }
 
-        public async Task<IEnumerable<ProviderSourceDataset>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId)
+        public async Task<IEnumerable<DocumentEntity<ProviderSourceDataset>>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId)
         {
             CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
@@ -72,7 +73,7 @@ namespace CalculateFunding.Services.Datasets
                 }
             };
 
-            return await _cosmosRepository.QuerySql<ProviderSourceDataset>(cosmosDbQuery, itemsPerPage: 1000);
+            return await _cosmosRepository.RawQuery<DocumentEntity<ProviderSourceDataset>>(cosmosDbQuery, itemsPerPage: 1000);
         }
 
         public async Task DeleteCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)

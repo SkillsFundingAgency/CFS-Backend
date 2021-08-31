@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 
 
@@ -15,6 +16,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IEnumerable<ProviderSourceDatasetHistory>> GetProviderSourceDatasetHistories(string specificationId, string relationshipId);
 
-        Task<IEnumerable<ProviderSourceDataset>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId);
+        Task<IEnumerable<DocumentEntity<ProviderSourceDataset>>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId);
     }
 }

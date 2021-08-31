@@ -2285,7 +2285,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             _providerResultsRepository
                 .GetCurrentProviderSourceDatasets(SpecificationId, _relationshipId)
-                .Returns(providerSourceDatasets);
+                .Returns(providerSourceDatasets.Select(_ => new DocumentEntity<ProviderSourceDataset>(_)));
         }
 
         private void ThenNoResultsWereSaved()
