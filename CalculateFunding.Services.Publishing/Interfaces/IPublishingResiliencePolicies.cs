@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Services.DeadletterProcessor;
-using Polly;
+﻿using Polly;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -23,5 +22,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         AsyncPolicy PublishedIndexSearchResiliencePolicy { get; set; }
         AsyncPolicy FundingStreamPaymentDatesRepository { get; set; }
         AsyncPolicy CacheProvider { get; set; }
+        AsyncPolicy ReleaseManagementRepository { get; set; }
     }
 }

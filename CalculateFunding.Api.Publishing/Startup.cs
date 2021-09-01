@@ -36,6 +36,7 @@ using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Batches;
 using CalculateFunding.Services.Publishing.Caching.Http;
 using CalculateFunding.Services.Publishing.Errors;
+using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
@@ -155,25 +156,40 @@ namespace CalculateFunding.Api.Publishing
 
             builder.AddSingleton<IPublishedProviderUpdateDateService, PublishedProviderUpdateDateService>();
 
-            ISqlSettings sqlSettings = new SqlSettings();
-
-            Configuration.Bind("saSql", sqlSettings);
-
-            builder.AddSingleton(sqlSettings);
-
             builder.AddSingleton<IBatchUploadService, BatchUploadService>();
 
-            builder.AddScoped<IDataTableImporter, DataTableImporter>();
+
             builder.AddScoped<ISqlImportContextBuilder, SqlImportContextBuilder>();
-            builder.AddSingleton<ISqlPolicyFactory, SqlPolicyFactory>();
-            builder.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
-            builder.AddScoped<ISqlImportContextBuilder, SqlImportContextBuilder>();
+
             builder.AddScoped<ISqlImporter, SqlImporter>();
             builder.AddScoped<ISqlImportService, SqlImportService>();
             builder.AddScoped<ISqlNameGenerator, SqlNameGenerator>();
             builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
             builder.AddScoped<IQaSchemaService, QaSchemaService>();
-            builder.AddScoped<IQaRepository, QaRepository>();
+
+            builder.AddScoped<IDataTableImporter, DataTableImporter>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                Configuration.Bind("saSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+
+                return new DataTableImporter(sqlConnectionFactory);
+            });
+
+            builder.AddScoped<IQaRepository, QaRepository>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                Configuration.Bind("saSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+                SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
+
+                return new QaRepository(sqlConnectionFactory, sqlPolicyFactory);
+            });
+
             builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
            {
                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
@@ -523,6 +539,23 @@ namespace CalculateFunding.Api.Publishing
             {
                 builder.ConfigureSwaggerServices(title: "Publishing Microservice API");
             }
+
+            builder.AddSingleton<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
+            builder.AddSingleton<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
+            builder.AddSingleton<IReleaseManagementRepository, ReleaseManagementRepository>((svc) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                Configuration.Bind("releaseManagementSql", sqlSettings);
+                SqlConnectionFactory factory = new SqlConnectionFactory(sqlSettings);
+
+                SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
+
+                ExternalApiQueryBuilder externalApiQueryBuilder = new ExternalApiQueryBuilder();
+                return new ReleaseManagementRepository(factory, sqlPolicyFactory, externalApiQueryBuilder);
+            });
+
+            builder.AddReleaseManagementServices(Configuration);
         }
     }
 }

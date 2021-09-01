@@ -4,7 +4,7 @@ using Newtonsoft.Json.Converters;
 namespace CalculateFunding.Services.Publishing
 {
     /// <summary>
-    /// The reason for the groupig. Is it paid based on this grouping, or just informational.
+    /// The reason for the grouping. Is it paid based on this grouping, or just informational.
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum GroupingReason

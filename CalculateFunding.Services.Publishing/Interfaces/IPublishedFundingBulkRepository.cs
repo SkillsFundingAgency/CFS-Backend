@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task<IEnumerable<PublishedProvider>> GetPublishedProviders(
             IEnumerable<KeyValuePair<string, string>> publishedProviderIds);
-
+        Task<IEnumerable<PublishedProvider>> TryGetPublishedProvidersByProviderId(IEnumerable<string> providerIds, string fundingStreamId, string fundingPeriodId);
         Task UpsertPublishedFundings(
             IEnumerable<PublishedFunding> publishedFundings,
             Action<Task<HttpStatusCode>, PublishedFunding> continueAction);

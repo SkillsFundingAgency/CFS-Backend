@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Calcs;
+﻿using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -16,10 +12,13 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -136,6 +135,8 @@ namespace CalculateFunding.Services.Publishing
 
             string specificationId = message.UserProperties["specification-id"] as string;
 
+            string correlationId = message.GetUserProperty<string>(SfaCorrelationId);
+
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
 
             if (specification == null)
@@ -143,13 +144,25 @@ namespace CalculateFunding.Services.Publishing
                 throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
             }
 
-            string correlationId = message.GetUserProperty<string>(SfaCorrelationId);
-
             PublishedProviderIdsRequest publishedProviderIdsRequest = null;
 
             if (batched)
             {
                 publishedProviderIdsRequest = message.GetPayloadAsInstanceOf<PublishedProviderIdsRequest>();
+            }
+
+            await PublishProviderFundingResults(batched, author, correlationId, specification, publishedProviderIdsRequest);
+        }
+
+        public async Task PublishProviderFundingResults(bool batched, Reference author, string correlationId, SpecificationSummary specification, PublishedProviderIdsRequest publishedProviderIdsRequest)
+        {
+            Guard.ArgumentNotNull(author, nameof(author));
+            Guard.IsNullOrWhiteSpace(correlationId, nameof(correlationId));
+            Guard.ArgumentNotNull(specification, nameof(specification));
+
+            if (batched)
+            {
+                Guard.ArgumentNotNull(publishedProviderIdsRequest, nameof(publishedProviderIdsRequest));
             }
 
             foreach (Reference fundingStream in specification.FundingStreams)
@@ -167,15 +180,15 @@ namespace CalculateFunding.Services.Publishing
             await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
 
             await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Release,
-                specificationId,
+                specification.Id,
                 specification.FundingPeriod.Id,
                 specification.FundingStreams.Select(fs => fs.Id),
                 correlationId,
                 author);
 
-            await _createPublishDatasetsDataCopyJob.CreateJob(specificationId, author, correlationId);
+            await _createPublishDatasetsDataCopyJob.CreateJob(specification.Id, author, correlationId);
 
-            await _createProcessDatasetObsoleteItemsJob.CreateJob(specificationId, author, correlationId);
+            await _createProcessDatasetObsoleteItemsJob.CreateJob(specification.Id, author, correlationId);
         }
 
         private async Task PublishFundingStream(Reference fundingStream,

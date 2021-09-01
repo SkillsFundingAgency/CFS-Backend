@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -17,6 +10,13 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {
@@ -126,24 +126,35 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
-            return (await _repository
-                .QuerySql<PublishedProvider>(new CosmosDbQuery
-                {
-                    QueryText = @"SELECT *
-                                 FROM c
-                                 WHERE c.documentType = 'PublishedProvider'
-                                 AND c.deleted = false
-                                 AND c.content.current.providerId = @providerId
-                                 AND c.content.current.fundingStreamId = @fundingStreamId
-                                 AND c.content.current.fundingPeriodId = @fundingPeriodId",
-                    Parameters = new[]
-                    {
-                        new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
-                        new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId),
-                        new CosmosDbQueryParameter("@providerId", providerId)
-                    }
-                }))
-                .SingleOrDefault();
+            string cosmosParitionKey = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
+
+            var document = await _repository.TryReadDocumentByIdPartitionedAsync<PublishedProvider>(cosmosParitionKey, cosmosParitionKey);
+
+            if (document == null || document.Deleted)
+            {
+                return null;
+            }
+
+            return document.Content;
+
+            //return (await _repository
+            //    .QuerySql<PublishedProvider>(new CosmosDbQuery
+            //    {
+            //        QueryText = @"SELECT *
+            //                     FROM c
+            //                     WHERE c.documentType = 'PublishedProvider'
+            //                     AND c.deleted = false
+            //                     AND c.content.current.providerId = @providerId
+            //                     AND c.content.current.fundingStreamId = @fundingStreamId
+            //                     AND c.content.current.fundingPeriodId = @fundingPeriodId",
+            //        Parameters = new[]
+            //        {
+            //            new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+            //            new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId),
+            //            new CosmosDbQueryParameter("@providerId", providerId)
+            //        }
+            //    }))
+            //    .SingleOrDefault();
         }
 
         public async Task<PublishedProvider> GetPublishedProviderBySpecificationId(
@@ -1647,6 +1658,19 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNotEmpty(publishedProviders, nameof(publishedProviders));
 
             await _repository.BulkDeleteAsync(publishedProviders.Select(p => new KeyValuePair<string, PublishedProvider>(p.Id, p)), hardDelete: false);
+        }
+
+        public ICosmosDbFeedIterator GetPublishedFundingIterator(int batchSize)
+        {
+            CosmosDbQuery query = new CosmosDbQuery()
+            {
+                QueryText = @"SELECT *
+                                FROM c
+                                WHERE c.documentType = 'PublishedFundingVersion' 
+                                "
+            };
+
+            return _repository.GetFeedIterator(query, batchSize);
         }
     }
 }

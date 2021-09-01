@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -39,7 +39,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<PublishedProvider> GetPublishedProviderById(string cosmosId, string partitionKey);
 
         Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId, string[] providerIds = null);
-
         Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string fundingStreamId, string fundingPeriodId);
 
         Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingVersionIds(string fundingStreamId, string fundingPeriodId);
@@ -57,10 +56,10 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             bool? isIndicative = null,
             string monthYearOpened = null);
 
-        Task DeleteAllPublishedProvidersByFundingStreamAndPeriod(string fundingStreamId, 
+        Task DeleteAllPublishedProvidersByFundingStreamAndPeriod(string fundingStreamId,
             string fundingPeriodId);
 
-        Task DeleteAllPublishedProviderVersionsByFundingStreamAndPeriod(string fundingStreamId, 
+        Task DeleteAllPublishedProviderVersionsByFundingStreamAndPeriod(string fundingStreamId,
             string fundingPeriodId);
 
         Task DeleteAllPublishedFundingsByFundingStreamAndPeriod(string fundingStreamId,
@@ -100,7 +99,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             int? pageRef,
             int totalCount);
 
-        Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds,
+        Task<int> QueryPublishedFundingCount(
+            IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
             IEnumerable<string> variationReasons);
@@ -157,5 +157,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         ICosmosDbFeedIterator GetRefreshedProviderVersionBatchProcessing(string specificationId,
             int batchSize);
+
+        ICosmosDbFeedIterator GetPublishedFundingIterator(int batchSize);
     }
 }

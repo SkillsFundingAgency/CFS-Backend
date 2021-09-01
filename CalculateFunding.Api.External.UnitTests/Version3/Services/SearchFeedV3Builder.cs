@@ -17,9 +17,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             return this;
         }
 
-        public SearchFeedV3<TFeedItem> Build()
+        public SearchFeedResult<TFeedItem> Build()
         {
-            return new SearchFeedV3<TFeedItem>
+            return new SearchFeedResult<TFeedItem>
             {
                 Entries = _feedItems ?? new TFeedItem[0]
             };

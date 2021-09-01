@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Models.Publishing;
+﻿using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Extensions;
-using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
@@ -32,7 +30,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         public PublishingStepDefinition(IPublishFundingStepContext publishFundingStepContext,
             CurrentSpecificationStepContext currentSpecificationStepContext,
             CurrentJobStepContext currentJobStepContext,
-            CurrentUserStepContext currentUserStepContext, 
+            CurrentUserStepContext currentUserStepContext,
             IPublishService publishService)
         {
             _publishFundingStepContext = publishFundingStepContext;
@@ -53,7 +51,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 TemplateMappingItems = templateMappingItems
             });
         }
-        
+
         [Given(@"template mapping '(.*)' exists")]
         public void GivenTemplateMappingExists(string templateMappingFileName)
         {
@@ -105,7 +103,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _publishFundingStepContext.ProfilingInMemoryClient.DistributionPeriods = table.Rows.Select(_ =>
                 new Common.ApiClient.Profiling.Models.DistributionPeriods
                 {
-                    DistributionPeriodCode = _[0], 
+                    DistributionPeriodCode = _[0],
                     Value = decimal.Parse(_[1])
                 });
         }
@@ -115,18 +113,18 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         {
             _publishFundingStepContext.ProfilingInMemoryClient.DistributionPeriods.ToList().ForEach(_ =>
             {
-                _publishFundingStepContext.ProfilingInMemoryClient.ProfilingPeriods = table.Rows.Where(row => 
+                _publishFundingStepContext.ProfilingInMemoryClient.ProfilingPeriods = table.Rows.Where(row =>
                     row[0] == _.DistributionPeriodCode)
-                    .Select(row => 
+                    .Select(row =>
                         new Common.ApiClient.Profiling.Models.ProfilingPeriod
-                    {
-                        DistributionPeriod = _.DistributionPeriodCode, 
-                        Type = row[1], 
-                        Period = row[2], 
-                        Year = Convert.ToInt16(row[3]), 
-                        Occurrence = Convert.ToInt16(row[4]), 
-                        Value = decimal.Parse(row[5])
-                    });
+                        {
+                            DistributionPeriod = _.DistributionPeriodCode,
+                            Type = row[1],
+                            Period = row[2],
+                            Year = Convert.ToInt16(row[3]),
+                            Occurrence = Convert.ToInt16(row[4]),
+                            Value = decimal.Parse(row[5])
+                        });
             });
         }
 
@@ -149,6 +147,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("user-id", _currentUserStepContext.UserId);
             message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
             message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
+            message.UserProperties.Add("sfa-correlationId", _currentSpecificationStepContext.CorrelationId);
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
 
             await _publishService.Run(message);
@@ -167,6 +166,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
             message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
+            message.UserProperties.Add("sfa-correlationId", _currentSpecificationStepContext.CorrelationId);
             message.Body = Encoding.UTF8.GetBytes(publishProvidersRequestJson);
 
             await _publishService.Run(message, async () =>

@@ -1,17 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using StackExchange.Redis;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 {
@@ -40,7 +38,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
                 _searchService,
                 _cache,
                 _apiFileSystemCacheSettings);
-            
+
             _retrievalService
                 .GetFundingFeedDocument(Arg.Any<string>(), Arg.Any<bool>())
                 .Returns((string)null);
@@ -49,26 +47,26 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         [TestMethod]
         public void EnsureFoldersExistDelegatesToCache()
         {
-             GivenTheSettings(1, 1, true, true);
-             
+            GivenTheSettings(1, 1, true, true);
+
             _preLoader.EnsureFoldersExists();
-            
+
             _cache
                 .Received(1)
                 .EnsureFoldersExist(FundingFileSystemCacheKey.Folder, ProviderFundingFileSystemCacheKey.Folder);
         }
-        
+
         [TestMethod]
         [DataRow(true, false)]
         [DataRow(false, true)]
         [DataRow(false, false)]
-        public void EnsureFoldersExistExitsEarlyIfShouldNotPreloadOrCachingDisabled(bool shouldPreLoad, 
+        public void EnsureFoldersExistExitsEarlyIfShouldNotPreloadOrCachingDisabled(bool shouldPreLoad,
             bool isFileSystemCacheEnabled)
         {
             GivenTheSettings(1, 1, shouldPreLoad, isFileSystemCacheEnabled);
-            
+
             _preLoader.EnsureFoldersExists();
-            
+
             _cache
                 .DidNotReceive()
                 .EnsureFoldersExist(FundingFileSystemCacheKey.Folder, ProviderFundingFileSystemCacheKey.Folder);
@@ -78,7 +76,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         [DataRow(true, false)]
         [DataRow(false, true)]
         [DataRow(false, false)]
-        public async Task ExitsEarlyIfSettingsShouldPreloadFalseOrCachingDisabled(bool shouldPreLoad, 
+        public async Task ExitsEarlyIfSettingsShouldPreloadFalseOrCachingDisabled(bool shouldPreLoad,
             bool isFileSystemCacheEnabled)
         {
             GivenTheSettings(1, 1, shouldPreLoad, isFileSystemCacheEnabled);
@@ -94,17 +92,17 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             int pageSize = 20;
             int preloadCount = 50;
 
-            SearchFeedV3<PublishedFundingIndex> pageOne = NewV3SearchFeed(_ => _.WithFeedItems(NewPublishedFundingIndex(),
+            SearchFeedResult<PublishedFundingIndex> pageOne = NewV3SearchFeed(_ => _.WithFeedItems(NewPublishedFundingIndex(),
                 NewPublishedFundingIndex(),
                 NewPublishedFundingIndex(),
                 NewPublishedFundingIndex()
             ));
-            SearchFeedV3<PublishedFundingIndex> pageTwo = NewV3SearchFeed(_ => _.WithFeedItems(NewPublishedFundingIndex(),
+            SearchFeedResult<PublishedFundingIndex> pageTwo = NewV3SearchFeed(_ => _.WithFeedItems(NewPublishedFundingIndex(),
                 NewPublishedFundingIndex(),
                 NewPublishedFundingIndex(),
                 NewPublishedFundingIndex()
             ));
-            SearchFeedV3<PublishedFundingIndex> pageThree = NewV3SearchFeed(_ => _.WithFeedItems(NewPublishedFundingIndex(),
+            SearchFeedResult<PublishedFundingIndex> pageThree = NewV3SearchFeed(_ => _.WithFeedItems(NewPublishedFundingIndex(),
                 NewPublishedFundingIndex(),
                 NewPublishedFundingIndex(),
                 NewPublishedFundingIndex()
@@ -128,12 +126,12 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             int pageSize = 10;
             int preloadCount = 15;
 
-            SearchFeedV3<PublishedFundingIndex> pageOne = NewV3SearchFeed(_ => _.WithFeedItems(NewPublishedFundingIndex(),
+            SearchFeedResult<PublishedFundingIndex> pageOne = NewV3SearchFeed(_ => _.WithFeedItems(NewPublishedFundingIndex(),
                 NewPublishedFundingIndex(),
                 NewPublishedFundingIndex(),
                 NewPublishedFundingIndex()
             ));
-            SearchFeedV3<PublishedFundingIndex> pageTwo = NewV3SearchFeed(_ => _.WithFeedItems(NewPublishedFundingIndex(),
+            SearchFeedResult<PublishedFundingIndex> pageTwo = NewV3SearchFeed(_ => _.WithFeedItems(NewPublishedFundingIndex(),
                 NewPublishedFundingIndex(),
                 NewPublishedFundingIndex(),
                 NewPublishedFundingIndex()
@@ -191,7 +189,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             _apiFileSystemCacheSettings.IsEnabled = fileSystemCacheEnabled;
         }
 
-        private void AndTheSearchFeedPage(int page, int pageSize, SearchFeedV3<PublishedFundingIndex> result)
+        private void AndTheSearchFeedPage(int page, int pageSize, SearchFeedResult<PublishedFundingIndex> result)
         {
             _searchService.GetFeedsV3(page,
                     pageSize,
@@ -199,7 +197,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
                 .Returns(result);
         }
 
-        private SearchFeedV3<PublishedFundingIndex> NewV3SearchFeed(Action<SearchFeedV3Builder<PublishedFundingIndex>> setUp = null)
+        private SearchFeedResult<PublishedFundingIndex> NewV3SearchFeed(Action<SearchFeedV3Builder<PublishedFundingIndex>> setUp = null)
         {
             SearchFeedV3Builder<PublishedFundingIndex> builder = new SearchFeedV3Builder<PublishedFundingIndex>();
 

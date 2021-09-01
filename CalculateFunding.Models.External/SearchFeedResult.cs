@@ -1,11 +1,11 @@
-﻿using System;
+﻿using CalculateFunding.Models.External.AtomItems;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Models.External.AtomItems;
 
 namespace CalculateFunding.Models.External
 {
-    public class SearchFeedV3<T> where T : class
+    public class SearchFeedResult<T> where T : class
     {
         public string Id
         {
@@ -91,7 +91,7 @@ namespace CalculateFunding.Models.External
 
             List<AtomLink> atomLinks = atomLinksDictionary
                 .Where(a => a.Value != null)
-                .Select(a => new AtomLink(string.Format(notificationsUrl, $@"/{a.Value.Value}"), a.Key))
+                .Select(a => new AtomLink(string.Format(notificationsUrl, $"/{a.Value.Value}"), a.Key))
                 .ToList();
 
             atomLinks.Add(new AtomLink(string.Format(notificationsUrl, string.Empty), "self"));

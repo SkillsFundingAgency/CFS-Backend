@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -10,6 +6,10 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -28,12 +28,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _publishedFundingRepository = new Mock<IPublishedFundingRepository>();
 
-            _searchService = new FundingFeedSearchService(_publishedFundingRepository.Object, 
+            _searchService = new FundingFeedSearchService(_publishedFundingRepository.Object,
                 new ResiliencePolicies
-            {
-                PublishedFundingRepository = Policy.NoOpAsync(),
-            });
-            
+                {
+                    PublishedFundingRepository = Policy.NoOpAsync(),
+                });
+
             _fundingStreamIds = NewRandomStrings();
             _fundingPeriodIds = NewRandomStrings();
             _groupingReasons = NewRandomStrings();
@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public void GuardsAgainstPageRefLessThan1()
         {
-            Func<Task<SearchFeedV3<PublishedFundingIndex>>> invocation = () => WhenTheFeedIsRequested(0, 10);
+            Func<Task<SearchFeedResult<PublishedFundingIndex>>> invocation = () => WhenTheFeedIsRequested(0, 10);
 
             invocation
                 .Should()
@@ -61,14 +61,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             int top = 50;
 
             IEnumerable<PublishedFundingIndex> sourceResults = NewResults(
-                NewPublishedFundingIndex(), 
-                NewPublishedFundingIndex(), 
+                NewPublishedFundingIndex(),
+                NewPublishedFundingIndex(),
                 NewPublishedFundingIndex());
-            
-            GivenTheTotalCount(totalCount);
-            AndTheFundingFeedResults(top, null,  totalCount, sourceResults);
 
-            SearchFeedV3<PublishedFundingIndex> fundingFeedResults = await WhenTheFeedIsRequested(null, top);
+            GivenTheTotalCount(totalCount);
+            AndTheFundingFeedResults(top, null, totalCount, sourceResults);
+
+            SearchFeedResult<PublishedFundingIndex> fundingFeedResults = await WhenTheFeedIsRequested(null, top);
 
             fundingFeedResults
                 .Should()
@@ -90,7 +90,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .BeEquivalentTo(sourceResults.Reverse(),
                     opt => opt.WithStrictOrdering());
         }
-        
+
         [TestMethod]
         public async Task RetrievesRequestPageIfPageRefSupplied()
         {
@@ -99,14 +99,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             int pageRef = 2;
 
             IEnumerable<PublishedFundingIndex> sourceResults = NewResults(
-                NewPublishedFundingIndex(), 
-                NewPublishedFundingIndex(), 
+                NewPublishedFundingIndex(),
+                NewPublishedFundingIndex(),
                 NewPublishedFundingIndex());
-            
-            GivenTheTotalCount(totalCount);
-            AndTheFundingFeedResults(top, pageRef, totalCount,  sourceResults);
 
-            SearchFeedV3<PublishedFundingIndex> fundingFeedResults = await WhenTheFeedIsRequested(pageRef, top);
+            GivenTheTotalCount(totalCount);
+            AndTheFundingFeedResults(top, pageRef, totalCount, sourceResults);
+
+            SearchFeedResult<PublishedFundingIndex> fundingFeedResults = await WhenTheFeedIsRequested(pageRef, top);
 
             fundingFeedResults
                 .Should()
@@ -159,7 +159,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .ReturnsAsync(fundingFeedResults);
         }
 
-        private async Task<SearchFeedV3<PublishedFundingIndex>> WhenTheFeedIsRequested(int? pageRef,
+        private async Task<SearchFeedResult<PublishedFundingIndex>> WhenTheFeedIsRequested(int? pageRef,
             int top)
         {
             return await _searchService.GetFeedsV3(pageRef,
@@ -179,12 +179,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 yield return NewRandomString();
             }
         }
-        
+
         private string NewRandomString() => new RandomString();
-        
+
         private PublishedFundingIndex NewPublishedFundingIndex() => new PublishedFundingIndexBuilder()
             .Build();
-        
+
         private IEnumerable<PublishedFundingIndex> NewResults(params PublishedFundingIndex[] results) => results;
     }
 }

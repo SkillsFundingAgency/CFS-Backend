@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using CalculateFunding.Functions.Publishing.ServiceBus;
+﻿using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Tests.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace CalculateFunding.Functions.Publishing.UnitTests
 {
@@ -35,16 +35,17 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
                 { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
                 { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
                 { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
-                { "saSql:ConnectionString", "StorageConnection" }
+                { "saSql:ConnectionString", "StorageConnection" },
+                { "releaseManagementSql:ConnectionString", "Server=.\\;Initial Catalog=ReleaseManagement;Integrated Security=SSPI" },
             };
 
             return configData;
         }
-        
+
         protected override Assembly EntryAssembly => typeof(OnApproveAllProviderFunding).Assembly;
 
         protected override void RegisterDependencies()
-        {           
+        {
             Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
         }
     }

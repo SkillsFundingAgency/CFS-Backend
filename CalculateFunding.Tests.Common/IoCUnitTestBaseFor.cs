@@ -1,10 +1,10 @@
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Tests.Common
 {
@@ -15,7 +15,7 @@ namespace CalculateFunding.Tests.Common
         {
             ServiceCollection = new ServiceCollection();
         }
-        
+
         protected abstract Assembly EntryAssembly { get; }
 
         protected virtual IServiceScope CreateServiceScope() => ServiceCollection
@@ -39,7 +39,7 @@ namespace CalculateFunding.Tests.Common
             using IServiceScope scope = CreateServiceScope();
 
             IServiceProvider serviceProvider = scope.ServiceProvider;
-                
+
             foreach (Type entryPoint in EntryPoints)
             {
                 serviceProvider

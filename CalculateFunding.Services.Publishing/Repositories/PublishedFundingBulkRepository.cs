@@ -163,6 +163,48 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return concurrentObjects;
         }
 
+        public async Task<IEnumerable<PublishedProvider>> TryGetPublishedProvidersByProviderId(
+            IEnumerable<string> providerIds, string fundingStreamId, string fundingPeriodId)
+        {
+            ConcurrentBag<PublishedProvider> concurrentObjects = new ConcurrentBag<PublishedProvider>();
+
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedFundingConcurrencyCount);
+
+            foreach (string providerId in providerIds)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            string cosmosDocumentId = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
+
+                            DocumentEntity<PublishedProvider> publishedProvider = await _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                                 _repository.ReadDocumentByIdPartitionedAsync<PublishedProvider>(
+                                     cosmosDocumentId,
+                                     cosmosDocumentId));
+
+                            if (publishedProvider != null && !publishedProvider.Deleted)
+                            {
+                                concurrentObjects.Add(publishedProvider.Content);
+                            }
+
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+
+
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+
+            return concurrentObjects;
+        }
+
         public async Task UpsertPublishedFundings(
             IEnumerable<PublishedFunding> publishedFundings,
             Action<Task<HttpStatusCode>, PublishedFunding> continueAction)
@@ -220,7 +262,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                             {
                                 concurrentTasks.Add(
                                     _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
-                                        _repository.UpsertAsync(publishedProvider, publishedProvider.PartitionKey, undelete:true)
+                                        _repository.UpsertAsync(publishedProvider, publishedProvider.PartitionKey, undelete: true)
                                             .ContinueWith((task) => continueAction(task))
                                     ));
                             }

@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipelines;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using CalculateFunding.Api.External.V3.Interfaces;
+﻿using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.V3.AtomItems;
@@ -23,6 +15,14 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Pipelines;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.External.UnitTests.Version3
 {
@@ -122,7 +122,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         public async Task GetNotifications_GivenSearchFeedReturnsZeroTotalCountResult_ReturnsNotFoundResult()
         {
             //Arrange
-            SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>();
+            SearchFeedResult<PublishedFundingIndex> feeds = new SearchFeedResult<PublishedFundingIndex>();
 
             IFundingFeedSearchService feedsSearchService = CreateSearchService();
             feedsSearchService
@@ -153,7 +153,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         public async Task GetNotifications_GivenSearchFeedReturnsNoResultsForTheGivenPage_ReturnsNotFoundResult()
         {
             //Arrange
-            SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>()
+            SearchFeedResult<PublishedFundingIndex> feeds = new SearchFeedResult<PublishedFundingIndex>()
             {
                 TotalCount = 1000,
                 Entries = Enumerable.Empty<PublishedFundingIndex>()
@@ -189,7 +189,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         {
             //Arrange
             List<PublishedFundingIndex> searchFeedEntries = CreateFeedIndexes().ToList();
-            SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>()
+            SearchFeedResult<PublishedFundingIndex> feeds = new SearchFeedResult<PublishedFundingIndex>()
             {
                 TotalCount = 11,
                 Entries = searchFeedEntries,
@@ -235,7 +235,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             int pageSize = 3;
 
             List<PublishedFundingIndex> searchFeedEntries = CreateFeedIndexes().ToList();
-            SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>
+            SearchFeedResult<PublishedFundingIndex> feeds = new SearchFeedResult<PublishedFundingIndex>
             {
                 PageRef = pageRef,
                 Top = 2,
@@ -363,7 +363,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         public async Task GetNotifications_GivenSearchFeedReturnsResultsWhenNoQueryParameters_EnsuresAtomLinksCorrect()
         {
             //Arrange
-            SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>
+            SearchFeedResult<PublishedFundingIndex> feeds = new SearchFeedResult<PublishedFundingIndex>
             {
                 PageRef = 2,
                 Top = 2,
@@ -390,7 +390,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             Mock<IPublishedFundingRetrievalService> fundingRetrievalService = new Mock<IPublishedFundingRetrievalService>();
 
             fundingRetrievalService.Setup(_ => _.GetFundingFeedDocument(It.IsAny<string>(), false))
-                .ReturnsAsync(fundingFeedDocument);            
+                .ReturnsAsync(fundingFeedDocument);
 
             Mock<IExternalEngineOptions> externalEngineOptions = new Mock<IExternalEngineOptions>();
             externalEngineOptions
@@ -453,7 +453,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         public async Task GetFunding_GivenGetFundingFeedDocumentReturnsEmpty_ThrowAnException()
         {
             //Arrange
-            SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>
+            SearchFeedResult<PublishedFundingIndex> feeds = new SearchFeedResult<PublishedFundingIndex>
             {
                 PageRef = 2,
                 Top = 2,

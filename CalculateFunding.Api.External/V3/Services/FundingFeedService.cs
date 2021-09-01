@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO.Pipelines;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using CalculateFunding.Api.External.V3.Interfaces;
+﻿using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External;
@@ -16,6 +9,13 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO.Pipelines;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.External.V3.Services
 {
@@ -74,7 +74,7 @@ namespace CalculateFunding.Api.External.V3.Services
 
             if (pageSize < 1 || pageSize > MaxRecords) return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
 
-            SearchFeedV3<PublishedFundingIndex> searchFeed = await _feedService.GetFeedsV3(
+            SearchFeedResult<PublishedFundingIndex> searchFeed = await _feedService.GetFeedsV3(
                 pageRef, pageSize.Value, fundingStreamIds, fundingPeriodIds,
                 groupingReasons?.Select(x => x.ToString()),
                 variationReasons?.Select(x => x.ToString()));
@@ -100,7 +100,7 @@ namespace CalculateFunding.Api.External.V3.Services
             return new EmptyResult();
         }
 
-        private async Task CreateAtomFeed(SearchFeedV3<PublishedFundingIndex> searchFeed, HttpRequest request, HttpResponse response)
+        private async Task CreateAtomFeed(SearchFeedResult<PublishedFundingIndex> searchFeed, HttpRequest request, HttpResponse response)
         {
             const string fundingEndpointName = "notifications";
             string baseRequestPath = request.Path.Value.Substring(0, request.Path.Value.IndexOf(fundingEndpointName, StringComparison.Ordinal) + fundingEndpointName.Length);
@@ -174,7 +174,7 @@ namespace CalculateFunding.Api.External.V3.Services
             return result;
         }
 
-        private async Task CreateAtomFeedHeader(SearchFeedV3<PublishedFundingIndex> searchFeed, string fundingUrl, PipeWriter writer)
+        private async Task CreateAtomFeedHeader(SearchFeedResult<PublishedFundingIndex> searchFeed, string fundingUrl, PipeWriter writer)
         {
             CalculateFunding.Models.External.AtomItems.AtomLink[] atomLinks = searchFeed.GenerateAtomLinksForResultGivenBaseUrl(fundingUrl).ToArray();
 
@@ -220,7 +220,7 @@ namespace CalculateFunding.Api.External.V3.Services
             int count = 0;
 
             var noContentDocuments = fundingFeedDocuments.Where(x => string.IsNullOrWhiteSpace(x.Value)).ToList();
-            
+
             if (noContentDocuments.Any())
             {
                 string message = $"No funding content blob found for document path: {string.Join(',', noContentDocuments.Select(x => x.Key.DocumentPath))}.";
@@ -231,7 +231,7 @@ namespace CalculateFunding.Api.External.V3.Services
             {
                 count++;
                 PublishedFundingIndex feedIndex = item.Key;
-               
+
                 string link = $"{request.Scheme}://{request.Host.Value}{fundingTrimmedRequestPath}/byId/{feedIndex.Id}";
 
                 await writer.WriteAsync("        {");
@@ -245,9 +245,9 @@ namespace CalculateFunding.Api.External.V3.Services
                 await writer.WriteAsync("                     {");
                 await writer.WriteAsync($"                         \"href\":\"{link}\",");
                 await writer.WriteAsync("                         \"rel\":\"Funding\"");
-                await writer.WriteAsync("                     },");               
+                await writer.WriteAsync("                     },");
                 await writer.WriteAsync("             \"content\":");
-                await writer.WriteAsync(item.Value);                
+                await writer.WriteAsync(item.Value);
                 await writer.WriteAsync("        }");
 
                 if (!isLastBatch || (isLastBatch && count != feedDocumentCount))
@@ -259,7 +259,7 @@ namespace CalculateFunding.Api.External.V3.Services
             }
         }
 
-        private bool IsIncompleteArchivePage(SearchFeedV3<PublishedFundingIndex> searchFeed, int? pageRef)
+        private bool IsIncompleteArchivePage(SearchFeedResult<PublishedFundingIndex> searchFeed, int? pageRef)
         {
             return pageRef != null && searchFeed.Last == pageRef && searchFeed.Entries.Count() != searchFeed.Top;
         }

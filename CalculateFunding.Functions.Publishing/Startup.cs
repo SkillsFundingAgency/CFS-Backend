@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading;
-using AutoMapper;
+﻿using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
@@ -13,7 +11,6 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Sql;
 using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.Storage;
@@ -58,11 +55,12 @@ using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 using Polly.Bulkhead;
 using Serilog;
+using System;
+using System.Threading;
 using BlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using CommonBlobClient = CalculateFunding.Common.Storage.BlobClient;
 using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
@@ -113,23 +111,35 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IBatchUploadReaderFactory, BatchUploadReaderFactory>();
             builder.AddSingleton<IValidator<BatchUploadValidationRequest>, BatchUploadValidationRequestValidation>();
 
-            ISqlSettings sqlSettings = new SqlSettings();
-
-            config.Bind("saSql", sqlSettings);
-
-            builder.AddSingleton(sqlSettings);
-
-            builder.AddSingleton<ISqlPolicyFactory, SqlPolicyFactory>();
-            builder.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
-
-            builder.AddScoped<IDataTableImporter, DataTableImporter>();
             builder.AddScoped<ISqlImportContextBuilder, SqlImportContextBuilder>();
             builder.AddScoped<ISqlImporter, SqlImporter>();
             builder.AddScoped<ISqlImportService, SqlImportService>();
             builder.AddScoped<ISqlNameGenerator, SqlNameGenerator>();
             builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
             builder.AddScoped<IQaSchemaService, QaSchemaService>();
-            builder.AddScoped<IQaRepository, QaRepository>();
+
+            builder.AddScoped<IDataTableImporter, DataTableImporter>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                config.Bind("saSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+
+                return new DataTableImporter(sqlConnectionFactory);
+            });
+
+            builder.AddScoped<IQaRepository, QaRepository>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                config.Bind("saSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+                SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
+
+                return new QaRepository(sqlConnectionFactory, sqlPolicyFactory);
+            });
 
             builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
              {
@@ -629,6 +639,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
 
             builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
+
+            builder.AddReleaseManagementServices(config);
 
             return builder.BuildServiceProvider();
         }

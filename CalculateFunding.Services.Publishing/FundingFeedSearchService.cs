@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing
             return health;
         }
 
-        public async Task<SearchFeedV3<PublishedFundingIndex>> GetFeedsV3(int? pageRef,
+        public async Task<SearchFeedResult<PublishedFundingIndex>> GetFeedsV3(int? pageRef,
             int top,
             IEnumerable<string> fundingStreamIds = null,
             IEnumerable<string> fundingPeriodIds = null,
@@ -83,7 +83,7 @@ namespace CalculateFunding.Services.Publishing
             return CreateSearchFeedResult(pageRef.Value, top, totalCount, pageRefRequested, results);
         }
 
-        private static SearchFeedV3<PublishedFundingIndex> CreateSearchFeedResult(int pageRef,
+        private static SearchFeedResult<PublishedFundingIndex> CreateSearchFeedResult(int pageRef,
             int top,
             int totalCount,
             bool pageRefRequested,
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Publishing
         {
             PublishedFundingIndex[] fundingFeedResults = pageRefRequested ? searchResults.ToArray() : searchResults.Reverse().ToArray();
 
-            SearchFeedV3<PublishedFundingIndex> searchFeedResult = new SearchFeedV3<PublishedFundingIndex>
+            SearchFeedResult<PublishedFundingIndex> searchFeedResult = new SearchFeedResult<PublishedFundingIndex>
             {
                 PageRef = pageRef,
                 Top = top,

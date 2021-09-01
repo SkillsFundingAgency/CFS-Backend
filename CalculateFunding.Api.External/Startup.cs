@@ -1,11 +1,9 @@
-﻿using System;
-using System.Linq;
-using AutoMapper;
+﻿using AutoMapper;
 using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.MappingProfiles;
-using CalculateFunding.Api.External.V3.Models;
 using CalculateFunding.Api.External.V3.Services;
+using CalculateFunding.Api.External.V4.IoC;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.CosmosDb;
@@ -24,6 +22,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.IoC;
 using CalculateFunding.Services.Publishing.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -38,6 +37,8 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Polly.Bulkhead;
 using Serilog;
+using System;
+using System.Linq;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using SwaggerSetup = CalculateFunding.Api.External.Swagger.SwaggerSetup;
 
@@ -52,7 +53,7 @@ namespace CalculateFunding.Api.External
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }      
+        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -274,7 +275,7 @@ namespace CalculateFunding.Api.External
             builder.AddTelemetry();
 
 
-            builder.AddHttpContextAccessor();           
+            builder.AddHttpContextAccessor();
             builder.AddPolicySettings(Configuration);
 
             builder.AddSingleton<IPublishingResiliencePolicies>((ctx) =>
@@ -289,6 +290,7 @@ namespace CalculateFunding.Api.External
                     PublishedFundingBlobRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    ReleaseManagementRepository = Polly.Policy.NoOpAsync(), // TODO: Add SQL policies
                 };
             });
 
@@ -302,7 +304,7 @@ namespace CalculateFunding.Api.External
                 {
                     PublishedProviderBlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingBlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    PublishedFundingRepositoryPolicy  = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    PublishedFundingRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PoliciesApiClientPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
@@ -338,7 +340,9 @@ namespace CalculateFunding.Api.External
 
                 return new ProviderFundingVersionService(blobClient, publishedFundingRepository, logger, publishingResiliencePolicies, fileSystemCache, settings);
             });
-            
+
+            builder.AddExternalApiV4Services(Configuration);
+            builder.AddReleaseManagementServices(Configuration);
         }
     }
 }

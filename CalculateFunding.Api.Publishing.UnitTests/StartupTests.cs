@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using CalculateFunding.Api.Publishing.Controllers;
+﻿using CalculateFunding.Api.Publishing.Controllers;
 using CalculateFunding.Tests.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace CalculateFunding.Api.Publishing.UnitTests
 {
@@ -36,7 +36,8 @@ namespace CalculateFunding.Api.Publishing.UnitTests
                 { "graphClient:ApiKey", "Local" },
                 { "calcsClient:ApiEndpoint", "https://localhost:7011/api/" },
                 { "calcsClient:ApiKey", "Local" },
-                { "saSql:ConnectionString", "Server=localhost;Initial Catalog=SqlExport;Trusted_Connection=True;" }
+                { "saSql:ConnectionString", "Server=localhost;Initial Catalog=SqlExport;Trusted_Connection=True;" },
+                { "releaseManagementSql:ConnectionString", "Server=.\\;Initial Catalog=ReleaseManagement;Integrated Security=SSPI" },
             };
         }
 

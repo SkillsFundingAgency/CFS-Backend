@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using CalculateFunding.Common.CosmosDb;
+﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using GroupingReason = CalculateFunding.Services.Publishing.GroupingReason;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
@@ -20,7 +20,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             _repo = inMemoryCosmosRepository;
         }
-     
+
         private readonly InMemoryCosmosRepository _repo;
 
         public ConcurrentDictionary<string, PublishedProvider> GetInMemoryPublishedProviders(string specificationId)
@@ -56,8 +56,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId)
         {
-            IEnumerable<PublishedProvider > results = _repo.PublishedProviders[specificationId].Where(p =>
-             p.Value.Current.Status == PublishedProviderStatus.Draft || p.Value.Current.Status == PublishedProviderStatus.Updated).Select(_ => _.Value);
+            IEnumerable<PublishedProvider> results = _repo.PublishedProviders[specificationId].Where(p =>
+            p.Value.Current.Status == PublishedProviderStatus.Draft || p.Value.Current.Status == PublishedProviderStatus.Updated).Select(_ => _.Value);
 
             return Task.FromResult(results);
         }
@@ -271,7 +271,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                     FundingStreamId = r.Key.FundingStreamId,
                     Status = Enum.GetName(r.Key.Status.GetType(), r.Key.Status),
                     Count = r.Count(),
-                    TotalFunding = r.Sum(x=>x.Current.TotalFunding)
+                    TotalFunding = r.Sum(x => x.Current.TotalFunding)
                 });
 
             return Task.FromResult(statuses);
@@ -422,7 +422,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 p.Value.Released.FundingId == publishedProviderVersion).FirstOrDefault().Value;
 
             return Task.FromResult((
-                providerVersionId: publishedProvider?.Released?.Provider?.ProviderVersionId, 
+                providerVersionId: publishedProvider?.Released?.Provider?.ProviderVersionId,
                 providerId: publishedProvider?.Released?.Provider?.ProviderId));
         }
 
@@ -485,8 +485,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                     ?.Current);
 
         public Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersionsForApproval(
-            string specificationId, 
-            string fundingStreamId, 
+            string specificationId,
+            string fundingStreamId,
             string providerId) =>
                 throw new NotImplementedException();
 
@@ -548,5 +548,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public ICosmosDbFeedIterator GetRefreshedProviderVersionBatchProcessing(string specificationId,
             int batchSize) =>
             throw new NotImplementedException();
+
+        public ICosmosDbFeedIterator GetPublishedFundingIterator(int batchSize)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

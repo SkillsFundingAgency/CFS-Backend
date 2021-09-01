@@ -1,8 +1,8 @@
-using System.Collections.Generic;
-using System.Reflection;
 using CalculateFunding.Api.External.V3.Controllers;
 using CalculateFunding.Tests.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace CalculateFunding.Api.External.UnitTests
 {
@@ -21,13 +21,14 @@ namespace CalculateFunding.Api.External.UnitTests
                 { "AzureStorageSettings:ConnectionString", "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AccountKey=dGVzdA==;EndpointSuffix=core.windows.net" },
                 { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
                 { "providersClient:ApiKey", "Local" },
+                { "releaseManagementSql:ConnectionString", "Server=.\\;Initial Catalog=ReleaseManagement;Integrated Security=SSPI" },
             };
 
             return configData;
         }
-        
+
         protected override Assembly EntryAssembly => typeof(FundingFeedItemController).Assembly;
-        
+
         protected override void RegisterDependencies()
         {
             new Startup(CreateTestConfiguration())

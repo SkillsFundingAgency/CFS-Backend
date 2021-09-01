@@ -12,10 +12,14 @@
 
   <ItemGroup>
     <None Remove="Swagger\DocsTopContents.v3.md" />
+    <None Remove="Swagger\DocsTopContents.v4.md" />
     <None Remove="Swagger\Helpers\DocsTopContents.txt" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Swagger\DocsTopContents.v4.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Swagger\DocsTopContents.v3.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

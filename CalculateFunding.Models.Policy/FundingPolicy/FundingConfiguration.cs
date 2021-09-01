@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Providers;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Policy.FundingPolicy
 {
@@ -21,16 +21,25 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
 
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
-        
+
         [JsonProperty("defaultTemplateVersion")]
         public string DefaultTemplateVersion { get; set; }
-        
+
+        /// <summary>
+        /// Variations for running during refresh funding
+        /// </summary>
         [JsonProperty("variations")]
         public IEnumerable<VariationType> Variations { get; set; }
 
+        /// <summary>
+        /// Variations to run during release management
+        /// </summary>
+        [JsonProperty("releaseManagementVariations")]
+        public IEnumerable<VariationType> ReleaseManagementVariations { get; set; }
+
         [JsonProperty("errorDetectors")]
         public IEnumerable<string> ErrorDetectors { get; set; }
-        
+
         [JsonProperty("approvalMode")]
         public ApprovalMode ApprovalMode { get; set; }
 
@@ -63,5 +72,8 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
 
         [JsonProperty("allowedPublishedFundingStreamsIdsToReference")]
         public IEnumerable<string> AllowedPublishedFundingStreamsIdsToReference { get; set; }
+
+        [JsonProperty("releaseChannels")]
+        public FundingConfigurationChannel ReleaseChannels { get; set; }
     }
 }

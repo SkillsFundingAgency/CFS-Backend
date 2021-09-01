@@ -1,12 +1,12 @@
-﻿using System;
+﻿using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Interfaces;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
@@ -31,7 +31,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 .SelectMany(c => c.Value)
                 .FirstOrDefault(p => p.Id == publishedFundingId.Key);
 
-                if(publishedFunding != null)
+                if (publishedFunding != null)
                 {
                     publishedFundings.Add(publishedFunding);
                 }
@@ -83,8 +83,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(publishedProviders.AsEnumerable());
         }
 
+        public Task<IEnumerable<PublishedProvider>> TryGetPublishedProvidersByProviderId(IEnumerable<string> providerIds, string fundingStreamId, string fundingPeriodId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task UpsertPublishedFundings(
-            IEnumerable<PublishedFunding> publishedFundings, 
+            IEnumerable<PublishedFunding> publishedFundings,
             Action<Task<HttpStatusCode>, PublishedFunding> continueAction)
         {
             foreach (PublishedFunding publishedFunding in publishedFundings)
@@ -119,7 +124,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task UpsertPublishedProviders(
-            IEnumerable<PublishedProvider> publishedProviders, 
+            IEnumerable<PublishedProvider> publishedProviders,
             Action<Task<HttpStatusCode>> continueAction)
         {
             foreach (PublishedProvider publishedProvider in publishedProviders)

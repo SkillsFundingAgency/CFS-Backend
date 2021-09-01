@@ -14,7 +14,7 @@ namespace CalculateFunding.Models.UnitTests
         public void Getters_WhenOnAMiddlePage_ShouldReturnCorrectGeneratedValues()
         {
             // arrange
-            SearchFeedV3<string> SearchFeedV3 = new SearchFeedV3<string>
+            SearchFeedResult<string> SearchFeedV3 = new SearchFeedResult<string>
             {
                 Top = 10,
                 TotalCount = 50,
@@ -47,7 +47,7 @@ namespace CalculateFunding.Models.UnitTests
         public void Getters_WhenOnPenultimatePage_ShouldReturnCorrectGeneratedValues()
         {
             // arrange
-            SearchFeedV3<string> SearchFeedV3 = new SearchFeedV3<string>
+            SearchFeedResult<string> SearchFeedV3 = new SearchFeedResult<string>
             {
                 Top = 10,
                 TotalCount = 45,
@@ -84,7 +84,7 @@ namespace CalculateFunding.Models.UnitTests
         public void Getters_WhenOnSubscriptionPage_ShouldReturnCorrectGeneratedValues()
         {
             // arrange
-            SearchFeedV3<string> SearchFeedV3 = new SearchFeedV3<string>
+            SearchFeedResult<string> SearchFeedV3 = new SearchFeedResult<string>
             {
                 Top = 10,
                 TotalCount = 45,
@@ -121,7 +121,7 @@ namespace CalculateFunding.Models.UnitTests
         public void Getters_WhenOnFirstPage_ShouldReturnCorrectGeneratedValues()
         {
             // arrange
-            SearchFeedV3<string> SearchFeedV3 = new SearchFeedV3<string>
+            SearchFeedResult<string> SearchFeedV3 = new SearchFeedResult<string>
             {
                 Top = 10,
                 TotalCount = 45,
@@ -154,7 +154,7 @@ namespace CalculateFunding.Models.UnitTests
         public void GenerateAtomLinksForResultGivenBaseUrl_WhenOnAMiddlePage_ShouldReturnCorrectGeneratedValues()
         {
             // arrange
-            SearchFeedV3<string> SearchFeedV3 = new SearchFeedV3<string>
+            SearchFeedResult<string> SearchFeedV3 = new SearchFeedResult<string>
             {
                 Top = 10,
                 TotalCount = 50,
