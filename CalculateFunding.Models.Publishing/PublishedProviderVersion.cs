@@ -235,11 +235,17 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("isIndicative")]
         public bool IsIndicative { get; set; }
 
-        public void SetIsIndicative(HashSet<string> indicativeStatus)
+        public bool SetIsIndicative(HashSet<string> indicativeStatus)
         {
             string currentProviderStatus = Provider?.Status;
 
+            // make sure we get the current flag here
+            bool isIndicative = IsIndicative;
+
             IsIndicative = indicativeStatus.Contains(currentProviderStatus);
+
+            // if the current indicative flag has been changed then return true
+            return isIndicative != IsIndicative;
         }
 
         public decimal? GetCarryOverTotalForFundingLine(string fundingLineCode)

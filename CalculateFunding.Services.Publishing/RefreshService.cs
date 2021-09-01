@@ -328,21 +328,8 @@ namespace CalculateFunding.Services.Publishing
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
             _logger.Information($"Retrieved funding stream configuration for '{fundingStream.Id}'");
 
-            _logger.Information("Updating IsIndicative flag on published providers");
-
             HashSet<string> indicativeStatus = new HashSet<string>(fundingConfiguration?.IndicativeOpenerProviderStatus ?? ArraySegment<string>.Empty);
 
-            foreach ((string _, PublishedProvider publishedProvider) in _refreshStateService.NewProviders)
-            {
-                publishedProvider.Current.SetIsIndicative(indicativeStatus);
-            }
-
-            foreach (PublishedProvider publishedProvider in existingPublishedProviders)
-            {
-                publishedProvider.Current.SetIsIndicative(indicativeStatus);
-            }
-
-            
             Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = await GenerateOrganisationGroups(
                 scopedProviders.Values,
                 publishedProvidersReadonlyDictionary.Values,
@@ -427,6 +414,12 @@ namespace CalculateFunding.Services.Publishing
                         scopedProviders[providerId],
                         specification.TemplateIds[fundingStream.Id],
                         _refreshStateService.IsNewProvider(publishedProvider.Value));
+
+                    // need to set indicative flag here as we only copy the provider in the above code unless it's a new provider
+                    if (publishedProviderVersion.SetIsIndicative(indicativeStatus))
+                    {
+                        publishedProviderUpdated = true;
+                    }
 
                     _logger.Verbose($"Published provider '{publishedProvider.Key}' updated: '{publishedProviderUpdated}'");
 
