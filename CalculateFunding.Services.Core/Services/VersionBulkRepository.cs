@@ -150,37 +150,20 @@ namespace CalculateFunding.Services.Core.Services
                 return currentVersion + 1;
             }
 
-            CosmosDbQuery cosmosDbQuery;
-            if (string.IsNullOrWhiteSpace(partitionKeyId))
-            {
-                string entityId = version.EntityId;
+            string entityId = version.EntityId;
 
-                cosmosDbQuery = new CosmosDbQuery
-                {
-                    QueryText = @"SELECT VALUE Max(c.content.version) 
-                            FROM    c 
-                            WHERE   c.content.entityId = @EntityID
-                                    AND c.documentType = @DocumentType",
-                    Parameters = new[]
-                    {
-                        new CosmosDbQueryParameter("@EntityID", entityId),
-                        new CosmosDbQueryParameter("@DocumentType", typeof(T).Name)
-                    }
-                };
-            }
-            else
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
-                cosmosDbQuery = new CosmosDbQuery
+                QueryText = @"SELECT VALUE Max(c.content.version) 
+                        FROM    c 
+                        WHERE   c.content.entityId = @EntityID
+                                AND c.documentType = @DocumentType",
+                Parameters = new[]
                 {
-                    QueryText = @"SELECT VALUE Max(c.content.version) 
-                            FROM    c 
-                            WHERE   c.documentType = @DocumentType",
-                    Parameters = new[]
-                    {
-                        new CosmosDbQueryParameter("@DocumentType", typeof(T).Name)
-                    }
-                };
-            }
+                    new CosmosDbQueryParameter("@EntityID", entityId),
+                    new CosmosDbQueryParameter("@DocumentType", typeof(T).Name)
+                }
+            };
 
             IEnumerable<dynamic> results;
 
