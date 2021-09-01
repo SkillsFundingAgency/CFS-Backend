@@ -103,6 +103,14 @@ namespace CalculateFunding.Api.Jobs.Controllers
         }
 
         [HttpGet]
+        [Route("api/jobs/latest-by-job-definition-ids")]
+        [ProducesResponseType(200, Type = typeof(IDictionary<string, JobSummary>))]
+        public async Task<IActionResult> GetLatestJobsByJobDefinitionIds([FromQuery] IEnumerable<string> jobDefinitionIds)
+        {
+            return await _jobService.GetLatestJobsByJobDefinitionIds(jobDefinitionIds);
+        }
+
+        [HttpGet]
         [Route("api/jobs/latest-by-entity-id")]
         [ProducesResponseType(200, Type = typeof(JobSummary))]
         public async Task<IActionResult> GetLatestJobByTriggerEntityId([FromQuery] string specificationId, [FromQuery] string entityId)

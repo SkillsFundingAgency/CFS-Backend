@@ -92,7 +92,7 @@ namespace CalculateFunding.Functions.DebugQueue
         }
 
         [FunctionName(FunctionConstants.NewProviderVersionCheck)]
-        public static async Task RunOnNewProviderVersionCheck([TimerTrigger(Every1Minute, RunOnStartup = true)]TimerInfo timerInfo)
+        public static async Task RunOnNewProviderVersionCheck([TimerTrigger(Every1Minute, RunOnStartup = true)] TimerInfo timerInfo)
         {
             using IServiceScope scope = Functions.Providers.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
             OnNewProviderVersionCheck function = scope.ServiceProvider.GetService<OnNewProviderVersionCheck>();

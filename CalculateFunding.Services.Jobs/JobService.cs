@@ -213,6 +213,58 @@ namespace CalculateFunding.Services.Jobs
             return new OkObjectResult(latestJobSummaries);
         }
 
+        public async Task<IActionResult> GetLatestJobsByJobDefinitionIds(IEnumerable<string> jobDefinitionIds)
+        {
+            if (jobDefinitionIds == null || !jobDefinitionIds.Any())
+            {
+                return new BadRequestObjectResult("At least one JobType must be provided.");
+            }
+
+            ConcurrentDictionary<string, Job> jobsByDefinition = new ConcurrentDictionary<string, Job>();
+
+            List<Task> allTasks = new List<Task>();
+
+            foreach (string jobDefinitionId in jobDefinitionIds.Distinct())
+            {
+                allTasks.Add(
+                Task.Run(async () =>
+                {
+                    string cacheKey = $"{CacheKeys.LatestJobsByJobDefinitionIds}{jobDefinitionId}";
+
+                    JobCacheItem jobCacheItem = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<JobCacheItem>(cacheKey));
+
+                    Job job = jobCacheItem?.Job;
+                    jobsByDefinition[jobDefinitionId] = job;
+
+                    if (job == null)
+                    {
+                        job = await _jobRepository.GetLatestJobByJobDefinitionId(jobDefinitionId);
+
+                        if (job != null)
+                        {
+                            jobsByDefinition[jobDefinitionId] = job;
+                        }
+
+                        if (jobCacheItem == null)
+                        {
+                            jobCacheItem = new JobCacheItem()
+                            {
+                                Job = job,
+                            };
+
+                            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, jobCacheItem));
+                        }
+                    }
+                }));
+            }
+
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+
+            IDictionary<string, JobViewModel> latestJobSummaries = jobsByDefinition.ToDictionary(_ => _.Key, _ => _mapper.Map<JobViewModel>(jobsByDefinition[_.Key]));
+
+            return new OkObjectResult(latestJobSummaries);
+        }
+
         public async Task<IActionResult> GetLatestJobByTriggerEntityId(string specificationId, string entityId)
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
@@ -222,7 +274,7 @@ namespace CalculateFunding.Services.Jobs
 
             Job job = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Job>(cacheKey));
 
-            if(job == null)
+            if (job == null)
             {
                 job = await _jobRepository.GetLatestJobByTriggerEntityId(specificationId, entityId);
                 job ??= new Job();
@@ -256,7 +308,7 @@ namespace CalculateFunding.Services.Jobs
             {
                 return new NotFoundObjectResult($"No successfully completed job found for specification '{specificationId}' and jobDefinitonId '{jobDefinitionId}'.");
             }
-            
+
             JobSummary jobSummary = _mapper.Map<JobSummary>(job);
             return new OkObjectResult(jobSummary);
         }

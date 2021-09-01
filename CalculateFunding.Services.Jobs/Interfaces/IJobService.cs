@@ -14,6 +14,8 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task<IActionResult> GetLatestJobs(string specificationId, IEnumerable<string> jobDefinitionIds);
 
+        Task<IActionResult> GetLatestJobsByJobDefinitionIds(IEnumerable<string> jobDefinitionIds);
+
         Task<IActionResult> GetJobLogs(string jobId);
 
         Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate);

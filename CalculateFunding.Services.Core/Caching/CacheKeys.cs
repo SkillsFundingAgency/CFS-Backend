@@ -87,6 +87,8 @@
 
         public const string LatestJobs = "jobs-latest:";
 
+        public const string LatestJobsByJobDefinitionIds = "jobs-latest-by-job-definition-ids:";
+
         public const string LatestJobByEntityId = "jobs-latest-by-entity-id:";
 
         public const string LatestSuccessfulJobs = "jobs-latest-successful:";

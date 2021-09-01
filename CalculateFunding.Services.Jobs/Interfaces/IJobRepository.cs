@@ -32,6 +32,8 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task<Job> GetLatestJobBySpecificationIdAndDefinitionId(string specificationId, string jobDefinitionId, CompletionStatus?  completionStatusToFilter = null);
 
+        Task<Job> GetLatestJobByJobDefinitionId(string jobDefinitionId, CompletionStatus? completionStatusToFilter = null);
+
         Task<Job> GetLatestJobByTriggerEntityId(string specificationId, string entityId);
     }
 }

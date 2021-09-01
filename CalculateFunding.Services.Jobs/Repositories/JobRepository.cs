@@ -208,6 +208,93 @@ namespace CalculateFunding.Services.Jobs.Repositories
             return null;
         }
 
+        public async Task<Job> GetLatestJobByJobDefinitionId(string jobDefinitionId, CompletionStatus? completionStatusToFilter = null)
+        {
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>
+            {
+                new CosmosDbQueryParameter("@JobDefinitionId", jobDefinitionId),
+            };
+
+            string query = @"SELECT TOP 1 r.content.id AS id, 
+                                    r.content.jobDefinitionId AS jobDefinitionId, 
+                                    r.content.runningStatus AS runningStatus, 
+                                    r.content.completionStatus AS completionStatus, 
+                                    r.content.invokerUserId AS invokeUserId, 
+                                    r.content.invokerDisplayName AS invokerDisplayName, 
+                                    r.content.itemCount AS itemCount, 
+                                    r.content.specificationId AS specificationId, 
+                                    r.content.trigger.message AS triggerMessage, 
+                                    r.content.trigger.entityId AS triggerEntityId, 
+                                    r.content.trigger.entityType AS triggerEntityType, 
+                                    r.content.parentJobId AS parentJobId, 
+                                    r.content.supersededByJobId AS supersededByJobId, 
+                                    r.content.correlationId AS correlationId, 
+                                    r.content.properties AS properties, 
+                                    r.content.messageBody AS messageBody, 
+                                    r.content.created AS created, 
+                                    r.content.completed AS completed, 
+                                    r.content.outcome AS outcome,
+                                    r.content.Outcomes AS outcomes,
+                                    r.content.lastUpdated AS lastUpdated 
+                            FROM    r 
+                            WHERE   r.documentType = 'Job' 
+                                    AND r.deleted = false
+                                    AND r.content.jobDefinitionId = @JobDefinitionId";
+
+            if (completionStatusToFilter.HasValue)
+            {
+                query += " AND r.content.completionStatus = @CompletionStatus ";
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@CompletionStatus", completionStatusToFilter.Value.ToString()));
+            }
+
+            query += " ORDER BY r.content.created DESC";
+
+            IEnumerable<dynamic> latestJobResults = await _cosmosRepository.DynamicQuery(new CosmosDbQuery(query, cosmosDbQueryParameters));
+
+            if (latestJobResults == null || latestJobResults.Count() == 0)
+            {
+                return null;
+            }
+
+            dynamic latestJob = latestJobResults.First();
+
+            if (latestJob != null)
+            {
+                string runningStatus = latestJob.runningStatus;
+                string completionStatus = latestJob.completionStatus;
+
+                return new Job
+                {
+                    Id = latestJob.id,
+                    JobDefinitionId = latestJob.jobDefinitionId,
+                    RunningStatus = Enum.Parse<RunningStatus>(runningStatus),
+                    CompletionStatus = string.IsNullOrWhiteSpace(completionStatus) ? default(CompletionStatus?) : Enum.Parse<CompletionStatus>(completionStatus),
+                    InvokerUserId = latestJob.invokeUserId,
+                    InvokerUserDisplayName = latestJob.invokerDisplayName,
+                    ItemCount = latestJob.itemCount,
+                    SpecificationId = latestJob.specificationId,
+                    Trigger = new Trigger
+                    {
+                        Message = latestJob.triggerMessage ?? string.Empty,
+                        EntityId = latestJob.triggerEntityId ?? string.Empty,
+                        EntityType = latestJob.triggerEntityType ?? string.Empty
+                    },
+                    ParentJobId = latestJob.parentJobId,
+                    SupersededByJobId = latestJob.supersededByJobId,
+                    CorrelationId = latestJob.correlationId,
+                    Properties = latestJob.properties == null ? new Dictionary<string, string>() : ((JObject)latestJob.properties).ToObject<Dictionary<string, string>>(),
+                    MessageBody = latestJob.messageBody,
+                    Created = (DateTimeOffset)latestJob.created,
+                    Completed = (DateTimeOffset?)latestJob.completed,
+                    Outcome = latestJob.outcome,
+                    LastUpdated = (DateTimeOffset)latestJob.lastUpdated,
+                    Outcomes = latestJob.outcomes == null ? new List<Outcome>() : ((JArray)latestJob.outcomes).ToObject<List<Outcome>>(),
+                };
+            }
+
+            return null;
+        }
+
         public async Task<Job> GetLatestJobByTriggerEntityId(string specificationId, string entityId)
         {
             List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>
