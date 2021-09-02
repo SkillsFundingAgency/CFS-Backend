@@ -231,6 +231,8 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 _.WithMessageBody(specificationMergeRequest.AsJsonBytes())));
 
             ThenNoJobsWereQueued();
+
+            AndTheJobAutoCompleteIsSetTo(true);
         }
 
         [TestMethod]
@@ -272,6 +274,47 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             ThenTheJobsWereQueued(NewConverterMergeJobCreateModel(parentJobId, relationshipTwo, specificationSummary, author),
                 NewConverterMergeJobCreateModel(parentJobId, relationshipThree, specificationSummary, author));
             AndTheJobsWereNotQueued(NewConverterMergeJobCreateModel(parentJobId, relationshipOne, specificationSummary, author));
+
+            AndTheJobAutoCompleteIsSetTo(false);
+        }
+
+        [TestMethod]
+        public async Task NoJobsQueuedAndCurrentJobCompletedForSpecificationWhenProcessesJob()
+        {
+            string parentJobId = NewRandomString();
+
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithFundingStreamIds(fundingStreamId)
+                .WithProviderVersionId(NewRandomString()));
+
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration(_
+                => _.WithEnableConverterDataMerge(true));
+
+            GivenTheSpecification(specificationId, specificationSummary);
+            AndTheFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
+            AndTheParentJob(parentJobId);
+
+            Reference author = NewReference();
+
+            SpecificationConverterMergeRequest specificationMergeRequest = NewSpecificationMergeRequest(_
+                => _.WithSpecificationId(specificationId)
+                    .WithAuthor(author));
+
+            DefinitionSpecificationRelationship relationshipOne = NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _.WithConverterEnabled(false))));
+            
+            AndTheDefinitionSpecificationRelationships(specificationId, relationshipOne);
+
+            await WhenTheMessageIsProcessed(NewMessage(_ =>
+                _.WithMessageBody(specificationMergeRequest.AsJsonBytes())));
+
+            AndTheJobsWereNotQueued(NewConverterMergeJobCreateModel(parentJobId, relationshipOne, specificationSummary, author));
+
+            AndTheJobAutoCompleteIsSetTo(true);
         }
 
         private static JobCreateModel NewConverterMergeJobCreateModel(string parentJobId,
@@ -337,12 +380,11 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             }
         }
 
-        private void GivenTheJobIsRunning(string specificationId, string jobDefinitionId, string runningJobId)
+        private void AndTheJobAutoCompleteIsSetTo(bool autoComplete)
         {
-            _jobs.Setup(_ => _.GetLatestJobsForSpecification(specificationId,
-                It.Is<IEnumerable<string>>(defs => defs.First() == jobDefinitionId)))
-            .ReturnsAsync(new Dictionary<string, JobSummary> { { jobDefinitionId,
-                    new JobSummary { JobId = runningJobId, RunningStatus = RunningStatus.InProgress } } });
+            _specificationConverterDataMerge.AutoComplete
+                .Should()
+                .Be(autoComplete);
         }
 
         private void GivenTheJobIsQueued(JobCreateModel expectedJobCreateModel,

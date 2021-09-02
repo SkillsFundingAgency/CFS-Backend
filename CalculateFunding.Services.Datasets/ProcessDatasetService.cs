@@ -419,7 +419,16 @@ namespace CalculateFunding.Services.Datasets
 
                 Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
 
-                foreach (DefinitionSpecificationRelationship relationship in relationships.Where(_ => _.Current.DatasetVersion != null))
+                IEnumerable<DefinitionSpecificationRelationship> mappedRelationships = relationships.Where(_ => _.Current.DatasetVersion != null);
+
+                if (mappedRelationships.IsNullOrEmpty())
+                {
+                    // if there are no mapped relationships then we need to make sure the job doesn't stay InProgress
+                    AutoComplete = true;
+                    return;
+                }
+
+                foreach (DefinitionSpecificationRelationship relationship in mappedRelationships)
                 {
                     if (!datasets.TryGetValue(relationship.Current.DatasetVersion.Id, out Dataset dataset))
                     {

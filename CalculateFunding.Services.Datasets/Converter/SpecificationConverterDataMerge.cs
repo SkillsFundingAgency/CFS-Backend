@@ -115,6 +115,8 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             if (await ConverterWizardIsNotEnabled(specification))
             {
+                AutoComplete = true;
+
                 Information($"Funding configuration for specification {specificationId} does not have the converter wizard enabled.");
 
                 return;
@@ -122,16 +124,21 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             IEnumerable<DefinitionSpecificationRelationship> specificationDatasetRelationships = await GetDatasetRelationships(specificationId);
 
-            await QueueJobForSpecificationDatasets(specificationDatasetRelationships,
+            if (!await QueueJobForSpecificationDatasets(specificationDatasetRelationships,
                 specificationConverterMergeRequest.Author,
-                specification.ProviderVersionId);
+                specification.ProviderVersionId))
+            {
+                // if no children are queued then make sure that we auto complete the job
+                AutoComplete = true;
+            }
         }
 
-        private async Task QueueJobForSpecificationDatasets(IEnumerable<DefinitionSpecificationRelationship> specificationDatasetRelationships,
+        private async Task<bool> QueueJobForSpecificationDatasets(IEnumerable<DefinitionSpecificationRelationship> specificationDatasetRelationships,
             Reference author,
             string providerVersionId)
         {
             string parentJobId = Job.Id;
+            bool jobQueued = false;
 
             foreach (DefinitionSpecificationRelationship specificationDatasetRelationship in specificationDatasetRelationships)
             {
@@ -139,7 +146,9 @@ namespace CalculateFunding.Services.Datasets.Converter
                 {
                     continue;
                 }
-                
+
+                jobQueued = true;
+
                 string datasetRelationshipId = specificationDatasetRelationship.Id;
                 
                 await QueueJob(new JobCreateModel
@@ -165,6 +174,8 @@ namespace CalculateFunding.Services.Datasets.Converter
                     }.AsJson()
                 });
             }
+
+            return jobQueued;
         }
 
         private async Task<IEnumerable<DefinitionSpecificationRelationship>> GetDatasetRelationships(string specificationId) =>

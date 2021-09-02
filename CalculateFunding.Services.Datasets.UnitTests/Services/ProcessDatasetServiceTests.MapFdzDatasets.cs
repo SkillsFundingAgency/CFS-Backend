@@ -189,7 +189,50 @@ namespace CalculateFunding.Services.Datasets.Services
 
             await ThenTheMapDatasetJobWasCreated(JobConstants.DefinitionNames.MapDatasetJob, relationshipId1, datasetId1, jobId);
             await ThenTheMapDatasetJobWasCreated(JobConstants.DefinitionNames.MapDatasetJob, relationshipId2, datasetId2, jobId);
+
+            AndTheJobAutoCompleteIsSetTo(false);
         }
+
+
+        [TestMethod]
+        public async Task MapFdzDatasets_GivenSpecificationId_NoQueueMapDatasetJobsAsNoRelationships()
+        {
+            string jobId = NewRandomString();
+            string relationshipId1 = NewRandomString();
+            string relationshipId2 = NewRandomString();
+            string datasetVersionId1 = NewRandomString();
+            string datasetVersionId2 = NewRandomString();
+            string datasetId1 = NewRandomString();
+            string datasetId2 = NewRandomString();
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships = new[]
+            {
+                NewDefinitionSpecificationRelationship(r => r
+                .WithId(relationshipId1)
+                .WithCurrent(
+                    NewDefinitionSpecificationRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(d => d.WithId(datasetId1)))
+                                    .WithRelationshipId(relationshipId1)))),
+                NewDefinitionSpecificationRelationship(r => r
+                .WithId(relationshipId2)
+                .WithCurrent(
+                    NewDefinitionSpecificationRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(d => d.WithId(datasetId2)))
+                                    .WithRelationshipId(relationshipId2)))),
+            };
+
+            Dataset dataset1 = NewDataset(_ => _.WithId(datasetId1));
+            Dataset dataset2 = NewDataset(_ => _.WithId(datasetId2));
+
+            GivenTheMessageProperties(("jobId", jobId), ("specification-id", SpecificationId), ("user-id", UserId), ("user-name", Username));
+            AndTheJobDetails(jobId, JobConstants.DefinitionNames.MapFdzDatasetsJob);
+            AndRelationshipsForSpecification(relationships);
+            AndDatasetForDatasetVersion(datasetVersionId1, dataset1);
+            AndDatasetForDatasetVersion(datasetVersionId2, dataset2);
+
+            await WhenTheMapFdzDatasetsMessageIsProcessed();
+
+            AndTheJobAutoCompleteIsSetTo(true);
+        }
+
         [TestMethod]
         public async Task MapFdzDatasets_GivenSpecificationIdAndRelationshipId_QueueMapDatasetJobForRelationship()
         {
@@ -257,6 +300,13 @@ namespace CalculateFunding.Services.Datasets.Services
         private async Task WhenTheMapFdzDatasetsMessageIsProcessed()
         {
             await _service.Run(_message, async() => { await _service.MapFdzDatasets(_message); });
+        }
+
+        private void AndTheJobAutoCompleteIsSetTo(bool autoComplete)
+        {
+            _service.AutoComplete
+                .Should()
+                .Be(autoComplete);
         }
 
         private void GivenTheMessageProperties(params (string, string)[] properties)
