@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Datasets.MappingProfiles
                 .ForMember(m => m.FundingStream, opt => opt.MapFrom(s => s.Current.FundingStream))
                 .ForMember(m=> m.Description, opt => opt.MapFrom(s => s.Current.Description));
 
-            CreateMap<DatasetVersion, DatasetVersionViewModel>();
+            CreateMap<DatasetVersion, DatasetVersionModel>();
 
             CreateMap<Common.ApiClient.Calcs.Models.Calculation, CalculationResponseModel>();          
         }

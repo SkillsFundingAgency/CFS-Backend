@@ -17,8 +17,11 @@ namespace CalculateFunding.Models.Datasets
         public string RelationshipName { get; set; }
 
         public IEnumerable<DatasetVersions> Datasets { get; set; }
+
         public DatasetRelationshipType RelationshipType { get; set; }
+        
         public string SourceSpecificationId { get; set; }
+        
         public string SourceSpecificationName { get; set; }
     }
 }

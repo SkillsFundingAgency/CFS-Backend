@@ -247,9 +247,9 @@ namespace CalculateFunding.Api.Datasets.Controllers
         [Route("api/datasets/get-datasources-by-relationshipid")]
         [HttpGet]
         [Produces(typeof(SelectDatasourceModel))]
-        public Task<IActionResult> GetDataSourcesByRelationshipId([FromQuery] string relationshipId)
+        public Task<IActionResult> GetDataSourcesByRelationshipId([FromQuery] string relationshipId, [FromQuery] int? top, [FromQuery] int? pageNumber)
         {
-            return _definitionSpecificationRelationshipService.GetDataSourcesByRelationshipId(relationshipId);
+            return _definitionSpecificationRelationshipService.GetDataSourcesByRelationshipId(relationshipId, top, pageNumber);
         }
 
         [Route("api/datasets/assign-datasource-to-relationship")]

@@ -10,10 +10,13 @@ namespace CalculateFunding.Models.Datasets
         {
             Versions = Enumerable.Empty<DatasetVersionModel>();
         }
+
         public string Description { get; set; }
 
         public int? SelectedVersion { get; set; }
 
         public IEnumerable<DatasetVersionModel> Versions { get; set; }
+
+        public int? TotalCount { get; set; }
     }
 }

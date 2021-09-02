@@ -40,7 +40,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public Task<int?> GetVersionCount(string entityId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IEnumerable<PublishedFundingVersion>> GetVersions(string entityId, string partitionKeyId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<PublishedFundingVersion>> GetVersions(string entityId, int? offset, int? limit)
         {
             throw new NotImplementedException();
         }

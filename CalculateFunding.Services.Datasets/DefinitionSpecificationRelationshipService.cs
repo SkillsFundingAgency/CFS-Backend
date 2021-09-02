@@ -43,6 +43,7 @@ using FundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
 using Calculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 using CalculationRelationship = CalculateFunding.Models.Graph.CalculationRelationship;
 using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
+using AutoMapper;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -70,6 +71,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly AsyncPolicy _datasetRepositoryPolicy;
         private readonly IVersionRepository<DefinitionSpecificationRelationshipVersion> _relationshipVersionRepository;
         private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
+        private readonly IMapper _mapper;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
             IVersionRepository<DatasetVersion> versionDatasetRepository,
@@ -86,7 +88,8 @@ namespace CalculateFunding.Services.Datasets
             IVersionRepository<DefinitionSpecificationRelationshipVersion> relationshipVersionRepository,
             IPoliciesApiClient policiesApiClient,
             IValidator<UpdateDefinitionSpecificationRelationshipModel> updateRelationshipModelValidator,
-            IGraphApiClient graphApiClient)
+            IGraphApiClient graphApiClient,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(dateTimeProvider, nameof(dateTimeProvider));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
@@ -108,6 +111,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(updateRelationshipModelValidator, nameof(updateRelationshipModelValidator));
             Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _datasetRepository = datasetRepository;
             _versionDatasetRepository = versionDatasetRepository;
@@ -130,6 +134,7 @@ namespace CalculateFunding.Services.Datasets
             _updateRelationshipModelValidator = updateRelationshipModelValidator;
             _graphApiClient = graphApiClient;
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
+            _mapper = mapper;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -379,7 +384,7 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(relationshipsBySpecification);
         }
 
-        public async Task<IActionResult> GetDataSourcesByRelationshipId(string relationshipId)
+        public async Task<IActionResult> GetDataSourcesByRelationshipId(string relationshipId, int? top, int? pageNumber)
         {
             if (string.IsNullOrWhiteSpace(relationshipId))
             {
@@ -442,16 +447,8 @@ namespace CalculateFunding.Services.Datasets
                             Name = dataset.Name,
                             Description = dataset.Current?.Description,
                             SelectedVersion = (relationship.Current.DatasetVersion != null && relationship.Current.DatasetVersion.Id == dataset.Id) ? relationship.Current.DatasetVersion.Version : null as int?,
-                            Versions = (await _versionDatasetRepository.GetVersions(dataset.Id))?.OrderByDescending(_ => _.Version).Select(m => new DatasetVersionModel
-                            {
-                                Id = m.Id,
-                                DatasetId = m.DatasetId,
-                                Version = m.Version,
-                                Date = m.Date,
-                                Author = m.Author,
-                                Comment = m.Comment,
-                                Description = m.Description
-                            })
+                            Versions = await GetDatasetVersionModels(dataset.Id, top, pageNumber),
+                            TotalCount = top.HasValue || pageNumber.HasValue ? await _versionDatasetRepository.GetVersionCount(dataset.Id) : null
                         }
                     });
                 }
@@ -462,6 +459,22 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return new OkObjectResult(selectDatasourceModel);
+        }
+
+        private async Task<IEnumerable<DatasetVersionModel>> GetDatasetVersionModels(string datasetId, int? top, int? pageNumber)
+        {
+            if(top.HasValue || pageNumber.HasValue)
+            {
+                return _mapper.Map<IEnumerable<DatasetVersionModel>>(
+                    await _versionDatasetRepository.GetVersions(
+                        datasetId,
+                        offset: top.GetValueOrDefault() * pageNumber.GetValueOrDefault(),
+                        limit: top.GetValueOrDefault()));
+            }
+            else
+            {
+                return _mapper.Map<IEnumerable<DatasetVersionModel>>((await _versionDatasetRepository.GetVersions(datasetId))?.OrderByDescending(_ => _.Version));
+            }
         }
 
         private static void EnsureNullDatasetsReturnsEmptyArray(SelectDatasourceModel selectDatasourceModel)

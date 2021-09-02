@@ -82,5 +82,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<IEnumerable<PublishedProviderVersion>> GetVersions(string entityId, int? offset, int? limit)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int?> GetVersionCount(string entityId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

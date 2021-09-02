@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IActionResult> GetCurrentRelationshipsBySpecificationId(string specificationId);
 
-        Task<IActionResult> GetDataSourcesByRelationshipId(string relationshipId);
+        Task<IActionResult> GetDataSourcesByRelationshipId(string relationshipId, int? top, int? pageNumber);
 
         Task<IActionResult> AssignDatasourceVersionToRelationship(AssignDatasourceModel assignDatasourceModel, Reference user, string correlationId);
 

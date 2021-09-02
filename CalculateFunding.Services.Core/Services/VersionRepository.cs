@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Versioning;
@@ -130,6 +131,53 @@ namespace CalculateFunding.Services.Core.Services
 
                 return await CosmosRepository.QueryPartitionedEntity<T>(cosmosDbQuery, partitionKey: partitionKeyId);
             }
+        }
+
+        public async Task<IEnumerable<T>> GetVersions(string entityId, int? offset, int? limit)
+        {
+            Guard.IsNullOrWhiteSpace(entityId, nameof(entityId));
+
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @"
+                        SELECT * 
+                        FROM Root c 
+                        WHERE c.documentType = @DocumentType AND c.deleted = false AND c.content.entityId = @EntityId
+                        ORDER BY c.content.version DESC
+                        OFFSET @Offset LIMIT @Limit",
+                Parameters = new[]
+                {
+                        new CosmosDbQueryParameter("@DocumentType", typeof(T).Name),
+                        new CosmosDbQueryParameter("@EntityId", entityId),
+                        new CosmosDbQueryParameter("@Offset", offset),
+                        new CosmosDbQueryParameter("@Limit", limit)
+                }
+            };
+
+            return (await CosmosRepository.RawQuery<DocumentEntity<T>>(cosmosDbQuery)).Select(_ => _.Content);
+        }
+
+        public async Task<int?> GetVersionCount(string entityId)
+        {
+            Guard.IsNullOrWhiteSpace(entityId, nameof(entityId));
+
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @"
+                        SELECT COUNT(1) AS count 
+                        FROM Root c 
+                        WHERE c.documentType = @DocumentType AND c.deleted = false AND c.content.entityId = @EntityId",
+                Parameters = new[]
+                {
+                        new CosmosDbQueryParameter("@DocumentType", typeof(T).Name),
+                        new CosmosDbQueryParameter("@EntityId", entityId),
+                }
+            };
+
+            IEnumerable<dynamic> queryResults = await CosmosRepository.DynamicQuery(cosmosDbQuery);
+
+            dynamic queryResult = queryResults.FirstOrDefault();
+            return (int)queryResult?.count;
         }
     }
 }

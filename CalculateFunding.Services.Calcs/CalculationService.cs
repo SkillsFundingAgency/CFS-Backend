@@ -1162,7 +1162,8 @@ namespace CalculateFunding.Services.Calcs
                 return new NotFoundObjectResult(message);
             }
 
-            ApiResponse<ApiClientSelectDatasourceModel> datasetRelationshipResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetDataSourcesByRelationshipId(datasetRelationshipId));
+            ApiResponse<ApiClientSelectDatasourceModel> datasetRelationshipResponse = 
+                await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetDataSourcesByRelationshipId(datasetRelationshipId, top: null, pageNumber: null));
             if (!datasetRelationshipResponse.StatusCode.IsSuccess() || datasetRelationshipResponse.Content == null)
             {
                 string message = $"No dataset relationship found for dataset relationship id '{datasetRelationshipId}'";

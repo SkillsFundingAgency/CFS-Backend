@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(calcs);
 
             IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
-            datasetsApiClient.GetDataSourcesByRelationshipId(Arg.Is(datasetRelationshipId))
+            datasetsApiClient.GetDataSourcesByRelationshipId(Arg.Is(datasetRelationshipId), Arg.Is((int?)null), Arg.Is((int?)null))
                 .Returns(new ApiResponse<SelectDatasourceModel>(HttpStatusCode.NotFound));
 
             CalculationService service = CreateCalculationService(
@@ -192,7 +192,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(calcs);
 
             IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
-            datasetsApiClient.GetDataSourcesByRelationshipId(Arg.Is(datasetRelationshipId))
+            datasetsApiClient.GetDataSourcesByRelationshipId(Arg.Is(datasetRelationshipId), Arg.Is((int?)null), Arg.Is((int?)null))
                 .Returns(new ApiResponse<SelectDatasourceModel>(HttpStatusCode.OK, datasetRelationship));
 
             datasetsApiClient.GetDatasetDefinitionById(Arg.Is(datasetDefinitionId))
@@ -354,7 +354,7 @@ Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{new VisualBasicTypeI
              .Returns(HttpStatusCode.OK);
 
             IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
-            datasetsApiClient.GetDataSourcesByRelationshipId(Arg.Is(datasetRelationshipId))
+            datasetsApiClient.GetDataSourcesByRelationshipId(Arg.Is(datasetRelationshipId), Arg.Is((int?)null), Arg.Is((int?)null))
                 .Returns(new ApiResponse<SelectDatasourceModel>(HttpStatusCode.OK, datasetRelationship));
 
             datasetsApiClient.GetDatasetDefinitionById(Arg.Is(datasetDefinitionId))
@@ -568,7 +568,7 @@ Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{new VisualBasicTypeI
              .Returns(HttpStatusCode.OK);
 
             IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
-            datasetsApiClient.GetDataSourcesByRelationshipId(Arg.Is(datasetRelationshipId))
+            datasetsApiClient.GetDataSourcesByRelationshipId(Arg.Is(datasetRelationshipId), Arg.Is((int?)null), Arg.Is((int?)null))
                 .Returns(new ApiResponse<SelectDatasourceModel>(HttpStatusCode.OK, datasetRelationship));
 
             datasetsApiClient.GetDatasetDefinitionById(Arg.Is(datasetDefinitionId))
