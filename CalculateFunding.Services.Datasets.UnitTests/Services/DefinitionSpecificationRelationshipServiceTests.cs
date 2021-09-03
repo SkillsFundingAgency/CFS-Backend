@@ -2373,7 +2373,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetVersionRepository();
             datasetVersionRepository
-                .GetVersions(datasetId, top * pageNumber, top)
+                .GetVersions(datasetId, top * (pageNumber - 1), top)
                 .Returns(history);
 
             datasetVersionRepository

@@ -390,7 +390,14 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error("The relationshipId id was not provided to GetDataSourcesByRelationshipId");
 
-                return new BadRequestObjectResult("No relationship id was provided");
+                return new BadRequestObjectResult("No relationship id was provided.");
+            }
+
+            if (pageNumber.HasValue && pageNumber <= 0)
+            {
+                _logger.Error("If the page number is supplied for versions it needs to be greater than zero");
+
+                return new BadRequestObjectResult("Invalid page number supplied for versions.");
             }
 
             SelectDatasourceModel selectDatasourceModel = new SelectDatasourceModel();
@@ -439,6 +446,8 @@ namespace CalculateFunding.Services.Datasets
 
                 foreach (Dataset dataset in datasets)
                 {
+                    IEnumerable<DatasetVersionModel> versions = await GetDatasetVersionModels(dataset.Id, top, pageNumber);
+
                     selectDatasourceModel.Datasets = selectDatasourceModel.Datasets.Concat(new[]
                     {
                         new DatasetVersions
@@ -447,8 +456,8 @@ namespace CalculateFunding.Services.Datasets
                             Name = dataset.Name,
                             Description = dataset.Current?.Description,
                             SelectedVersion = (relationship.Current.DatasetVersion != null && relationship.Current.DatasetVersion.Id == dataset.Id) ? relationship.Current.DatasetVersion.Version : null as int?,
-                            Versions = await GetDatasetVersionModels(dataset.Id, top, pageNumber),
-                            TotalCount = top.HasValue || pageNumber.HasValue ? await _versionDatasetRepository.GetVersionCount(dataset.Id) : null
+                            Versions = versions,
+                            TotalCount = top.HasValue || pageNumber.HasValue ? await _versionDatasetRepository.GetVersionCount(dataset.Id) : versions.Count()
                         }
                     });
                 }
@@ -463,12 +472,14 @@ namespace CalculateFunding.Services.Datasets
 
         private async Task<IEnumerable<DatasetVersionModel>> GetDatasetVersionModels(string datasetId, int? top, int? pageNumber)
         {
-            if(top.HasValue || pageNumber.HasValue)
+            if (top.HasValue || pageNumber.HasValue)
             {
+                pageNumber ??= 1;
+
                 return _mapper.Map<IEnumerable<DatasetVersionModel>>(
                     await _versionDatasetRepository.GetVersions(
                         datasetId,
-                        offset: top.GetValueOrDefault() * pageNumber.GetValueOrDefault(),
+                        offset: top.GetValueOrDefault() * (pageNumber - 1),
                         limit: top.GetValueOrDefault()));
             }
             else
