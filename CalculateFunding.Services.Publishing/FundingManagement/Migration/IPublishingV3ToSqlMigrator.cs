@@ -1,9 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Services.Processing.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement
 {
-    public interface IPublishingV3ToSqlMigrator
+    public interface IPublishingV3ToSqlMigrator : IJobProcessingService
     {
         Task PopulateReferenceData();
+
+        Task<IActionResult> QueueReleaseManagementDataMigrationJob(Reference author, string correlationId);
     }
 }

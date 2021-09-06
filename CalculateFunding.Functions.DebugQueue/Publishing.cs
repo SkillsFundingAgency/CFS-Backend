@@ -362,5 +362,31 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
+
+        [FunctionName(FunctionConstants.ReleaseManagementDataMigration)]
+        public static async Task RunReleaseManagementDataMigration([QueueTrigger(ServiceBusConstants.QueueNames.ReleaseManagementDataMigration, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnReleaseManagementDataMigration function = scope.ServiceProvider.GetService<OnReleaseManagementDataMigration>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(FunctionConstants.ReleaseManagementDataMigrationPoisoned)]
+        public static async Task RunReleaseManagementDataMigrationFailure([QueueTrigger(ServiceBusConstants.QueueNames.ReleaseManagementDataMigrationPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnReleaseManagementDataMigrationFailure function = scope.ServiceProvider.GetService<OnReleaseManagementDataMigrationFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
     }
 }

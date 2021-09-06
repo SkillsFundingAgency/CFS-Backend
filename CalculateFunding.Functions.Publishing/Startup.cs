@@ -34,6 +34,7 @@ using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Batches;
 using CalculateFunding.Services.Publishing.Errors;
+using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
@@ -275,6 +276,8 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnBatchPublishedProviderValidationFailure>();
                 builder.AddScoped<OnPublishDatasetsCopy>();
                 builder.AddScoped<OnPublishDatasetsCopyFailure>();
+                builder.AddScoped<OnReleaseManagementDataMigration>();
+                builder.AddScoped<OnReleaseManagementDataMigrationFailure>();
             }
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();
@@ -639,6 +642,21 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
 
             builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
+
+            builder.AddSingleton<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
+            builder.AddSingleton<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
+            builder.AddSingleton<IReleaseManagementRepository, ReleaseManagementRepository>((svc) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                config.Bind("releaseManagementSql", sqlSettings);
+                SqlConnectionFactory factory = new SqlConnectionFactory(sqlSettings);
+
+                SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
+
+                ExternalApiQueryBuilder externalApiQueryBuilder = new ExternalApiQueryBuilder();
+                return new ReleaseManagementRepository(factory, sqlPolicyFactory, externalApiQueryBuilder);
+            });
 
             builder.AddReleaseManagementServices(config);
 

@@ -1415,10 +1415,10 @@ namespace CalculateFunding.Services.Datasets
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(specificationId,
-                new string[] {
-                    JobConstants.DefinitionNames.ProcessDatasetObsoleteItemsJob
-            });
+            IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(
+                new string[] { JobConstants.DefinitionNames.ProcessDatasetObsoleteItemsJob },
+                specificationId
+            );
 
             if (!jobTypesRunning.IsNullOrEmpty())
             {

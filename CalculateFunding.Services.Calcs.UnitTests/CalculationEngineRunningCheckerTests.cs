@@ -117,7 +117,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests
 
             _jobs
                 .When(_ => _.GetLatestJobsForSpecification(_specificationId, Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.CreateInstructAllocationJob)))
-                .Throw(_ => { throw new JobsNotRetrievedException(string.Empty, _specificationId, new[] { JobConstants.DefinitionNames.CreateInstructAllocationJob }); });
+                .Throw(_ => { throw new JobsNotRetrievedException(string.Empty, new[] { JobConstants.DefinitionNames.CreateInstructAllocationJob }, _specificationId); });
         }
 
         private async Task<bool> WhenTheCalculationEngineRunningStatusIsChecked()

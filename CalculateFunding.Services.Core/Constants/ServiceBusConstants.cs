@@ -260,6 +260,12 @@
             public const string ProcessDatasetObsoleteItemsPoisoned = "process-dataset-obsolete-items/$DeadLetterQueue";
 
             public const string ProcessDatasetObsoleteItemsPoisonedLocal = "process-dataset-obsolete-items-poisoned";
+            
+            public const string ReleaseManagementDataMigration = "release-management-data-migration";
+
+            public const string ReleaseManagementDataMigrationPoisoned = "release-management-data-migration/$DeadLetterQueue";
+
+            public const string ReleaseManagementDataMigrationPoisonedLocal = "release-management-data-migration-poisoned";
         }
 
         public static class TopicNames

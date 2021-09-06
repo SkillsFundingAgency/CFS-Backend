@@ -53,5 +53,9 @@
         public const string TrackLatest = "on-track-latest";
 
         public const string TrackLatestPoisoned = "on-track-latest-poisoned";
+        
+        public const string ReleaseManagementDataMigration = "on-release-management-data-migration";
+
+        public const string ReleaseManagementDataMigrationPoisoned = "on-release-management-data-migration-poisoned";
     }
 }

@@ -8,6 +8,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     {
         private RunningStatus _inProgressStatus;
         private string _jobType;
+        private string _jobId;
 
         public JobSummaryBuilder WithRunningStatus(RunningStatus inProgressStatus)
         {
@@ -23,10 +24,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public JobSummaryBuilder WithJobId(string jobId)
+        {
+            _jobId = jobId;
+
+            return this;
+        }
+
         public IEnumerable<JobSummary> Build()
         {
             return new List<JobSummary> { new JobSummary
             {
+                JobId = _jobId ?? NewRandomString(),
                 RunningStatus = _inProgressStatus,
                 JobType = _jobType
             } };

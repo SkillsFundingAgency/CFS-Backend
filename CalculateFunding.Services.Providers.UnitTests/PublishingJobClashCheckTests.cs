@@ -143,7 +143,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                                 JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
                     }))))
-                .ThrowsAsync(new JobsNotRetrievedException(string.Empty, specificationId, new[] { JobConstants.DefinitionNames.RefreshFundingJob }));
+                .ThrowsAsync(new JobsNotRetrievedException(string.Empty, new[] { JobConstants.DefinitionNames.RefreshFundingJob }, specificationId));
 
         private string NewRandomString() => new RandomString();
         

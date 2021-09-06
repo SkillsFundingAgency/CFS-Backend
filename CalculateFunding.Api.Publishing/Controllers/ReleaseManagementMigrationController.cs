@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Services.Publishing.FundingManagement;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.FundingManagement;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -14,13 +16,19 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _migrator = publishingV3ToSqlMigrator;
         }
 
-        [HttpPost("api/releasemanagement/populatereferencedata")]
-        public async Task<IActionResult> PopulateReferenceData()
+        [HttpGet("api/releasemanagement/queuereleasemanagementdatamigrationjob")]
+        public async Task<IActionResult> QueueReleaseManagementDataMigrationJob()
         {
-            // TODO - migrate to job
-            //await _migrator.PopulateReferenceData();
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+            
+            return await _migrator.QueueReleaseManagementDataMigrationJob(user, correlationId);
+        }
 
-            return NoContent();
+        [HttpPost("api/releasemanagement/populatereferencedata")]
+        public async Task PopulateReferenceData()
+        {
+            await _migrator.PopulateReferenceData();
         }
     }
 }

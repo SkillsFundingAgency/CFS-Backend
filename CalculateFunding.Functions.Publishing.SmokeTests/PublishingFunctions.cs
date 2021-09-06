@@ -14,6 +14,7 @@ using Serilog;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.Services.Publishing.FundingManagement;
 
 namespace CalculateFunding.Functions.Publishing.SmokeTests
 {
@@ -26,6 +27,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         private static IPublishService _publishService;
         private static IPublishIntegrityCheckService _publishIntegrityCheckService;
         private static IPublishedProviderReIndexerService _publishedProviderReIndexerService;
+        private static IPublishingV3ToSqlMigrator _publishingV3ToSqlMigrator;
         private static IDeletePublishedProvidersService _deletePublishedProvidersService;
         private static IUserProfileProvider _userProfileProvider;
         private static ISqlImportService _sqlImportService;
@@ -42,6 +44,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             _publishService = CreatePublishService();
             _refreshService = CreateRefreshService();
             _publishedProviderReIndexerService = CreatePublishedProviderReIndexerService();
+            _publishingV3ToSqlMigrator = CreatePublishingV3ToSqlMigrator();
             _deletePublishedProvidersService = CreateDeletePublishedProvidersService();
             _userProfileProvider = CreateUserProfileProvider();
             _sqlImportService = Substitute.For<ISqlImportService>();
@@ -211,6 +214,25 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         }
 
         [TestMethod]
+        public async Task OnReleaseManagementDataMigration_SmokeTestSucceeds()
+        {
+            OnReleaseManagementDataMigration onReleaseManagementDataMigration = new OnReleaseManagementDataMigration(_logger,
+                _publishingV3ToSqlMigrator,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders,
+                async (Message smokeResponse) => await onReleaseManagementDataMigration.Run(smokeResponse),
+                useSession: true);
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
+        [TestMethod]
         public async Task OnDeletePublishedProviders_SmokeTestSucceeds()
         {
             OnDeletePublishedProviders onDeletePublishedProvider = new OnDeletePublishedProviders(_logger,
@@ -256,6 +278,11 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         private static IPublishedProviderReIndexerService CreatePublishedProviderReIndexerService()
         {
             return Substitute.For<IPublishedProviderReIndexerService>();
+        }
+
+        private static IPublishingV3ToSqlMigrator CreatePublishingV3ToSqlMigrator()
+        {
+            return Substitute.For<IPublishingV3ToSqlMigrator>();
         }
 
         private static IDeletePublishedProvidersService CreateDeletePublishedProvidersService()

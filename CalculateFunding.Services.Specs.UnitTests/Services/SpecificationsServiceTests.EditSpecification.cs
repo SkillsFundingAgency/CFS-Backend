@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IJobManagement jobManagement = Substitute.For<IJobManagement>();
             jobManagement
                 .When(_ => _.GetLatestJobsForSpecification(SpecificationId, Arg.Any<IEnumerable<string>>()))
-                .Do(_ => { throw new JobsNotRetrievedException(string.Empty, string.Empty, new string[] { }); });
+                .Do(_ => { throw new JobsNotRetrievedException(string.Empty, new string[] { }, string.Empty); });
 
             SpecificationsService specificationsService = CreateService(jobManagement: jobManagement);
 

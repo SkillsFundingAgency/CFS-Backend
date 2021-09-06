@@ -197,5 +197,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        Task<ApiResponse<IDictionary<string, JobSummary>>> IJobsApiClient.GetLatestJobsByJobDefinitionIds(params string[] jobDefinitionIds)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

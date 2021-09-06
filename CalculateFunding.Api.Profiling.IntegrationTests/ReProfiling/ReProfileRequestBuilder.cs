@@ -13,7 +13,7 @@ namespace CalculateFunding.Api.Profiling.IntegrationTests.ReProfiling
         private decimal? _fundingValue;
         private decimal? _existingFundingLineTotal;
         private string _profilePatternKey;
-        private bool _midYear;
+        private bool? _midYear;
         private IEnumerable<ExistingProfilePeriod> _existingProfilePeriods;
         private ProfileConfigurationType? _configurationType;
         private int? _variationPointerIndex;
@@ -106,7 +106,7 @@ namespace CalculateFunding.Api.Profiling.IntegrationTests.ReProfiling
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingLineTotal = _fundingValue.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue)),
                 ExistingFundingLineTotal = _existingFundingLineTotal.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue)),
-                MidYear = _midYear,
+                MidYearCatchup = _midYear,
                 ExistingPeriods = _existingProfilePeriods ?? ArraySegment<ExistingProfilePeriod>.Empty,
                 ConfigurationType = _configurationType.GetValueOrDefault(NewRandomEnum<ProfileConfigurationType>()),
                 VariationPointerIndex = _variationPointerIndex

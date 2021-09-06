@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="5.2.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="5.3.1" />
   </ItemGroup>
 
   <ItemGroup>

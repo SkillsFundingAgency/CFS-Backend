@@ -288,7 +288,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .When(_ => _.GetLatestJobsForSpecification(
                     Arg.Is(specificationId),
                     Arg.Is<IEnumerable<string>>(_ => _.SequenceEqual(jobTypes))))
-                .Do(_ => { throw new JobsNotRetrievedException(string.Empty, specificationId, jobTypes); });
+                .Do(_ => { throw new JobsNotRetrievedException(string.Empty, jobTypes, specificationId); });
         }
 
         private void GivenSpecification(string specificationId, string fundingStream) => _specsApiClient.GetSpecificationSummaryById(Arg.Is(specificationId)).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, new SpecificationSummary { Id = specificationId, FundingStreams = new[] { new Reference { Id = fundingStream } } }));

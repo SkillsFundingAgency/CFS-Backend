@@ -92,13 +92,13 @@ namespace CalculateFunding.Services.Processing
 
         public async Task NotifyPercentComplete(int percent) => await _jobManagement.UpdateJobStatus(Job.Id, percent, null, null);
 
-        public async Task<IEnumerable<JobSummary>> GetJobTypes(string specificationId, IEnumerable<string> jobTypes)
+        public async Task<IEnumerable<JobSummary>> GetJobTypes(IEnumerable<string> jobTypes, string specificationId = null)
         {
             Guard.ArgumentNotNull(jobTypes, nameof(jobTypes));
 
             try
             {
-                IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
+                IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobs(jobTypes, specificationId);
 
                 return jobSummaries?.Values.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress);
             }

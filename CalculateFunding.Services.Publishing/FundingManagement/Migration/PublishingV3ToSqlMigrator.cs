@@ -1,9 +1,18 @@
-﻿using CalculateFunding.Common.ApiClient.Policies;
+﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces.Threading;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
+using Polly;
 using Serilog;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -13,14 +22,15 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement
 {
-    public class PublishingV3ToSqlMigrator : IPublishingV3ToSqlMigrator
+    public class PublishingV3ToSqlMigrator : JobProcessingService, IPublishingV3ToSqlMigrator
     {
+        private const string MigrationKey = "migration-key";
+        private const string MigrationKeyValue = "6695d9f9-079f-4afe-ac13-53ca1dd39e28";
         private readonly IReleaseManagementRepository _repo;
         private readonly ISpecificationsApiClient _specsClient;
         private readonly IPoliciesApiClient _policyClient;
-        private readonly IPublishedFundingRepository _cosmosRepo;
-        private readonly IProducerConsumerFactory _producerConsumerFactory;
-        private readonly ILogger _logger;
+        private readonly AsyncPolicy _specsClientPolicy;
+        private readonly AsyncPolicy _policyClientPolicy;
         private Dictionary<string, SqlModels.Channel> _channels;
         private Dictionary<string, SqlModels.FundingPeriod> _fundingPeriods;
         private Dictionary<string, SqlModels.FundingStream> _fundingStreams;
@@ -34,29 +44,67 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             IReleaseManagementRepository releaseManagementRepository,
             ISpecificationsApiClient specificationsApiClient,
             IPoliciesApiClient policiesApiClient,
-            IPublishedFundingRepository publishedFundingRepository,
-            IProducerConsumerFactory producerConsumerFactory,
             ILogger logger,
-            IPublishedFundingReleaseManagementMigrator publishedFundingReleaseManagementMigrator)
+            IPublishedFundingReleaseManagementMigrator publishedFundingReleaseManagementMigrator,
+            IJobManagement jobManagement,
+            IPublishingResiliencePolicies publishingResiliencePolicies) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(publishedFundingReleaseManagementMigrator, nameof(publishedFundingReleaseManagementMigrator));
+            Guard.ArgumentNotNull(publishingResiliencePolicies?.PoliciesApiClient, nameof(publishingResiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(publishingResiliencePolicies?.SpecificationsApiClient, nameof(publishingResiliencePolicies.SpecificationsApiClient));
 
             _repo = releaseManagementRepository;
             _specsClient = specificationsApiClient;
+            _specsClientPolicy = publishingResiliencePolicies.SpecificationsApiClient;
             _policyClient = policiesApiClient;
-            _cosmosRepo = publishedFundingRepository;
-            _producerConsumerFactory = producerConsumerFactory;
-            _logger = logger;
+            _policyClientPolicy = publishingResiliencePolicies.PoliciesApiClient;
             _fundingMigrator = publishedFundingReleaseManagementMigrator;
         }
+
+        public async Task<IActionResult> QueueReleaseManagementDataMigrationJob(Reference author, string correlationId)
+        {
+            IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(new string[] {
+                    JobConstants.DefinitionNames.ReleaseManagmentDataMigrationJob
+            });
+
+            if (!jobTypesRunning.IsNullOrEmpty())
+            {
+                throw new NonRetriableException($"Unable to queue a new release managment data migration job as one is already running job id:{jobTypesRunning.First().JobId}.");
+            }
+
+            Job job = await QueueJob(new JobCreateModel
+            {
+                JobDefinitionId = JobConstants.DefinitionNames.ReleaseManagmentDataMigrationJob,
+                InvokerUserId = author?.Id,
+                InvokerUserDisplayName = author?.Name,
+                CorrelationId = correlationId,
+                Properties = new Dictionary<string, string>
+                {
+                    {MigrationKey, MigrationKeyValue}
+                }
+            });
+
+            return new OkObjectResult(new JobCreationResponse
+            {
+                JobId = job.Id
+            });
+        }
+
+        public override async Task Process(Message message)
+        {
+            await PopulateReferenceData();
+        }
+
         public async Task PopulateReferenceData()
         {
             await PopulateGroupingReasons();
             await PopulateVariationReasons();
             await PopulateChannels();
 
-            var publishedSpecificationsRequest = await _specsClient.GetSpecificationsSelectedForFunding();
-
+            var publishedSpecificationsRequest = await _specsClientPolicy.ExecuteAsync(() => _specsClient.GetSpecificationsSelectedForFunding());
 
             await PopulateFundingStreamsAndPeriods(publishedSpecificationsRequest.Content);
             await PopulateSpecifications(publishedSpecificationsRequest.Content);
@@ -110,8 +158,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             _fundingPeriods = new Dictionary<string, SqlModels.FundingPeriod>(existingFundingPeriods.ToDictionary(_ => _.FundingPeriodCode));
             _fundingStreams = new Dictionary<string, SqlModels.FundingStream>(existingFundingStreams.ToDictionary(_ => _.FundingStreamCode));
 
-            var policyFundingStreams = await _policyClient.GetFundingStreams();
-            var policyFundingPeriods = await _policyClient.GetFundingPeriods();
+            var policyFundingStreams = await _policyClientPolicy.ExecuteAsync(() => _policyClient.GetFundingStreams());
+            var policyFundingPeriods = await _policyClientPolicy.ExecuteAsync(() => _policyClient.GetFundingPeriods());
 
             foreach (var spec in specifications)
             {

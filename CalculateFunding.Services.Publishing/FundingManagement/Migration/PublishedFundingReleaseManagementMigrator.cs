@@ -116,7 +116,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             FundingConfiguration fundingConfiguration = await GetFundingConfiguration(fundingVersion.FundingStreamId, fundingVersion.FundingPeriod.Id);
 
-
             // Generate eligible channels
             IEnumerable<Channel> channels = GetChannelsForExistingFundingVersion(fundingVersion.GroupingReason, ctx.Channels);
 
@@ -127,9 +126,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 FundingGroupVersion fundingGroupVersion = await GetOrGenerateFundingGroupVersion(channel, fundingGroup, fundingVersion, ctx);
 
             }
-
-
-
         }
 
         private async Task<FundingGroupVersion> GetOrGenerateFundingGroupVersion(Channel channel, FundingGroup fundingGroup, PublishedFundingVersion fundingVersion, IReleaseManagementImportContext ctx)

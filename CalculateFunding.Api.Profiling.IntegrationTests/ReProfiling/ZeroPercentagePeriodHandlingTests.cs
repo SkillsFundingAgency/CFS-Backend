@@ -72,7 +72,6 @@ namespace CalculateFunding.Api.Profiling.IntegrationTests.ReProfiling
             await GivenTheProfilePattern(profilePatternTemplateParameters);
 
             ReProfileRequest request = NewReProfileRequest(_ => _
-                .WithMidYear(false)
                 .WithNoProfilePatternKey()
                 .WithFundingLineCode(profilePatternTemplateParameters.FundingLineId)
                 .WithFundingStreamId(profilePatternTemplateParameters.FundingStream)
