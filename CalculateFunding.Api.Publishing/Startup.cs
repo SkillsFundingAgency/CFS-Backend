@@ -41,8 +41,10 @@ using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using CalculateFunding.Services.Publishing.IoC;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Profiling.Custom;
+using CalculateFunding.Services.Publishing.ReleaseManagement;
 using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using CalculateFunding.Services.Publishing.Repositories;
@@ -153,6 +155,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<IBatchUploadValidationService, BatchUploadValidationService>();
             builder.AddSingleton<IBatchUploadReaderFactory, BatchUploadReaderFactory>();
             builder.AddSingleton<IValidator<BatchUploadValidationRequest>, BatchUploadValidationRequestValidation>();
+            builder.AddSingleton<IValidator<ChannelRequest>, ChannelModelValidator>();
 
             builder.AddSingleton<IPublishedProviderUpdateDateService, PublishedProviderUpdateDateService>();
 

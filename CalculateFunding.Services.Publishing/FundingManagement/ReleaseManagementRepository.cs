@@ -4,6 +4,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External.V4;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SqlGroupingReason = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.GroupingReason;
@@ -54,11 +55,25 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return await QuerySql<Channel>("SELECT * FROM channels");
         }
 
+        public async Task<Channel> GetChannelByChannelCode(string channelCode)
+        {
+            return await QuerySingleSql<Channel>("SELECT * FROM channels WHERE ChannelCode=@channelCode",
+                                                    new
+                                                    {
+                                                        channelCode
+                                                    });
+        }
+
         public async Task<Channel> CreateChannel(Channel channel)
         {
             channel.ChannelId = await Insert(channel);
 
             return channel;
+        }
+
+        public async Task<bool> UpdateChannel(Channel channel)
+        {
+            return await Update(channel);
         }
 
         public async Task<IEnumerable<FundingPeriod>> GetFundingPeriods()

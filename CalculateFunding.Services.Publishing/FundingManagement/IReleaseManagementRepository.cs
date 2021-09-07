@@ -17,8 +17,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         Task<VariationReason> CreateVariationReason(VariationReason reason);
 
         Task<IEnumerable<Channel>> GetChannels();
+        Task<Channel> GetChannelByChannelCode(string channelCode);
         Task<int?> GetChannelIdFromUrlKey(string normalisedKey);
         Task<Channel> CreateChannel(Channel channel);
+        Task<bool> UpdateChannel(Channel channel);
         Task<IEnumerable<FundingPeriod>> GetFundingPeriods();
         Task<IEnumerable<FundingStream>> GetFundingStreams();
         Task<FundingStream> CreateFundingStream(FundingStream fundingStream);
