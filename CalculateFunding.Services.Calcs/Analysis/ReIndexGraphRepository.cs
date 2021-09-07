@@ -411,70 +411,40 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             Guard.ArgumentNotNull(specification, nameof(specification));
 
-            if (specificationCalculationUnusedRelationships.Calculations.AnyWithNullCheck())
-            {
-                await DeleteSpecificationCalculationRelationships(specification,
-                    specificationCalculationUnusedRelationships.Calculations);
-            }
-
-            if (specificationCalculationUnusedRelationships.FundingLines.AnyWithNullCheck())
-            {
-                await DeleteFundingLines(specificationCalculationUnusedRelationships.FundingLines);
-            }
-
-            if (specificationCalculationUnusedRelationships.DatasetRelationshipDataFieldRelationships.AnyWithNullCheck())
-            {
-                await DeleteDatasetRelationshipDataFieldRelationship(specificationCalculationUnusedRelationships.DatasetRelationshipDataFieldRelationships);
-            }
-
-            if (specificationCalculationUnusedRelationships.CalculationRelationships.AnyWithNullCheck())
-            {
-                await DeleteCalculationRelationships(specificationCalculationUnusedRelationships.CalculationRelationships);
-            }
-
-            if (specificationCalculationUnusedRelationships.CalculationDataFieldRelationships.AnyWithNullCheck())
-            {
-                await DeleteDatasetRelationships(specificationCalculationUnusedRelationships.CalculationDataFieldRelationships);
-            }
-
-            if (specificationCalculationUnusedRelationships.CalculationEnumRelationships.AnyWithNullCheck())
-            {
-                await DeleteEnumRelationships(specificationCalculationUnusedRelationships.CalculationEnumRelationships);
-            }
+            await DeleteSpecificationCalculationRelationships(specification, specificationCalculationUnusedRelationships.Calculations);
+            await DeleteFundingLines(specificationCalculationUnusedRelationships.FundingLines);
+            await DeleteDatasetRelationshipDataFieldRelationship(specificationCalculationUnusedRelationships.DatasetRelationshipDataFieldRelationships);
+            await DeleteCalculationRelationships(specificationCalculationUnusedRelationships.CalculationRelationships);
+            await DeleteDatasetRelationships(specificationCalculationUnusedRelationships.CalculationDataFieldRelationships);
+            await DeleteEnumRelationships(specificationCalculationUnusedRelationships.CalculationEnumRelationships);
         }
 
         private async Task InsertSpecificationGraph(SpecificationCalculationRelationships specificationCalculationRelationships)
         {
-            Task[] graphTasks =
-            {
-                UpsertSpecificationNode(specificationCalculationRelationships.Specification),
-                UpsertCalculationNodes(specificationCalculationRelationships.Calculations)
-            };
+            Specification specification = specificationCalculationRelationships.Specification;
 
-            await TaskHelper.WhenAllAndThrow(graphTasks);
+            Guard.ArgumentNotNull(specification, nameof(specification));
 
-            Task[] subGraphTasks =
-            {
-                UpsertSpecificationRelationships(specificationCalculationRelationships),
-                UpsertCalculationRelationships(specificationCalculationRelationships.CalculationRelationships),
-                UpsertDataFieldRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships),
-                UpsertEnumRelationships(specificationCalculationRelationships.CalculationEnumRelationships),
-                UpsertDatasetDataFieldRelationships(specificationCalculationRelationships.DatasetDataFieldRelationships, specificationCalculationRelationships.Specification.SpecificationId),
-                UpsertDatasetDatasetDefinitionRelationships(specificationCalculationRelationships.DatasetDatasetDefinitionRelationships),
-                UpsertDatasetRelationshipDataFieldRelationships(specificationCalculationRelationships.DatasetRelationshipDataFieldRelationships)
-            };
-
-            await TaskHelper.WhenAllAndThrow(subGraphTasks);
-
-            if (specificationCalculationRelationships.FundingLineRelationships?.Any() == true)
-            {
-                await UpsertFundingLines(specificationCalculationRelationships.FundingLineRelationships);
-            }
+            await UpsertSpecificationNode(specificationCalculationRelationships.Specification);
+            await UpsertCalculationNodes(specificationCalculationRelationships.Calculations);
+            await UpsertSpecificationRelationships(specificationCalculationRelationships);
+            await UpsertCalculationRelationships(specificationCalculationRelationships.CalculationRelationships);
+            await UpsertDataFieldRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships);
+            await UpsertEnumRelationships(specificationCalculationRelationships.CalculationEnumRelationships);
+            await UpsertDatasetDataFieldRelationships(specificationCalculationRelationships.DatasetDataFieldRelationships, specificationCalculationRelationships.Specification.SpecificationId);
+            await UpsertDatasetDatasetDefinitionRelationships(specificationCalculationRelationships.DatasetDatasetDefinitionRelationships);
+            await UpsertDatasetRelationshipDataFieldRelationships(specificationCalculationRelationships.DatasetRelationshipDataFieldRelationships);
+            await UpsertFundingLines(specificationCalculationRelationships.FundingLineRelationships);
         }
 
         private async Task DeleteSpecificationCalculationRelationships(Specification specification,
             IEnumerable<Calculation> calculations)
         {
+            if (calculations.IsNullOrEmpty())
+            {
+                return;
+            }
+
             string specificationId = specification?.SpecificationId;
 
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
@@ -499,6 +469,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task DeleteFundingLines(IEnumerable<FundingLine> fundingLines)
         {
+            if (fundingLines.IsNullOrEmpty())
+            {
+                return;
+            }
+
             PagedContext<string> pagedRequests = new PagedContext<string>(fundingLines.Select(_ => _.SpecificationFundingLineId), PageSize);
 
             while (pagedRequests.HasPages)
@@ -513,6 +488,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task DeleteDatasetRelationshipDataFieldRelationship(IEnumerable<DatasetRelationshipDataFieldRelationship> datasetRelationshipDataFieldRelationships)
         {
+            if (datasetRelationshipDataFieldRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             PagedContext<AmendRelationshipRequestModel> pagedRequests = new PagedContext<AmendRelationshipRequestModel>(datasetRelationshipDataFieldRelationships
                 .Select(_ => new AmendRelationshipRequestModel
                 {
@@ -533,6 +513,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task DeleteCalculationRelationships(IEnumerable<CalculationRelationship> calculationRelationships)
         {
+            if (calculationRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             PagedContext<AmendRelationshipRequestModel> pagedRequests = new PagedContext<AmendRelationshipRequestModel>(calculationRelationships
                     .Select(_ => new AmendRelationshipRequestModel
                     {
@@ -553,6 +538,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task DeleteDatasetRelationships(IEnumerable<CalculationDataFieldRelationship> datasetRelationships)
         {
+            if (datasetRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             PagedContext<AmendRelationshipRequestModel> pagedRequests = new PagedContext<AmendRelationshipRequestModel>(datasetRelationships
                     .Select(_ => new AmendRelationshipRequestModel
                     {
@@ -573,6 +563,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task DeleteEnumRelationships(IEnumerable<CalculationEnumRelationship> enumRelationships)
         {
+            if (enumRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             PagedContext<AmendRelationshipRequestModel> pagedRequests = new PagedContext<AmendRelationshipRequestModel>(enumRelationships
                     .Select(_ => new AmendRelationshipRequestModel
                     {
@@ -593,8 +588,6 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task UpsertSpecificationNode(Specification specification)
         {
-            Guard.ArgumentNotNull(specification, nameof(specification));
-
             ApiSpecification graphSpecification = _mapper.Map<ApiSpecification>(specification);
 
             HttpStatusCode response = await _resilience.ExecuteAsync(() =>
@@ -608,7 +601,10 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task UpsertCalculationNodes(IEnumerable<Calculation> calculations)
         {
-            Guard.IsNotEmpty(calculations, nameof(calculations));
+            if (calculations.IsNullOrEmpty())
+            {
+                return;
+            }
 
             PagedContext<ApiCalculation> pagedRequests = new PagedContext<ApiCalculation>(_mapper.Map<IEnumerable<ApiCalculation>>(calculations),
                 PageSize);
@@ -626,6 +622,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task UpsertSpecificationRelationships(SpecificationCalculationRelationships specificationCalculationRelationships)
         {
+            if (specificationCalculationRelationships.Calculations.IsNullOrEmpty())
+            {
+                return;
+            }
+
             string specificationId = specificationCalculationRelationships.Specification.SpecificationId;
 
             IEnumerable<string> calculationIds = specificationCalculationRelationships.Calculations.Select(_ => _.CalculationId);
@@ -651,6 +652,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task UpsertCalculationRelationships(IEnumerable<CalculationRelationship> calculationRelationships)
         {
+            if (calculationRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             IEnumerable<IGrouping<string, CalculationRelationship>> relationshipsPerCalculation =
                 calculationRelationships.GroupBy(_ => _.CalculationOneId);
 
@@ -666,6 +672,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task UpsertDatasetRelationshipDataFieldRelationships(IEnumerable<DatasetRelationshipDataFieldRelationship> datasetRelationshipDataFieldRelationships)
         {
+            if (datasetRelationshipDataFieldRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             IEnumerable<IGrouping<string, DatasetRelationshipDataFieldRelationship>> datasetRelationshipDataFieldRelationshipsPerDatasetRelationshipId =
                 datasetRelationshipDataFieldRelationships.GroupBy(_ => _.DatasetRelationship.DatasetRelationshipId);
 
@@ -690,6 +701,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task UpsertDataFieldRelationships(IEnumerable<CalculationDataFieldRelationship> datasetRelationships)
         {
+            if (datasetRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             IEnumerable<IGrouping<string, CalculationDataFieldRelationship>> relationshipsPerCalculation =
                 datasetRelationships.GroupBy(_ => _.Calculation.CalculationId);
 
@@ -714,6 +730,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
         
         private async Task UpsertEnumRelationships(IEnumerable<CalculationEnumRelationship> enumRelationships)
         {
+            if (enumRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             IEnumerable<IGrouping<string, CalculationEnumRelationship>> relationshipsPerCalculation =
                 enumRelationships.GroupBy(_ => _.Calculation.CalculationId);
 
@@ -741,6 +762,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
         private async Task UpsertDatasetDataFieldRelationships(IEnumerable<DatasetDataFieldRelationship> datasetDataFieldRelationships,
             string specificationId)
         {
+            if (datasetDataFieldRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             IEnumerable<IGrouping<string, DatasetDataFieldRelationship>> relationshipsPerDataset =
                 datasetDataFieldRelationships.GroupBy(_ => _.Dataset.DatasetId);
 
@@ -781,6 +807,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task UpsertFundingLines(IEnumerable<FundingLineCalculationRelationship> fundingLineCalculationRelationships)
         {
+            if (fundingLineCalculationRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             HttpStatusCode response;
 
             ApiFundingLine[] apiFundingLines = fundingLineCalculationRelationships.Select(_ => _mapper.Map<ApiFundingLine>(_.FundingLine)).DistinctBy(_ => _.FundingLineId).ToArray();
@@ -830,6 +861,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task UpsertDatasetDatasetDefinitionRelationships(IEnumerable<DatasetDatasetDefinitionRelationship> datasetDatasetDefinitionRelationships)
         {
+            if (datasetDatasetDefinitionRelationships.IsNullOrEmpty())
+            {
+                return;
+            }
+
             IEnumerable<IGrouping<string, DatasetDatasetDefinitionRelationship>> relationshipsPerDataset =
                 datasetDatasetDefinitionRelationships.GroupBy(_ => _.Dataset.DatasetId);
 
