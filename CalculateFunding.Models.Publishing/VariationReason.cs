@@ -226,9 +226,6 @@ namespace CalculateFunding.Models.Publishing
         [EnumMember(Value = nameof(FundingSchemaUpdated))]
         FundingSchemaUpdated,
 
-        [EnumMember(Value = nameof(DistributionProfileUpdated))]
-        DistributionProfileUpdated,
-
         [Display(Name = "Provider changed from indicative to live")]
         [SqlConstantId(44)]
         [EnumMember(Value = nameof(IndicativeToLive))]

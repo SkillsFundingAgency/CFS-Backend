@@ -23,15 +23,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             string keyForOrganisationGroups = ProviderVariationContext.OrganisationGroupsKey(providerVariationContext.ReleasedState.FundingStreamId, providerVariationContext.ReleasedState.FundingPeriodId);
             
-            if(providerVariationContext.OrganisationGroupResultsData.ContainsKey(keyForOrganisationGroups))
+            if (providerVariationContext.OrganisationGroupResultsData.ContainsKey(keyForOrganisationGroups))
             {
                 IEnumerable<OrganisationGroupResult> organisationGroups = providerVariationContext.OrganisationGroupResultsData[keyForOrganisationGroups];
 
-                if(organisationGroups.Any(x => x.GroupReason == OrganisationGroupingReason.Contracting))
+                if (organisationGroups.Any(x => x.GroupReason == OrganisationGroupingReason.Contracting))
                 {
-                    providerVariationContext.AddVariationReasons(VariationReason.DistributionProfileUpdated);
-                    providerVariationContext.QueueVariationChange(new SetProfilePeriodValuesChange(providerVariationContext));
-
                     // Stop subsequent strategies                    
                     StrategyResult.StopSubsequentStrategies = true;
                 }

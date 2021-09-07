@@ -30,11 +30,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
             VariationStrategyResult result = await WhenTheVariationsAreDetermined();
 
-            VariationContext
-                .QueuedChanges
-                .Should()
-                .BeEmpty();
-
             result
                 .StopSubsequentStrategies
                 .Should()
@@ -42,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         }
 
         [TestMethod]
-        public async Task FailsPreconditionCheckIfUpdatedProviderClosed()
+        public async Task StopsSubsequentStrategiesIfPreconditionsMet()
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
@@ -66,12 +61,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
             VariationStrategyResult result = await WhenTheVariationsAreDetermined();
 
-            ThenTheVariationChangeWasQueued<SetProfilePeriodValuesChange>();
-            VariationContext
-                .VariationReasons
-                .Should()
-                .Contain(VariationReason.DistributionProfileUpdated);
-
             result
                 .StopSubsequentStrategies
                 .Should()
@@ -91,35 +80,5 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
             return organisationGroupResultBuilder.Build();
         }
-
-        //private static OrganisationIdentifier NewOrganisationIdentifier(Action<OrganisationIdentifierBuilder> setUp = null)
-        //{
-        //    OrganisationIdentifierBuilder organisationIdentifierBuilder = new OrganisationIdentifierBuilder();
-
-        //    setUp?.Invoke(organisationIdentifierBuilder);
-
-        //    return organisationIdentifierBuilder.Build();
-        //}
-
-        //protected static PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
-        //{
-        //    PublishedProviderBuilder publishedProviderBuilder = new PublishedProviderBuilder();
-
-        //    setUp?.Invoke(publishedProviderBuilder);
-
-        //    return publishedProviderBuilder.Build();
-        //}
-
-        //protected static PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
-        //{
-        //    PublishedProviderVersionBuilder providerVersionBuilder = new PublishedProviderVersionBuilder()
-        //        .WithProvider(NewProvider());
-
-        //    setUp?.Invoke(providerVersionBuilder);
-
-        //    return providerVersionBuilder.Build();
-        //}
-
-        //private static string NewRandomString() => new RandomString();
     }
 }
