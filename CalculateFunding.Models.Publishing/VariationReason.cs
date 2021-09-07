@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 
@@ -225,6 +226,10 @@ namespace CalculateFunding.Models.Publishing
         [SqlConstantId(43)]
         [EnumMember(Value = nameof(FundingSchemaUpdated))]
         FundingSchemaUpdated,
+
+        [EnumMember(Value = nameof(DistributionProfileUpdated))]
+        [Obsolete]
+        DistributionProfileUpdated,
 
         [Display(Name = "Provider changed from indicative to live")]
         [SqlConstantId(44)]
