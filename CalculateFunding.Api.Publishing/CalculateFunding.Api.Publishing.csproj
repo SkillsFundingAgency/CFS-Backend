@@ -21,7 +21,7 @@
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.14.0" />
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="7.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="7.1.1" />
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="1.7.0" />
 

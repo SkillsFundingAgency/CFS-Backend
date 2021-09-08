@@ -7,6 +7,8 @@
         ApproveBatchProviders,
         Refresh,
         ReleaseAllProviders,
-        ReleaseBatchProviders
+        ReleaseBatchProviders,
+        ReleaseProvidersToChannels,
+
     }
 }

@@ -253,6 +253,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<CalculationPrerequisiteCheckerService, ICalculationPrerequisiteCheckerService>();
             RegisterTypeAs<RefreshPrerequisiteChecker, IPrerequisiteChecker>();
             RegisterTypeAs<PublishAllPrerequisiteChecker, IPrerequisiteChecker>();
+            RegisterTypeAs<PublishProviderToChannelsPrerequisiteChecker, IPrerequisiteChecker>();
             RegisterTypeAs<PublishBatchPrerequisiteChecker, IPrerequisiteChecker>();
             RegisterTypeAs<ApproveAllProvidersPrerequisiteChecker, IPrerequisiteChecker>();
             RegisterTypeAs<ApproveBatchProvidersPrerequisiteChecker, IPrerequisiteChecker>();

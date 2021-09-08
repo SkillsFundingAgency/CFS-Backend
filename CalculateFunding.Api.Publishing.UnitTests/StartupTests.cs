@@ -38,6 +38,8 @@ namespace CalculateFunding.Api.Publishing.UnitTests
                 { "calcsClient:ApiKey", "Local" },
                 { "saSql:ConnectionString", "Server=localhost;Initial Catalog=SqlExport;Trusted_Connection=True;" },
                 { "releaseManagementSql:ConnectionString", "Server=.\\;Initial Catalog=ReleaseManagement;Integrated Security=SSPI" },
+                { "fdzClient:ApiEndpoint", "https://localhost:7109/api/" },
+                { "fdzClient:ApiKey", "Local" },
             };
         }
 

@@ -18,6 +18,10 @@
 
         public const string PublishingApproveBatchProviderFundingPoisoned = "on-publishing-approve-batch-provider-funding-poisoned";
 
+        public const string PublishingReleaseProvidersToChannels = "on-publishing-release-providers-to-channels";
+
+        public const string PublishingReleaseProvidersToChannelsPoisoned = "on-publishing-release-providers-to-channels-poisoned";
+
         public const string PublishingPublishAllProviderFunding = "on-publishing-publish-all-provider-funding";
 
         public const string PublishingDatasetsDataCopy = "on-publishing-datasets-data-copy";

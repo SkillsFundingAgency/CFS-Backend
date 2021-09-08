@@ -104,6 +104,8 @@
             public const string ProcessDatasetObsoleteItemsJob = nameof(ProcessDatasetObsoleteItemsJob);
 
             public const string ReleaseManagmentDataMigrationJob = nameof(ReleaseManagmentDataMigrationJob);
+
+            public const string ReleaseProvidersToChannelsJob = nameof(ReleaseProvidersToChannelsJob);
         }
 
         public static class NotificationChannels

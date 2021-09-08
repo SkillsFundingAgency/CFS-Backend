@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Tests.Common.Helpers;
 using CalculateFunding.Services.Publishing.FundingManagement;
+using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 
 namespace CalculateFunding.Functions.Publishing.SmokeTests
 {
@@ -32,6 +33,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         private static IUserProfileProvider _userProfileProvider;
         private static ISqlImportService _sqlImportService;
         private static IDatasetsDataCopyService _datasetsDataCopyService;
+        private static IReleaseProvidersToChannelsService _releaseProvidersToChannelsService;
 
 
         [ClassInitialize]
@@ -49,6 +51,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             _userProfileProvider = CreateUserProfileProvider();
             _sqlImportService = Substitute.For<ISqlImportService>();
             _datasetsDataCopyService = CreateDatasetsDataCopyService();
+            _releaseProvidersToChannelsService = CreateReleaseProvidersToChannelsService();
         }
         
         [TestMethod]
@@ -250,6 +253,24 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 .NotBeNull();
         }
 
+        [TestMethod]
+        public async Task OnReleaseProvidersToChannels_SmokeTestSucceeds()
+        {
+            OnReleaseProvidersToChannels onReleaseProvidersToChannels = new OnReleaseProvidersToChannels(_logger,
+                _releaseProvidersToChannelsService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingReleaseProvidersToChannels,
+                async (Message smokeResponse) => await onReleaseProvidersToChannels.Run(smokeResponse));
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
         private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
@@ -273,6 +294,11 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         private static IDatasetsDataCopyService CreateDatasetsDataCopyService()
         {
             return Substitute.For<IDatasetsDataCopyService>();
+        }
+
+        private static IReleaseProvidersToChannelsService CreateReleaseProvidersToChannelsService()
+        {
+            return Substitute.For<IReleaseProvidersToChannelsService>();
         }
 
         private static IPublishedProviderReIndexerService CreatePublishedProviderReIndexerService()

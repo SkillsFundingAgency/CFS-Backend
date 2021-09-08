@@ -72,6 +72,12 @@
 
             public const string PublishingApproveAllProviderFundingPoisonedLocal = "publishing-approve-all-provider-funding-poison";
 
+            public const string PublishingReleaseProvidersToChannels = "publishing-release-providers-to-channels";
+
+            public const string PublishingReleaseProvidersToChannelsPoisoned = "publishing-release-providers-to-channels/$DeadLetterQueue";
+
+            public const string PublishingReleaseProvidersToChannelsPoisonedLocal = "publishing-release-providers-to-channels-poison";
+
             public const string PublishingApproveBatchProviderFunding = "publishing-approve-batch-provider-funding";
                                                  
             public const string PublishingApproveBatchProviderFundingPoisoned = "publishing-approve-batch-provider-funding/$DeadLetterQueue";

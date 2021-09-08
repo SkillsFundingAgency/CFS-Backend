@@ -278,6 +278,8 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnPublishDatasetsCopyFailure>();
                 builder.AddScoped<OnReleaseManagementDataMigration>();
                 builder.AddScoped<OnReleaseManagementDataMigrationFailure>();
+                builder.AddScoped<OnReleaseProvidersToChannels>();
+                builder.AddScoped<OnReleaseProvidersToChannelsFailure>();
             }
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();

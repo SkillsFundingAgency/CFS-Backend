@@ -388,5 +388,31 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
+
+        [FunctionName(FunctionConstants.PublishingReleaseProvidersToChannels)]
+        public static async Task RunReleaseProvidersToChannels([QueueTrigger(ServiceBusConstants.QueueNames.PublishingReleaseProvidersToChannels, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnReleaseProvidersToChannels function = scope.ServiceProvider.GetService<OnReleaseProvidersToChannels>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(FunctionConstants.PublishingReleaseProvidersToChannelsPoisoned)]
+        public static async Task RunReleaseProvidersToChannelsFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingReleaseProvidersToChannelsPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnReleaseProvidersToChannelsFailure function = scope.ServiceProvider.GetService<OnReleaseProvidersToChannelsFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
     }
 }
