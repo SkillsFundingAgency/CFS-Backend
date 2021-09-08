@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Services.Profiling.Models;
 
 namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
@@ -21,56 +22,47 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             IExistingProfilePeriod[] orderedExistingProfilePeriods = new YearMonthOrderedProfilePeriods<IExistingProfilePeriod>(reProfileRequest.ExistingPeriods)
                 .ToArray();
 
+            DeliveryProfilePeriod[] readonlyOrderedRefreshProfilePeriods = new YearMonthOrderedProfilePeriods<DeliveryProfilePeriod>(context.ProfileResult.DeliveryProfilePeriods)
+                .DeepCopy()
+                .ToArray();
+
             int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
             RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
 
-            decimal carryOverAmount = AdjustFuturePeriodFundingLineValues(orderedExistingProfilePeriods, variationPointerIndex, reProfileRequest, orderedRefreshProfilePeriods);
-
+            AdjustFuturePeriodFundingLineValues(orderedExistingProfilePeriods, variationPointerIndex, reProfileRequest, orderedRefreshProfilePeriods, readonlyOrderedRefreshProfilePeriods);
+            
             return new ReProfileStrategyResult
             {
                 DistributionPeriods = MapIntoDistributionPeriods(context),
                 DeliveryProfilePeriods = context.ProfileResult.DeliveryProfilePeriods,
-                CarryOverAmount = carryOverAmount
+                CarryOverAmount = 0M
             };
         }
 
-        private static decimal AdjustFuturePeriodFundingLineValues(IExistingProfilePeriod[] orderedExistingProfilePeriods,
+        private static void AdjustFuturePeriodFundingLineValues(IExistingProfilePeriod[] orderedExistingProfilePeriods,
             int variationPointerIndex,
             ReProfileRequest reProfileRequest,
-            IProfilePeriod[] orderedRefreshProfilePeriods)
+            IProfilePeriod[] orderedRefreshProfilePeriods,
+            IProfilePeriod[] readonlyOrderedRefreshProfilePeriods)
         {
             decimal fundingLineTotal = reProfileRequest.FundingLineTotal;
             decimal existingFundingLineTotal = reProfileRequest.ExistingFundingLineTotal;
             
             decimal amountAlreadyPaid = orderedExistingProfilePeriods.Take(variationPointerIndex).Sum(x => x.GetProfileValue());
-            decimal amountThatShouldHaveBeenPaid = orderedExistingProfilePeriods.Take(variationPointerIndex)
-                                                    .Sum(x => CalculateAmountThatShouldHaveBeenPaid(existingFundingLineTotal, x.GetProfileValue(), fundingLineTotal, orderedExistingProfilePeriods.Length));
+            decimal amountThatShouldHaveBeenPaid = readonlyOrderedRefreshProfilePeriods.Take(variationPointerIndex)
+                                                    .Sum(x => x.GetProfileValue());
             decimal amountToBeAdjustedInNextPeriod = amountThatShouldHaveBeenPaid - amountAlreadyPaid;
 
             decimal remaingAmount = fundingLineTotal - amountAlreadyPaid;
 
             if (remaingAmount > 0)
             {
-                DistributeRemainingBalance(orderedRefreshProfilePeriods, variationPointerIndex, existingFundingLineTotal, fundingLineTotal, amountToBeAdjustedInNextPeriod);
+                DistributeRemainingBalance(orderedRefreshProfilePeriods, variationPointerIndex, fundingLineTotal, amountToBeAdjustedInNextPeriod);
             }
             else
             {
                 ReclaimPaidAmounts(orderedRefreshProfilePeriods, variationPointerIndex, remaingAmount);
             }
-
-            return 0M;
-        }
-
-        private static decimal CalculateAmountThatShouldHaveBeenPaid(decimal existingFundingLineTotal, decimal existingProfileValue, decimal fundingLineTotal, int numberofPeriods)
-        {
-            if (existingFundingLineTotal == 0)
-            {
-                // if the existing funding total is zero then treat as a flat profile
-                return (1M / numberofPeriods) * fundingLineTotal;
-            }
-
-            // Calculating same percentages
-            return (existingProfileValue / existingFundingLineTotal) * fundingLineTotal;
         }
 
         private static void ReclaimPaidAmounts(IProfilePeriod[] orderedRefreshProfilePeriods, int variationPointerIndex, decimal amountToBeAdjustedInNextPeriod)
@@ -88,21 +80,14 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
         private static void DistributeRemainingBalance(
             IProfilePeriod[] orderedRefreshProfilePeriods, 
             int variationPointerIndex,
-            decimal existingFundingLineTotal,
             decimal fundingLineTotal,
             decimal amountToBeAdjustedInNextPeriod)
         {
-            for (int profilePeriod = variationPointerIndex; profilePeriod < orderedRefreshProfilePeriods.Length; profilePeriod++)
-            {
-                IProfilePeriod periodToAdjust = orderedRefreshProfilePeriods[profilePeriod];
-                decimal amountThatShouldHaveBeenPaid = CalculateAmountThatShouldHaveBeenPaid(existingFundingLineTotal, periodToAdjust.GetProfileValue(), fundingLineTotal, orderedRefreshProfilePeriods.Length);
+            IProfilePeriod periodToAdjust = orderedRefreshProfilePeriods[variationPointerIndex];
+            
+            decimal profileValue = periodToAdjust.GetProfileValue() + amountToBeAdjustedInNextPeriod;
 
-                decimal profileValue = (profilePeriod == variationPointerIndex) ?
-                    amountThatShouldHaveBeenPaid + amountToBeAdjustedInNextPeriod :
-                    amountThatShouldHaveBeenPaid;
-
-                periodToAdjust.SetProfiledValue(Math.Round(profileValue, 2));
-            }
+            periodToAdjust.SetProfiledValue(Math.Round(profileValue, 2));
 
             // Adding any rounding amount to the next profile period
             var adjustRoundingDecimalsAmount = fundingLineTotal - orderedRefreshProfilePeriods.Sum(x => x.GetProfileValue());

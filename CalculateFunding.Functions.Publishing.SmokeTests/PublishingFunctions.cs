@@ -264,7 +264,8 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingReleaseProvidersToChannels,
-                async (Message smokeResponse) => await onReleaseProvidersToChannels.Run(smokeResponse));
+                async (Message smokeResponse) => await onReleaseProvidersToChannels.Run(smokeResponse),
+                useSession: true);
 
             response
                 .Should()

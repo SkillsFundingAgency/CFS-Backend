@@ -378,12 +378,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AndThePublishedProviderCreateVersionRequest(publishedProvider, publishedProviderCreateVersionRequest);
             AndTheNewCreatedPublishedProvider(publishedProvider, publishedProviderCreateVersionRequest);
             AndTheProfileVariationPointers(profileVariationPointers, specificationId);
-            AndTheReProfileRequest(existingPublishedProviderVersion.SpecificationId,
-                existingPublishedProviderVersion.FundingStreamId,
-                existingPublishedProviderVersion.FundingPeriodId,
-                existingPublishedProviderVersion.ProviderId,
-                profilePatternKey.FundingLineCode,
+            AndTheReProfileRequest(profilePatternKey.FundingLineCode,
                 profilePatternKey.Key,
+                publishedProvider.Current,
                 ProfileConfigurationType.Custom,
                 fundingLine.Value,
                 reProfileRequest);
@@ -443,22 +440,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return profilingCarryOverBuilder.Build();
         }
 
-        private void AndTheReProfileRequest(string specificationId,
-            string fundingStreamId,
-            string fundingPeriodId,
-            string providerId,
-            string fundingLineCode,
+        private void AndTheReProfileRequest(string fundingLineCode,
             string profilePatternKey,
+            PublishedProviderVersion publishedProviderVersion,
             ProfileConfigurationType configurationType,
             decimal? fundingLineTotal, 
             ReProfileRequest profileRequest)
         {
-            _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(fundingStreamId,
-                    specificationId,
-                    fundingPeriodId,
-                    providerId,
-                    fundingLineCode,
+            _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(fundingLineCode,
                     profilePatternKey,
+                    publishedProviderVersion,
                     configurationType,
                     fundingLineTotal,
                     false,

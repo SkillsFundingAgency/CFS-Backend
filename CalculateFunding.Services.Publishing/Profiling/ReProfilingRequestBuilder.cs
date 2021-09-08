@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
-using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
@@ -18,58 +17,35 @@ namespace CalculateFunding.Services.Publishing.Profiling
     public class ReProfilingRequestBuilder : IReProfilingRequestBuilder
     {
         private readonly ISpecificationsApiClient _specifications;
-        private readonly IProfilingApiClient _profiling;
-        private readonly IPublishedFundingRepository _publishedFunding;
         private readonly AsyncPolicy _specificationResilience;
-        private readonly AsyncPolicy _profilingResilience;
-        private readonly AsyncPolicy _publishedFundingResilience;
 
         public ReProfilingRequestBuilder(ISpecificationsApiClient specifications,
-            IProfilingApiClient profiling,
-            IPublishedFundingRepository publishedFunding,
             IPublishingResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(specifications, nameof(specifications));
-            Guard.ArgumentNotNull(profiling, nameof(profiling));
-            Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.ProfilingApiClient, nameof(resiliencePolicies.ProfilingApiClient));
-
+            
             _specifications = specifications;
-            _publishedFunding = publishedFunding;
-            _profiling = profiling;
             _specificationResilience = resiliencePolicies.SpecificationsApiClient;
-            _publishedFundingResilience = resiliencePolicies.PublishedFundingRepository;
-            _profilingResilience = resiliencePolicies.ProfilingApiClient;
         }
 
-        public async Task<ReProfileRequest> BuildReProfileRequest(string fundingStreamId,
-            string specificationId,
-            string fundingPeriodId,
-            string providerId,
-            string fundingLineCode,
+        public async Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
             string profilePatternKey,
+            PublishedProviderVersion publishedProviderVersion,
             ProfileConfigurationType configurationType,
             decimal? fundingLineTotal = null,
             bool midYear = false,
             DateTimeOffset? providerOpenedDate = null)
         {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
-            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
-            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+            Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
 
-            ProfileVariationPointer profileVariationPointer = await GetProfileVariationPointerForFundingLine(specificationId,
+            ProfileVariationPointer profileVariationPointer = await GetProfileVariationPointerForFundingLine(publishedProviderVersion.SpecificationId,
                 fundingLineCode,
-                fundingStreamId);
+                publishedProviderVersion.FundingStreamId);
 
-            ProfilePeriod[] orderedProfilePeriodsForFundingLine = await GetOrderedProfilePeriodsForFundingLine(fundingStreamId,
-                fundingPeriodId,
-                providerId,
-                fundingLineCode,
-                profilePatternKey);
+            ProfilePeriod[] orderedProfilePeriodsForFundingLine = GetOrderedProfilePeriodsForFundingLine(fundingLineCode,
+                publishedProviderVersion);
 
             ProfilePeriod firstPeriod = orderedProfilePeriodsForFundingLine.First();
 
@@ -81,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 midYearCatchup = providerOpenedDate == null ? false : providerOpenedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && providerOpenedDate.Value.Year < firstPeriod.Year;
             }
 
-            int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine, providerId);
+            int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine, publishedProviderVersion.ProviderId);
 
             IEnumerable<ExistingProfilePeriod> existingProfilePeriods = BuildExistingProfilePeriods(orderedProfilePeriodsForFundingLine, paidUpToIndex);
 
@@ -92,8 +68,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 ProfilePatternKey = profilePatternKey,
                 ConfigurationType = configurationType,
                 FundingLineCode = fundingLineCode,
-                FundingPeriodId = fundingPeriodId,
-                FundingStreamId = fundingStreamId,
+                FundingPeriodId = publishedProviderVersion.FundingPeriodId,
+                FundingStreamId = publishedProviderVersion.FundingStreamId,
                 FundingLineTotal = fundingLineTotal.GetValueOrDefault(existingFundingLineTotal),
                 ExistingFundingLineTotal = existingFundingLineTotal,
                 ExistingPeriods = existingProfilePeriods,
@@ -102,58 +78,15 @@ namespace CalculateFunding.Services.Publishing.Profiling
             };
         }
 
-        private async Task<ProfilePeriod[]> GetOrderedProfilePeriodsForFundingLine(string fundingStreamId,
-            string fundingPeriodId,
-            string providerId,
-            string fundingLineCode,
-            string profilePatternKey)
+        private ProfilePeriod[] GetOrderedProfilePeriodsForFundingLine(string fundingLineCode,
+            PublishedProviderVersion publishedProviderVersion)
         {
-            PublishedProvider publishedProvider = await _publishedFundingResilience.ExecuteAsync(() => _publishedFunding.GetPublishedProvider(fundingStreamId,
-                fundingPeriodId,
-                providerId));
+            FundingLine fundingLine = publishedProviderVersion.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
-            if (publishedProvider != null)
-            {
-                FundingLine fundingLine = publishedProvider.Current?.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
+            Guard.ArgumentNotNull(fundingLine, nameof(fundingLine));
 
-                if (fundingLine != null && !fundingLine.DistributionPeriods.IsNullOrEmpty())
-                {
-                    return new YearMonthOrderedProfilePeriods(fundingLine)
-                    .ToArray();
-                }
-            }
-
-            // if this is funded but the existing published provider has a 0 or null funding value
-            // then profiling periods will be blank also for a mid-year opener there won't be a published provider
-            // so we need to retrieve profile pattern from profiling
-            ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>> apiResponse = await _profilingResilience.ExecuteAsync(() => _profiling.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId,
-                fundingPeriodId));
-
-            if (apiResponse?.Content == null)
-            {
-                throw new InvalidOperationException(
-                                    $"Did not locate any profiling patterns for {fundingStreamId} {fundingPeriodId}");
-            }
-
-            IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = apiResponse.Content;
-
-            FundingStreamPeriodProfilePattern fundingStreamPeriodProfilePattern = profilePatterns?.SingleOrDefault(_ => _.FundingLineId == fundingLineCode && _.ProfilePatternKey == profilePatternKey);
-
-            if (fundingStreamPeriodProfilePattern == null)
-            {
-                throw new InvalidOperationException(
-                                    $"Did not locate a profiling pattern for funding line {fundingLineCode} {fundingStreamId} {fundingPeriodId}");
-            }
-
-            return new YearMonthOrderedProfilePeriodPatterns(fundingStreamPeriodProfilePattern.ProfilePattern)
-                .Select(_ => new ProfilePeriod { 
-                    DistributionPeriodId = _.DistributionPeriod,
-                    Occurrence = _.Occurrence,
-                    ProfiledValue = 0,
-                    Type = _.PeriodType.AsMatchingEnum<ProfilePeriodType>(),
-                    TypeValue = _.Period,
-                    Year = _.PeriodYear
-                    }).ToArray();
+            return new YearMonthOrderedProfilePeriods(fundingLine)
+                .ToArray();
         }
 
         private IEnumerable<ExistingProfilePeriod> BuildExistingProfilePeriods(ProfilePeriod[] profilePeriods, int paidUpToIndex)

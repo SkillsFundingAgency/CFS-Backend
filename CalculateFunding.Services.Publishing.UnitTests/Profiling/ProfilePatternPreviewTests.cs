@@ -5,6 +5,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Profiling;
@@ -25,6 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private Mock<IPoliciesApiClient> _policies;
         private Mock<IPoliciesService> _policiesService;
         private Mock<IProfileTotalsService> _profileTotalsService;
+        private Mock<IPublishedFundingRepository> _publishedFundingRepository;
 
         private ProfilePatternPreview _preview;
 
@@ -36,14 +38,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             _policies = new Mock<IPoliciesApiClient>();
             _policiesService = new Mock<IPoliciesService>();
             _profileTotalsService = new Mock<IProfileTotalsService>();
+            _publishedFundingRepository = new Mock<IPublishedFundingRepository>();
 
             _preview = new ProfilePatternPreview(_reProfilingRequestBuilder.Object,
                 _profiling.Object,
                 _policies.Object,
+                _publishedFundingRepository.Object,
                 new ResiliencePolicies
                 {
                     PoliciesApiClient = Policy.NoOpAsync(),
-                    ProfilingApiClient = Policy.NoOpAsync()
+                    ProfilingApiClient = Policy.NoOpAsync(),
+                    PublishedFundingRepository = Policy.NoOpAsync()
                 },
                 _policiesService.Object,
                 _profileTotalsService.Object);
@@ -70,6 +75,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 
             Func<Task<IActionResult>> invocation = () => WhenTheProfilePatternChangeIsPreviewed(previewRequest);
 
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublisherProviderVersion()));
+            
+            GivenThePublishedProvider(previewRequest.FundingStreamId,
+                previewRequest.FundingPeriodId,
+                previewRequest.ProviderId,
+                publishedProvider);
+
             invocation
                 .Should()
                 .Throw<InvalidOperationException>()
@@ -78,7 +90,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 .Should()
                 .Be($"Did not received a valid re-profiling response for profile pattern preview request {previewRequest}");
 
-            AndAReProfileRequestWasBuiltForTheRequest(previewRequest);
+            AndAReProfileRequestWasBuiltForTheRequest(previewRequest, publishedProvider.Current);
         }
 
         [TestMethod]
@@ -87,6 +99,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ProfilePreviewRequest previewRequest = NewProfilePreviewRequest();
 
             string distributionPeriod = NewRandomString();
+            string fundingLineCode = NewRandomString();
 
             ReProfileRequest expectedReProfileRequest = NewReProfileRequest(_ => _.WithFundingLineTotal(999)
                 .WithExistingFundingLineTotal(1000)
@@ -209,7 +222,42 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 .WithAmountAlreadyPaid(100)
             );
 
-            GivenTheReProfileRequest(previewRequest, expectedReProfileRequest);
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublisherProviderVersion(pvp =>
+                    pvp.WithFundingLines(NewFundingLine(),
+                        NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCode)
+                            .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithDistributionPeriodId("dp1")
+                                    .WithAmount(23)
+                                    .WithOccurence(0)
+                                    .WithYear(2021)
+                                    .WithType(ProfilePeriodType.CalendarMonth)
+                                    .WithTypeValue("January")),
+                                    NewProfilePeriod(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithAmount(24)
+                                        .WithOccurence(1)
+                                        .WithYear(2021)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithTypeValue("January")),
+                                    NewProfilePeriod(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithAmount(25)
+                                        .WithOccurence(0)
+                                        .WithYear(2021)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithTypeValue("March")),
+                                    NewProfilePeriod(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithAmount(26)
+                                        .WithOccurence(0)
+                                        .WithYear(2021)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithTypeValue("April"))
+                                    ))))))));
+
+            GivenThePublishedProvider(previewRequest.FundingStreamId,
+                previewRequest.FundingPeriodId,
+                previewRequest.ProviderId,
+                publishedProvider);
+
+            GivenTheReProfileRequest(previewRequest, expectedReProfileRequest, publishedProvider.Current);
             AndTheReProfileResponse(expectedReProfileRequest, expectedReProfileResponse);
             AndTheProfileTotalsResponse(previewRequest, expectedFundingLineProfile);
             AndTheFundingDate(previewRequest, expectedFundingDate);
@@ -281,16 +329,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 });
         }
 
+        private void GivenThePublishedProvider(string fundingStreamId,
+            string fundingPeriodId,
+            string providerId,
+            PublishedProvider publishedProvider)
+            => _publishedFundingRepository.Setup(_ => _.GetPublishedProvider(fundingStreamId,
+                    fundingPeriodId,
+                    providerId))
+                .ReturnsAsync(publishedProvider);
+
         private async Task<IActionResult> WhenTheProfilePatternChangeIsPreviewed(ProfilePreviewRequest request)
             => await _preview.PreviewProfilingChange(request);
 
-        private void AndAReProfileRequestWasBuiltForTheRequest(ProfilePreviewRequest request)
-            => _reProfilingRequestBuilder.Verify(_ => _.BuildReProfileRequest(request.FundingStreamId,
-                    request.SpecificationId,
-                    request.FundingPeriodId,
-                    request.ProviderId,
-                    request.FundingLineCode,
+        private void AndAReProfileRequestWasBuiltForTheRequest(ProfilePreviewRequest request, PublishedProviderVersion publishedProviderVersion)
+            => _reProfilingRequestBuilder.Verify(_ => _.BuildReProfileRequest(request.FundingLineCode,
                     request.ProfilePatternKey,
+                    publishedProviderVersion,
                     request.ConfigurationType,
                     null,
                     false,
@@ -298,13 +352,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 Times.Once);
 
         private void GivenTheReProfileRequest(ProfilePreviewRequest previewRequest,
-            ReProfileRequest reProfileRequest)
-            => _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(previewRequest.FundingStreamId,
-                    previewRequest.SpecificationId,
-                    previewRequest.FundingPeriodId,
-                    previewRequest.ProviderId,
-                    previewRequest.FundingLineCode,
+            ReProfileRequest reProfileRequest,
+            PublishedProviderVersion publishedProviderVersion)
+            => _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(previewRequest.FundingLineCode,
                     previewRequest.ProfilePatternKey,
+                    publishedProviderVersion,
                     previewRequest.ConfigurationType,
                     null,
                     false,
@@ -407,6 +459,50 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             setUp?.Invoke(deliveryProfilePeriodBuilder);
 
             return deliveryProfilePeriodBuilder.Build();
+        }
+        private PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
+        {
+            PublishedProviderBuilder publishedProviderBuilder = new PublishedProviderBuilder();
+
+            setUp?.Invoke(publishedProviderBuilder);
+
+            return publishedProviderBuilder.Build();
+        }
+
+        private PublishedProviderVersion NewPublisherProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
+        {
+            PublishedProviderVersionBuilder publishedProviderVersionBuilder = new PublishedProviderVersionBuilder();
+
+            setUp?.Invoke(publishedProviderVersionBuilder);
+
+            return publishedProviderVersionBuilder.Build();
+        }
+
+        private FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
+        {
+            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
+
+            setUp?.Invoke(fundingLineBuilder);
+
+            return fundingLineBuilder.Build();
+        }
+
+        private DistributionPeriod NewDistributionPeriod(Action<DistributionPeriodBuilder> setUp = null)
+        {
+            DistributionPeriodBuilder distributionPeriodBuilder = new DistributionPeriodBuilder();
+
+            setUp?.Invoke(distributionPeriodBuilder);
+
+            return distributionPeriodBuilder.Build();
+        }
+
+        private ProfilePeriod NewProfilePeriod(Action<ProfilePeriodBuilder> setUp = null)
+        {
+            ProfilePeriodBuilder profilePeriodBuilder = new ProfilePeriodBuilder();
+
+            setUp?.Invoke(profilePeriodBuilder);
+
+            return profilePeriodBuilder.Build();
         }
 
         private static string NewRandomString() => new RandomString();

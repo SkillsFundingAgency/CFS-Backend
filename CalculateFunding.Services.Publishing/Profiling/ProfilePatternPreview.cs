@@ -7,6 +7,7 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -21,20 +22,25 @@ namespace CalculateFunding.Services.Publishing.Profiling
         private readonly IPoliciesApiClient _policies;
         private readonly IPoliciesService _policiesService;
         private readonly IProfileTotalsService _profileTotalsService;
+        private readonly IPublishedFundingRepository _publishedFunding;
         private readonly AsyncPolicy _profilingResilience;
         private readonly AsyncPolicy _policiesResilience;
+        private readonly AsyncPolicy _publishedFundingResilience;
 
         public ProfilePatternPreview(IReProfilingRequestBuilder reProfilingRequestBuilder,
             IProfilingApiClient profiling,
             IPoliciesApiClient policies,
+            IPublishedFundingRepository publishedFunding,
             IPublishingResiliencePolicies resiliencePolicies,
             IPoliciesService policiesService,
             IProfileTotalsService profileTotalsService)
         {
             Guard.ArgumentNotNull(reProfilingRequestBuilder, nameof(reProfilingRequestBuilder));
             Guard.ArgumentNotNull(profiling, nameof(profiling));
+            Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
             Guard.ArgumentNotNull(resiliencePolicies?.ProfilingApiClient, nameof(resiliencePolicies.ProfilingApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(profileTotalsService, nameof(profileTotalsService));
 
@@ -43,20 +49,29 @@ namespace CalculateFunding.Services.Publishing.Profiling
             _policies = policies;
             _profilingResilience = resiliencePolicies.ProfilingApiClient;
             _policiesResilience = resiliencePolicies.PoliciesApiClient;
+            _publishedFundingResilience = resiliencePolicies.PublishedFundingRepository;
             _policiesService = policiesService;
             _profileTotalsService = profileTotalsService;
+            _publishedFunding = publishedFunding;
         }
 
         public async Task<IActionResult> PreviewProfilingChange(ProfilePreviewRequest request)
         {
             Guard.ArgumentNotNull(request, nameof(request));
 
-            ReProfileRequest reProfileRequest = await _reProfilingRequestBuilder.BuildReProfileRequest(request.FundingStreamId,
-                request.SpecificationId,
+            PublishedProviderVersion publishedProviderVersion = (await _publishedFundingResilience.ExecuteAsync(() => _publishedFunding.GetPublishedProvider(request.FundingStreamId,
                 request.FundingPeriodId,
-                request.ProviderId,
-                request.FundingLineCode,
+                request.ProviderId)))?.Current;
+
+            if (publishedProviderVersion == null)
+            {
+                throw new InvalidOperationException(
+                    $"There is no released version for Provider: {request.ProviderId}, FundingStream: {request.FundingStreamId} and FundingPeriod: {request.FundingPeriodId}.");
+            }
+
+            ReProfileRequest reProfileRequest = await _reProfilingRequestBuilder.BuildReProfileRequest(request.FundingLineCode,
                 request.ProfilePatternKey,
+                publishedProviderVersion,
                 request.ConfigurationType);
 
             ApiResponse<ReProfileResponse> reProfilingApiResponse = await _profilingResilience.ExecuteAsync(() => _profiling.ReProfile(reProfileRequest));

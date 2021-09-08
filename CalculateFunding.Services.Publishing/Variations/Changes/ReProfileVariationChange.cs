@@ -24,9 +24,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             Guard.IsNotEmpty(VariationContext.AffectedFundingLineCodes, nameof(VariationContext.AffectedFundingLineCodes));
 
             PublishedProviderVersion refreshState = RefreshState;
+            PublishedProviderVersion priorState = VariationContext.PriorState;
 
             Task[] reProfileTasks = VariationContext.AffectedFundingLineCodes?.Select(_ =>
-                    ReProfileFundingLine(_, refreshState, variationsApplications))
+                    ReProfileFundingLine(_, refreshState, priorState, variationsApplications))
                 .ToArray();
 
             await TaskHelper.WhenAllAndThrow(reProfileTasks);
@@ -34,6 +35,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         private async Task ReProfileFundingLine(string fundingLineCode,
             PublishedProviderVersion refreshState,
+            PublishedProviderVersion priorState,
             IApplyProviderVariations variationApplications)
         {
             FundingLine fundingLine = refreshState.FundingLines.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
@@ -53,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 return;
             }
 
-            ReProfileRequest reProfileRequest = await BuildReProfileRequest(fundingLineCode, refreshState, variationApplications, providerId, profilePatternKey, fundingLine);
+            ReProfileRequest reProfileRequest = await BuildReProfileRequest(fundingLineCode, refreshState, priorState , variationApplications, profilePatternKey, fundingLine);
 
             ReProfileResponse reProfileResponse = (await variationApplications.ResiliencePolicies.ProfilingApiClient.ExecuteAsync(()
                 => variationApplications.ProfilingApiClient.ReProfile(reProfileRequest)))?.Content;
@@ -75,16 +77,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         protected virtual Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
+            PublishedProviderVersion priorState,
             IApplyProviderVariations variationApplications,
-            string providerId,
             string profilePatternKey,
             FundingLine fundingLine) =>
-            variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(refreshState.FundingStreamId,
-                refreshState.SpecificationId,
-                refreshState.FundingPeriodId,
-                providerId,
-                fundingLineCode,
+            variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
+                priorState,
                 ProfileConfigurationType.RuleBased,
                 fundingLine.Value);
     }

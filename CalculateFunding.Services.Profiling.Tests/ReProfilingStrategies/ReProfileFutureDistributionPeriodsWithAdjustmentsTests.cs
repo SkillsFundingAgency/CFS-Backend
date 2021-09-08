@@ -17,13 +17,14 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
         [TestMethod]
         [DynamicData(nameof(IncreaseOrDecreaseFundingExamples), DynamicDataSourceType.Method)]
         public void BundlesIncreaseOrDecreaseFundingAdjustsFutureDistributionPeriodPaymentsWithoutAnyCarryOverPayments(int variationPointerIndex,
+            decimal[] newTheoreticalProfilePeriods,
             decimal[] originalPeriodValues,
             decimal totalAllocation,
             decimal previousTotalAllocation,
             decimal[] expectedAdjustedPeriodValues,
             decimal? expectedRemainingOverPayment)
         {
-            GivenTheLatestProfiling(AsLatestProfiling(originalPeriodValues));
+            GivenTheLatestProfiling(AsLatestProfiling(newTheoreticalProfilePeriods));
             GivenTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
 
             AndThePreviousFundingTotal(previousTotalAllocation);
@@ -41,6 +42,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             yield return new object[]
             {
                 2,
+                NewDecimals(1200, 1200, 1200, 1200, 1200),
                 NewDecimals(1000, 1000, 1000, 1000, 1000),
                 6000M,
                 5000M,
@@ -51,6 +53,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             yield return new object[]
             {
                 2,
+                NewDecimals(800, 800, 800, 800, 800),
                 NewDecimals(1000, 1000, 1000, 1000, 1000),
                 4000M,
                 5000M,
@@ -61,6 +64,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             yield return new object[]
             {
                  2,
+                 NewDecimals(600, 600, 600, 600, 600),
                  NewDecimals(1000, 1000, 1000, 1000, 1000),
                  3000M,
                  5000M,
@@ -71,6 +75,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             yield return new object[]
             {
                 2,
+                NewDecimals(400, 400, 400, 400, 400),
                 NewDecimals(1000, 1000, 1000, 1000, 1000),
                 2000M,
                 5000M,
@@ -81,6 +86,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             yield return new object[]
             {
                 2,
+                NewDecimals(200, 200, 200, 200, 200),
                 NewDecimals(1000, 1000, 1000, 1000, 1000),
                 1000M,
                 5000M,
@@ -91,6 +97,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             yield return new object[]
             {
                 2,
+                NewDecimals(900, 1200, 2400, 600, 900),
                 NewDecimals(750, 1000, 2000, 500, 750),
                 6000M,
                 5000M,
@@ -101,6 +108,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             yield return new object[]
             {
                 2,
+                NewDecimals(1033.95M, 1033.95M, 1033.95M, 1033.95M, 1033.95M),
                 NewDecimals(1000, 1000, 1000, 1000, 1000),
                 5169.76M,
                 5000M,
@@ -111,6 +119,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             yield return new object[]
             {
                 2,
+                NewDecimals(600M, 600M, 600M, 600M, 600M),
                 NewDecimals(0, 0, 0, 0, 0),
                 3000M,
                 0M,
