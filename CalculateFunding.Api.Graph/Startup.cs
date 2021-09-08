@@ -45,7 +45,6 @@ namespace CalculateFunding.Api.Graph
             services.AddControllers()
                 .AddNewtonsoftJson();
 
-
             RegisterComponents(services);
         }
 
@@ -95,14 +94,14 @@ namespace CalculateFunding.Api.Graph
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
             builder
-                .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
             builder
-                .AddScoped<IGremlinClientFactory, GremlinClientFactory>();
+                .AddSingleton<IGremlinClientFactory, GremlinClientFactory>();
             builder
-                .AddScoped<IPathResultsTransform, PathResultsTransform>();
+                .AddSingleton<IPathResultsTransform, PathResultsTransform>();
             builder
-                .AddScoped<ICosmosGraphDbSettings>(ctx =>
+                .AddSingleton<ICosmosGraphDbSettings>(ctx =>
                 {
                     CosmosGraphDbSettings settings = new CosmosGraphDbSettings();
                     
@@ -123,9 +122,8 @@ namespace CalculateFunding.Api.Graph
 
             builder.AddSingleton<IGraphResiliencePolicies>(resiliencePolicies);
 
-
             builder
-                .AddScoped<IGraphRepository>(ctx =>
+                .AddSingleton<IGraphRepository>(ctx =>
                 {
                     IGremlinClientFactory gremlinClientFactory = ctx.GetService<IGremlinClientFactory>();
                     IPathResultsTransform pathResultsTransform = ctx.GetService<IPathResultsTransform>();
@@ -135,22 +133,22 @@ namespace CalculateFunding.Api.Graph
                 });
 
             builder
-                .AddScoped<ISpecificationRepository, SpecificationRepository>();
+                .AddSingleton<ISpecificationRepository, SpecificationRepository>();
 
             builder
-                .AddScoped<ICalculationRepository, CalculationRepository>();
+                .AddSingleton<ICalculationRepository, CalculationRepository>();
 
             builder
-                .AddScoped<IGraphService, GraphService>();
+                .AddSingleton<IGraphService, GraphService>();
 
             builder
-                .AddScoped<IDatasetRepository, DatasetRepository>();
+                .AddSingleton<IDatasetRepository, DatasetRepository>();
 
             builder
-                .AddScoped<IFundingLineRepository, FundingLineRepository>();
+                .AddSingleton<IFundingLineRepository, FundingLineRepository>();
 
             builder
-                .AddScoped<IEnumRepository, EnumRepository>();
+                .AddSingleton<IEnumRepository, EnumRepository>();
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
