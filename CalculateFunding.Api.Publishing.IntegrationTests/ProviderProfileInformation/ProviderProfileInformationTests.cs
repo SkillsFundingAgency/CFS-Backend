@@ -66,8 +66,6 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.ProviderProfileInform
             _profilePatternDataContext = new ProfilePatternDataContext(Configuration);
             _fundingTemplateDataContext = new FundingTemplateDataContext(Configuration);
 
-
-
             TrackForTeardown(
                 _specificationDataContext,
                 _profilePatternDataContext,
