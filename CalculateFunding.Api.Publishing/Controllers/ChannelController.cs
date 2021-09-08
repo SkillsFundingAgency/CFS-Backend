@@ -2,6 +2,7 @@
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net;
@@ -26,7 +27,8 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("api/releasemanagement/channels")]
-        [Produces(typeof(IEnumerable<Channel>))]
+        [ProducesResponseType(typeof(IEnumerable<Channel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllChannels()
         {
             return await _channelsService.GetAllChannels();
@@ -38,7 +40,9 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("api/releasemanagement/channels")]
-        [Produces(typeof(HttpStatusCode))]
+        [ProducesResponseType(typeof(Channel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpsertChannel([FromBody] ChannelRequest request)
         {
             return await _channelsService.UpsertChannel(request);
