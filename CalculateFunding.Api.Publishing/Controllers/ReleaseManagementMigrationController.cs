@@ -17,18 +17,18 @@ namespace CalculateFunding.Api.Publishing.Controllers
         }
 
         [HttpGet("api/releasemanagement/queuereleasemanagementdatamigrationjob")]
-        public async Task<IActionResult> QueueReleaseManagementDataMigrationJob()
+        public async Task<IActionResult> QueueReleaseManagementDataMigrationJob([FromQuery] string[] fundingStreamIds)
         {
             Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
             
-            return await _migrator.QueueReleaseManagementDataMigrationJob(user, correlationId);
+            return await _migrator.QueueReleaseManagementDataMigrationJob(user, correlationId, fundingStreamIds);
         }
 
-        [HttpPost("api/releasemanagement/populatereferencedata")]
-        public async Task PopulateReferenceData()
+        [HttpGet("api/releasemanagement/populatereferencedata")]
+        public async Task<IActionResult> PopulateReferenceData([FromQuery] string[] fundingStreamIds)
         {
-            await _migrator.PopulateReferenceData();
+            return await _migrator.PopulateReferenceData(fundingStreamIds);
         }
     }
 }

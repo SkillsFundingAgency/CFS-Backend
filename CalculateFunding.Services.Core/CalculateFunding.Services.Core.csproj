@@ -10,9 +10,9 @@
   <ItemGroup>
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.8.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient" Version="2.9.1"/>
+    <PackageReference Include="CalculateFunding.Common.ApiClient" Version="2.9.1" />
     
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="7.1.0" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="7.1.1" />
     <PackageReference Include="CalculateFunding.Common.ServiceBus" Version="2.4.0" />
     <PackageReference Include="CalculateFunding.Common.Caching" Version="2.0.1" />
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="5.9.0" />

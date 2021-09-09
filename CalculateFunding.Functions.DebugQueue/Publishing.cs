@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Publishing.ServiceBus;
+using CalculateFunding.Models.Publishing.FundingManagement;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
@@ -367,7 +368,7 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunReleaseManagementDataMigration([QueueTrigger(ServiceBusConstants.QueueNames.ReleaseManagementDataMigration, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<string[]>(item);
 
             OnReleaseManagementDataMigration function = scope.ServiceProvider.GetService<OnReleaseManagementDataMigration>();
 
@@ -380,7 +381,7 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunReleaseManagementDataMigrationFailure([QueueTrigger(ServiceBusConstants.QueueNames.ReleaseManagementDataMigrationPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<string[]>(item);
 
             OnReleaseManagementDataMigrationFailure function = scope.ServiceProvider.GetService<OnReleaseManagementDataMigrationFailure>();
 
@@ -393,7 +394,7 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunReleaseProvidersToChannels([QueueTrigger(ServiceBusConstants.QueueNames.PublishingReleaseProvidersToChannels, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<ReleaseProvidersToChannelRequest>(item);
 
             OnReleaseProvidersToChannels function = scope.ServiceProvider.GetService<OnReleaseProvidersToChannels>();
 
@@ -406,7 +407,7 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunReleaseProvidersToChannelsFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingReleaseProvidersToChannelsPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<ReleaseProvidersToChannelRequest>(item);
 
             OnReleaseProvidersToChannelsFailure function = scope.ServiceProvider.GetService<OnReleaseProvidersToChannelsFailure>();
 

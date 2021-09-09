@@ -84,11 +84,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
         {
             _jobManagement.Setup(_ => _.GetLatestJobs(It.Is<IEnumerable<string>>(jobTypes =>
                 (
-                    jobTypes.First() == JobConstants.DefinitionNames.ReleaseManagmentDataMigrationJob
+                    jobTypes.First() == JobConstants.DefinitionNames.ReleaseManagementDataMigrationJob
                 )
             ), null))
             .ReturnsAsync(
-                NewJobSummary(_ => _.WithJobType(JobConstants.DefinitionNames.ReleaseManagmentDataMigrationJob)
+                NewJobSummary(_ => _.WithJobType(JobConstants.DefinitionNames.ReleaseManagementDataMigrationJob)
                                     .WithRunningStatus(RunningStatus.InProgress)
                                     .WithJobId(jobRunningId)
             ).ToDictionary(_ => _.JobType));
@@ -99,14 +99,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
             _jobManagement.Setup(_ => _.QueueJob(
                 It.Is<JobCreateModel>(job =>
                     job.CorrelationId == _correlationId &&
-                    job.JobDefinitionId == JobConstants.DefinitionNames.ReleaseManagmentDataMigrationJob &&
+                    job.JobDefinitionId == JobConstants.DefinitionNames.ReleaseManagementDataMigrationJob &&
                     job.Properties[MigrationKey] == MigrationKeyValue
                 )
             ))
             .ReturnsAsync(new Job
             {
                 CorrelationId = _correlationId,
-                JobDefinitionId = JobConstants.DefinitionNames.ReleaseManagmentDataMigrationJob
+                JobDefinitionId = JobConstants.DefinitionNames.ReleaseManagementDataMigrationJob
             });
         }
 

@@ -1,17 +1,21 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
 using Polly;
 using Serilog;
 using System.Collections.Generic;
@@ -64,26 +68,34 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             _fundingMigrator = publishedFundingReleaseManagementMigrator;
         }
 
-        public async Task<IActionResult> QueueReleaseManagementDataMigrationJob(Reference author, string correlationId)
+        public async Task<IActionResult> QueueReleaseManagementDataMigrationJob(Reference author,
+            string correlationId,
+            string[] fundingStreamIds = null)
         {
             IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(new string[] {
-                    JobConstants.DefinitionNames.ReleaseManagmentDataMigrationJob
+                    JobConstants.DefinitionNames.ReleaseManagementDataMigrationJob
             });
 
-            if (!jobTypesRunning.IsNullOrEmpty())
+            if (jobTypesRunning.AnyWithNullCheck())
             {
                 throw new NonRetriableException($"Unable to queue a new release managment data migration job as one is already running job id:{jobTypesRunning.First().JobId}.");
             }
 
             Job job = await QueueJob(new JobCreateModel
             {
-                JobDefinitionId = JobConstants.DefinitionNames.ReleaseManagmentDataMigrationJob,
+                JobDefinitionId = JobConstants.DefinitionNames.ReleaseManagementDataMigrationJob,
                 InvokerUserId = author?.Id,
                 InvokerUserDisplayName = author?.Name,
                 CorrelationId = correlationId,
+                MessageBody = JsonExtensions.AsJson(fundingStreamIds),
                 Properties = new Dictionary<string, string>
                 {
                     {MigrationKey, MigrationKeyValue}
+                },
+                Trigger = new Trigger
+                {
+                    EntityId = MigrationKeyValue,
+                    EntityType = MigrationKey
                 }
             });
 
@@ -95,21 +107,37 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         public override async Task Process(Message message)
         {
-            await PopulateReferenceData();
+            string[] fundingStreamIds = message.GetPayloadAsInstanceOf<string[]>();
+
+            await PopulateReferenceData(fundingStreamIds);
         }
 
-        public async Task PopulateReferenceData()
+        public async Task<IActionResult> PopulateReferenceData(string[] fundingStreamIds)
         {
+            ApiResponse<IEnumerable<SpecificationSummary>> publishedSpecificationsRequest = await _specsClientPolicy.ExecuteAsync(() => _specsClient.GetSpecificationsSelectedForFunding());
+
+            IEnumerable<SpecificationSummary> publishedSpecifications = publishedSpecificationsRequest?.Content;
+
+            if (fundingStreamIds.AnyWithNullCheck() && publishedSpecifications.AnyWithNullCheck())
+            {
+                publishedSpecifications = publishedSpecifications.Where(_ => fundingStreamIds.Any(fs => fs == _.FundingStreams.First().Id));
+            }
+
+            if (publishedSpecifications.IsNullOrEmpty())
+            {
+                return new OkResult();
+            }
+
             await PopulateGroupingReasons();
             await PopulateVariationReasons();
             await PopulateChannels();
 
-            var publishedSpecificationsRequest = await _specsClientPolicy.ExecuteAsync(() => _specsClient.GetSpecificationsSelectedForFunding());
-
-            await PopulateFundingStreamsAndPeriods(publishedSpecificationsRequest.Content);
-            await PopulateSpecifications(publishedSpecificationsRequest.Content);
+            await PopulateFundingStreamsAndPeriods(publishedSpecifications);
+            await PopulateSpecifications(publishedSpecifications);
 
             await PopulateFunding();
+
+            return new OkResult();
         }
 
         private async Task PopulateSpecifications(IEnumerable<Common.ApiClient.Specifications.Models.SpecificationSummary> specifications)
@@ -122,14 +150,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 if (!_specifications.ContainsKey(specification.Id))
                 {
-
                     SqlModels.Specification createdSpec = await _repo.CreateSpecification(new SqlModels.Specification()
-                    {
-                        FundingPeriodId = _fundingPeriods[specification.FundingPeriod.Id].FundingPeriodId,
-                        FundingStreamId = _fundingStreams[specification.FundingStreams.First().Id].FundingStreamId,
-                        SpecificationName = specification.Name,
-                        SpecificationId = specification.Id,
-                    }
+                        {
+                            FundingPeriodId = _fundingPeriods[specification.FundingPeriod.Id].FundingPeriodId,
+                            FundingStreamId = _fundingStreams[specification.FundingStreams.First().Id].FundingStreamId,
+                            SpecificationName = specification.Name,
+                            SpecificationId = specification.Id,
+                        }
                     );
 
                     _specifications.Add(specification.Id, createdSpec);
