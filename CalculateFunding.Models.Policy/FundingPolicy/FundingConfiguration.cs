@@ -74,6 +74,6 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         public IEnumerable<string> AllowedPublishedFundingStreamsIdsToReference { get; set; }
 
         [JsonProperty("releaseChannels")]
-        public FundingConfigurationChannel ReleaseChannels { get; set; }
+        public IEnumerable<FundingConfigurationChannel> ReleaseChannels { get; set; }
     }
 }

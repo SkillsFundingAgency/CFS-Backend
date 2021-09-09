@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Tests.Common.Helpers;
+﻿using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Tests.Common.Helpers;
+using System;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Api.Policy.IntegrationTests.Data
@@ -9,6 +11,8 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
         private string _fundingPeriodId;
         private string _defaultTemplateVersion;
         private IEnumerable<string> _allowedPublishedFundingStreamsIdsToReference;
+        private IEnumerable<FundingVariation> _releaseManagementVariationTypes;
+        private IEnumerable<FundingConfigurationChannel> _releaseChannels;
 
         public FundingConfigurationParametersBuilder WithFundingStreamId(string fundingStreamId)
         {
@@ -34,15 +38,29 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
             return this;
         }
 
-        public FundingConfigurationParameters Build()
+        public FundingConfigurationParametersBuilder WithReleaseManagementVariations(
+            params FundingVariation[] releaseManagementVariationTypes)
         {
-            return new FundingConfigurationParameters()
+            _releaseManagementVariationTypes = releaseManagementVariationTypes;
+            return this;
+        }
+
+        public FundingConfigurationParametersBuilder WithReleaseChannels(
+            params FundingConfigurationChannel[] releaseChannels)
+        {
+            _releaseChannels = releaseChannels;
+            return this;
+        }
+
+        public FundingConfigurationParameters Build()
+            => new FundingConfigurationParameters()
             {
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 DefaultTemplateVersion = _defaultTemplateVersion ?? NewRandomString(),
-                AllowedPublishedFundingStreamsIdsToReference = _allowedPublishedFundingStreamsIdsToReference ?? new string[0]
+                AllowedPublishedFundingStreamsIdsToReference = _allowedPublishedFundingStreamsIdsToReference ?? Array.Empty<string>(),
+                ReleaseManagementVariations = _releaseManagementVariationTypes ?? Array.Empty<FundingVariation>(),
+                ReleaseChannels = _releaseChannels ?? Array.Empty<FundingConfigurationChannel>()
             };
-        }
     }
 }

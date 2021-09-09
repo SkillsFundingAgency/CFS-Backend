@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -22,7 +22,7 @@
 
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.12.0" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.13.4" />
         <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.9.1" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CalculateFunding.Common.ApiClient.Policies.Models;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Api.Policy.IntegrationTests.Data
 {
@@ -9,5 +10,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
         public string FundingPeriodId { get; set; }
         public string DefaultTemplateVersion { get; set; }
         public IEnumerable<string> AllowedPublishedFundingStreamsIdsToReference { get; set; }
+        public IEnumerable<FundingVariation> ReleaseManagementVariations { get; set; }
+        public IEnumerable<FundingConfigurationChannel> ReleaseChannels { get; set; }
     }
 }

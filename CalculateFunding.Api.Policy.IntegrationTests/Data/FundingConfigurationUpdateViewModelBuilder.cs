@@ -12,6 +12,9 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
         private UpdateCoreProviderVersion? _updateCoreProviderVersion;
         private IEnumerable<string> _errorDetectors;
         private IEnumerable<string> _allowedPublishedFundingStreamsIdsToReference;
+        private IEnumerable<FundingVariation> _releaseManagementVariations;
+        private IEnumerable<FundingConfigurationChannel> _releaseChannels;
+
 
         public FundingConfigurationUpdateViewModelBuilder WithApprovalMode(ApprovalMode approvalMode)
         {
@@ -40,6 +43,18 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
             return this;
         }
 
+        public FundingConfigurationUpdateViewModelBuilder WithReleaseManagementVariations(params FundingVariation[] releaseManagementVariations)
+        {
+            _releaseManagementVariations = releaseManagementVariations;
+            return this;
+        }
+
+        public FundingConfigurationUpdateViewModelBuilder WithReleaseChannels(params FundingConfigurationChannel[] releaseChannels)
+        {
+            _releaseChannels = releaseChannels;
+            return this;
+        }
+
         public FundingConfigurationUpdateViewModel Build()
         {
             return new FundingConfigurationUpdateViewModel
@@ -48,7 +63,9 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
                 ApprovalMode = _approvalMode.GetValueOrDefault(NewRandomEnum(ApprovalMode.Undefined)),
                 ErrorDetectors = _errorDetectors,
                 UpdateCoreProviderVersion = _updateCoreProviderVersion.GetValueOrDefault(NewRandomEnum(UpdateCoreProviderVersion.Manual)),
-                AllowedPublishedFundingStreamsIdsToReference = _allowedPublishedFundingStreamsIdsToReference
+                AllowedPublishedFundingStreamsIdsToReference = _allowedPublishedFundingStreamsIdsToReference,
+                ReleaseManagementVariations = _releaseManagementVariations,
+                ReleaseChannels = _releaseChannels
             };
         }
     }

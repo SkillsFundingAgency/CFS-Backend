@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Api.Policy.IntegrationTests.Data
 {
@@ -19,7 +20,9 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
                 FUNDINGSTREAMID = documentData.FundingStreamId,
                 DEFAULTTEMPLATEVERSION = documentData.DefaultTemplateVersion,
                 ALLOWEDPUBLISHEDFUNDINGSTREAMIDSTOREFERENCE = ((string[])documentData.AllowedPublishedFundingStreamsIdsToReference).AsJson(),
-                NOW = now
+                NOW = now,
+                RELEASEMANAGEMENTVARIATIONS = ((FundingVariation[])documentData.ReleaseManagementVariations).AsJson(),
+                RELEASECHANNELS = ((FundingConfigurationChannel[])documentData.ReleaseChannels).AsJson(),
             };
     }
 }

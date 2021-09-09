@@ -1,5 +1,4 @@
 ﻿using CalculateFunding.Models.Providers;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
@@ -17,6 +16,11 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         /// Variation strategies
         /// </summary>
         public IEnumerable<VariationType> Variations { get; set; }
+
+        /// <summary>
+        /// Variations to run during release management
+        /// </summary>
+        public IEnumerable<VariationType> ReleaseManagementVariations { get; set; }
 
         /// <summary>
         /// Error detectors
@@ -65,5 +69,7 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         /// Funding stream IDs which this funding stream can reference for published funding
         /// </summary>
         public IEnumerable<string> AllowedPublishedFundingStreamsIdsToReference { get; set; }
+
+        public IEnumerable<FundingConfigurationChannel> ReleaseChannels { get; set; }
     }
 }

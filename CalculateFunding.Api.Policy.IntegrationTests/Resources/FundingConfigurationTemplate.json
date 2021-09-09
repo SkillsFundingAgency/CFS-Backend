@@ -18,7 +18,9 @@
     "runCalculationEngineAfterCoreProviderUpdate": false,
     "enableConverterDataMerge": false,
     "indicativeOpenerProviderStatus": [],
-    "allowedPublishedFundingStreamsIdsToReference": <ALLOWEDPUBLISHEDFUNDINGSTREAMIDSTOREFERENCE>
+    "allowedPublishedFundingStreamsIdsToReference": <ALLOWEDPUBLISHEDFUNDINGSTREAMIDSTOREFERENCE>,
+    "releaseManagementVariations": <RELEASEMANAGEMENTVARIATIONS>,
+    "releaseChannels": <RELEASECHANNELS>
   },
   "createdAt": "<NOW>",
   "updatedAt": "<NOW>",

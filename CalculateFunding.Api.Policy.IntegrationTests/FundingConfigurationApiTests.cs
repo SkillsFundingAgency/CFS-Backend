@@ -12,6 +12,7 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Tests.Common.Helpers;
+using System.Linq;
 
 namespace CalculateFunding.Api.Policy.IntegrationTests
 {
@@ -61,6 +62,25 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
             string allowedPublishedFundingStreamId = NewRandomString();
             string fundingVersion = "1_0";
 
+            string variationNameOne = NewRandomString();
+            int variationOrderOne = NewRandomInteger();
+            string fundingLineCodeOne = NewRandomString();
+
+            string variationNameTwo = NewRandomString();
+            int variationOrderTwo = NewRandomInteger();
+            string fundingLineCodeTwo = NewRandomString();
+
+            string channelCodeOne = NewRandomString();
+            string providerStatusOne = NewRandomString();
+            string providerSubTypeOne = NewRandomString();
+            string providerTypeOne = NewRandomString();
+
+            string channelCodeTwo = NewRandomString();
+            string providerStatusTwo = NewRandomString();
+            string providerSubTypeTwo = NewRandomString();
+            string providerTypeTwo = NewRandomString();
+
+
             FundingStreamParameters fundingStreamParameters = NewFundingStreamPatameters(_ =>
                                                                 _.WithId(fundingStreamId)
                                                                  .WithName(fundingStreamId)
@@ -81,7 +101,20 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
             FundingConfigurationParameters fundingConfigurationPatameters = NewFundingConfigurationPatameters(_ =>
                          _.WithFundingStreamId(fundingStreamId)
                          .WithFundingPeriodId(fundingPeriodId)
-                         .WithDefaultTemplateVersion(defaultTemplateVersion));
+                         .WithDefaultTemplateVersion(defaultTemplateVersion)
+                         .WithReleaseManagementVariations(
+                             NewFundingVariation(v => v
+                                .WithName(variationNameOne)
+                                .WithOrder(variationOrderOne)
+                                .WithFundingLineCodes(fundingLineCodeOne)))
+                         .WithReleaseChannels(
+                             NewFundingConfigurationChannel(c => c
+                                .WithChannelCode(channelCodeOne)
+                                .WithProviderStatus(providerStatusOne)
+                                .WithProviderTypeMatch(
+                                    NewProviderTypeMatch(p => p
+                                        .WithProviderSubtype(providerSubTypeOne)
+                                        .WithProviderType(providerTypeOne))))));
 
             FundingStreamParameters allowedFundingStreamParameters = NewFundingStreamPatameters(_ =>
                                                                 _.WithId(allowedPublishedFundingStreamId)
@@ -94,13 +127,53 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
             await AndFundingTemplate(fundingTemplateParameters);
             await AndFundingConfiguration(fundingConfigurationPatameters);
 
+            ApiResponse<FundingConfiguration> response = await _policiesClient.GetFundingConfiguration(fundingStreamId, fundingPeriodId);
+
+            response.StatusCode
+                .IsSuccess()
+                .Should()
+                .BeTrue($"Get funding configuration request failed with status code {response.StatusCode}");
+
+            FundingConfiguration fundingConfiguration = response?.Content;
+            
+            fundingConfiguration
+                .Should()
+                .NotBeNull();
+
+            fundingConfiguration
+                .ReleaseManagementVariations
+                .AsJson()
+                .Should()
+                .Be(fundingConfigurationPatameters.ReleaseManagementVariations.AsJson());
+
+            fundingConfiguration
+                .ReleaseChannels
+                .AsJson()
+                .Should()
+                .Be(fundingConfigurationPatameters.ReleaseChannels.AsJson());
+
+            FundingVariation fundingVariationTwo = NewFundingVariation(v => v
+                                        .WithName(variationNameTwo)
+                                        .WithOrder(variationOrderTwo)
+                                        .WithFundingLineCodes(fundingLineCodeTwo));
+
+            FundingConfigurationChannel fundingConfigurationChannelTwo = NewFundingConfigurationChannel(c => c
+                                .WithChannelCode(channelCodeOne)
+                                .WithProviderStatus(providerStatusOne)
+                                .WithProviderTypeMatch(
+                                    NewProviderTypeMatch(p => p
+                                        .WithProviderSubtype(providerSubTypeOne)
+                                        .WithProviderType(providerTypeOne))));
+
             FundingConfigurationUpdateViewModel fundingConfigurationUpdateViewModel = NewFundingConfigurationUpdateViewModel(_ =>
                                 _.WithDefaultTemplateVersion(defaultTemplateVersion)
                                 .WithApprovalMode(ApprovalMode.All)
                                 .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.Manual)
-                                .WithAllowedPublishedFundingStreamsIdsToReference(allowedPublishedFundingStreamId));
+                                .WithAllowedPublishedFundingStreamsIdsToReference(allowedPublishedFundingStreamId)
+                                .WithReleaseManagementVariations(fundingVariationTwo)
+                                .WithReleaseChannels(fundingConfigurationChannelTwo));
 
-            ApiResponse<FundingConfiguration> response = await WhenTheFundingConfigurationUpdated(fundingStreamId, fundingPeriodId, fundingConfigurationUpdateViewModel);
+            response = await WhenTheFundingConfigurationUpdated(fundingStreamId, fundingPeriodId, fundingConfigurationUpdateViewModel);
 
             // NOTE: Save fundingconfiguration return Created status code without any content. Need to change in common client package.
             response.StatusCode
@@ -115,7 +188,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
                .Should()
                .BeTrue($"Get funding configuration request failed with status code {response.StatusCode}");
 
-            FundingConfiguration fundingConfiguration = response?.Content;
+            fundingConfiguration = response?.Content;
 
             fundingConfiguration
                 .Should()
@@ -125,11 +198,18 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
                 .AllowedPublishedFundingStreamsIdsToReference
                 .Should()
                 .BeEquivalentTo(new[] { allowedPublishedFundingStreamId });
-        }
 
-        private static RandomString NewRandomString()
-        {
-            return new RandomString();
+            fundingConfiguration
+                .ReleaseManagementVariations
+                .AsJson()
+                .Should()
+                .Be(new[] { fundingVariationTwo }.AsJson());
+
+            fundingConfiguration
+                .ReleaseChannels
+                .AsJson()
+                .Should()
+                .Be(new[] { fundingConfigurationChannelTwo }.AsJson());
         }
 
         private Task<ApiResponse<FundingConfiguration>> WhenTheFundingConfigurationUpdated(
@@ -195,6 +275,27 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
         private FundingTemplateParameters NewFundingTemplatePatameters(Action<FundingTemplateParametersBuilder> setUp = null)
         {
             FundingTemplateParametersBuilder builder = new FundingTemplateParametersBuilder();
+            setUp?.Invoke(builder);
+            return builder.Build();
+        }
+
+        private FundingVariation NewFundingVariation(Action<FundingVariationBuilder> setUp = null)
+        {
+            FundingVariationBuilder builder = new FundingVariationBuilder();
+            setUp?.Invoke(builder);
+            return builder.Build();
+        }
+
+        private FundingConfigurationChannel NewFundingConfigurationChannel(Action<FundingConfigurationChannelBuilder> setUp = null)
+        {
+            FundingConfigurationChannelBuilder builder = new FundingConfigurationChannelBuilder();
+            setUp?.Invoke(builder);
+            return builder.Build();
+        }
+
+        private ProviderTypeMatch NewProviderTypeMatch(Action<ProviderTypeMatchBuilder> setUp = null)
+        {
+            ProviderTypeMatchBuilder builder = new ProviderTypeMatchBuilder();
             setUp?.Invoke(builder);
             return builder.Build();
         }
