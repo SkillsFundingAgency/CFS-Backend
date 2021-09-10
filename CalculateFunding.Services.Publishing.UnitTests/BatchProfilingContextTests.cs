@@ -701,6 +701,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                             fl.WithFundingLineType(FundingLineType.Information)),
                         paymentFundingLineTwo));
 
+            PublishedProviderVersion publishedProviderVersionWithCustomProfile = NewPublishedProviderVersion(_ =>
+                _.WithFundingPeriodId(fundingPeriodId)
+                    .WithFundingStreamId(fundingStreamId)
+                    .WithProfilePatternKeys(fundingLinePatternKey)
+                    .WithProvider(NewProvider(p =>
+                        p.WithProviderType(providerType)
+                            .WithProviderSubType(providerSubType)))
+                    .WithFundingLines(paymentFundingLineOne,
+                        NewFundingLine(fl =>
+                            fl.WithFundingLineType(FundingLineType.Information)),
+                        paymentFundingLineTwo)
+                    .WithCustomProfiles(new[] { new FundingLineProfileOverrides { FundingLineCode = paymentFundingLineTwo.FundingLineCode } }));
+
             PublishedProviderVersion publishedProviderVersionNullPaymentFundingLine = NewPublishedProviderVersion(_ =>
                 _.WithFundingPeriodId(fundingPeriodId)
                     .WithFundingStreamId(fundingStreamId)
@@ -722,6 +735,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithInScopeFundingLines(new FundingLine[0])
                     .WithPublishedProviderVersion(publishedProviderVersion)
                     .WithFundingLinesToProfile(paymentFundingLineOne, paymentFundingLineTwo))
+            };
+
+            yield return new object[]
+            {
+                publishedProviderVersionWithCustomProfile,
+                false,
+                NewProviderProfilingRequestData(_ => _.WithProfilePatternKeys((fundingLineCodeOne, profilePatternKey))
+                    .WithInScopeFundingLines(new FundingLine[0])
+                    .WithPublishedProviderVersion(publishedProviderVersionWithCustomProfile)
+                    .WithFundingLinesToProfile(paymentFundingLineOne))
             };
 
             PublishedProviderVersion expectedPublishedProvider = publishedProviderVersionNullPaymentFundingLine.DeepCopy();

@@ -29,13 +29,13 @@ namespace CalculateFunding.Services.Publishing
             // only profile a value if not null and it's not equal to zero
             FundingLine[] fundingLines = generatedProviderResults[provider.ProviderId]
                 .FundingLines?
-                .Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue && _.Value != 0)
+                .Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue && _.Value != 0 && !providerVersion.FundingLineHasCustomProfile(_.FundingLineCode))
                 .ToArray();
 
             // add all funding lines which were previously either null payment on released or weren't included in last release
             HashSet<string> newInScopeFundingLines = fundingLines?
                 .Where(fl => providerVersion.FundingLines != null &&
-                                (providerVersion
+                             (providerVersion
                                     .FundingLines
                                     .Any(_ => _.Type == FundingLineType.Payment &&
                                             !_.Value.HasValue &&
