@@ -331,11 +331,23 @@ namespace CalculateFunding.Models.Publishing
             CustomProfiles ??= new List<FundingLineProfileOverrides>();
 
             FundingLineProfileOverrides customProfile = CustomProfiles.SingleOrDefault(_ =>
-                _.FundingLineCode == fundingLineCode) ?? new FundingLineProfileOverrides();
+                _.FundingLineCode == fundingLineCode);
 
-            customProfile.FundingLineCode = fundingLineCode;
+            if (customProfile == null)
+            {
+                customProfile = new FundingLineProfileOverrides
+                {
+                    FundingLineCode = fundingLineCode,
+                    DistributionPeriods = new List<DistributionPeriod>()
+                };
+
+                CustomProfiles = CustomProfiles.Concat(new[]
+                {
+                    customProfile
+                });
+            }
+
             customProfile.CarryOver = carryOver;
-            customProfile.DistributionPeriods ??= new List<DistributionPeriod>();
 
             DistributionPeriod existingDistributionPeriod = customProfile.DistributionPeriods
                 .SingleOrDefault(_ => _.DistributionPeriodId == distributionPeriod.DistributionPeriodId);
@@ -345,10 +357,6 @@ namespace CalculateFunding.Models.Publishing
                 customProfile.DistributionPeriods = customProfile.DistributionPeriods.Concat(new[]
                 {
                     distributionPeriod
-                });
-                CustomProfiles = CustomProfiles.Concat(new[]
-                {
-                    customProfile
                 });
             }
             else

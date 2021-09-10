@@ -105,6 +105,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                     PublishedProviderStatus.Draft => PublishedProviderStatus.Draft,
                     _ => PublishedProviderStatus.Updated
                 },
+                correlationId: correlationId,
                 force: true);
 
             _logger.Information(

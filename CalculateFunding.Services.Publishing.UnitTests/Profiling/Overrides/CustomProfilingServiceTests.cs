@@ -114,14 +114,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         }
 
         [TestMethod]
-        [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, null)]
-        [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, 2)]
-        [DataRow(PublishedProviderStatus.Updated, PublishedProviderStatus.Updated, null)]
-        [DataRow(PublishedProviderStatus.Approved, PublishedProviderStatus.Updated, null)]
-        [DataRow(PublishedProviderStatus.Released, PublishedProviderStatus.Updated, null)]
+        [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, null, true)]
+        [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, 2, true)]
+        [DataRow(PublishedProviderStatus.Updated, PublishedProviderStatus.Updated, null, true)]
+        [DataRow(PublishedProviderStatus.Approved, PublishedProviderStatus.Updated, null, true)]
+        [DataRow(PublishedProviderStatus.Released, PublishedProviderStatus.Updated, null, true)]
+        [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, null, false)]
+        [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, 2, false)]
+        [DataRow(PublishedProviderStatus.Updated, PublishedProviderStatus.Updated, null, false)]
+        [DataRow(PublishedProviderStatus.Approved, PublishedProviderStatus.Updated, null, false)]
+        [DataRow(PublishedProviderStatus.Released, PublishedProviderStatus.Updated, null, false)]
         public async Task OverridesProfilePeriodsOnPublishedProviderVersionAndGeneratesNewVersion(PublishedProviderStatus currentStatus,
             PublishedProviderStatus expectedRequestedStatus,
-            int? carryOver)
+            int? carryOver,
+            bool withExistingCustomProfile)
         {
             string fundingLineOne = NewRandomString();
             ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021"));
@@ -135,6 +141,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
                 NewPublishedProviderVersion(ppv =>
                 ppv.WithPublishedProviderStatus(currentStatus)
+                    .WithCustomProfiles(withExistingCustomProfile ? 
+                            new[] { 
+                                    new FundingLineProfileOverrides { 
+                                        FundingLineCode = fundingLineOne,
+                                        DistributionPeriods = new List<DistributionPeriod>()
+                                    } 
+                                } : 
+                            null)
                     .WithFundingLines(NewFundingLine(fl =>
                         fl.WithFundingLineCode(fundingLineOne)
                             .WithDistributionPeriods(NewDistributionPeriod(dp =>
@@ -202,7 +216,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 author,
                 newStatus,
                 null,
-                null,
+                CorrelationId,
                 true),
                 Times.Once);
         }
