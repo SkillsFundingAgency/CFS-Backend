@@ -126,6 +126,17 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(0, 0, 1800M, 600M, 600M),
                 0M
             };
+            // Example 9 - negative funding lines
+            yield return new object[]
+            {
+                2,
+                NewDecimals(-1033.95M, -1033.95M, -1033.95M, -1033.95M, -1033.95M),
+                NewDecimals(-1000, -1000, -1000, -1000, -1000),
+                -5169.76M,
+                -5000M,
+                NewDecimals(-1000, -1000, -1101.86M, -1033.95M, -1033.95M),
+                0M
+            };
         }
     }
 }

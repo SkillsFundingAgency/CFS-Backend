@@ -53,15 +53,18 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                                                     .Sum(x => x.GetProfileValue());
             decimal amountToBeAdjustedInNextPeriod = amountThatShouldHaveBeenPaid - amountAlreadyPaid;
 
-            decimal remaingAmount = fundingLineTotal - amountAlreadyPaid;
+            decimal remainingAmount = fundingLineTotal - amountAlreadyPaid;
 
-            if (remaingAmount > 0)
+            // if this is a negative funding line then always distribute remaining balance
+            bool distributeRemainingBalance = (fundingLineTotal <= 0 && existingFundingLineTotal <= 0) ? true : remainingAmount > 0;
+
+            if (distributeRemainingBalance)
             {
                 DistributeRemainingBalance(orderedRefreshProfilePeriods, variationPointerIndex, fundingLineTotal, amountToBeAdjustedInNextPeriod);
             }
             else
             {
-                ReclaimPaidAmounts(orderedRefreshProfilePeriods, variationPointerIndex, remaingAmount);
+                ReclaimPaidAmounts(orderedRefreshProfilePeriods, variationPointerIndex, remainingAmount);
             }
         }
 
