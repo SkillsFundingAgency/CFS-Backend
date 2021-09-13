@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return true;
             }
             
-            HashSet<string> priorFundingLineCodes = PaymentFundingLineCodesFrom(priorCurrent);
+            HashSet<string> priorFundingLineCodes = PaymentFundingLineWithValues(priorCurrent);
 
             bool doesNotHaveNewAllocations = true;
 
@@ -82,8 +82,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             HashSet<string> priorFundingLineCodes) =>
             refreshState.PaymentFundingLinesWithValues.Where(_ => !priorFundingLineCodes.Contains(_.FundingLineCode));
 
-        private HashSet<string> PaymentFundingLineCodesFrom(PublishedProviderVersion publishedProviderVersion)
-            => publishedProviderVersion.FundingLines?.Where(_ => _.Type == FundingLineType.Payment).Select(_ => _.FundingLineCode).ToHashSet() ?? new HashSet<string>();
+        private HashSet<string> PaymentFundingLineWithValues(PublishedProviderVersion publishedProviderVersion)
+            => publishedProviderVersion.FundingLines?.Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue).Select(_ => _.FundingLineCode).ToHashSet() ?? new HashSet<string>();
 
         private static bool HasNoVariationPointers(ProviderVariationContext providerVariationContext) => !(providerVariationContext.VariationPointers?.Any()).GetValueOrDefault();
     }

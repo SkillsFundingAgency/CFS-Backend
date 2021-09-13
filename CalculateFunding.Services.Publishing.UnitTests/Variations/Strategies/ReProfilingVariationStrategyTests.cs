@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Variations.Changes;
@@ -20,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         public async Task FailsPreconditionCheckIfIsNotANewOpenerAndHasNoNewPaymentFundingLines()
         {
             GivenTheOtherwiseValidVariationContext();
+            
             AndTheVariationPointers(NewVariationPointer(_ => _.WithYear(NewRandomNumber())
                 .WithTypeValue(NewRandomMonth())
                 .WithOccurence(1)
@@ -76,14 +78,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         }
         
         [TestMethod]
-        public async Task TracksNewFundingLinesAsAffectedFundingLineCodesAndQueuesMidYearReProfileVariationChangeIfHasNewFundingLines()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task TracksNewFundingLinesAsAffectedFundingLineCodesAndQueuesMidYearReProfileVariationChangeIfHasNewFundingLines(bool generateNewFundingLine)
         {
             int year = NewRandomNumber();
             string month = NewRandomMonth();
             string newFundingLineCode = NewRandomString();
-            
 
             GivenTheOtherwiseValidVariationContext();
+
+            // use an existing funding line code but which wasn't previously funded
+            if (!generateNewFundingLine)
+            {
+                VariationContext.GetPublishedProviderOriginalSnapShot(VariationContext.ProviderId).Current.FundingLines.ForEach(_ => _.Value = null);
+                newFundingLineCode = FundingLineCode;
+            }
+
             AndTheRefreshStateFundingLines(NewFundingLine(_ => _.WithFundingLineCode(newFundingLineCode)
                     .WithFundingLineType(FundingLineType.Payment)
                     .WithValue(NewRandomNumber())
