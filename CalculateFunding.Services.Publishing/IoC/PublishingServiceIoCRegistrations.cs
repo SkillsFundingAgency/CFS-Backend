@@ -9,7 +9,6 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
-using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Validators;
 using Microsoft.Extensions.Configuration;

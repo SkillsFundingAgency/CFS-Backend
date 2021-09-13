@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests

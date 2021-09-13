@@ -1,6 +1,8 @@
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Tests.Common.Helpers;
+using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -13,6 +15,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ApprovalMode? _approvalMode;
         private bool? _enableUserEditableRuleBasedProfiles;
         private bool? _enableUserEditableCustomProfiles;
+        private IEnumerable<FundingConfigurationChannel> _releaseChannels;
 
         public FundingConfigurationBuilder WithId(string id)
         {
@@ -63,6 +66,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public FundingConfigurationBuilder WithReleaseChannels(
+    params FundingConfigurationChannel[] releaseChannels)
+        {
+            _releaseChannels = releaseChannels;
+            return this;
+        }
+
 
         public FundingConfiguration Build()
         {
@@ -74,7 +84,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ApprovalMode = _approvalMode ?? NewRandomEnum<ApprovalMode>(),
                 DefaultTemplateVersion = _defaultTemplateVersion,
                 EnableUserEditableCustomProfiles = _enableUserEditableCustomProfiles ?? NewRandomFlag(),
-                EnableUserEditableRuleBasedProfiles = _enableUserEditableRuleBasedProfiles ?? NewRandomFlag()
+                EnableUserEditableRuleBasedProfiles = _enableUserEditableRuleBasedProfiles ?? NewRandomFlag(),
+                ReleaseChannels = _releaseChannels ?? Array.Empty<FundingConfigurationChannel>()
             };
         }
     }

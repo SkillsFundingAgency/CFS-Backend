@@ -19,6 +19,8 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Generators.OrganisationGroup;
+using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet.Extensions;
@@ -535,6 +537,7 @@ namespace CalculateFunding.Api.Publishing
             });
 
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
+            builder.AddSingleton<IProviderFilter, ProviderFilter>();
 
             builder
                 .AddSingleton<LocalIBlobClient, LocalBlobClient>((ctx) =>

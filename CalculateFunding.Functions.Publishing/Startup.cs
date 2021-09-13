@@ -17,6 +17,8 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Functions.Publishing.ServiceBus;
+using CalculateFunding.Generators.OrganisationGroup;
+using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -377,6 +379,7 @@ namespace CalculateFunding.Functions.Publishing
             builder
                 .AddSingleton<IPublishedSearchService, PublishedSearchService>()
                 .AddSingleton<IHealthChecker, PublishedSearchService>();
+            builder.AddSingleton<IProviderFilter, ProviderFilter>();
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
                     {

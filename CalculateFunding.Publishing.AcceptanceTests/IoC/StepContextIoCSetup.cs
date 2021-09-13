@@ -196,6 +196,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishingDatasetsDataCopyJobCreation, ICreatePublishDatasetsDataCopyJob>();
             RegisterTypeAs<CurrentCorrelationStepContext, ICurrentCorrelationStepContext>();
             RegisterTypeAs<ProcessDatasetObsoleteItemsJobCreation, ICreateProcessDatasetObsoleteItemsJob>();
+            RegisterTypeAs<ProviderFilter, IProviderFilter>();
 
             IGeneratePublishedFundingCsvJobsCreation[] generatePublishedFundingCsvJobsCreations = 
                 typeof(IGeneratePublishedFundingCsvJobsCreation).Assembly.GetTypes()
