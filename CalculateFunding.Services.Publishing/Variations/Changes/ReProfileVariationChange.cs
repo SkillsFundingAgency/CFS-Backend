@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 throw new NonRetriableException($"Could not locate funding line {fundingLineCode} for published provider version {providerId}");
             }
 
-            if (!fundingLine.Value.HasValue || fundingLine.Value == 0)
+            if (!fundingLine.Value.HasValue)
             {
                 // exit early as nothing to re-profile
                 return;

@@ -161,7 +161,7 @@ namespace CalculateFunding.Services.Publishing
                 throw new InvalidOperationException(error);
             }
 
-            if (!fundingLine.Value.HasValue || fundingLine.Value == 0)
+            if (!fundingLine.Value.HasValue)
             {
                 // exit early as there is nothing to profile or re-profile
                 return;
