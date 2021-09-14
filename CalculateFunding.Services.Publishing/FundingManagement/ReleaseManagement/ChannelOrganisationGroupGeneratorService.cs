@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
@@ -6,6 +7,7 @@ using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
@@ -23,18 +25,25 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OrganisationGroupResult>> GenerateOrganisationGroups(Channel channel, FundingConfiguration fundingConfiguration, SpecificationSummary specification, IEnumerable<PublishedProviderVersion> publishedProvidersInReleaseBatch)
+        public async Task<IEnumerable<OrganisationGroupResult>> GenerateOrganisationGroups(Channel channel,
+            FundingConfiguration fundingConfiguration, SpecificationSummary specification,
+            IEnumerable<PublishedProviderVersion> publishedProvidersInReleaseBatch)
         {
-            // Convert publishedProvider.Provider to the API client Provider model to pass in below:
-            // There may be an existing automapper config for this
+            IEnumerable<ApiProvider> batchProviders = _mapper.Map<IEnumerable<ApiProvider>>(publishedProvidersInReleaseBatch
+                .Select(s => s.Provider));
 
-            IEnumerable<ApiProvider> batchProviders = null;
+            IEnumerable<OrganisationGroupingConfiguration> organisationGroupingConfigurations = fundingConfiguration
+                .ReleaseChannels
+                .SingleOrDefault(rc => rc.ChannelCode == channel.ChannelCode)
+                ?.OrganisationGroupings;
 
-            // TODO: Update GenerateOrganisationGroup to ensure the per channel groups are generated, rather than everything at funding config level.
-            // Pass in OrganisationGroupingConfiguration from FundingConfiguration ReleaseChannels associated with this channel and PaymentSource seperately
-            // Update OrganisationGroupGeneration in common to support this
-
-            return await _organisationGroupGenerator.GenerateOrganisationGroup(fundingConfiguration, batchProviders, specification.ProviderVersionId, specification.ProviderSnapshotId);
+            return await _organisationGroupGenerator.GenerateOrganisationGroup(
+                organisationGroupingConfigurations,
+                fundingConfiguration.ProviderSource,
+                fundingConfiguration.PaymentOrganisationSource,
+                batchProviders,
+                specification.ProviderVersionId,
+                specification.ProviderSnapshotId);
         }
     }
 }
