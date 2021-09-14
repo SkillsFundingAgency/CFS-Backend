@@ -18,14 +18,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
-            PublishedProvider fundingApprovalRecord = providerVariationContext.GetPublishedProviderOriginalSnapShot(providerVariationContext.ProviderId);
-            
-            PublishedProviderVersion priorCurrent = fundingApprovalRecord?.Current;
+            PublishedProviderVersion priorState = providerVariationContext.PriorState;
             PublishedProviderVersion refreshState = providerVariationContext.RefreshState;
 
             if (HasNoVariationPointers(providerVariationContext) ||
-                IsNotNewOpener(providerVariationContext, priorCurrent, refreshState) && 
-                HasNoNewAllocations(providerVariationContext, priorCurrent, refreshState))
+                IsNotNewOpener(providerVariationContext, priorState, refreshState) && 
+                HasNoNewAllocations(providerVariationContext, priorState, refreshState))
             {
                 return Task.FromResult(StrategyResult);
             }
@@ -39,10 +37,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         }
 
         private bool IsNotNewOpener(ProviderVariationContext providerVariationContext,
-            PublishedProviderVersion priorCurrent,
+            PublishedProviderVersion priorState,
             PublishedProviderVersion refreshState)
         {
-            if (priorCurrent != null)
+            if (priorState != null)
             {
                 return true;
             }
@@ -56,15 +54,15 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         }
 
         private bool HasNoNewAllocations(ProviderVariationContext providerVariationContext,
-            PublishedProviderVersion priorCurrent,
+            PublishedProviderVersion priorState,
             PublishedProviderVersion refreshState)
         {
-            if (priorCurrent == null)
+            if (priorState == null)
             {
                 return true;
             }
             
-            HashSet<string> priorFundingLineCodes = PaymentFundingLineWithValues(priorCurrent);
+            HashSet<string> priorFundingLineCodes = PaymentFundingLineWithValues(priorState);
 
             bool doesNotHaveNewAllocations = true;
 

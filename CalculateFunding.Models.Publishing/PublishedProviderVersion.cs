@@ -381,9 +381,10 @@ namespace CalculateFunding.Models.Publishing
 
         public void UpdateDistributionPeriodForFundingLine(string fundingLineCode,
             string distributionPeriodId,
-            IEnumerable<ProfilePeriod> profilePeriods)
+            IEnumerable<ProfilePeriod> profilePeriods,
+            DistributionPeriod distributionPeriodToAdd = null)
         {
-            DistributionPeriod distributionPeriod = GetDistributionPeriod(fundingLineCode, distributionPeriodId);
+            DistributionPeriod distributionPeriod = GetDistributionPeriod(fundingLineCode, distributionPeriodId, distributionPeriodToAdd);
 
             profilePeriods ??= ArraySegment<ProfilePeriod>.Empty;
 
@@ -392,25 +393,42 @@ namespace CalculateFunding.Models.Publishing
             distributionPeriod.ProfilePeriods = profilePeriods.ToArray();
         }
 
-        private IEnumerable<DistributionPeriod> GetDistributionPeriods(string fundingLineCode)
+        private FundingLine GetFundingLine(string fundingLineCode)
         {
             FundingLine fundingLine = FundingLines.SingleOrDefault(fl => fl.FundingLineCode == fundingLineCode);
             
             Guard.Ensure(fundingLine != null, $"Did not locate a funding line with code {fundingLineCode}");
 
-            return fundingLine.DistributionPeriods;
+            return fundingLine;
         }
 
         private DistributionPeriod GetDistributionPeriod(string fundingLineCode,
-            string distributionPeriodId)
+            string distributionPeriodId,
+            DistributionPeriod distributionPeriodToAdd = null)
         {
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
             Guard.IsNullOrWhiteSpace(distributionPeriodId, nameof(distributionPeriodId));
 
-            DistributionPeriod distributionPeriod = GetDistributionPeriods(fundingLineCode)?
-                .SingleOrDefault(d => d.DistributionPeriodId == distributionPeriodId);
+            FundingLine fundingLine = GetFundingLine(fundingLineCode);
 
-            Guard.Ensure(distributionPeriod != null, $"Distribution period {distributionPeriodId} not found for funding line {fundingLineCode}.");
+            DistributionPeriod distributionPeriod = fundingLine.DistributionPeriods?.SingleOrDefault(d => d.DistributionPeriodId == distributionPeriodId);
+
+            // only use the guard for custom profiling
+            if (distributionPeriodToAdd == null)
+            {
+                Guard.Ensure(distributionPeriod != null, $"Distribution period {distributionPeriodId} not found for funding line {fundingLineCode}.");
+            }
+            else
+            {
+                // on re-profiling if the funding value is 0 then we won't currently have any distribution periods set against the refreshed provider
+                // for this scenario we need to use what has come back from re-profiling and add it to the refreshed funding line
+                if (distributionPeriod == null)
+                {
+                    distributionPeriod = distributionPeriodToAdd;
+                    fundingLine.DistributionPeriods ??= ArraySegment<DistributionPeriod>.Empty;
+                    fundingLine.DistributionPeriods = fundingLine.DistributionPeriods.Concat(new[] { distributionPeriod });
+                }
+            }
 
             return distributionPeriod;
         }

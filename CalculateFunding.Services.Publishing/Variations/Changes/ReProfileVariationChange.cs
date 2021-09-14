@@ -71,7 +71,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             {
                 refreshState.UpdateDistributionPeriodForFundingLine(fundingLineCode,
                     distributionPeriod.DistributionPeriodId,
-                    distributionPeriod.ProfilePeriods);
+                    distributionPeriod.ProfilePeriods,
+                    distributionPeriod);
             }
         }
 

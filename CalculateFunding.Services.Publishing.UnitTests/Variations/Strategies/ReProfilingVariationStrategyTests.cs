@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             // use an existing funding line code but which wasn't previously funded
             if (!generateNewFundingLine)
             {
-                VariationContext.GetPublishedProviderOriginalSnapShot(VariationContext.ProviderId).Current.FundingLines.ForEach(_ => _.Value = null);
+                VariationContext.GetPublishedProviderOriginalSnapShot(VariationContext.ProviderId).Released.FundingLines.ForEach(_ => _.Value = null);
                 newFundingLineCode = FundingLineCode;
             }
 
