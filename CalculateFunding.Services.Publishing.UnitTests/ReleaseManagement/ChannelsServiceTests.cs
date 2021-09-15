@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     ChannelId = 2,
                     ChannelCode = "Payments",
                     ChannelName = "Payments",
-                    UrlKey = "Payments"
+                    UrlKey = "payments"
                 },
             };
 
@@ -69,6 +69,109 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             ((OkObjectResult)(result)).Value
                 .Should()
                 .BeEquivalentTo(expectedChannels);
+        }
+
+        [TestMethod]
+        [DataRow(new string[] { "Statements", "Contracts"})]
+        [DataRow(new string[] { "Statements", "Contracts", "Payments" })]
+        public async Task GetAndVerifyChannels_RetrievesSpecifiedChannels(string[] channelCodes)
+        {
+            Dictionary<string, Channel> channels = new Dictionary<string, Channel>()
+            {
+                {
+                    "Statements",
+                    new Channel
+                    {
+                        ChannelId = 1,
+                        ChannelCode = "Statements",
+                        ChannelName = "Statements",
+                        UrlKey = "statements"
+                    }
+                },
+                {
+                    "Payments",
+                    new Channel
+                    {
+                        ChannelId = 2,
+                        ChannelCode = "Payments",
+                        ChannelName = "Payments",
+                        UrlKey = "payments"
+                    }
+                },
+                {
+                    "Contracts",
+                    new Channel
+                    {
+                        ChannelId = 3,
+                        ChannelCode = "Contracts",
+                        ChannelName = "Contracts",
+                        UrlKey = "contracts"
+                    }
+                }
+            };
+
+            GivenTheDatabaseState(channels.Select(s => s.Value));
+            List<string> requiredChannels = channelCodes.ToList();
+
+            IEnumerable<KeyValuePair<string, Channel>> result = await WhenGetAndVerifyChannels(requiredChannels);
+
+            result
+                .Should()
+                .BeEquivalentTo(channels.Where(c => requiredChannels.Contains(c.Key)));
+        }
+
+        [TestMethod]
+        [DataRow(new string[] { "" })]
+        [DataRow(new string[] { "Invoices" })]
+        [DataRow(new string[] { "Invoices", "Contracts" })]
+        public async Task GetAndVerifyChannels_Throws_IfChannelCodeNotExist(string[] channelCodes)
+        {
+            Dictionary<string, Channel> channels = new Dictionary<string, Channel>()
+            {
+                {
+                    "Statements",
+                    new Channel
+                    {
+                        ChannelId = 1,
+                        ChannelCode = "Statements",
+                        ChannelName = "Statements",
+                        UrlKey = "statements"
+                    }
+                },
+                {
+                    "Payments",
+                    new Channel
+                    {
+                        ChannelId = 2,
+                        ChannelCode = "Payments",
+                        ChannelName = "Payments",
+                        UrlKey = "payments"
+                    }
+                },
+                {
+                    "Contracts",
+                    new Channel
+                    {
+                        ChannelId = 3,
+                        ChannelCode = "Contracts",
+                        ChannelName = "Contracts",
+                        UrlKey = "contracts"
+                    }
+                }
+            };
+
+            GivenTheDatabaseState(channels.Select(s => s.Value));
+            List<string> requiredChannels = channelCodes.ToList();
+
+            Func<Task> result = async () => await WhenGetAndVerifyChannels(requiredChannels);
+
+            result
+                .Should()
+                .ThrowExactly<InvalidOperationException>()
+                .And.Message
+                .Should()
+                .Contain("does not exist");
+
         }
 
         [TestMethod]
@@ -351,6 +454,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private async Task<IActionResult> WhenAllChannelsAreRetrieved()
         {
             return await _service.GetAllChannels();
+        }
+
+        private async Task<IEnumerable<KeyValuePair<string, Channel>>> WhenGetAndVerifyChannels(IEnumerable<string> channelCodes)
+        {
+            return await _service.GetAndVerifyChannels(channelCodes);
         }
 
         private IMapper CreateMapper()
