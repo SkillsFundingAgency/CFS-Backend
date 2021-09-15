@@ -59,7 +59,6 @@ namespace CalculateFunding.Services.Jobs
             IDictionary<string, JobSummary> latestJobs = okResult.Value as IDictionary<string, JobSummary>;
 
             latestJobs[jobDefinitionId]
-                .JobId
                 .Should()
                 .BeNull();
         }
@@ -252,8 +251,8 @@ namespace CalculateFunding.Services.Jobs
 
             string cacheKey = $"{CacheKeys.LatestJobs}{specificationId}:{jobDefinitionId}";
             cacheProvider
-                .GetAsync<Job>(cacheKey)
-                .Returns(job);
+                .GetAsync<JobCacheItem>(cacheKey)
+                .Returns(new JobCacheItem { Job = job });
 
             IJobService service = CreateJobService(
                 cacheProvider: cacheProvider);
@@ -315,12 +314,12 @@ namespace CalculateFunding.Services.Jobs
 
             string cacheKey = $"{CacheKeys.LatestJobs}{specificationId}:{jobType}";
             cacheProvider
-                .GetAsync<Job>(cacheKey)
-                .Returns(job);
+                .GetAsync<JobCacheItem>(cacheKey)
+                .Returns(new JobCacheItem { Job = job });
 
             string cacheKeyTwo = $"{CacheKeys.LatestJobs}{specificationId}:{jobTypeTwo}";
             cacheProvider
-                .SetAsync(jobTypeTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobTypeTwo))
+                .SetAsync(jobTypeTwo, Arg.Is<JobCacheItem>(_ => _.Job.JobDefinitionId == jobTypeTwo))
                 .Returns(Task.CompletedTask);
 
 
@@ -355,7 +354,7 @@ namespace CalculateFunding.Services.Jobs
 
             await cacheProvider
                 .Received(1)
-                .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobTypeTwo));
+                .SetAsync(cacheKeyTwo, Arg.Is<JobCacheItem>(_ => _.Job.JobDefinitionId == jobTypeTwo));
         }
 
         [TestMethod]
@@ -433,7 +432,6 @@ namespace CalculateFunding.Services.Jobs
             IDictionary<string, JobSummary> latestJobs = okResult.Value as IDictionary<string, JobSummary>;
 
             latestJobs[jobDefinitionId]
-                .JobId
                 .Should()
                 .BeNull();
         }

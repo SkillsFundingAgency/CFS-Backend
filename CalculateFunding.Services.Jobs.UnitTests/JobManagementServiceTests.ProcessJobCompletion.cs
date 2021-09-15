@@ -332,7 +332,7 @@ namespace CalculateFunding.Services.Jobs.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == job.Id))
+                .SetAsync(cacheKey, Arg.Is<JobCacheItem>(_ => _.Job.Id == job.Id))
                 .Returns(Task.CompletedTask);
 
             JobManagementService jobManagementService = CreateJobManagementService(
@@ -361,7 +361,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 cacheProvider
                 .Received(1)
-                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == moreRecentJob.Id));
+                .SetAsync(cacheKey, Arg.Is<JobCacheItem>(_ => _.Job.Id == moreRecentJob.Id));
         }
 
         [TestMethod]

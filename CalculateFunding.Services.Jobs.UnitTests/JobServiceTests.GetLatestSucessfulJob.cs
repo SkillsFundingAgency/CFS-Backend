@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Jobs
@@ -104,7 +102,7 @@ namespace CalculateFunding.Services.Jobs
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             string cacheKey = $"{CacheKeys.LatestSuccessfulJobs}{specificationId}:{jobDefinitionId}";
-            cacheProvider.GetAsync<Job>(cacheKey).Returns(job);
+            cacheProvider.GetAsync<JobCacheItem>(cacheKey).Returns(new JobCacheItem { Job = job });
 
             IJobService service = CreateJobService(cacheProvider: cacheProvider);
 

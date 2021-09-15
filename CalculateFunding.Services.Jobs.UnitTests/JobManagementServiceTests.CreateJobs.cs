@@ -514,22 +514,22 @@ namespace CalculateFunding.Services.Jobs.Services
 
             string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
             cacheProvider
-                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionId))
+                .SetAsync(cacheKey, Arg.Is<JobCacheItem>(_ => _.Job.JobDefinitionId == jobDefinitionId))
                 .Returns(Task.CompletedTask);
 
             string cacheKeyTwo = $"{CacheKeys.LatestJobs}{jobTwo.SpecificationId}:{jobTwo.JobDefinitionId}";
             cacheProvider
-                .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo))
+                .SetAsync(cacheKeyTwo, Arg.Is<JobCacheItem>(_ => _.Job.JobDefinitionId == jobDefinitionIdTwo))
                 .Returns(Task.CompletedTask);
 
             string latestSuccessfulJobCacheKey = $"{CacheKeys.LatestSuccessfulJobs}{job.SpecificationId}:{job.JobDefinitionId}";
             cacheProvider
-                .SetAsync(latestSuccessfulJobCacheKey, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionId))
+                .SetAsync(latestSuccessfulJobCacheKey, Arg.Is<JobCacheItem>(_ => _.Job.JobDefinitionId == jobDefinitionId))
                 .Returns(Task.CompletedTask);
 
             string latestSuccessfulJobCacheKeyTwo = $"{CacheKeys.LatestSuccessfulJobs}{jobTwo.SpecificationId}:{jobTwo.JobDefinitionId}";
             cacheProvider
-                .SetAsync(latestSuccessfulJobCacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo))
+                .SetAsync(latestSuccessfulJobCacheKeyTwo, Arg.Is<JobCacheItem>(_ => _.Job.JobDefinitionId == jobDefinitionIdTwo))
                 .Returns(Task.CompletedTask);
 
             JobManagementService jobManagementService = CreateJobManagementService(
@@ -552,11 +552,11 @@ namespace CalculateFunding.Services.Jobs.Services
 
             await cacheProvider
                 .Received(1)
-                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionId));
+                .SetAsync(cacheKey, Arg.Is<JobCacheItem>(_ => _.Job.JobDefinitionId == jobDefinitionId));
 
             await cacheProvider
                 .Received(1)
-                .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo));
+                .SetAsync(cacheKeyTwo, Arg.Is<JobCacheItem>(_ => _.Job.JobDefinitionId == jobDefinitionIdTwo));
         }
 
         [TestMethod]

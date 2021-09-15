@@ -185,24 +185,10 @@ namespace CalculateFunding.Services.Jobs
                 {
                     string cacheKey = $"{CacheKeys.LatestJobs}{specificationId}:{jobDefinitionId}";
 
-                    Job job = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Job>(cacheKey));
-
-                    if (job != null)
-                    {
-                        jobsByDefinition[jobDefinitionId] = job;
-                    }
-                    else
-                    {
-                        job = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(specificationId, jobDefinitionId);
-
-                        // create a new empty job if no job so we don't continually make calls as the cache will be invalidated in the create job and update job
-                        // with a valid job so this will only be hit if redis is empty or a job has never been created
-                        job ??= new Job();
-
-                        await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
-
-                        jobsByDefinition[jobDefinitionId] = job;
-                    }
+                    jobsByDefinition[jobDefinitionId] = await GetJobFromCache(() => 
+                        _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(specificationId, jobDefinitionId), 
+                        cacheKey
+                    );
                 }));
             }
 
@@ -231,30 +217,9 @@ namespace CalculateFunding.Services.Jobs
                 {
                     string cacheKey = $"{CacheKeys.LatestJobsByJobDefinitionIds}{jobDefinitionId}";
 
-                    JobCacheItem jobCacheItem = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<JobCacheItem>(cacheKey));
-
-                    Job job = jobCacheItem?.Job;
-                    jobsByDefinition[jobDefinitionId] = job;
-
-                    if (job == null)
-                    {
-                        job = await _jobRepository.GetLatestJobByJobDefinitionId(jobDefinitionId);
-
-                        if (job != null)
-                        {
-                            jobsByDefinition[jobDefinitionId] = job;
-                        }
-
-                        if (jobCacheItem == null)
-                        {
-                            jobCacheItem = new JobCacheItem()
-                            {
-                                Job = job,
-                            };
-
-                            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, jobCacheItem));
-                        }
-                    }
+                    jobsByDefinition[jobDefinitionId] = await GetJobFromCache(() => 
+                        _jobRepository.GetLatestJobByJobDefinitionId(jobDefinitionId),
+                        cacheKey);
                 }));
             }
 
@@ -272,16 +237,9 @@ namespace CalculateFunding.Services.Jobs
 
             string cacheKey = $"{CacheKeys.LatestJobByEntityId}{specificationId}:{entityId}";
 
-            Job job = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Job>(cacheKey));
-
-            if (job == null)
-            {
-                job = await _jobRepository.GetLatestJobByTriggerEntityId(specificationId, entityId);
-                job ??= new Job();
-                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
-            }
-
-            JobSummary jobSummary = _mapper.Map<JobSummary>(job);
+            JobSummary jobSummary = _mapper.Map<JobSummary>(await GetJobFromCache(() 
+                => _jobRepository.GetLatestJobByTriggerEntityId(specificationId, entityId), 
+                cacheKey));
 
             return new OkObjectResult(jobSummary);
         }
@@ -292,17 +250,9 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(jobDefinitionId, nameof(jobDefinitionId));
 
             string cacheKey = $"{CacheKeys.LatestSuccessfulJobs}{specificationId}:{jobDefinitionId}";
-            Job job = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Job>(cacheKey));
-
-            if (job == null)
-            {
-                job = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(specificationId, jobDefinitionId, CompletionStatus.Succeeded);
-
-                if (job != null)
-                {
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
-                }
-            }
+            Job job = await GetJobFromCache(() =>
+                _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(specificationId, jobDefinitionId, CompletionStatus.Succeeded),
+                cacheKey);
 
             if (job == null)
             {
@@ -339,6 +289,30 @@ namespace CalculateFunding.Services.Jobs
         public Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate)
         {
             throw new System.NotImplementedException();
+        }
+
+        private async Task<Job> GetJobFromCache(Func<Task<Job>> getJob, string cacheKey)
+        {
+            JobCacheItem jobCacheItem = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<JobCacheItem>(cacheKey));
+
+            Job job = jobCacheItem?.Job;
+
+            if (job == null)
+            {
+                job = await getJob();
+
+                if (jobCacheItem == null)
+                {
+                    jobCacheItem = new JobCacheItem()
+                    {
+                        Job = job,
+                    };
+
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, jobCacheItem));
+                }
+            }
+
+            return job;
         }
     }
 }

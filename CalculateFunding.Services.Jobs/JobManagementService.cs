@@ -219,14 +219,15 @@ namespace CalculateFunding.Services.Jobs
                 return;
             }
 
-            string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
-            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
-
-            string jobDefinitionCacheKey = $"{CacheKeys.LatestJobsByJobDefinitionIds}{job.JobDefinitionId}";
             JobCacheItem jobCacheItem = new JobCacheItem
             {
                 Job = job
             };
+            
+            string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, jobCacheItem));
+
+            string jobDefinitionCacheKey = $"{CacheKeys.LatestJobsByJobDefinitionIds}{job.JobDefinitionId}";
             await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(jobDefinitionCacheKey, jobCacheItem));
         }
 
@@ -241,20 +242,20 @@ namespace CalculateFunding.Services.Jobs
             Job latest = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(job.SpecificationId, job.JobDefinitionId);
             if (latest != null)
             {
-                string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
-                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, latest));
-
-                string jobDefinitionCacheKey = $"{CacheKeys.LatestJobsByJobDefinitionIds}{job.JobDefinitionId}";
                 JobCacheItem jobCacheItem = new JobCacheItem
                 {
                     Job = latest
                 };
+
+                string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, jobCacheItem));
+                string jobDefinitionCacheKey = $"{CacheKeys.LatestJobsByJobDefinitionIds}{job.JobDefinitionId}";
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(jobDefinitionCacheKey, jobCacheItem));
 
                 if (latest.CompletionStatus == CompletionStatus.Succeeded)
                 {
                     string latestSuccessfulJobCacheKey = $"{CacheKeys.LatestSuccessfulJobs}{job.SpecificationId}:{job.JobDefinitionId}";
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(latestSuccessfulJobCacheKey, latest));
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(latestSuccessfulJobCacheKey, jobCacheItem));
                 }
             }
         }

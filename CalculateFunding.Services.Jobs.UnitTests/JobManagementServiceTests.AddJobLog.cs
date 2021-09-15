@@ -591,11 +591,11 @@ namespace CalculateFunding.Services.Jobs.Services
 
             await cacheProvider
                 .Received(1)
-                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == jobId));
+                .SetAsync(cacheKey, Arg.Is<JobCacheItem>(_ => _.Job.Id == jobId));
 
             await cacheProvider
                 .Received(1)
-                .SetAsync(latestSuccessfulJobCacheKey, Arg.Is<Job>(_ => _.Id == jobId));
+                .SetAsync(latestSuccessfulJobCacheKey, Arg.Is<JobCacheItem>(_ => _.Job.Id == jobId));
         }
 
         [DataTestMethod]
@@ -707,11 +707,11 @@ namespace CalculateFunding.Services.Jobs.Services
 
             await cacheProvider
                 .Received(1)
-                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == jobId));
+                .SetAsync(cacheKey, Arg.Is<JobCacheItem>(_ => _.Job.Id == jobId));
 
             await cacheProvider
                 .Received(0)
-                .SetAsync(latestSuccessfulJobCacheKey, Arg.Is<Job>(_ => _.Id == jobId));
+                .SetAsync(latestSuccessfulJobCacheKey, Arg.Is<JobCacheItem>(_ => _.Job.Id == jobId));
         }
     }
 }
