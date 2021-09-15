@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
             if (midYear)
             {
                 // We need a way to determine new openers which opened prior to the release
-                //midYearCatchup = providerOpenedDate == null ? false : providerOpenedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && providerOpenedDate.Value.Year < firstPeriod.Year;
+                //midYearCatchup = providerOpenedDate == null ? false : providerOpenedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && providerOpenedDate.Value.Year <= firstPeriod.Year;
                 midYearCatchup = false;
             }
 

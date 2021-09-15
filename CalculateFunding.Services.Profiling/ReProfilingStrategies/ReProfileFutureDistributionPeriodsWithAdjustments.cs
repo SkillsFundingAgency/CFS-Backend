@@ -27,7 +27,15 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 .ToArray();
 
             int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
-            RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
+
+            if (!context.Request.MidYearCatchup.HasValue)
+            {
+                RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
+            }
+            else
+            {
+                ZeroPaidProfilePeriodValues(variationPointerIndex, orderedRefreshProfilePeriods);
+            }
 
             AdjustFuturePeriodFundingLineValues(orderedExistingProfilePeriods, variationPointerIndex, reProfileRequest, orderedRefreshProfilePeriods, readonlyOrderedRefreshProfilePeriods);
             
@@ -77,6 +85,17 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 decimal profileValue = (profilePeriod == variationPointerIndex) ? amountToBeAdjustedInNextPeriod : 0M;
 
                 periodToAdjust.SetProfiledValue(profileValue);
+            }
+        }
+
+        protected static void ZeroPaidProfilePeriodValues(int variationPointerIndex,
+            IProfilePeriod[] orderedRefreshProfilePeriods)
+        {
+            for (int paidProfilePeriodIndex = 0; paidProfilePeriodIndex < variationPointerIndex; paidProfilePeriodIndex++)
+            {
+                IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[paidProfilePeriodIndex];
+
+                refreshProfilePeriod.SetProfiledValue(0);
             }
         }
 
