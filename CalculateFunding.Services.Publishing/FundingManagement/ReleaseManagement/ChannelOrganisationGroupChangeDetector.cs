@@ -7,6 +7,7 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResu
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ApiClientProviderModels = CalculateFunding.Common.ApiClient.Providers.Models;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
 {
@@ -25,19 +26,24 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _publishedProvidersLoadContext = publishedProvidersLoadContext;
         }
 
-        public async Task<IEnumerable<OrganisationGroupResult>> DetermineFundingGroupsToCreateBasedOnProviderVersions(IEnumerable<OrganisationGroupResult> channelOrganisationGroups, SpecificationSummary specification, Channel channel)
+        public async Task<IEnumerable<OrganisationGroupResult>> DetermineFundingGroupsToCreateBasedOnProviderVersions(
+            IEnumerable<OrganisationGroupResult> channelOrganisationGroups, 
+            SpecificationSummary specification, 
+            Channel channel)
         {
-            IEnumerable<LatestProviderVersionInFundingGroup> latestProviderVersionInFundingGroups = await _repo.GetLatestProviderVersionInFundingGroups(specification.Id, channel.ChannelId);
+            IEnumerable<LatestProviderVersionInFundingGroup> latestProviderVersionInFundingGroups 
+                = await _repo.GetLatestProviderVersionInFundingGroups(specification.Id, channel.ChannelId);
 
-            Dictionary<string, IEnumerable<LatestProviderVersionInFundingGroup>> existingGroupProviders = GroupProviders(latestProviderVersionInFundingGroups);
+            ILookup<string, LatestProviderVersionInFundingGroup> existingGroupProviders 
+                = latestProviderVersionInFundingGroups.ToLookup(_ => GenerateGroupingKey(_));
 
             List<OrganisationGroupResult> organisationGroupsToCreateNewVersions = new List<OrganisationGroupResult>();
-
             foreach (OrganisationGroupResult organisationGroupResult in channelOrganisationGroups)
             {
                 string groupingKey = GenerateGroupingKey(organisationGroupResult);
 
-                if (!existingGroupProviders.TryGetValue(groupingKey, out IEnumerable<LatestProviderVersionInFundingGroup> existingProviders))
+                IEnumerable<LatestProviderVersionInFundingGroup> existingProviders = existingGroupProviders[groupingKey];
+                if (!existingProviders.Any())
                 {
                     organisationGroupsToCreateNewVersions.Add(organisationGroupResult);
                     continue;
@@ -49,9 +55,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     continue;
                 }
 
-                IEnumerable<PublishedProvider> providers = await _publishedProvidersLoadContext.GetOrLoadProviders(organisationGroupResult.Providers.Select(_ => _.ProviderId));
+                IEnumerable<PublishedProvider> providers = 
+                    await _publishedProvidersLoadContext.GetOrLoadProviders(organisationGroupResult.Providers.Select(_ => _.ProviderId));
 
-                foreach (Common.ApiClient.Providers.Models.Provider provider in organisationGroupResult.Providers)
+                foreach (ApiClientProviderModels.Provider provider in organisationGroupResult.Providers)
                 {
                     LatestProviderVersionInFundingGroup existingProvider = existingProviders.First(_ => _.ProviderId == provider.ProviderId);
 
@@ -68,7 +75,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             return organisationGroupsToCreateNewVersions;
         }
 
-        private static bool GroupContainsDifferentProviderIds(OrganisationGroupResult organisationGroupResult, IEnumerable<LatestProviderVersionInFundingGroup> existingProviders)
+        private static bool GroupContainsDifferentProviderIds(
+            OrganisationGroupResult organisationGroupResult, 
+            IEnumerable<LatestProviderVersionInFundingGroup> existingProviders)
         {
             IEnumerable<string> existingProviderIds = existingProviders.Select(_ => _.ProviderId).OrderBy(_ => _);
             IEnumerable<string> groupProviderIds = organisationGroupResult.Providers.Select(_ => _.ProviderId).OrderBy(_ => _);
@@ -76,27 +85,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             return !existingProviderIds.SequenceEqual(groupProviderIds);
         }
 
-        private Dictionary<string, IEnumerable<LatestProviderVersionInFundingGroup>> GroupProviders(IEnumerable<LatestProviderVersionInFundingGroup> latestProviderVersionInFundingGroups)
-        {
-            IEnumerable<IGrouping<string, LatestProviderVersionInFundingGroup>> groups = latestProviderVersionInFundingGroups.GroupBy(_ => GenerateGroupingKey(_));
-            Dictionary<string, IEnumerable<LatestProviderVersionInFundingGroup>> result = new Dictionary<string, IEnumerable<LatestProviderVersionInFundingGroup>>(groups.Count());
-
-            foreach (IGrouping<string, LatestProviderVersionInFundingGroup> group in groups)
-            {
-                result.Add(group.Key, group);
-            }
-
-            return result;
-        }
-
         private string GenerateGroupingKey(OrganisationGroupResult group)
-        {
-            return $"{group.GroupReason}-{group.GroupTypeCode}-{group.IdentifierValue}";
-        }
+            => $"{group.GroupReason}-{group.GroupTypeCode}-{group.IdentifierValue}";
 
         private string GenerateGroupingKey(LatestProviderVersionInFundingGroup group)
-        {
-            return $"{group.GroupingReasonCode}-{group.OrganisationGroupTypeCode}-{group.OrganisationGroupIdentifierValue}";
-        }
+            => $"{group.GroupingReasonCode}-{group.OrganisationGroupTypeCode}-{group.OrganisationGroupIdentifierValue}";
     }
 }
