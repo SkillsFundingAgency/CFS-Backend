@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Services.Profiling.Models;
 using CalculateFunding.Services.Profiling.ReProfilingStrategies;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -22,8 +23,11 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             decimal totalAllocation,
             decimal previousTotalAllocation,
             decimal[] expectedAdjustedPeriodValues,
-            decimal? expectedRemainingOverPayment)
+            decimal? expectedRemainingOverPayment,
+            MidYearType? midYearType)
         {
+            Context.Request.MidYearType = midYearType;
+
             GivenTheLatestProfiling(AsLatestProfiling(newTheoreticalProfilePeriods));
             GivenTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
 
@@ -47,7 +51,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 6000M,
                 5000M,
                 NewDecimals(1000, 1000, 1600, 1200, 1200),
-                0M
+                0M,
+                null
             };
             // Example 2 - decrease funding
             yield return new object[]
@@ -58,7 +63,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 4000M,
                 5000M,
                 NewDecimals(1000, 1000, 400, 800, 800),
-                0M
+                0M,
+                null
             };
             //Example 3 - decrease funding more than period amount
             yield return new object[]
@@ -69,7 +75,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                  3000M,
                  5000M,
                  NewDecimals(1000, 1000, -200, 600, 600),
-                 0M
+                 0M,
+                null
             };
             // Example 4 - decrease funding to paid amount -zero off
             yield return new object[]
@@ -80,7 +87,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 2000M,
                 5000M,
                 NewDecimals(1000, 1000, 0, 0, 0),
-                0M
+                0M,
+                null
             };
             // Example 5 - decrease funding more than paid amount
             yield return new object[]
@@ -91,7 +99,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 1000M,
                 5000M,
                 NewDecimals(1000, 1000, -1000, 0, 0),
-                0M
+                0M,
+                null
             };
             // Example 6 - increase of funding, with different percentages in remaining periods
             yield return new object[]
@@ -102,7 +111,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 6000M,
                 5000M,
                 NewDecimals(750, 1000, 2750, 600, 900),
-                0M
+                0M,
+                null
             };
             // Example 7 - decimals
             yield return new object[]
@@ -113,7 +123,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 5169.76M,
                 5000M,
                 NewDecimals(1000, 1000, 1101.86M, 1033.95M, 1033.95M),
-                0M
+                0M,
+                null
             };
             // Example 8 - decimals
             yield return new object[]
@@ -124,7 +135,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 3000M,
                 0M,
                 NewDecimals(0, 0, 1800M, 600M, 600M),
-                0M
+                0M,
+                null
             };
             // Example 9 - negative funding lines
             yield return new object[]
@@ -135,7 +147,32 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 -5169.76M,
                 -5000M,
                 NewDecimals(-1000, -1000, -1101.86M, -1033.95M, -1033.95M),
-                0M
+                0M,
+                null
+            };
+            // Example 10 - test for mid year opener with catchup
+            yield return new object[]
+            {
+                2,
+                NewDecimals(1033.95M, 1033.95M, 1033.95M, 1033.95M, 1033.95M),
+                NewDecimals(1000, 1000, 1000, 1000, 1000),
+                5169.76M,
+                5000M,
+                NewDecimals(0, 0, 3101.86M, 1033.95M, 1033.95M),
+                0M,
+                MidYearType.OpenerCatchup
+            };
+            // Example 11 - test for mid year closure
+            yield return new object[]
+            {
+                5,
+                NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
+                NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
+                5100M,
+                12000M,
+                NewDecimals(1000, 1000, 1000, 1000, 1000, 100, 0, 0, 0, 0, 0, 0),
+                0M,
+                MidYearType.Closure
             };
         }
     }

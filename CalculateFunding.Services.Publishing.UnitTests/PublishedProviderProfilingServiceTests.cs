@@ -452,8 +452,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     publishedProviderVersion,
                     configurationType,
                     fundingLineTotal,
-                    false,
-                    null))
+                    false))
                 .ReturnsAsync(profileRequest);
         }
         

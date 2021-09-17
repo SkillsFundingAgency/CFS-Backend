@@ -347,8 +347,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     publishedProviderVersion,
                     request.ConfigurationType,
                     null,
-                    false,
-                    null),
+                    false),
                 Times.Once);
 
         private void GivenTheReProfileRequest(ProfilePreviewRequest previewRequest,
@@ -359,8 +358,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     publishedProviderVersion,
                     previewRequest.ConfigurationType,
                     null,
-                    false,
-                    null))
+                    false))
                 .ReturnsAsync(reProfileRequest);
 
         private void AndTheReProfileResponse(ReProfileRequest request,

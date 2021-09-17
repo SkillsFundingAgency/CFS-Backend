@@ -28,13 +28,17 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
             int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
 
-            if (!context.Request.MidYearCatchup.HasValue)
+            if (context.Request.MidYearType == MidYearType.OpenerCatchup)
             {
-                RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
+                ZeroPaidProfilePeriodValues(variationPointerIndex, orderedRefreshProfilePeriods);
             }
             else
             {
-                ZeroPaidProfilePeriodValues(variationPointerIndex, orderedRefreshProfilePeriods);
+                RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
+                if (context.Request.MidYearType == MidYearType.Closure)
+                {
+                    ZeroRemainingPeriodValues(variationPointerIndex, orderedRefreshProfilePeriods);
+                }
             }
 
             AdjustFuturePeriodFundingLineValues(orderedExistingProfilePeriods, variationPointerIndex, reProfileRequest, orderedRefreshProfilePeriods, readonlyOrderedRefreshProfilePeriods);
@@ -94,6 +98,16 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             for (int paidProfilePeriodIndex = 0; paidProfilePeriodIndex < variationPointerIndex; paidProfilePeriodIndex++)
             {
                 IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[paidProfilePeriodIndex];
+
+                refreshProfilePeriod.SetProfiledValue(0);
+            }
+        }
+        protected static void ZeroRemainingPeriodValues(int variationPointerIndex,
+            IProfilePeriod[] orderedRefreshProfilePeriods)
+        {
+            for (int futureProfilePeriodIndex = variationPointerIndex; futureProfilePeriodIndex < orderedRefreshProfilePeriods.Length; futureProfilePeriodIndex++)
+            {
+                IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[futureProfilePeriodIndex];
 
                 refreshProfilePeriod.SetProfiledValue(0);
             }

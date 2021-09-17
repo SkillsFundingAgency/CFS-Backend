@@ -72,13 +72,13 @@ namespace CalculateFunding.Services.Profiling.Services
             FundingStreamPeriodProfilePattern profilePattern)
         {
             AllocationProfileResponse profileResult = _calculateProfileService.ProfileAllocation(new ProfileRequest
-                {
-                    FundingLineCode = reProfileRequest.FundingLineCode,
-                    FundingPeriodId = reProfileRequest.FundingPeriodId,
-                    FundingStreamId = reProfileRequest.FundingStreamId,
-                    FundingValue = reProfileRequest.FundingLineTotal,
-                    ProfilePatternKey = reProfileRequest.ProfilePatternKey
-                },
+            {
+                FundingLineCode = reProfileRequest.FundingLineCode,
+                FundingPeriodId = reProfileRequest.FundingPeriodId,
+                FundingStreamId = reProfileRequest.FundingStreamId,
+                FundingValue = reProfileRequest.FundingLineTotal,
+                ProfilePatternKey = reProfileRequest.ProfilePatternKey
+            },
                 profilePattern,
                 reProfileRequest.FundingLineTotal);
 
@@ -99,10 +99,14 @@ namespace CalculateFunding.Services.Profiling.Services
         }
 
         private static string GetReProfilingStrategyKey(ReProfileRequest reProfileRequest,
-            FundingStreamPeriodProfilePattern profilePattern) =>
-            reProfileRequest.MidYearCatchup != null ?
-                (reProfileRequest.MidYearCatchup.Value ? profilePattern.GetReProfilingStrategyKeyForInitialFundingCatchup() : profilePattern.GetReProfilingStrategyKeyForInitialFunding()) :
-                profilePattern.GetReProfilingStrategyKeyForFundingAmountChange(reProfileRequest.FundingLineTotalChange);
+            FundingStreamPeriodProfilePattern profilePattern) => reProfileRequest.MidYearType switch
+            {
+                null => profilePattern.GetReProfilingStrategyKeyForFundingAmountChange(reProfileRequest.FundingLineTotalChange),
+                MidYearType.OpenerCatchup => profilePattern.GetReProfilingStrategyKeyForInitialFundingWithCatchup(),
+                MidYearType.Opener => profilePattern.GetReProfilingStrategyKeyForInitialFunding(),
+                MidYearType.Closure => profilePattern.GetReProfilingStrategyKeyForInitialClosureFunding(),
+                _ => throw new NotImplementedException()
+            };
 
         private static void VerifyProfileAmountsReturnedMatchRequestedFundingLineValue(ReProfileRequest reProfileRequest,
             ReProfileStrategyResult strategyResult)

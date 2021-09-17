@@ -305,6 +305,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddTransient<IVariationStrategy, DsgTotalAllocationChangeVariationStrategy>();
             builder.AddTransient<IVariationStrategy, ReProfilingVariationStrategy>();
             builder.AddTransient<IVariationStrategy, MidYearReProfilingVariationStrategy>();
+            builder.AddTransient<IVariationStrategy, MidYearClosureReProfilingVariationStrategy>();
             builder.AddTransient<IVariationStrategy, FundingSchemaUpdatedVariationStrategy>();
             builder.AddTransient<IVariationStrategy, TemplateUpdatedVariationStrategy>();
             builder.AddTransient<IVariationStrategy, CalculationValuesUpdatedVariationStrategy>();

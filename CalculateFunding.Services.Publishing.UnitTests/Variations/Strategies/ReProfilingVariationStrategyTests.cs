@@ -51,7 +51,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             int year = NewRandomNumber();
             string month = NewRandomMonth();
 
-            GivenTheOtherwiseValidVariationContext(_ => _.AllPublishedProviderSnapShots.Clear());
+            GivenTheOtherwiseValidVariationContext(_ =>
+            {
+                _.AllPublishedProviderSnapShots.Clear();
+                _.UpdatedProvider.Status = Variation.Opened;
+            });
             AndTheRefreshStateFundingLines(NewFundingLine(),
                 NewFundingLine(_ => _.WithFundingLineCode(FundingLineCode)
                     .WithFundingLineType(FundingLineType.Payment)
@@ -86,7 +90,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             string month = NewRandomMonth();
             string newFundingLineCode = NewRandomString();
 
-            GivenTheOtherwiseValidVariationContext();
+            GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Variation.Opened);
 
             // use an existing funding line code but which wasn't previously funded
             if (!generateNewFundingLine)
@@ -96,6 +100,77 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             }
 
             AndTheRefreshStateFundingLines(NewFundingLine(_ => _.WithFundingLineCode(newFundingLineCode)
+                    .WithFundingLineType(FundingLineType.Payment)
+                    .WithValue(NewRandomNumber())
+                    .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                        dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithYear(year)
+                                .WithTypeValue(month)
+                                .WithType(ProfilePeriodType.CalendarMonth)
+                                .WithOccurence(0)),
+                            NewProfilePeriod(pp => pp.WithYear(year)
+                                .WithTypeValue(month)
+                                .WithType(ProfilePeriodType.CalendarMonth)
+                                .WithOccurence(1)))))));
+            AndTheVariationPointers(NewVariationPointer(_ => _.WithYear(year)
+                .WithTypeValue(month)
+                .WithOccurence(1)
+                .WithFundingLineId(newFundingLineCode)
+                .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
+
+            await WhenTheVariationsAreDetermined();
+
+            ThenTheVariationChangeWasQueued<MidYearReProfileVariationChange>();
+            AndTheAffectedFundingLinesWereTracked(newFundingLineCode);
+        }
+    }
+
+    [TestClass]
+    public class MidYearClosureReProfilingVariationStrategyTests : ReProfilingVariationStrategyTestsBase
+    {
+        [TestInitialize]
+        public void SetUp()
+        {
+            VariationStrategy = new MidYearClosureReProfilingVariationStrategy();
+        }
+
+        [TestMethod]
+        public async Task FailsPreconditionCheckIfItHasNoAllocations()
+        {
+            GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Closed);
+
+            AndTheVariationPointers(NewVariationPointer(_ => _.WithYear(NewRandomNumber())
+                .WithTypeValue(NewRandomMonth())
+                .WithOccurence(1)
+                .WithFundingLineId(FundingLineCode)
+                .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
+            AndTheReleaseStateFundingLines(NewFundingLine(_ => _.WithFundingLineCode(FundingLineCode)
+                .WithFundingLineType(FundingLineType.Payment)
+                .WithValue(null)
+                .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                    dp.WithProfilePeriods(NewProfilePeriod())))));
+
+            await WhenTheVariationsAreDetermined();
+
+            VariationContext
+                .QueuedChanges
+                .Should()
+                .BeEmpty();
+            VariationContext
+                .VariationReasons
+                .Should()
+                .BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task TracksFundingLinesAsAffectedFundingLineCodesAndQueuesMidYearClosureReProfileVariationChangeIfProviderClosed()
+        {
+            int year = NewRandomNumber();
+            string month = NewRandomMonth();
+            string newFundingLineCode = NewRandomString();
+
+            GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Variation.Closed);
+
+            AndTheReleaseStateFundingLines(NewFundingLine(_ => _.WithFundingLineCode(newFundingLineCode)
                     .WithFundingLineType(FundingLineType.Payment)
                     .WithValue(NewRandomNumber())
                     .WithDistributionPeriods(NewDistributionPeriod(dp =>

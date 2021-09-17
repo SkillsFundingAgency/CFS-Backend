@@ -170,6 +170,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             VariationContext.RefreshState.FundingLines = fundingLines;
         }
 
+        protected void AndTheReleaseStateFundingLines(params FundingLine[] fundingLines)
+        {
+            VariationContext.PriorState.FundingLines = fundingLines;
+        }
+
         protected static RandomNumberBetween NewRandomNumber() => new RandomNumberBetween(1, int.MaxValue);
     }
 }

@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Profiling.Models
         /// Flag indicating whether the re profiling
         /// should use a new opener or new opener catchup if blank then use new allocation strategy
         /// </summary>
-        public bool? MidYearCatchup { get; set; }
+        public MidYearType? MidYearType { get; set; }
         
         /// <summary>
         /// The index into the ordered refresh profile periods

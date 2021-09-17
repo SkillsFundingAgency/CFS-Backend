@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.UnitTests.Variations.Changes;
+using CalculateFunding.Services.Publishing.Variations.Strategies;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -157,17 +158,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         }
 
         [TestMethod]
-        public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers()
+        [DataRow(true, true)]
+        [DataRow(true, false)]
+        [DataRow(false, false)]
+        public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers(bool midYear,
+            bool opener)
         {
             string providerId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string profilePattern = NewRandomString();
             decimal fundingLineTotal = NewRandomAmount();
-            bool midYear = new RandomBoolean();
             ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
 
             PublishedProviderVersion publishedProviderVersion = NewPublisherProviderVersion(pvp => 
-                    pvp.WithFundingLines(NewFundingLine(),
+                    pvp.WithProvider(NewProvider(_ => _.WithStatus(opener ? Variation.Opened : Variation.Closed)))
+                        .WithFundingLines(NewFundingLine(),
                         NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCode)
                             .WithDistributionPeriods(NewDistributionPeriod(dp =>
                                 dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithDistributionPeriodId("dp1")
@@ -214,7 +219,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     ExistingFundingLineTotal = 23 + 24 + 25 + 26,
                     FundingLineTotal = fundingLineTotal,
                     ProfilePatternKey = profilePattern,
-                    MidYearCatchup = midYear == true ? (bool?)false : null,
+                    MidYearType = midYear ? (opener ? (MidYearType?)MidYearType.Opener : MidYearType.Closure) : null,
                     VariationPointerIndex = 0,
                     ExistingPeriods = new []
                     {
@@ -284,6 +289,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return existingProfilePeriodBuilder.Build();
         }
 
+        private static Provider NewProvider(Action<ProviderBuilder> setUp = null)
+        {
+            ProviderBuilder providerBuilder = new ProviderBuilder();
+
+            setUp?.Invoke(providerBuilder);
+
+            return providerBuilder.Build();
+        }
+
         private static PublishedProviderVersion NewPublisherProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
         {
             PublishedProviderVersionBuilder publishedProviderVersionBuilder = new PublishedProviderVersionBuilder();
@@ -309,15 +323,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             setUp?.Invoke(profilePeriodBuilder);
             
             return profilePeriodBuilder.Build();
-        }
-
-        private ProfilePeriodPattern NewProfilePeriodPattern(Action<ProfilePeriodPatternBuilder> setUp = null)
-        {
-            ProfilePeriodPatternBuilder profilePeriodPatternBuilder = new ProfilePeriodPatternBuilder();
-
-            setUp?.Invoke(profilePeriodPatternBuilder);
-
-            return profilePeriodPatternBuilder.Build();
         }
 
         private DistributionPeriod NewDistributionPeriod(Action<DistributionPeriodBuilder> setUp = null)

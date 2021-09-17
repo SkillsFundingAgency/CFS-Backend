@@ -21,7 +21,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
             PublishedProviderVersion refreshState = providerVariationContext.RefreshState;
 
-            if (HasNoVariationPointers(providerVariationContext) ||
+            if (providerVariationContext.UpdatedProvider.Status == Closed ||
+                VariationPointersNotSet(providerVariationContext) ||
                 IsNotNewOpener(providerVariationContext, priorState, refreshState) && 
                 HasNoNewAllocations(providerVariationContext, priorState, refreshState))
             {
@@ -83,6 +84,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         private HashSet<string> PaymentFundingLineWithValues(PublishedProviderVersion publishedProviderVersion)
             => publishedProviderVersion.FundingLines?.Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue).Select(_ => _.FundingLineCode).ToHashSet() ?? new HashSet<string>();
 
-        private static bool HasNoVariationPointers(ProviderVariationContext providerVariationContext) => !(providerVariationContext.VariationPointers?.Any()).GetValueOrDefault();
+        private static bool VariationPointersNotSet(ProviderVariationContext providerVariationContext) => !(providerVariationContext.VariationPointers?.Any()).GetValueOrDefault();
     }
 }

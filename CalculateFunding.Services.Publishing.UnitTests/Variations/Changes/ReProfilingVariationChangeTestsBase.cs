@@ -77,6 +77,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             fundingLineTwo.DistributionPeriods = distributionPeriodsTwo;
             fundingLineThree.DistributionPeriods = NewDistributionPeriods(_ => _.WithDistributionPeriodId(distributionPeriodsThree.Single().DistributionPeriodId));
 
+            GivenTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(fundingLineOne.FundingLineCode)),
+                NewVariationPointer(_ => _.WithFundingLineId(fundingLineTwo.FundingLineCode)),
+                NewVariationPointer(_ => _.WithFundingLineId(fundingLineThree.FundingLineCode)));
             GivenTheFundingLines(fundingLineOne, fundingLineTwo, fundingLineThree);
             GivenTheProfilePatternKeys(NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode)
                 .WithKey(profilePatternKey.Key)));
@@ -101,6 +104,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             FundingLine fundingLineTwo = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
             FundingLine fundingLineThree = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
             FundingLine fundingLineFour = NewFundingLine(_ => _.WithValue(0));
+
+            GivenTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(fundingLineOne.FundingLineCode)),
+                NewVariationPointer(_ => _.WithFundingLineId(fundingLineTwo.FundingLineCode)),
+                NewVariationPointer(_ => _.WithFundingLineId(fundingLineThree.FundingLineCode)),
+                NewVariationPointer(_ => _.WithFundingLineId(fundingLineFour.FundingLineCode)));
+
             ProfilePatternKey profilePatternKey = NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode));
 
             ReProfileRequest reProfileRequestOne = NewReProfileRequest();
@@ -183,8 +192,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     VariationContext.PriorState,
                     ProfileConfigurationType.RuleBased,
                     fundingLine.Value,
-                    false,
-                    null))
+                    false))
                 .ReturnsAsync(reProfileRequest);
 
         private void AndTheReProfileResponseMapping(ReProfileResponse reProfileResponse,

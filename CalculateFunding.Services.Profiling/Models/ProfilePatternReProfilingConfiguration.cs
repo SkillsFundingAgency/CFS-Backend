@@ -34,6 +34,9 @@ namespace CalculateFunding.Services.Profiling.Models
         [JsonProperty("initialFundingStrategyWithCatchupKey")]
         public string InitialFundingStrategyWithCatchupKey { get; set; }
 
+        [JsonProperty("initialClosureFundingStrategyKey")]
+        public string InitialClosureFundingStrategyKey { get; set; }
+
         public string GetReProfilingStrategyKeyForFundingAmountChange(decimal change)
         {
             if (change == 0)

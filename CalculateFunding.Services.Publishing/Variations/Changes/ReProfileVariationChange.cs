@@ -19,6 +19,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
         }
 
+        protected virtual IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLineCodes;
+
         protected override async Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
             Guard.IsNotEmpty(VariationContext.AffectedFundingLineCodes, nameof(VariationContext.AffectedFundingLineCodes));
@@ -26,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             PublishedProviderVersion refreshState = RefreshState;
             PublishedProviderVersion priorState = VariationContext.PriorState;
 
-            Task[] reProfileTasks = VariationContext.AffectedFundingLineCodes?.Select(_ =>
+            Task[] reProfileTasks = GetAffectedFundingLines.Select(_ =>
                     ReProfileFundingLine(_, refreshState, priorState, variationsApplications))
                 .ToArray();
 

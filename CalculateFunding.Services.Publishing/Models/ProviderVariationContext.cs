@@ -178,6 +178,8 @@ namespace CalculateFunding.Services.Publishing.Models
 
         public bool HasNewProvidersToAdd => NewProvidersToAdd.AnyWithNullCheck();
 
+        public IEnumerable<string> AffectedFundingLinesWithVariationPointerSet => AffectedFundingLineCodes?.Where(_ => (VariationPointers?.Any(vp => vp.FundingLineId == _)).GetValueOrDefault());
+
         /// <summary>
         /// Provider version ID of the existing specificaton which will be used to search provider from core provider data
         /// </summary>

@@ -10,7 +10,8 @@ namespace CalculateFunding.Services.Profiling.Models
     {
         private const string InitialFundingStrategyKey = "ReProfileRemainingFundingForPeriod";
         private const string InitialFundingStrategyWithCatchupKey = "ReProfileFutureDistributionPeriodsWithAdjustments";
-
+        private const string InitialClosureFundingStrategyKey = "ReProfileFutureDistributionPeriodsWithAdjustments";
+        
         public FundingStreamPeriodProfilePattern()
         {
 
@@ -87,8 +88,11 @@ namespace CalculateFunding.Services.Profiling.Models
         public string GetReProfilingStrategyKeyForInitialFunding()
             => ReProfilingConfiguration?.InitialFundingStrategyKey ?? InitialFundingStrategyKey;
 
-        public string GetReProfilingStrategyKeyForInitialFundingCatchup()
+        public string GetReProfilingStrategyKeyForInitialFundingWithCatchup()
             => ReProfilingConfiguration?.InitialFundingStrategyWithCatchupKey ?? InitialFundingStrategyWithCatchupKey;
+        
+        public string GetReProfilingStrategyKeyForInitialClosureFunding()
+            => ReProfilingConfiguration?.InitialClosureFundingStrategyKey ?? InitialClosureFundingStrategyKey;
 
         public string GetReProfilingStrategyKeyForFundingAmountChange(decimal change)
             => ReProfilingConfiguration?.GetReProfilingStrategyKeyForFundingAmountChange(change);

@@ -12,7 +12,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             PublishedProviderVersion publishedProviderVersion,
             ProfileConfigurationType configurationType,
             decimal? fundingLineTotal = null,
-            bool midYear = false,
-            DateTimeOffset? providerOpened = null);
+            bool midYear = false);
     }
 }

@@ -15,6 +15,9 @@ namespace CalculateFunding.Services.Jobs
 {
     public partial class JobServiceTests
     {
+        #if NCRUNCH
+        [Ignore]
+        #endif
         [TestMethod]
         [DataRow(null)]
         [DataRow(new string[] { })]

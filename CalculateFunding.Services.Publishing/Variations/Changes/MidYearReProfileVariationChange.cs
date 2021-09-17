@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
@@ -13,6 +14,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
         }
 
+        protected override IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLinesWithVariationPointerSet;
+
         protected override Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
@@ -24,7 +27,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 refreshState,
                 ProfileConfigurationType.RuleBased,
                 fundingLine.Value,
-                true,
-                refreshState.Provider?.DateOpened);
+                true);
     }
 }

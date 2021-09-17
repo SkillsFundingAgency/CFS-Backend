@@ -14,11 +14,11 @@ namespace CalculateFunding.Services.Profiling.Tests
         private IEnumerable<ExistingProfilePeriod> _existingProfilePeriods;
         private string _profilePatternKey;
         private int? _variationPointer;
-        private bool? _midYearCatchup;
+        private MidYearType? _midYearType;
         
-        public ReProfileRequestBuilder WithMidYearCatchup(bool? midYearCatchup)
+        public ReProfileRequestBuilder WithMidYearCatchup(MidYearType? midYearType)
         {
-            _midYearCatchup = midYearCatchup;
+            _midYearType = midYearType;
 
             return this;
         }
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Profiling.Tests
                 ExistingFundingLineTotal = _existingFundingLineTotal.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue)),
                 ExistingPeriods = _existingProfilePeriods,
                 VariationPointerIndex = _variationPointer,
-                MidYearCatchup = _midYearCatchup
+                MidYearType = _midYearType
             };
         }
         

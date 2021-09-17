@@ -284,7 +284,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
                 .WithExistingFundingValue(newFundingTotal * -1)
-                .WithMidYearCatchup(false));
+                .WithMidYearCatchup(MidYearType.Opener));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
 
             FundingStreamPeriodProfilePattern profilePattern = NewFundingStreamPeriodProfilePattern(_ =>

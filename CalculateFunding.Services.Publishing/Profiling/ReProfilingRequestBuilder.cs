@@ -10,6 +10,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Variations.Strategies;
 using Polly;
 
 namespace CalculateFunding.Services.Publishing.Profiling
@@ -34,8 +35,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
             PublishedProviderVersion publishedProviderVersion,
             ProfileConfigurationType configurationType,
             decimal? fundingLineTotal = null,
-            bool midYear = false,
-            DateTimeOffset? providerOpenedDate = null)
+            bool midYear = false)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
@@ -49,13 +49,22 @@ namespace CalculateFunding.Services.Publishing.Profiling
 
             ProfilePeriod firstPeriod = orderedProfilePeriodsForFundingLine.First();
 
-            bool? midYearCatchup = null;
+            MidYearType? midYearType = null;
 
             if (midYear)
             {
                 // We need a way to determine new openers which opened prior to the release
-                //midYearCatchup = providerOpenedDate == null ? false : providerOpenedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && providerOpenedDate.Value.Year <= firstPeriod.Year;
-                midYearCatchup = false;
+                if (publishedProviderVersion.Provider.Status != Variation.Closed)
+                {
+                    /*DateTimeOffset? openedDate = publishedProviderVersion.Provider.DateOpened;
+                    bool catchup = openedDate == null ? false : openedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && openedDate.Value.Year <= firstPeriod.Year;
+                    midYearType = catchup ? MidYearType.OpenerCatchup : MidYearType.Opener;*/
+                    midYearType = MidYearType.Opener;
+                }
+                else
+                {
+                    midYearType = MidYearType.Closure;
+                }
             }
 
             int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine, publishedProviderVersion.ProviderId);
@@ -74,7 +83,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 FundingLineTotal = fundingLineTotal.GetValueOrDefault(existingFundingLineTotal),
                 ExistingFundingLineTotal = existingFundingLineTotal,
                 ExistingPeriods = existingProfilePeriods,
-                MidYearCatchup = midYearCatchup,
+                MidYearType = midYearType,
                 VariationPointerIndex = paidUpToIndex
             };
         }
