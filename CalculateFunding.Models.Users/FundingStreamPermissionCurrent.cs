@@ -22,14 +22,8 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canApproveSpecification")]
         public bool CanApproveSpecification { get; set; }
 
-        [JsonProperty("canDeleteSpecification")]
-        public bool CanDeleteSpecification { get; set; }
-
         [JsonProperty("canEditCalculations")]
         public bool CanEditCalculations { get; set; }
-
-        [JsonProperty("canDeleteCalculations")]
-        public bool CanDeleteCalculations { get; set; }
 
         [JsonProperty("canMapDatasets")]
         public bool CanMapDatasets { get; set; }
@@ -46,23 +40,11 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canReleaseFunding")]
         public bool CanReleaseFunding { get; set; }
 
-        [JsonProperty("canCreateQaTests")]
-        public bool CanCreateQaTests { get; set; }
-
-        [JsonProperty("canEditQaTests")]
-        public bool CanEditQaTests { get; set; }
-
-        [JsonProperty("canDeleteQaTests")]
-        public bool CanDeleteQaTests { get; set; }
-
         [JsonProperty("canCreateTemplates")]
         public bool CanCreateTemplates { get; set; }
 
         [JsonProperty("canEditTemplates")]
         public bool CanEditTemplates { get; set; }
-
-        [JsonProperty("canDeleteTemplates")]
-        public bool CanDeleteTemplates { get; set; }
 
         [JsonProperty("canApproveTemplates")]
         public bool CanApproveTemplates { get; set; }
@@ -72,9 +54,6 @@ namespace CalculateFunding.Models.Users
 
         [JsonProperty("canEditProfilePattern")]
         public bool CanEditProfilePattern { get; set; }
-
-        [JsonProperty("canDeleteProfilePattern")]
-        public bool CanDeleteProfilePattern { get; set; }
 
         [JsonProperty("canAssignProfilePattern")]
         public bool CanAssignProfilePattern { get; set; }

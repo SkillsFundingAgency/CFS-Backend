@@ -22,14 +22,8 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canApproveSpecification")]
         public bool CanApproveSpecification { get; set; }
 
-        [JsonProperty("canDeleteSpecification")]
-        public bool CanDeleteSpecification { get; set; }
-
         [JsonProperty("canEditCalculations")]
         public bool CanEditCalculations { get; set; }
-
-        [JsonProperty("canDeleteCalculations")]
-        public bool CanDeleteCalculations { get; set; }
 
         [JsonProperty("canApproveCalculations")]
         public bool CanApproveCalculations { get; set; }
@@ -51,15 +45,6 @@ namespace CalculateFunding.Models.Users
 
         [JsonProperty("canReleaseFunding")]
         public bool CanReleaseFunding { get; set; }
-
-        [JsonProperty("canCreateQaTests")]
-        public bool CanCreateQaTests { get; set; }
-
-        [JsonProperty("canEditQaTests")]
-        public bool CanEditQaTests { get; set; }
-
-        [JsonProperty("canDeleteQaTests")]
-        public bool CanDeleteQaTests { get; set; }
 
         [JsonProperty("canAssignProfilePattern")]
         public bool CanAssignProfilePattern { get; set; }

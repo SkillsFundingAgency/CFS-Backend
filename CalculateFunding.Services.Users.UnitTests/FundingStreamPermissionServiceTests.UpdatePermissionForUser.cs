@@ -117,11 +117,9 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
                 CanCreateTemplates = true,
                 CanEditTemplates = true,
-                CanDeleteTemplates = true,
                 CanApproveTemplates = true,
                 CanCreateProfilePattern = true,
                 CanEditProfilePattern = true,
-                CanDeleteProfilePattern = true,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
@@ -163,11 +161,9 @@ namespace CalculateFunding.Services.Users
                     CanReleaseFunding = false,
                     CanCreateTemplates = true,
                     CanEditTemplates = true,
-                    CanDeleteTemplates = true,
                     CanApproveTemplates = true,
                     CanCreateProfilePattern = true,
                     CanEditProfilePattern = true,
-                    CanDeleteProfilePattern = true,
                     CanAssignProfilePattern = false,
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = true,
@@ -189,11 +185,9 @@ namespace CalculateFunding.Services.Users
                     !p.CanReleaseFunding &&
                     p.CanCreateTemplates &&
                     p.CanEditTemplates &&
-                    p.CanDeleteTemplates &&
                     p.CanApproveTemplates &&
                     p.CanCreateProfilePattern &&
                     p.CanEditProfilePattern &&
-                    p.CanDeleteProfilePattern &&
                     !p.CanAssignProfilePattern &&
                     !p.CanApplyCustomProfilePattern &&
                     p.CanApproveCalculations &&
@@ -244,7 +238,6 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
@@ -274,7 +267,6 @@ namespace CalculateFunding.Services.Users
                 CanApproveTemplates = true,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = false,
@@ -317,7 +309,6 @@ namespace CalculateFunding.Services.Users
                     CanApproveTemplates = true,
                     CanCreateProfilePattern = false,
                     CanEditProfilePattern = false,
-                    CanDeleteProfilePattern = false,
                     CanAssignProfilePattern = false,
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = false,
@@ -339,11 +330,9 @@ namespace CalculateFunding.Services.Users
                    !p.CanReleaseFunding &&
                    !p.CanCreateTemplates &&
                    !p.CanEditTemplates &&
-                   !p.CanDeleteTemplates &&
                    p.CanApproveTemplates &&
                    !p.CanCreateProfilePattern &&
                    !p.CanEditProfilePattern &&
-                   !p.CanDeleteProfilePattern &&
                    !p.CanAssignProfilePattern &&
                    !p.CanApplyCustomProfilePattern && 
                    !p.CanApproveCalculations &&
@@ -392,7 +381,6 @@ namespace CalculateFunding.Services.Users
                 CanApproveTemplates = true,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = false,
@@ -422,7 +410,6 @@ namespace CalculateFunding.Services.Users
                 CanApproveTemplates = true,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = false,
@@ -461,7 +448,6 @@ namespace CalculateFunding.Services.Users
                     CanApproveTemplates = true,
                     CanCreateProfilePattern = false,
                     CanEditProfilePattern = false,
-                    CanDeleteProfilePattern = false,
                     CanAssignProfilePattern = false,
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = false,
@@ -513,7 +499,6 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
@@ -542,7 +527,6 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = false,
@@ -601,7 +585,6 @@ namespace CalculateFunding.Services.Users
                 CanApproveTemplates = true,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = false,
@@ -631,7 +614,6 @@ namespace CalculateFunding.Services.Users
                 CanApproveTemplates = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = false,
@@ -670,7 +652,6 @@ namespace CalculateFunding.Services.Users
                     CanApproveTemplates = false,
                     CanCreateProfilePattern = false,
                     CanEditProfilePattern = false,
-                    CanDeleteProfilePattern = false,
                     CanAssignProfilePattern = false,
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = false,

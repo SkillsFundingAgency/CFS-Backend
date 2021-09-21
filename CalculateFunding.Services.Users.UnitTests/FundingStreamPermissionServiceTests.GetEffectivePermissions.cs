@@ -106,10 +106,7 @@ namespace CalculateFunding.Services.Users
                     CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
-                    CanCreateQaTests = false,
-                    CanEditQaTests = false,
                     CanRefreshFunding = false,
-                    CanDeleteSpecification = false
                 });
 
             await cacheProvider
@@ -217,13 +214,9 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
-                CanCreateQaTests = false,
-                CanEditQaTests = false,
                 CanRefreshFunding = false,
-                CanDeleteSpecification = true,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
@@ -261,16 +254,11 @@ namespace CalculateFunding.Services.Users
                     CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
-                    CanCreateQaTests = false,
-                    CanEditQaTests = false,
                     CanRefreshFunding = false,
-                    CanDeleteSpecification = true,
                     CanApproveCalculations = true,
                     CanApplyCustomProfilePattern = false,
                     CanApproveAnyCalculations = false,
                     CanAssignProfilePattern = false,
-                    CanDeleteCalculations = false,
-                    CanDeleteQaTests = false,
                     CanApproveAllCalculations = false
                 });
 
@@ -293,10 +281,7 @@ namespace CalculateFunding.Services.Users
                         !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
-                        !p.CanCreateQaTests &&
-                        !p.CanEditQaTests &&
                         !p.CanRefreshFunding &&
-                        p.CanDeleteSpecification &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
                         ));
@@ -351,12 +336,9 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
-                CanCreateQaTests = false,
-                CanEditQaTests = false,
                 CanRefreshFunding = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
@@ -394,16 +376,11 @@ namespace CalculateFunding.Services.Users
                     CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
-                    CanCreateQaTests = false,
-                    CanEditQaTests = false,
                     CanRefreshFunding = false,
                     CanApproveCalculations = true,
                     CanApplyCustomProfilePattern = false,
                     CanApproveAnyCalculations = false,
                     CanAssignProfilePattern = false,
-                    CanDeleteCalculations = false,
-                    CanDeleteQaTests = false,
-                    CanDeleteSpecification = false,
                     CanApproveAllCalculations = false
                 });
 
@@ -426,8 +403,6 @@ namespace CalculateFunding.Services.Users
                         !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
-                        !p.CanCreateQaTests &&
-                        !p.CanEditQaTests &&
                         !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
@@ -481,12 +456,9 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
-                CanCreateQaTests = false,
-                CanEditQaTests = false,
                 CanRefreshFunding = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
@@ -507,8 +479,6 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
-                CanCreateQaTests = false,
-                CanEditQaTests = false,
                 CanRefreshFunding = false,
             };
 
@@ -546,8 +516,6 @@ namespace CalculateFunding.Services.Users
                     CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
-                    CanCreateQaTests = false,
-                    CanEditQaTests = false,
                     CanRefreshFunding = false,
                 });
 
@@ -566,8 +534,6 @@ namespace CalculateFunding.Services.Users
                         !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
-                        !p.CanCreateQaTests &&
-                        !p.CanEditQaTests &&
                         !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
@@ -634,8 +600,6 @@ namespace CalculateFunding.Services.Users
                     CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
-                    CanCreateQaTests = false,
-                    CanEditQaTests = false,
                     CanRefreshFunding = false,
                 });
 
@@ -654,8 +618,6 @@ namespace CalculateFunding.Services.Users
                         !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
-                        !p.CanCreateQaTests &&
-                        !p.CanEditQaTests &&
                         !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
@@ -704,12 +666,9 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
-                CanCreateQaTests = false,
-                CanEditQaTests = false,
                 CanRefreshFunding = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
@@ -730,22 +689,15 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
-                CanCreateQaTests = false,
-                CanEditQaTests = false,
                 CanRefreshFunding = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
-                CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
                 CanApproveAnyCalculations = false,
                 CanApproveTemplates = false,
                 CanCreateTemplates = false,
-                CanDeleteCalculations = false,
-                CanDeleteQaTests = false,
-                CanDeleteSpecification = false,
-                CanDeleteTemplates = false,
                 CanEditTemplates = false,
                 CanApproveAllCalculations = false
             };
@@ -784,14 +736,9 @@ namespace CalculateFunding.Services.Users
                     CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
-                    CanCreateQaTests = false,
-                    CanEditQaTests = false,
                     CanRefreshFunding = false,
                     CanApproveAnyCalculations = false,
                     CanAssignProfilePattern = false,
-                    CanDeleteSpecification = false,
-                    CanDeleteQaTests = false,
-                    CanDeleteCalculations = false,
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = true,
                     CanApproveAllCalculations = false
@@ -812,8 +759,6 @@ namespace CalculateFunding.Services.Users
                         !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
-                        !p.CanCreateQaTests &&
-                        !p.CanEditQaTests &&
                         !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
@@ -887,8 +832,6 @@ namespace CalculateFunding.Services.Users
                     CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
-                    CanCreateQaTests = false,
-                    CanEditQaTests = false,
                     CanRefreshFunding = false,
                 });
 
@@ -907,8 +850,6 @@ namespace CalculateFunding.Services.Users
                         !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
-                        !p.CanCreateQaTests &&
-                        !p.CanEditQaTests &&
                         !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
