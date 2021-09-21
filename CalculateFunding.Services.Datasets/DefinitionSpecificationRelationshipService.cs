@@ -879,7 +879,7 @@ namespace CalculateFunding.Services.Datasets
                 return validationResult;
             }
 
-            return new OkResult();
+            return new OkObjectResult(true);
         }
 
         public async Task<IActionResult> Migrate()
