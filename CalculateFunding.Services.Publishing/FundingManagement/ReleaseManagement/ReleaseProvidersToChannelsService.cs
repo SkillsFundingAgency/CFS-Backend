@@ -10,6 +10,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -30,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IReleaseApprovedProvidersService _releaseApprovedProvidersService;
         private readonly ILogger _logger;
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
-
+        
         public ReleaseProvidersToChannelsService(
             ISpecificationService specificationService,
             IPoliciesService policiesService,
@@ -47,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(publishProvidersLoadContext, nameof(publishProvidersLoadContext));
             Guard.ArgumentNotNull(releaseApprovedProvidersService, nameof(releaseApprovedProvidersService));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
-
+            
             _specificationService = specificationService;
             _policiesService = policiesService;
             _channelService = channelService;
@@ -147,7 +148,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             await LoadGivenProvidersFromFundingApprovals(releaseProvidersToChannelRequest);
 
             IEnumerable<string> providerIdsReleased = await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(author, correlationId, specification);
-
+            
             await RefreshLoadContextWithProvidersApprovedNowReleased(providerIdsReleased);
         }
 

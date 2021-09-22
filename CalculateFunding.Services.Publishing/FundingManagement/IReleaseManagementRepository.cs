@@ -4,7 +4,7 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResu
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Publishing.FundingManagement
+namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
     public interface IReleaseManagementRepository
     {
@@ -34,6 +34,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         Task<FundingGroupVersionVariationReason> CreateFundingGroupVariationReason(FundingGroupVersionVariationReason reason);
         Task<IEnumerable<Specification>> GetSpecifications();
         Task<Specification> CreateSpecification(Specification specification);
+        Task<IEnumerable<ReleasedProvider>> CreateReleasedProviders(IEnumerable<ReleasedProvider> releasedProviders);
+
         Task<int> QueryPublishedFundingCount(
                     int channelId,
                     IEnumerable<string> fundingStreamIds,

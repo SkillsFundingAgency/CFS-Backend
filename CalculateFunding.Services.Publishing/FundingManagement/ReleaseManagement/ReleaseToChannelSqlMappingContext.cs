@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+﻿using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement

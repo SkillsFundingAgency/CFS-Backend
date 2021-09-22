@@ -5,6 +5,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.FundingManagement;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;

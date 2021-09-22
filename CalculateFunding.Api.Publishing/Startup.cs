@@ -39,6 +39,7 @@ using CalculateFunding.Services.Publishing.Batches;
 using CalculateFunding.Services.Publishing.Caching.Http;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.FundingManagement;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;

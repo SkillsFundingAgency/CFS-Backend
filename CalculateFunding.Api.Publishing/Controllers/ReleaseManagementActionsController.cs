@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing.FundingManagement;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;

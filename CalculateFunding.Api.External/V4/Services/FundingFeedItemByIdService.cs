@@ -2,6 +2,7 @@
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.FundingManagement;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;

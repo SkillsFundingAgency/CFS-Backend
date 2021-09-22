@@ -5,6 +5,7 @@ using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing.FundingManagement;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;

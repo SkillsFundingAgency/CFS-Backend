@@ -2,6 +2,7 @@
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using System;
 using System.Collections.Generic;

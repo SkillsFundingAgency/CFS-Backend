@@ -16,6 +16,7 @@ using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Tests.Common.Helpers;
 using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 
 namespace CalculateFunding.Functions.Publishing.SmokeTests
 {

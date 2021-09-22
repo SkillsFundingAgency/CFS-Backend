@@ -1,7 +1,7 @@
 ﻿using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using System.Collections.Generic;
 
-namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
+namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
     public interface IReleaseToChannelSqlMappingContext
     {

@@ -2,10 +2,14 @@
 using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External.V4;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using System.Threading.Tasks;
 using SqlGroupingReason = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.GroupingReason;
 
@@ -158,9 +162,37 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         public async Task<Specification> CreateSpecification(Specification specification)
         {
-            await Insert<Specification>(specification);
+            await Insert(specification);
 
             return specification;
+        }
+
+        public async Task<IEnumerable<ReleasedProvider>> CreateReleasedProviders(IEnumerable<ReleasedProvider> releasedProviders)
+        {
+            using ISqlTransaction transaction = BeginTransaction();
+
+            try
+            {
+                // calling the one which doesn't support transactions internally as I think we are going to need to do more inserting here
+                bool success = await BulkInsert(releasedProviders.ToList(), transaction);
+
+                if (success)
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    transaction.Rollback();
+                    throw new RetriableException("Unknown reason for insert failure so throw retriable exception.");
+                }
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+
+            return releasedProviders;
         }
 
         public async Task<int> QueryPublishedFundingCount(

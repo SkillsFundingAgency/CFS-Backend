@@ -5,6 +5,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using System.Collections.Generic;
 using System.Linq;

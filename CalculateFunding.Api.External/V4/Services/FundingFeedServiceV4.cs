@@ -6,6 +6,7 @@ using CalculateFunding.Models.External.V4;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
