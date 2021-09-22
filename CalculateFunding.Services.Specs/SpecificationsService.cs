@@ -1570,8 +1570,8 @@ WHERE   s.documentType = @DocumentType",
                 return new PreconditionFailedResult(message);
             }
 
-            Models.Specs.SpecificationVersion currentSpecificationVersion = specification.Current;
-            Models.Specs.SpecificationVersion newSpecificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            SpecificationVersion currentSpecificationVersion = specification.Current;
+            SpecificationVersion newSpecificationVersion = specification.Current.Clone() as SpecificationVersion;
 
             IEnumerable<ProfileVariationPointer> profileVariationPointers = specificationProfileVariationPointerModels.Select(_ => new ProfileVariationPointer
             {
@@ -1585,17 +1585,10 @@ WHERE   s.documentType = @DocumentType",
 
             if (merge && !newSpecificationVersion.ProfileVariationPointers.IsNullOrEmpty())
             {
-                profileVariationPointers = newSpecificationVersion.ProfileVariationPointers
-                    .Concat(
-                        profileVariationPointers
-                            .Where(_ =>
-                                !newSpecificationVersion.ProfileVariationPointers.Any(pvp => 
-                                    pvp.FundingLineId == _.FundingLineId && 
-                                    pvp.FundingStreamId == _.FundingStreamId && 
-                                    pvp.Occurrence == _.Occurrence && 
-                                    pvp.PeriodType == _.PeriodType &&
-                                    pvp.Year == _.Year &&
-                                    pvp.TypeValue == _.TypeValue))).ToList();
+                profileVariationPointers = profileVariationPointers.Concat(newSpecificationVersion.ProfileVariationPointers.Where(_ =>
+                                !profileVariationPointers.Any(pvp =>
+                                    pvp.FundingLineId == _.FundingLineId &&
+                                    pvp.FundingStreamId == _.FundingStreamId))).ToList();
             }
 
             newSpecificationVersion.Version++;

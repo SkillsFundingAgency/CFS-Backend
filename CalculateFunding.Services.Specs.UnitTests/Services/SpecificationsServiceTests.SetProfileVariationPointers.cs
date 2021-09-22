@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                         {
                             FundingLineId = "FundingLineId",
                             FundingStreamId = "FundingStreamId",
-                            Occurrence = 2,
+                            Occurrence = 1,
                             PeriodType = "PeriodType",
                             TypeValue = "TypeValue",
                             Year = 2019
@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 {
                     FundingLineId = "FundingLineId",
                     FundingStreamId = "FundingStreamId",
-                    Occurrence = 1,
+                    Occurrence = 2,
                     PeriodType = "PeriodType",
                     TypeValue = "TypeValue",
                     Year = 2019
@@ -243,7 +243,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 {
                     FundingLineId = "FundingLineId",
                     FundingStreamId = "FundingStreamId",
-                    Occurrence = 1,
+                    Occurrence = 2,
                     PeriodType = "PeriodType",
                     TypeValue = "TypeValue",
                     Year = 2019
@@ -251,14 +251,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             if (merge)
             {
-                expectedProfileVariationPointers.Add(new ProfileVariationPointer
-                {
-                    FundingLineId = "FundingLineId",
-                    FundingStreamId = "FundingStreamId",
-                    Occurrence = 2,
-                    PeriodType = "PeriodType",
-                    TypeValue = "TypeValue",
-                    Year = 2019
+                expectedProfileVariationPointers.ForEach(_ => { 
+                    _.Occurrence = 2;
                 });
             }
 
@@ -292,9 +286,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                             Year = 2019
                         },
                         new ProfileVariationPointer {
-                            FundingLineId = "FundingLineId",
+                            FundingLineId = "FundingLineId2",
                             FundingStreamId = "FundingStreamId",
-                            Occurrence = 2,
+                            Occurrence = 1,
                             PeriodType = "PeriodType",
                             TypeValue = "TypeValue",
                             Year = 2019
@@ -307,7 +301,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 FundingLineId = "FundingLineId",
                 FundingStreamId = "FundingStreamId",
-                Occurrence = 1,
+                Occurrence = 2,
                 PeriodType = "PeriodType",
                 TypeValue = "TypeValue",
                 Year = 2019
@@ -363,15 +357,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 {
                     FundingLineId = "FundingLineId",
                     FundingStreamId = "FundingStreamId",
-                    Occurrence = 1,
+                    Occurrence = 2,
                     PeriodType = "PeriodType",
                     TypeValue = "TypeValue",
                     Year = 2019
                 },
                 new ProfileVariationPointer {
-                    FundingLineId = "FundingLineId",
+                    FundingLineId = "FundingLineId2",
                     FundingStreamId = "FundingStreamId",
-                    Occurrence = 2,
+                    Occurrence = 1,
                     PeriodType = "PeriodType",
                     TypeValue = "TypeValue",
                     Year = 2019
