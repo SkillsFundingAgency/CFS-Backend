@@ -47,7 +47,10 @@ namespace CalculateFunding.Services.Publishing.Profiling
             ProfilePeriod[] orderedProfilePeriodsForFundingLine = GetOrderedProfilePeriodsForFundingLine(fundingLineCode,
                 publishedProviderVersion);
 
-            ProfilePeriod firstPeriod = orderedProfilePeriodsForFundingLine.First();
+            if (orderedProfilePeriodsForFundingLine.IsNullOrEmpty())
+            {
+                throw new ArgumentOutOfRangeException(nameof(publishedProviderVersion), $"Did not locate profile periods corresponding to funding line id {fundingLineCode} against published provider: {publishedProviderVersion.ProviderId}");
+            }
 
             MidYearType? midYearType = null;
 
