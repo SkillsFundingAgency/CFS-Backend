@@ -803,16 +803,13 @@ namespace CalculateFunding.Services.Datasets
                         blobPath, 
                         model.EmptyFieldEvaluationOption);
 
-                    dataset.Current.BlobName = blobPath;
-                    dataset.Current.UploadedBlobFilePath = uploadedBlobPath;
-                    dataset.Current.ChangeType = model.MergeExistingVersion ? DatasetChangeType.Merge : DatasetChangeType.NewVersion;
-                    dataset.Current.ProviderVersionId = null;
-
+                    dataset.Current.ChangeType = DatasetChangeType.Merge;
+                    
                     if (!mergeResult.HasChanges)
                     {
                         // no need to update index as we are just saving the merge results
-                        dataset.Current.NewRowCount = mergeResult.TotalRowsCreated;
-                        dataset.Current.AmendedRowCount = mergeResult.TotalRowsAmended;
+                        dataset.Current.NewRowCount = 0;
+                        dataset.Current.AmendedRowCount = 0;
 
                         HttpStatusCode statusCode = await _datasetRepository.SaveDataset(dataset);
 
@@ -830,6 +827,11 @@ namespace CalculateFunding.Services.Datasets
 
                         return;
                     }
+
+                    // make sure we only update the blobPath when there are merge changes
+                    dataset.Current.BlobName = blobPath;
+                    dataset.Current.UploadedBlobFilePath = uploadedBlobPath;
+                    dataset.Current.ProviderVersionId = null;
 
                     if (mergeResult.HasErrors)
                     {

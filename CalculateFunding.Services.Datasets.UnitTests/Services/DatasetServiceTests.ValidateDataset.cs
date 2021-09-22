@@ -3766,6 +3766,205 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task OnValidateDataset_GivenValidDatasetToMerge_AndNoChangesRowCountsSet()
+        {
+            //Arrange
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string name = "name";
+            const string description = "updated description";
+            const string operationId = "operationId";
+            const int newRowCount = 0;
+            const int updatedRowCount = 0;
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", DataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", DatasetId },
+                    { "name", name },
+                    { "description", description },
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithVersion(2)
+                                                                    .WithFundingStreamId(FundingStreamId)
+                                                                    .WithDatasetId(DatasetId)
+                                                                    .WithFileName("blah.xlsx")
+                                                                    .WithMergeExistingVersion(true)
+                                                                    .WithComment("MergeTest")
+                                                                    .WithLastUpdatedBy(new ReferenceBuilder()
+                                                                    .WithId(authorId)
+                                                                    .WithName(authorName))
+                                                                    .WithDescription(description));
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefinitionId,
+                FundingStreamId = FundingStreamId,
+                Name = name
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Description = "description",
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = model.DatasetId,
+                Current = existingDatasetVersion,
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
+                Name = name,
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion>() { existingDatasetVersion };
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+            datasetVersionRepository
+                .GetVersions(model.DatasetId)
+                .Returns(history);
+
+            datasetVersionRepository
+                .GetNextVersionNumber(Arg.Is<DatasetVersion>(_ => _.EntityId == existingDatasetVersion.EntityId))
+                .Returns(existingDatasetVersion.Version + 1);
+
+            datasetRepository
+             .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+             .Returns(datasetDefinitions);
+
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                .Returns(new[] { existingDataset });
+
+            datasetRepository.GetDatasetByDatasetId(model.DatasetId)
+                .Returns(existingDataset);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
+            };
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
+                .Returns(providerVersionResponse);
+
+            DatasetDataTableMergeResult tableMergeResult = new DatasetDataTableMergeResult()
+            {
+                TableDefinitionName = "Test-data-definition-name",
+                NewRowsCount = newRowCount,
+                UpdatedRowsCount = updatedRowCount
+            };
+            DatasetDataMergeResult mergeResult = new DatasetDataMergeResult();
+            mergeResult.TablesMergeResults.Add(tableMergeResult);
+
+            IDatasetDataMergeService datasetDataMergeService = CreateDatasetDataMergeService();
+            datasetDataMergeService
+                .Merge(
+                Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<DatasetEmptyFieldEvaluationOption>())
+                .Returns(mergeResult);
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
+                searchRepository: searchRepository,
+                cacheProvider: cacheProvider,
+                jobManagement: jobManagement,
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository,
+                datasetDataMergeService: datasetDataMergeService);
+
+            // Act
+            await service.Run(message);
+
+            // Assert
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Current.NewRowCount == newRowCount &&
+                d.Current.AmendedRowCount == updatedRowCount
+            ));
+
+            await cacheProvider
+                 .Received(1)
+                 .SetAsync<DatasetValidationStatusModel>(
+                 Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                 Arg.Is<DatasetValidationStatusModel>(s =>
+                     s.CurrentOperation == DatasetValidationStatus.Validated &&
+                     s.ErrorMessage == null &&
+                     s.OperationId == operationId
+                     ));
+
+            for (int percentComplete = 25; percentComplete < 50; percentComplete += 25)
+            {
+                await jobManagement
+                    .Received(1)
+                    .UpdateJobStatus(Arg.Is(JobId), percentComplete, null, null);
+            }
+
+            await jobManagement
+                .Received(1)
+                .UpdateJobStatus(Arg.Is(JobId), 0, 0, true, "Merge completed but no changes detected.");
+        }
+
+        [TestMethod]
         public async Task OnValidateDataset_GivenValidDatasetToMerge_ThenItMergesWithPreviousVersionOfDataset()
         {
             //Arrange
