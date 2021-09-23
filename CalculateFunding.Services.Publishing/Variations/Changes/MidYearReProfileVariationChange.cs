@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         }
 
         protected override IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLinesWithVariationPointerSet;
+        
+        protected override bool ShouldReprofile(FundingLine fundingLine) => !fundingLine.Value.HasValue || fundingLine.Value == 0;
 
         protected override Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,

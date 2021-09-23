@@ -103,7 +103,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             FundingLine fundingLineOne = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
             FundingLine fundingLineTwo = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
             FundingLine fundingLineThree = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
-            FundingLine fundingLineFour = NewFundingLine(_ => _.WithValue(0));
+            FundingLine fundingLineFour = NewFundingLine(_ => _.WithValue(100));
 
             GivenTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(fundingLineOne.FundingLineCode)),
                 NewVariationPointer(_ => _.WithFundingLineId(fundingLineTwo.FundingLineCode)),

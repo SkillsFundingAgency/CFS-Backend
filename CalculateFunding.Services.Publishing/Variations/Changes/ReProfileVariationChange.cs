@@ -21,6 +21,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         protected virtual IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLineCodes;
 
+        protected virtual bool ShouldReprofile(FundingLine fundingLine) => !fundingLine.Value.HasValue;
+
         protected override async Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
             Guard.IsNotEmpty(VariationContext.AffectedFundingLineCodes, nameof(VariationContext.AffectedFundingLineCodes));
@@ -51,7 +53,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 throw new NonRetriableException($"Could not locate funding line {fundingLineCode} for published provider version {providerId}");
             }
 
-            if (!fundingLine.Value.HasValue)
+            if (ShouldReprofile(fundingLine))
             {
                 // exit early as nothing to re-profile
                 return;
