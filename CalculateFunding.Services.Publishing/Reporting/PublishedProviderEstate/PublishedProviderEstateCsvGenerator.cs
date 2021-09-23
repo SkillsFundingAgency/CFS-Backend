@@ -120,7 +120,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
             string fundingStreamId = message.GetUserProperty<string>("funding-stream-id");
             string fundingPeriodId = message.GetUserProperty<string>("funding-period-id");
 
-            return $"{fundingStreamId} {fundingPeriodId} Provider Estate Variations {DateTimeOffset.UtcNow:s}";
+            return $"{fundingStreamId} {fundingPeriodId} Provider Estate Variations {DateTimeOffset.UtcNow:s}.csv";
         }
     }
 }

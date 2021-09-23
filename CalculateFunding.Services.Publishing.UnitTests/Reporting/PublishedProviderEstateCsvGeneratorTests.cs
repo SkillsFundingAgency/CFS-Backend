@@ -235,6 +235,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             _blobProperties.ContentDisposition
                 .Should()
                 .StartWith($"attachment; filename={fundingStreamId} {fundingPeriodId} Provider Estate Variations {DateTimeOffset.UtcNow:yyyy-MM-dd}");
+
+            _blobProperties.ContentDisposition
+                .Should()
+                .EndWith($".csv");
         }
 
         [TestMethod]
@@ -311,6 +315,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             _blobProperties.ContentDisposition
                 .Should()
                 .StartWith($"attachment; filename={fundingStreamId} {fundingPeriodId} Provider Estate Variations {DateTimeOffset.UtcNow:yyyy-MM-dd}");
+
+            _blobProperties.ContentDisposition
+                .Should()
+                .EndWith($".csv");
         }
         
         [TestMethod]
