@@ -1,5 +1,5 @@
-﻿using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
-using CalculateFunding.Services.Publishing.Models;
+﻿using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;

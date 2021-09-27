@@ -1,6 +1,5 @@
-﻿using System;
+﻿using CalculateFunding.Common.Sql.Interfaces;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces

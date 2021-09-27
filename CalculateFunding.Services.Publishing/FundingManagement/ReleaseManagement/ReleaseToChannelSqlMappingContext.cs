@@ -12,8 +12,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         public ReleaseToChannelSqlMappingContext()
         {
             ReleasedProviders = new Dictionary<string, ReleasedProvider>();
+            ReleasedProviderVersions = new Dictionary<string, ReleasedProviderVersion>();
         }
 
         public Dictionary<string, ReleasedProvider> ReleasedProviders { get; }
+
+        public Dictionary<string, ReleasedProviderVersion> ReleasedProviderVersions { get; }
     }
 }

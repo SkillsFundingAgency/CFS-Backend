@@ -18,6 +18,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
     public class ReleaseManagementRepository : SqlRepository, IReleaseManagementRepository
     {
         private readonly IExternalApiQueryBuilder _externalApiQueryBuilder;
+        private ISqlTransaction _transaction;
 
         public ReleaseManagementRepository(
             ISqlConnectionFactory connectionFactory,
@@ -28,6 +29,29 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             Guard.ArgumentNotNull(externalApiQueryBuilder, nameof(externalApiQueryBuilder));
 
             _externalApiQueryBuilder = externalApiQueryBuilder;
+        }
+
+        public void InitialiseTransaction()
+        {
+            _transaction = BeginTransaction();
+        }
+
+        public void Commit()
+        {
+            if (_transaction == null)
+            {
+                throw new ArgumentNullException("Transaction must be initialised before calling Commit");
+            }
+
+            try
+            {
+                _transaction.Commit();
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
         }
 
         public async Task<IEnumerable<SqlGroupingReason>> GetGroupingReasons()
@@ -169,26 +193,22 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         public async Task<IEnumerable<ReleasedProvider>> CreateReleasedProviders(IEnumerable<ReleasedProvider> releasedProviders)
         {
-            using ISqlTransaction transaction = BeginTransaction();
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
             try
             {
                 // calling the one which doesn't support transactions internally as I think we are going to need to do more inserting here
-                bool success = await BulkInsert(releasedProviders.ToList(), transaction);
+                bool success = await BulkInsert(releasedProviders.ToList(), _transaction);
 
-                if (success)
+                if (!success)
                 {
-                    transaction.Commit();
-                }
-                else
-                {
-                    transaction.Rollback();
-                    throw new RetriableException("Unknown reason for insert failure so throw retriable exception.");
+                    _transaction.Rollback();
+                    throw new RetriableException("Unknown reason for insert failure so retriable exception thrown");
                 }
             }
             catch
             {
-                transaction.Rollback();
+                _transaction.Rollback();
                 throw;
             }
 
@@ -347,6 +367,29 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     specificationId,
                     channelId,
                 });
+        }
+
+        public async Task<IEnumerable<ReleasedProviderVersion>> CreateReleasedProviderVersions(IEnumerable<ReleasedProviderVersion> providerVersions)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                bool success = await BulkInsert(providerVersions.ToList(), _transaction);
+
+                if (!success)
+                {
+                    _transaction.Rollback();
+                    throw new RetriableException("Unknown reason for insert failure so retriable exception thrown");
+                }
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
+
+            return providerVersions;
         }
     }
 }

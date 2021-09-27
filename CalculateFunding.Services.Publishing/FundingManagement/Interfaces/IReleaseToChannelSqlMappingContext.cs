@@ -6,8 +6,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
     public interface IReleaseToChannelSqlMappingContext
     {
         /// <summary>
-        /// Released providers. Key is the ProviderId eg UKPRN
+        /// Released providers. Key is the ProviderId e.g. UKPRN
         /// </summary>
         Dictionary<string, ReleasedProvider> ReleasedProviders { get; }
+
+        /// <summary>
+        /// Released provider versions. Key is the ProviderId e.g. UKPRN
+        /// </summary>
+        Dictionary<string, ReleasedProviderVersion> ReleasedProviderVersions { get; }
     }
 }

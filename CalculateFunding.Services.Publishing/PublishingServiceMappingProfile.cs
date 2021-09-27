@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
-using CalculateFunding.Services.Publishing.Models;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 using TemplateModels = CalculateFunding.Common.TemplateMetadata.Models;

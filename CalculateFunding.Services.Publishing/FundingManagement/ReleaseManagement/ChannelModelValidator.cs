@@ -1,7 +1,6 @@
-﻿using CalculateFunding.Services.Publishing.Models;
-using FluentValidation;
+﻿using FluentValidation;
 
-namespace CalculateFunding.Services.Publishing.ReleaseManagement
+namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
 {
     public class ChannelModelValidator : AbstractValidator<ChannelRequest>
     {

@@ -3,7 +3,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
-using CalculateFunding.Services.Publishing.Models;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;

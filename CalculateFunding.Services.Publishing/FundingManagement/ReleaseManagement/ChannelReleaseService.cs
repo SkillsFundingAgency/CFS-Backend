@@ -18,25 +18,29 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IChannelOrganisationGroupGeneratorService _channelOrganisationGroupGeneratorService;
         private readonly IChannelOrganisationGroupChangeDetector _channelOrganisationGroupChangeDetector;
         private readonly IReleaseProviderPersistanceService _releaseProviderPersistanceService;
+        private readonly IProviderVersionReleaseService _providerVersionReleaseService;
 
         public ChannelReleaseService(
             IPublishedProvidersLoadContext publishProvidersLoadContext,
             IProvidersForChannelFilterService providersForChannelFilterService,
             IChannelOrganisationGroupGeneratorService channelOrganisationGroupGeneratorService,
             IChannelOrganisationGroupChangeDetector channelOrganisationGroupChangeDetector,
-            IReleaseProviderPersistanceService releaseProviderPersistanceService)
+            IReleaseProviderPersistanceService releaseProviderPersistanceService,
+            IProviderVersionReleaseService providerVersionReleaseService)
         {
             Guard.ArgumentNotNull(publishProvidersLoadContext, nameof(publishProvidersLoadContext));
             Guard.ArgumentNotNull(providersForChannelFilterService, nameof(providersForChannelFilterService));
             Guard.ArgumentNotNull(channelOrganisationGroupGeneratorService, nameof(channelOrganisationGroupGeneratorService));
             Guard.ArgumentNotNull(channelOrganisationGroupChangeDetector, nameof(channelOrganisationGroupChangeDetector));
             Guard.ArgumentNotNull(releaseProviderPersistanceService, nameof(releaseProviderPersistanceService));
+            Guard.ArgumentNotNull(providerVersionReleaseService, nameof(providerVersionReleaseService));
 
             _publishProvidersLoadContext = publishProvidersLoadContext;
             _providersForChannelFilterService = providersForChannelFilterService;
             _channelOrganisationGroupGeneratorService = channelOrganisationGroupGeneratorService;
             _channelOrganisationGroupChangeDetector = channelOrganisationGroupChangeDetector;
             _releaseProviderPersistanceService = releaseProviderPersistanceService;
+            _providerVersionReleaseService = providerVersionReleaseService;
         }
 
         public async Task ReleaseProvidersForChannel(Channel channel, 
@@ -72,6 +76,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             await _releaseProviderPersistanceService.ReleaseProviders(
                 providersInGroupsToRelease.Select(_ => _.ProviderId),
+                specification.Id);
+
+            await _providerVersionReleaseService.ReleaseProviderVersions(
+                providersInGroupsToRelease,
                 specification.Id);
         }
     }

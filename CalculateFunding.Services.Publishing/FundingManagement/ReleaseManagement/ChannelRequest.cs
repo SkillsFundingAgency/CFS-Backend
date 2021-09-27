@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
-namespace CalculateFunding.Services.Publishing.Models
+namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
 {
     public class ChannelRequest
     {

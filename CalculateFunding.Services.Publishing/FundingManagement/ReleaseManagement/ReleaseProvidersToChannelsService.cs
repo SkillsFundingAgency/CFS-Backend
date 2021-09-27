@@ -31,7 +31,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IReleaseApprovedProvidersService _releaseApprovedProvidersService;
         private readonly ILogger _logger;
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
-        
+        private readonly IReleaseManagementRepository _releaseManagementRepository;
+
         public ReleaseProvidersToChannelsService(
             ISpecificationService specificationService,
             IPoliciesService policiesService,
@@ -40,7 +41,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IReleaseApprovedProvidersService releaseApprovedProvidersService,
             IJobManagement jobManagement,
             ILogger logger,
-            IPrerequisiteCheckerLocator prerequisiteCheckerLocator) : base(jobManagement, logger)
+            IPrerequisiteCheckerLocator prerequisiteCheckerLocator,
+            IReleaseManagementRepository releaseManagementRepository) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
@@ -48,7 +50,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(publishProvidersLoadContext, nameof(publishProvidersLoadContext));
             Guard.ArgumentNotNull(releaseApprovedProvidersService, nameof(releaseApprovedProvidersService));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
-            
+            Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
+
             _specificationService = specificationService;
             _policiesService = policiesService;
             _channelService = channelService;
@@ -56,6 +59,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _releaseApprovedProvidersService = releaseApprovedProvidersService;
             _logger = logger;
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
+            _releaseManagementRepository = releaseManagementRepository;
         }
 
         public async Task<IActionResult> QueueReleaseProviderVersions(
@@ -96,6 +100,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
+            _releaseManagementRepository.InitialiseTransaction();
+
             string specificationId = message.GetUserProperty<string>("specification-id");
             ReleaseProvidersToChannelRequest model = message.GetPayloadAsInstanceOf<ReleaseProvidersToChannelRequest>();
 
@@ -103,6 +109,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             string correlationId = message.GetCorrelationId();
 
             await ReleaseProviderVersions(specificationId, model, author, correlationId);
+
+            _releaseManagementRepository.Commit();
         }
 
         public async Task ReleaseProviderVersions(
@@ -128,7 +136,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             try
             {
-                await prerequisiteChecker.PerformChecks(specification, Job.Id, null);
+                await prerequisiteChecker.PerformChecks(specification, Job?.Id, null);
             }
             catch (JobPrereqFailedException ex)
             {
@@ -141,7 +149,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStreamId, specification.FundingPeriod.Id);
 
-            IEnumerable<KeyValuePair<string, SqlModels.Channel>> channels = await _channelService.GetAndVerifyChannels(releaseProvidersToChannelRequest.Channels);
+            IEnumerable<KeyValuePair<string, SqlModels.Channel>> channels = await _channelService.GetAndVerifyChannels(releaseProvidersToChannelRequest?.Channels);
 
             _publishProvidersLoadContext.SetSpecDetails(fundingStreamId, specification.FundingPeriod.Id);
 
