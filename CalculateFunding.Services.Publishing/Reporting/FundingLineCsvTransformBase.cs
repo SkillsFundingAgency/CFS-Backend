@@ -6,6 +6,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
+using System.Globalization;
 
 namespace CalculateFunding.Services.Publishing.Reporting
 {
@@ -16,7 +17,11 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
         public abstract bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
 
-        public virtual IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType, IEnumerable<ProfilePeriodPattern> profilePatterns = null)
+        public virtual IEnumerable<ExpandoObject> Transform(
+            IEnumerable<dynamic> documents, 
+            FundingLineCsvGeneratorJobType jobType, 
+            IEnumerable<ProfilePeriodPattern> profilePatterns = null,
+            IEnumerable<string> distinctFundingLineNames = null)
         {
             int resultsCount = documents.Count();
 
@@ -45,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 row["Allocation DateTime"] = publishedProviderVersion.Date.ToString("s");
                 row["Is Indicative"] = publishedProviderVersion.IsIndicative.ToString();
 
-                TransformFundingLine(row, publishedProviderVersion, profilePatterns);
+                TransformFundingLine(row, publishedProviderVersion, profilePatterns, distinctFundingLineNames);
                 TransformProviderDetails(row, publishedProviderVersion);
 
                 yield return (ExpandoObject)row;
@@ -56,11 +61,12 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
         protected virtual void TransformFundingLine(IDictionary<string, object> row,
             PublishedProviderVersion publishedProviderVersion,
-            IEnumerable<ProfilePeriodPattern> profilePatternColumnHeaders = null)
+            IEnumerable<ProfilePeriodPattern> profilePatternColumnHeaders = null,
+            IEnumerable<string> distinctFundingLineNames = null)
         {
-            foreach (FundingLine fundingLine in publishedProviderVersion.FundingLines.OrderBy(_ => _.Name))
+            foreach (string fundingLineName in distinctFundingLineNames.OrderBy(_ => _))
             {
-                row[fundingLine.Name] = fundingLine.Value?.ToString();
+                row[fundingLineName] = publishedProviderVersion.FundingLines.SingleOrDefault(_ => _.Name == fundingLineName)?.Value?.ToString(CultureInfo.InvariantCulture);
             }
         }
 

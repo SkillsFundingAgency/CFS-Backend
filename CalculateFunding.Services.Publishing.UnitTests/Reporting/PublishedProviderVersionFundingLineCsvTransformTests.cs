@@ -5,6 +5,7 @@ using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -37,6 +38,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         [TestMethod]
         public void FlattensTemplateCalculationsAndProviderMetaDataIntoRows()
         {
+            string fundingLineNameOne = "1FL";
+            string fundingLineNameTwo = "2FL";
+            string fundingLineNameThree = "3FL";
+
             IEnumerable<PublishedProviderVersion> publishedProviders = NewPublishedProviderVersions(
                 NewPublishedProviderVersion(ppv => ppv.WithProvider(
                         NewProvider(pr => pr.WithEstablishmentNumber("en1")
@@ -48,9 +53,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                             .WithProviderType("pt1")
                             .WithProviderSubType("pst1")))
                     .WithIsIndicative(true)
-                    .WithFundingLines(NewFundingLine(fl => fl.WithName("bfl1")
+                    .WithFundingLines(
+                        NewFundingLine(fl => fl.WithName(fundingLineNameTwo)
                             .WithValue(999M)),
-                        NewFundingLine(fl => fl.WithName("afl2")
+                        NewFundingLine(fl => fl.WithName(fundingLineNameOne)
                             .WithValue(666M)))
                     .WithAuthor(NewReference(auth => auth.WithName("author1")))
                     .WithMajorVersion(1)
@@ -66,7 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                             .WithUKPRN("ukprn2")
                             .WithProviderType("pt2")
                             .WithProviderSubType("pst2")))
-                    .WithFundingLines(NewFundingLine(fl => fl.WithName("zfl1")
+                    .WithFundingLines(NewFundingLine(fl => fl.WithName(fundingLineNameThree)
                         .WithValue(123M)))
                     .WithAuthor(NewReference(auth => auth.WithName("author2")))
                     .WithMajorVersion(2)
@@ -92,8 +98,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     {"Allocation Author", "author1"},
                     {"Allocation DateTime", "2020-01-05T20:05:44"},
                     {"Is Indicative", "True"},
-                    {"afl2", 666M.ToString(CultureInfo.InvariantCulture)}, //funding lines to be alpha numerically ordered on name
-                    {"bfl1", 999M.ToString(CultureInfo.InvariantCulture)}
+                    {fundingLineNameOne, 666M.ToString(CultureInfo.InvariantCulture)}, //funding lines to be alpha numerically ordered on name
+                    {fundingLineNameTwo, 999M.ToString(CultureInfo.InvariantCulture)},
+                    {fundingLineNameThree, null},
                 },
                 new Dictionary<string, object>
                 {
@@ -111,12 +118,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     {"Allocation Author", "author2"},
                     {"Allocation DateTime", "2020-02-05T20:03:55"},
                     {"Is Indicative", "False"},
-                    {"zfl1", 123M.ToString(CultureInfo.InvariantCulture)}
+                    {fundingLineNameOne, null},
+                    {fundingLineNameTwo, null},
+                    {fundingLineNameThree, 123M.ToString(CultureInfo.InvariantCulture)}
                 }
             };
 
+            IEnumerable<string> fundingLineNames = new List<string> { fundingLineNameOne, fundingLineNameTwo, fundingLineNameThree };
 
-            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(publishedProviders, FundingLineCsvGeneratorJobType.History).ToArray();
+            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(
+                publishedProviders, 
+                FundingLineCsvGeneratorJobType.History, 
+                distinctFundingLineNames: fundingLineNames).ToArray();
+
+            Core.Interfaces.ICsvUtils _csvUtils = new Core.Helpers.CsvUtils();
+            string csv = _csvUtils.AsCsv(transformProviderResultsIntoCsvRows, true);
 
             transformProviderResultsIntoCsvRows
                 .Should()
@@ -125,8 +141,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         }
 
         private static IEnumerable<PublishedProviderVersion> NewPublishedProviderVersions(params PublishedProviderVersion[] publishedProviderVersions)
-        {
-            return publishedProviderVersions;
-        }
+            => publishedProviderVersions;
+
+        private static string NewRandomString() => new RandomString();
     }
 }

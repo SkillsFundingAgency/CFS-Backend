@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -7,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
 
@@ -16,7 +18,6 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly AsyncPolicy _policiesApiClientPolicy;
-        private const string periodIdStringFormat = "{0}-{1}";
 
         public PoliciesService(
             IPoliciesApiClient policiesApiClient,
@@ -113,7 +114,49 @@ namespace CalculateFunding.Services.Publishing
                 _policiesApiClient.GetDistinctTemplateMetadataFundingLinesContents(
                     fundingStreamId, fundingPeriodId, templateVersion));
 
+
             return distinctTemplateMetadataFundingLinesContentsResponse?.Content;
+        }
+
+        public async Task<IEnumerable<PublishedFundingTemplate>> GetFundingTemplates(string fundingStreamId, string fundingPeriodId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+
+            ApiResponse<IEnumerable<PublishedFundingTemplate>> distinctTemplateMetadataFundingLinesContentsResponse =
+                await _policiesApiClientPolicy.ExecuteAsync(() =>
+                _policiesApiClient.GetFundingTemplates(
+                    fundingStreamId, fundingPeriodId));
+
+
+            return distinctTemplateMetadataFundingLinesContentsResponse?.Content;
+        }
+
+        public async Task<IEnumerable<string>> GetDistinctFundingLineNames(string fundingStreamId, string fundingPeriodId)
+        {
+            List<string> fundingLines = new List<string>();
+
+            IEnumerable<PublishedFundingTemplate> publishedFundingTemplates
+                = await GetFundingTemplates(fundingStreamId, fundingPeriodId);
+
+            IEnumerable<string> templateVersionStrings = publishedFundingTemplates.Select(_ => _.TemplateVersion);
+
+            List<Task<TemplateMetadataDistinctFundingLinesContents>> requests = new List<Task<TemplateMetadataDistinctFundingLinesContents>>();
+            foreach (string templateVersionString in templateVersionStrings)
+            {
+                requests.Add(GetDistinctTemplateMetadataFundingLinesContents(fundingStreamId, fundingPeriodId, templateVersionString));
+            }
+
+            await TaskHelper.WhenAllAndThrow(requests.ToArray());
+
+            foreach (Task<TemplateMetadataDistinctFundingLinesContents> request in requests)
+            {
+                TemplateMetadataDistinctFundingLinesContents templateMetadataDistinctFundingLinesContents = request.Result;
+
+                fundingLines.AddRange(templateMetadataDistinctFundingLinesContents.FundingLines.Select(_ => _.Name));
+            }
+
+            return fundingLines.Distinct();
         }
     }
 }

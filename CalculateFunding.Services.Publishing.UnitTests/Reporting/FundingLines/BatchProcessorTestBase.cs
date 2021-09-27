@@ -26,6 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         protected Mock<ICsvUtils> CsvUtils;
         protected Mock<IPublishedFundingRepository> PublishedFunding;
         protected Mock<IFileSystemAccess> FileSystemAccess;
+        protected Mock<IPoliciesService> PoliciesService;
         protected IFundingLineCsvBatchProcessor BatchProcessor;
         
         private Mock<IFundingLineCsvTransform> _transformation;
@@ -38,7 +39,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             PublishedFunding = new Mock<IPublishedFundingRepository>();
             CsvUtils = new Mock<ICsvUtils>();
             FileSystemAccess = new Mock<IFileSystemAccess>();
-            
+            PoliciesService = new Mock<IPoliciesService>();
+
             _transformation = new Mock<IFundingLineCsvTransform>();
         }
         
@@ -75,7 +77,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         protected void GivenTheCsvRowTransformation<T>(Func<IEnumerable<T>, bool> publishedProviders, IEnumerable<ExpandoObject> transformedRows, string csv, bool outputHeaders) where T:class
         {
             _transformation
-                .Setup(_ => _.Transform(It.Is<IEnumerable<T>>(_ => publishedProviders(_)), It.IsAny<FundingLineCsvGeneratorJobType>(), It.IsAny<IEnumerable<ProfilePeriodPattern>>()))
+                .Setup(_ => _.Transform(
+                    It.Is<IEnumerable<T>>(_ => publishedProviders(_)), 
+                    It.IsAny<FundingLineCsvGeneratorJobType>(), 
+                    It.IsAny<IEnumerable<ProfilePeriodPattern>>(),
+                    It.IsAny<IEnumerable<string>>()))
                 .Returns(transformedRows);
 
             CsvUtils
@@ -94,6 +100,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             PredicateBuilder.Setup(_ => _.BuildJoinPredicate(jobType))
                 .Returns(predicate);
         }
+
+        protected void AndDistinctFundingLineNames(
+            string fundingStreamId,
+            string fundingPeriodId,
+            IEnumerable<string> fundingLineNames)
+        {
+            PoliciesService
+                .Setup(_ => _.GetDistinctFundingLineNames(fundingStreamId, fundingPeriodId))
+                .ReturnsAsync(fundingLineNames);
+        }
+
         protected static RandomString NewRandomString() => new RandomString();
 
         protected static int NewRandomNumber() => new RandomNumberBetween(1, int.MaxValue);

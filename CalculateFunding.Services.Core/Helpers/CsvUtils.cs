@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using CalculateFunding.Services.Core.Interfaces;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace CalculateFunding.Services.Core.Helpers
 {
@@ -16,11 +17,15 @@ namespace CalculateFunding.Services.Core.Helpers
         {
             if (!documents.AnyWithNullCheck()) return null;
 
+            CsvConfiguration csvConfiguration = new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
+            {
+                Quote = '\"',
+                HasHeaderRecord = outputHeaders,
+                ShouldQuote = args => true
+            };
+
             using StringWriter writer = new StringWriter();
-            using CsvWriter csvWriter = new CsvWriter(writer);
-            csvWriter.Configuration.ShouldQuote = (value, context) => true;
-            csvWriter.Configuration.Quote = '\"';
-            csvWriter.Configuration.HasHeaderRecord = outputHeaders;
+            using CsvWriter csvWriter = new CsvWriter(writer, csvConfiguration);
 
             csvWriter.WriteRecords(documents);
 
@@ -29,20 +34,22 @@ namespace CalculateFunding.Services.Core.Helpers
 
         public IEnumerable<TPoco> AsPocos<TPoco>(string csv, string dateTimeFormat = "dd/MM/yyyy")
         {
-            if (csv.IsNullOrWhitespace()) return new TPoco[0];
-            
-            using (StringReader stringReader = new StringReader(csv))
-            using (CsvReader csvReader = new CsvReader(stringReader))
+            if (csv.IsNullOrWhitespace()) return Array.Empty<TPoco>();
+
+            CsvConfiguration csvConfiguration = new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
             {
-                csvReader.Configuration.Quote = '\"';
-                csvReader.Configuration.HasHeaderRecord = true;
-                csvReader.Configuration.TypeConverterOptionsCache
-                    .GetOptions<DateTimeOffset>()
-                    .Formats = new[] {dateTimeFormat};
-                
-                return csvReader.GetRecords<TPoco>()
-                    .ToArray();
-            }
+                Quote = '\"',
+                HasHeaderRecord = true,
+            };
+
+            using StringReader stringReader = new StringReader(csv);
+            using CsvReader csvReader = new CsvReader(stringReader, csvConfiguration);
+            csvReader.Context.TypeConverterOptionsCache
+                .GetOptions<DateTimeOffset>()
+                .Formats = new[] { dateTimeFormat };
+
+            return csvReader.GetRecords<TPoco>()
+                .ToArray();
         }
     }
 }

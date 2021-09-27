@@ -21,9 +21,11 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             return documents.ElementAt(resultCount).Current;
         }
 
-        protected override void TransformFundingLine(IDictionary<string, object> row,
+        protected override void TransformFundingLine(
+            IDictionary<string, object> row,
             PublishedProviderVersion publishedProviderVersion,
-            IEnumerable<ProfilePeriodPattern> profilePeriodPatterns)
+            IEnumerable<ProfilePeriodPattern> profilePeriodPatterns = null,
+            IEnumerable<string> distinctFundingLineNames = null)
         {
             FundingLine fundingLine = publishedProviderVersion.FundingLines.SingleOrDefault();
 

@@ -14,15 +14,19 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
     public class PublishedFundingVersionOrganisationGroupCsvBatchProcessor : CsvBatchProcessBase, IFundingLineCsvBatchProcessor
     {
         private readonly IPublishedFundingRepository _publishedFunding;
+        private readonly IPoliciesService _policiesService;
 
         public PublishedFundingVersionOrganisationGroupCsvBatchProcessor(IFileSystemAccess fileSystemAccess,
             ICsvUtils csvUtils,
-            IPublishedFundingRepository publishedFunding) 
+            IPublishedFundingRepository publishedFunding,
+            IPoliciesService policiesService) 
             : base(fileSystemAccess, csvUtils)
         {
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
 
             _publishedFunding = publishedFunding;
+            _policiesService = policiesService;
         }
 
         public bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
@@ -42,7 +46,9 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         {
             bool outputHeaders = true;
             bool processedResults = false;
-                
+
+            IEnumerable<string> distinctFundingLineNames = await _policiesService.GetDistinctFundingLineNames(fundingStreamId, fundingPeriodId);
+
             using ICosmosDbFeedIterator documents = _publishedFunding.GetPublishedFundingVersionsForBatchProcessing(specificationId,
                 fundingStreamId,
                 fundingPeriodId,
@@ -58,7 +64,10 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             {
                 IEnumerable<PublishedFundingVersion> publishedFundingVersions = await documents.ReadNext<PublishedFundingVersion>();
                 
-                IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedFundingVersions, jobType);
+                IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(
+                    publishedFundingVersions, 
+                    jobType,
+                    distinctFundingLineNames: distinctFundingLineNames);
 
                 if (AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders))
                 {

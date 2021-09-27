@@ -46,6 +46,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         public void FlattensTemplateCalculationsAndProviderMetaDataIntoRows(
             CalculateFunding.Models.Publishing.GroupingReason expectedGroupingReason)
         {
+            string fundingLineNameOne = "fundingLine1";
+            string fundingLineNameTwo = "fundingLine2";
+            IEnumerable<string> fundingLineNames = new List<string> { fundingLineNameOne, fundingLineNameTwo };
+
             PublishedFundingVersion publishedFunding =
                 NewPublishedFundingVersion(pfv =>
                     pfv.WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.LocalAuthority)
@@ -58,10 +62,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                         .WithDate("2020-02-05T20:03:55")
                         .WithFundingLines(
                             NewFundingLines(fl =>
-                                    fl.WithName("fundingLine1")
+                                    fl.WithName(fundingLineNameOne)
                                         .WithValue(123M),
                                 fl =>
-                                    fl.WithName("fundingLine2")
+                                    fl.WithName(fundingLineNameTwo)
                                         .WithValue(456M))));
 
             dynamic[] expectedCsvRows =
@@ -76,12 +80,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     {"Allocation Author", "system"},
                     {"Allocation DateTime", "2020-02-05T20:03:55"},
                     {"Provider Count", 2},
-                    {"fundingLine1", 123M.ToString(CultureInfo.InvariantCulture)}, //funding lines to be alpha numerically ordered on name
-                    {"fundingLine2", 456M.ToString(CultureInfo.InvariantCulture)}
+                    {fundingLineNameOne, 123M.ToString(CultureInfo.InvariantCulture)}, //funding lines to be alpha numerically ordered on name
+                    {fundingLineNameTwo, 456M.ToString(CultureInfo.InvariantCulture)}
                 }
             };
 
-            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(new [] { publishedFunding }, FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues, null).ToArray();
+            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(
+                new [] { publishedFunding }, 
+                FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues,
+                distinctFundingLineNames: fundingLineNames).ToArray();
 
             transformProviderResultsIntoCsvRows
                 .Should()

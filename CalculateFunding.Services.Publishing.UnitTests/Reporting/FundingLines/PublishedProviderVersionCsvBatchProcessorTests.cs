@@ -33,7 +33,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 },
                 FileSystemAccess.Object,
                 _profilingService.Object,
-                CsvUtils.Object);
+                CsvUtils.Object,
+                PoliciesService.Object);
         }
 
         [TestMethod]

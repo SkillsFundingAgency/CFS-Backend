@@ -14,15 +14,19 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
     public class PublishedFundingOrganisationGroupCsvBatchProcessor : CsvBatchProcessBase, IFundingLineCsvBatchProcessor
     {
         private readonly IPublishedFundingRepository _publishedFunding;
+        private readonly IPoliciesService _policiesService;
 
         public PublishedFundingOrganisationGroupCsvBatchProcessor(IFileSystemAccess fileSystemAccess,
             ICsvUtils csvUtils,
-            IPublishedFundingRepository publishedFunding) 
+            IPublishedFundingRepository publishedFunding,
+            IPoliciesService policiesService) 
             : base(fileSystemAccess, csvUtils)
         {
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
 
             _publishedFunding = publishedFunding;
+            _policiesService = policiesService;
         }
 
         public bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
@@ -42,7 +46,9 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         {
             bool outputHeaders = true;
             bool processedResults = false;
-            
+
+            IEnumerable<string> distinctFundingLineNames = await _policiesService.GetDistinctFundingLineNames(fundingStreamId, fundingPeriodId);
+
             using ICosmosDbFeedIterator documents = _publishedFunding.GetPublishedFundingForBatchProcessing(specificationId,
                 fundingStreamId,
                 fundingPeriodId,
@@ -58,7 +64,10 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             {
                 IEnumerable<PublishedFunding> publishedFunding = await documents.ReadNext<PublishedFunding>();
                 
-                IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedFunding, jobType);
+                IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(
+                    publishedFunding, 
+                    jobType,
+                    distinctFundingLineNames: distinctFundingLineNames);
 
                 if (AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders))
                 {

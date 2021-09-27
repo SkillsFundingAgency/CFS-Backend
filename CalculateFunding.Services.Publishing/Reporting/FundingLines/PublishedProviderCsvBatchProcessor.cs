@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.Utility;
@@ -20,6 +18,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         protected readonly IPublishedFundingRepository _publishedFunding;
         protected readonly IPublishedFundingPredicateBuilder _predicateBuilder;
         protected readonly IProfilingService _profilingService;
+        protected readonly IPoliciesService _policiesService;
+
         protected readonly AsyncPolicy _publishedFundingRepository;
 
         public PublishedProviderCsvBatchProcessor(IPublishedFundingRepository publishedFunding,
@@ -27,17 +27,19 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             IPublishingResiliencePolicies resiliencePolicies,
             IProfilingService profilingService,
             IFileSystemAccess fileSystemAccess,
-            ICsvUtils csvUtils) : base(fileSystemAccess, csvUtils)
+            ICsvUtils csvUtils,
+            IPoliciesService policiesService) : base(fileSystemAccess, csvUtils)
         {
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
             Guard.ArgumentNotNull(predicateBuilder, nameof(predicateBuilder));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
-            
+
             _publishedFunding = publishedFunding;
             _predicateBuilder = predicateBuilder;
             _profilingService = profilingService;
             _publishedFundingRepository = resiliencePolicies.PublishedFundingRepository;
+            _policiesService = policiesService;
         }
 
         public virtual bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
@@ -62,6 +64,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             string predicate = _predicateBuilder.BuildPredicate(jobType);
             string joinPredicate = _predicateBuilder.BuildJoinPredicate(jobType);
 
+            IEnumerable<string> distinctFundingLineNames = await _policiesService.GetDistinctFundingLineNames(fundingStreamId, fundingPeriodId);
+
             IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = await GetProfilePeriodPatterns(jobType, fundingStreamId, fundingPeriodId, fundingLineCode);
 
             await _publishedFundingRepository.ExecuteAsync(() => _publishedFunding.PublishedProviderBatchProcessing(predicate,
@@ -70,7 +74,11 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 {
                     IEnumerable<PublishedProvider> publishedProvidersFiltered = publishedProviders.Where(_ => _.Current != null && _.Current.FundingLines.AnyWithNullCheck());
 
-                    IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedProvidersFiltered, jobType, uniqueProfilePatterns);
+                    IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(
+                        publishedProvidersFiltered, 
+                        jobType, 
+                        uniqueProfilePatterns,
+                        distinctFundingLineNames);
 
                     if (AppendCsvFragment(temporaryFilePath, csvRows, outputHeader))
                     {

@@ -1,12 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -22,11 +19,14 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             IPublishingResiliencePolicies resiliencePolicies,
             IFileSystemAccess fileSystemAccess,
             IProfilingService profilingService,
-            ICsvUtils csvUtils) : base(publishedFunding, 
+            ICsvUtils csvUtils,
+            IPoliciesService policiesService) : base(publishedFunding, 
                                         predicateBuilder, 
                                         resiliencePolicies, 
                                         profilingService, 
-                                        fileSystemAccess, csvUtils)
+                                        fileSystemAccess, 
+                                        csvUtils,
+                                        policiesService)
         {
         }
 
@@ -51,6 +51,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             string predicate = _predicateBuilder.BuildPredicate(jobType);
             string join = _predicateBuilder.BuildJoinPredicate(jobType);
 
+            IEnumerable<string> distinctFundingLineNames = await _policiesService.GetDistinctFundingLineNames(fundingStreamId, fundingPeriodId);
+
             IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = await GetProfilePeriodPatterns(jobType, fundingStreamId, fundingPeriodId, fundingLineCode);
 
             using ICosmosDbFeedIterator documents = _publishedFunding.GetPublishedProviderVersionsForBatchProcessing(predicate,
@@ -69,7 +71,11 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             {
                 IEnumerable<PublishedProviderVersion> publishedProviderVersions = (await documents.ReadNext<PublishedProviderVersion>()).Where(_ => _.FundingLines.AnyWithNullCheck());
 
-                IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedProviderVersions, jobType, uniqueProfilePatterns);
+                IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(
+                    publishedProviderVersions, 
+                    jobType, 
+                    uniqueProfilePatterns,
+                    distinctFundingLineNames: distinctFundingLineNames);
 
                 if (AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders))
                 {

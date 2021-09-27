@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
-using CalculateFunding.Common.Extensions;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
@@ -23,7 +22,11 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             return jobType == FundingLineCsvGeneratorJobType.PublishedGroups;
         }
 
-        public IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType, IEnumerable<ProfilePeriodPattern> profilePatterns)
+        public IEnumerable<ExpandoObject> Transform(
+            IEnumerable<dynamic> documents, 
+            FundingLineCsvGeneratorJobType jobType, 
+            IEnumerable<ProfilePeriodPattern> profilePatterns = null,
+            IEnumerable<string> distinctFundingLineNames = null)
         {
             IEnumerable<PublishedFundingWithProvider> publishedFundingsWithProviders = documents.Cast<PublishedFundingWithProvider>();
             int resultsCount = publishedFundingsWithProviders.Sum(x => x.PublishedProviders.Any() ? x.PublishedProviders.Count() : 1);

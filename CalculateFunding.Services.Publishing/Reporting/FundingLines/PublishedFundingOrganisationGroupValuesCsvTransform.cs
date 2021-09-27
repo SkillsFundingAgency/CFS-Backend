@@ -19,7 +19,11 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     jobType == FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues;
         }
 
-        public override IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType, IEnumerable<ProfilePeriodPattern> profilePatterns)
+        public override IEnumerable<ExpandoObject> Transform(
+            IEnumerable<dynamic> documents, 
+            FundingLineCsvGeneratorJobType jobType, 
+            IEnumerable<ProfilePeriodPattern> profilePatterns = null,
+            IEnumerable<string> distinctFundingLineNames = null)
         {
             int resultsCount = documents.Count();
             IEnumerable<PublishedFundingOrganisationGrouping> organisationGroupings = documents.Cast<PublishedFundingOrganisationGrouping>();
@@ -54,9 +58,9 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
                     row["Provider Count"] = organisationGrouping.OrganisationGroupResult.Providers.Count();
 
-                    foreach (FundingLine fundingLine in publishedFundingVersion.FundingLines.OrderBy(x => x.Name))
+                    foreach (string fundingLineName in distinctFundingLineNames.OrderBy(_ => _))
                     {
-                        row[fundingLine.Name] = fundingLine.Value.GetValueOrDefault().ToString(CultureInfo.InvariantCulture);
+                        row[fundingLineName] = publishedFundingVersion.FundingLines.SingleOrDefault(_ => _.Name == fundingLineName)?.Value?.ToString(CultureInfo.InvariantCulture);
                     }
                     
                     itemCount++;

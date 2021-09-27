@@ -17,9 +17,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [TestInitialize]
         public void SetUp()
         {
-            BatchProcessor = new PublishedFundingOrganisationGroupCsvBatchProcessor(FileSystemAccess.Object,
+            BatchProcessor = new PublishedFundingOrganisationGroupCsvBatchProcessor(
+                FileSystemAccess.Object,
                 CsvUtils.Object,
-                PublishedFunding.Object);
+                PublishedFunding.Object,
+                PoliciesService.Object);
         }
 
         [TestMethod]

@@ -17,7 +17,11 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
         public abstract bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
 
-        public IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType, IEnumerable<ProfilePeriodPattern> profilePatterns)
+        public IEnumerable<ExpandoObject> Transform(
+            IEnumerable<dynamic> documents, 
+            FundingLineCsvGeneratorJobType jobType, 
+            IEnumerable<ProfilePeriodPattern> profilePatterns = null,
+            IEnumerable<string> distinctFundingLineNames = null)
         { 
             int resultsCount = documents.Count();
             
@@ -38,7 +42,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 row["Allocation DateTime"] = publishedFundingVersion.Date.ToString("s");
                 row["Provider Count"] = publishedFundingVersion.ProviderFundings?.Count() ?? 0;
                 
-                TransformFundingLine(row, publishedFundingVersion);
+                TransformFundingLine(row, publishedFundingVersion, distinctFundingLineNames);
 
                 yield return (ExpandoObject) row;
             }
@@ -46,11 +50,14 @@ namespace CalculateFunding.Services.Publishing.Reporting
             _expandoObjectsPool.Return(resultsBatch);
         }
         
-        protected virtual void TransformFundingLine(IDictionary<string, object> row, PublishedFundingVersion publishedProviderVersion)
+        protected virtual void TransformFundingLine(
+            IDictionary<string, object> row, 
+            PublishedFundingVersion publishedProviderVersion,
+            IEnumerable<string> distinctFundingLineNames = null)
         {
-            foreach (FundingLine fundingLine in publishedProviderVersion.FundingLines.OrderBy(_ => _.Name))
+            foreach (string fundingLineName in distinctFundingLineNames.OrderBy(_ => _))
             {
-                row[fundingLine.Name] = fundingLine.Value.GetValueOrDefault().ToString(CultureInfo.InvariantCulture);
+                row[fundingLineName] = publishedProviderVersion.FundingLines.SingleOrDefault(_ => _.Name == fundingLineName)?.Value?.ToString(CultureInfo.InvariantCulture);
             }
         }
 

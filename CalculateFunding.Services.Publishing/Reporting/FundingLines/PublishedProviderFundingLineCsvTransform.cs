@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines

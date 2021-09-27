@@ -9,6 +9,10 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
         
-        IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType, IEnumerable<ProfilePeriodPattern> profilePatterns = null);
+        IEnumerable<ExpandoObject> Transform(
+            IEnumerable<dynamic> documents, 
+            FundingLineCsvGeneratorJobType jobType, 
+            IEnumerable<ProfilePeriodPattern> profilePatterns = null,
+            IEnumerable<string> distinctFundingLineNames = null);
     }
 }
