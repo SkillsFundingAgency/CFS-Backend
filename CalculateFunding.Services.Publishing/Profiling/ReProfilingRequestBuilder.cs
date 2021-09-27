@@ -52,6 +52,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 throw new ArgumentOutOfRangeException(nameof(publishedProviderVersion), $"Did not locate profile periods corresponding to funding line id {fundingLineCode} against published provider: {publishedProviderVersion.ProviderId}");
             }
 
+            ProfilePeriod firstPeriod = orderedProfilePeriodsForFundingLine.First();
+
             MidYearType? midYearType = null;
 
             if (midYear)
@@ -59,10 +61,9 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 // We need a way to determine new openers which opened prior to the release
                 if (publishedProviderVersion.Provider.Status != Variation.Closed)
                 {
-                    /*DateTimeOffset? openedDate = publishedProviderVersion.Provider.DateOpened;
+                    DateTimeOffset? openedDate = publishedProviderVersion.Provider.DateOpened;
                     bool catchup = openedDate == null ? false : openedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && openedDate.Value.Year <= firstPeriod.Year;
-                    midYearType = catchup ? MidYearType.OpenerCatchup : MidYearType.Opener;*/
-                    midYearType = MidYearType.Opener;
+                    midYearType = catchup ? MidYearType.OpenerCatchup : MidYearType.Opener;
                 }
                 else
                 {

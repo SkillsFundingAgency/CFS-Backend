@@ -23,7 +23,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
         {
             GivenTheLatestProfiling(AsLatestProfiling(newTheoreticalPeriodValues));
             AndTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
-            
+            AndTheLatestFundingTotal(newTheoreticalPeriodValues.Sum());
+
             WhenTheFundingLineIsReProfiled();
             
             AndTheFundingLinePeriodAmountsShouldBe(expectedAdjustedPeriodValues);
@@ -37,7 +38,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 3, 
                 NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
                 NewDecimals(1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100),
-                NewDecimals(0, 0, 0, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.42M),
+                NewDecimals(0, 0, 0, 1573.00M, 1573.00M, 1573.00M, 1573.00M, 1573.00M, 1573.00M, 1573.00M),
             };
             yield return new object []
             {
@@ -52,6 +53,20 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
                 NewDecimals(800, 800, 800, 800, 800, 800, 800, 800, 800, 800),
                 NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 8000),
+            };
+            yield return new object[]
+            {
+                3,
+                NewDecimals(0, 0, 1000, 0, 0, 1000, 0, 0, 0, 1000),
+                NewDecimals(0, 0, 800, 0, 0, 800, 0, 0, 0, 800),
+                NewDecimals(0, 0, 0, 0, 0, 1200, 0, 0, 0, 1200),
+            };
+            yield return new object[]
+            {
+                3,
+                NewDecimals(0, 0, -1000, 0, 0, -1000, 0, 0, 0, -1000),
+                NewDecimals(0, 0, -800, 0, 0, -800, 0, 0, 0, -800),
+                NewDecimals(0, 0, 0, 0, 0, -1200, 0, 0, 0, -1200),
             };
         }
     }
