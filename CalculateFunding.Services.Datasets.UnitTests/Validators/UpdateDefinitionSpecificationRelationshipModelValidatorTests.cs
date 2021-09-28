@@ -6,6 +6,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.UnitTests.Builders;
 using CalculateFunding.Tests.Common.Helpers;
@@ -30,7 +31,9 @@ namespace CalculateFunding.Services.Datasets.Validators
         private readonly string _fundingStreamId;
         private readonly string _fundingPeriodId;
         private readonly string _relationshipId;
+        private readonly string _relationshipName;
         private const string TemplateVersion = "1.0";
+        private readonly VisualBasicTypeIdentifierGenerator _typeIdentifierGenerator;
 
         public UpdateDefinitionSpecificationRelationshipModelValidatorTests()
         {
@@ -40,6 +43,8 @@ namespace CalculateFunding.Services.Datasets.Validators
             _calculationIds = new[] { NewRandomUint() };
             _fundingLineIds = new[] { NewRandomUint() };
             _relationshipId = NewRandomString();
+            _relationshipName = NewRandomString();
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         [TestMethod]
@@ -205,7 +210,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             Mock<ICalcsRepository> repository = new Mock<ICalcsRepository>();
 
             repository.Setup(x => x.GetCurrentCalculationsBySpecificationId(_specificationId))
-                .ReturnsAsync(!referenced ? null : new[] { new CalculationResponseModel { SourceCode = $"return {_calculationIds.First()}()" } });
+                .ReturnsAsync(!referenced ? null : new[] { new CalculationResponseModel { SourceCode = $"return Datasets.{_typeIdentifierGenerator.GenerateIdentifier(_relationshipName)}.{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{_calculationIds.First()}_{_calculationIds.First()}()" } });
 
             return repository;
         }
@@ -216,6 +221,8 @@ namespace CalculateFunding.Services.Datasets.Validators
             
             repository.Setup(x => x.GetDefinitionSpecificationRelationshipById(_relationshipId))
                 .ReturnsAsync(!isValid ? null : new DefinitionSpecificationRelationship { 
+                    Id = _relationshipId,
+                    Name = _relationshipName,
                     Current = new DefinitionSpecificationRelationshipVersion {
                         RelationshipType = DatasetRelationshipType.ReleasedData,
                         PublishedSpecificationConfiguration = new PublishedSpecificationConfiguration

@@ -6,6 +6,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -27,6 +28,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         private readonly IDatasetRepository _datasetRepository;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
         private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
+        private readonly VisualBasicTypeIdentifierGenerator _typeIdentifierGenerator;
 
         public UpdateDefinitionSpecificationRelationshipModelValidator(
             IPoliciesApiClient policiesApiClient,
@@ -48,6 +50,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             _policiesApiClientPolicy = datasetsResiliencePolicies.PoliciesApiClient;
             _calcsRepository = calcsRepository;
             _datasetRepository = datasetRepository;
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
 
             RuleFor(model => model.Description)
               .NotEmpty()
@@ -81,15 +84,15 @@ namespace CalculateFunding.Services.Datasets.Validators
                 return;
             }
 
-            IEnumerable<PublishedSpecificationItem> itemsToRemove = new PublishedSpecificationItem[0];
-
-            itemsToRemove = itemsToRemove.Concat(definitionSpecificationRelationship.Current?.PublishedSpecificationConfiguration?.FundingLines?.Where(_ => !model.FundingLineIds.Contains(_.TemplateId)) ?? new PublishedSpecificationItem[0]);
-
-            itemsToRemove = itemsToRemove.Concat(definitionSpecificationRelationship.Current?.PublishedSpecificationConfiguration?.Calculations?.Where(_ => !model.CalculationIds.Contains(_.TemplateId)) ?? new PublishedSpecificationItem[0]);
-
             IEnumerable<CalculationResponseModel> calculationResponseModels = await _calcsRepository.GetCurrentCalculationsBySpecificationId(model.SpecificationId);
 
-            IEnumerable<PublishedSpecificationItem> referencedItemsToRemove = itemsToRemove.Where(_ => calculationResponseModels.Any(calc => calc.SourceCode.IndexOf(_.SourceCodeName, StringComparison.InvariantCultureIgnoreCase) >= 0));
+            IEnumerable<PublishedSpecificationItem> fundingLinesToRemove = definitionSpecificationRelationship.Current?.PublishedSpecificationConfiguration?.FundingLines?.Where(_ => !model.FundingLineIds.Contains(_.TemplateId)) ?? new PublishedSpecificationItem[0];
+
+            IEnumerable<PublishedSpecificationItem> referencedItemsToRemove = fundingLinesToRemove.Where(_ => calculationResponseModels.Any(calc => calc.SourceCode.IndexOf($"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(definitionSpecificationRelationship.Name)}.{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{_.TemplateId}_{_.SourceCodeName}", StringComparison.InvariantCultureIgnoreCase) >= 0));
+
+            IEnumerable<PublishedSpecificationItem> calculationsToRemove = definitionSpecificationRelationship.Current?.PublishedSpecificationConfiguration?.Calculations?.Where(_ => !model.CalculationIds.Contains(_.TemplateId)) ?? new PublishedSpecificationItem[0];
+            
+            referencedItemsToRemove = referencedItemsToRemove.Concat(calculationsToRemove.Where(_ => calculationResponseModels.Any(calc => calc.SourceCode.IndexOf($"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(definitionSpecificationRelationship.Name)}.{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{_.TemplateId}_{_.SourceCodeName}", StringComparison.InvariantCultureIgnoreCase) >= 0)));
 
             if (referencedItemsToRemove.Any())
             {
