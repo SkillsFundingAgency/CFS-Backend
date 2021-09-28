@@ -30,16 +30,16 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             PublishedSpecificationConfiguration publishedSpecificationConfiguration = dataset.PublishedSpecificationConfiguration;
 
             string datasourceName = dataset.RelationshipType == DatasetRelationshipType.ReleasedData ?
-                dataset.TargetSpecificationName :
+                dataset.Name :
                 dataset.DatasetDefinition.Name;
 
             IList<StatementSyntax> members = new List<StatementSyntax>
             {
                 dataset.RelationshipType == DatasetRelationshipType.ReleasedData ?
-                    CreateStaticProperty("SpecificationName", dataset.TargetSpecificationName) :
+                    CreateStaticProperty("DatasetRelationshipName", dataset.Name) :
                     CreateStaticProperty("DatasetDefinitionName", dataset.DatasetDefinition.Name),
                 dataset.RelationshipType == DatasetRelationshipType.ReleasedData ?
-                    CreateStaticProperty("SpecificationId", dataset.PublishedSpecificationConfiguration.SpecificationId) :
+                    CreateStaticProperty("DatasetRelationshipId", dataset.Id) :
                     CreateStaticProperty("DatasetDefinitionId", dataset.DatasetDefinition.Id)
             };
 

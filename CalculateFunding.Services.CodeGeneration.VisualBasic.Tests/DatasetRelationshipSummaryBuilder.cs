@@ -1,4 +1,5 @@
 ﻿using AutoFixture;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -17,6 +18,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
             datasetRelationshipSummary = fixture.Create<DatasetRelationshipSummary>();
         }
 
+        public DatasetRelationshipSummaryBuilder WithDatasetRelationship(Reference datasetRelationship)
+        {
+            datasetRelationshipSummary.Id = datasetRelationship.Id;
+            datasetRelationshipSummary.Name = datasetRelationship.Name;
+            return this;
+        }
+
         public DatasetRelationshipSummaryBuilder WithType(DatasetRelationshipType datasetRelationshipType)
         {
             datasetRelationshipSummary.RelationshipType = datasetRelationshipType;
@@ -26,12 +34,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
         public DatasetRelationshipSummaryBuilder WithTableDefinitions(IEnumerable<TableDefinition> tableDefinitions)
         {
             datasetRelationshipSummary.DatasetDefinition.TableDefinitions = tableDefinitions.ToList();
-            return this;
-        }
-
-        public DatasetRelationshipSummaryBuilder WithTargetSpecificationName(string specificationName)
-        {
-            datasetRelationshipSummary.TargetSpecificationName = specificationName;
             return this;
         }
 

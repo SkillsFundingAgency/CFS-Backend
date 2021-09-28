@@ -787,7 +787,7 @@ namespace CalculateFunding.Services.Datasets
                         }
 
                         sourceDataset.Current.Rows.Add(rows);
-                        sourceDataset.TargetSpecificationId = relationshipSummary.PublishedSpecificationConfiguration.SpecificationId;
+                        sourceDataset.DataDefinitionId = relationshipSummary.DatasetId;
                     }
                     else
                     {

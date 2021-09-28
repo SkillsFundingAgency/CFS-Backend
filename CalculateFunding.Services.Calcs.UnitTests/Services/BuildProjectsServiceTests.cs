@@ -249,6 +249,7 @@ namespace CalculateFunding.Services.Calcs.Services
             const string relationshipName = "test--name";
             string specificationName = new RandomString();
             string fundingStreamId = new RandomString();
+            string datasetName = new RandomString();
 
             DatasetRelationshipSummary payload = new DatasetRelationshipSummary
             {
@@ -276,7 +277,7 @@ namespace CalculateFunding.Services.Calcs.Services
                         SpecificationId = SpecificationId
                     },
                     DatasetId = "ds-1",
-                    DatasetName = "ds 1",
+                    DatasetName = datasetName,
                     Definition = new Common.ApiClient.DataSets.Models.DatasetDefinitionViewModel
                     {
                         Id = "111",
@@ -347,7 +348,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Received(1)
                 .Compile(
                     Arg.Is<BuildProject>(_ => _.DatasetRelationships
-                        .Any(dr => dr.TargetSpecificationName == specificationName & dr.TargetSpecificationFundingStreamId == fundingStreamId)), 
+                        .Any(dr => dr.DatasetName == datasetName & dr.TargetSpecificationFundingStreamId == fundingStreamId)), 
                     Arg.Any<IEnumerable<Calculation>>(), 
                     Arg.Any<IEnumerable<ObsoleteItem>>(), 
                     Arg.Any<CompilerOptions>()

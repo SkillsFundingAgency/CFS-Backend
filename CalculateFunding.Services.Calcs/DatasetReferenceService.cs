@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Calcs
                                 Dataset = new CalculateFunding.Models.Graph.Dataset
                                 {
                                     DatasetId = datasetRelationship.DatasetId,
-                                    Name = datasetRelationship.DatasetName,
+                                    Name = datasetRelationship.Name,
                                     SpecificationId = calculation.SpecificationId,
                                 },
                                 DatasetDefinition = new CalculateFunding.Models.Graph.DatasetDefinition

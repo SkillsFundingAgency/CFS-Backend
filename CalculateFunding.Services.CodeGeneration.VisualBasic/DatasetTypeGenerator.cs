@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 foreach (DatasetRelationshipSummary dataset in buildProject.DatasetRelationships)
                 {
                     string datasourceName = dataset.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ?
-                        dataset.TargetSpecificationName :
+                        dataset.Name :
                         dataset.DatasetDefinition.Name;
 
                     if (!typesCreated.Contains(datasourceName))
@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             builder.AppendLine($"<DatasetRelationship(Id := \"{datasetRelationship.Id}\", Name := \"{datasetRelationship.Name}\")>");
 
             (string datasourceVariableName, string datasourceName, string datasourceId, string datasourceDescription) = datasetRelationship.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ?
-                (datasetRelationship.TargetSpecificationName, datasetRelationship.TargetSpecificationName, datasetRelationship.PublishedSpecificationConfiguration.SpecificationId, null) :
+                (datasetRelationship.Name, datasetRelationship.Name, datasetRelationship.Id, null) :
                 (datasetRelationship.Name, datasetRelationship.DatasetDefinition.Name, datasetRelationship.DatasetDefinition.Id, datasetRelationship.DatasetDefinition.Description);
 
             builder.AppendLine($"<Field(Id := \"{datasourceId}\", Name := \"{datasourceName}\")>");

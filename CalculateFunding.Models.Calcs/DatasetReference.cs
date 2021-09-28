@@ -17,9 +17,6 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("datasetDefinitionId")]
         public string DatasetDefinitionId { get; set; }
 
-        [JsonProperty("targetSpecificationName")]
-        public string TargetSpecificationName { get; set; }
-
         [JsonProperty("targetSpecificationFundingStreamId")]
         public string TargetSpecificationFundingStreamId { get; set; }
 

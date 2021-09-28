@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             _assembly = assembly;
 
-            GetTypes("DatasetDefinitionId", "SpecificationId");
+            GetTypes("DatasetDefinitionId", "DatasetRelationshipId");
 
             _allocationType = _assembly.GetTypes().FirstOrDefault(x => x.IsClass && x.BaseType.Name.Contains("BaseCalculation"));
 
@@ -405,20 +405,13 @@ namespace CalculateFunding.Services.CalcEngine
 
         private Type GetDatasetType(ProviderSourceDataset dataset)
         {
-            if (dataset.DatasetRelationshipType == DatasetRelationshipType.ReleasedData)
+            if (!string.IsNullOrWhiteSpace(dataset.DataDefinitionId))
             {
-                return DatasetType(dataset.TargetSpecificationId);
+                return DatasetType(dataset.DataDefinitionId);
             }
             else
             {
-                if (!string.IsNullOrWhiteSpace(dataset.DataDefinitionId))
-                {
-                    return DatasetType(dataset.DataDefinitionId);
-                }
-                else
-                {
-                    return DatasetType(dataset.DataDefinition.Id);
-                }
+                return DatasetType(dataset.DataDefinition.Id);
             }
         }
 

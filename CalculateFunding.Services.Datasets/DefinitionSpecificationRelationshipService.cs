@@ -280,6 +280,9 @@ namespace CalculateFunding.Services.Datasets
 
             await _cacheProvider.RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specification.Id}");
 
+            // need to remove code context as the datasets have changed
+            await _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CodeContext}{specification.Id}");
+
             return new OkObjectResult(relationshipVersion);
         }
 
@@ -325,6 +328,22 @@ namespace CalculateFunding.Services.Datasets
             }
 
             await _relationshipVersionRepository.SaveVersion(newRelationshipVersion);
+
+            DatasetRelationshipSummary relationshipSummary = new DatasetRelationshipSummary
+            {
+                Name = newRelationshipVersion.Name,
+                Id = Guid.NewGuid().ToString(),
+                Relationship = new Reference(newRelationshipVersion.Id, newRelationshipVersion.Name),
+                DataGranularity = newRelationshipVersion.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
+                DefinesScope = newRelationshipVersion.IsSetAsProviderData
+            };
+
+            await _calcsRepository.UpdateBuildProjectRelationships(specificationId, relationshipSummary);
+
+            await _cacheProvider.RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specificationId}");
+
+            // need to remove code context as the datasets have changed
+            await _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CodeContext}{specificationId}");
 
             Job reMapJob = await _calcsRepository.ReMapSpecificationReference(specificationId, relationshipId);
 
@@ -1185,6 +1204,7 @@ namespace CalculateFunding.Services.Datasets
                             {
                                 TemplateId = fundingLineId,
                                 Name = fundingLineMetadata.Name,
+                                FieldType = FieldType.NullableOfDecimal,
                                 SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineMetadata.Name)
                             });
                         }

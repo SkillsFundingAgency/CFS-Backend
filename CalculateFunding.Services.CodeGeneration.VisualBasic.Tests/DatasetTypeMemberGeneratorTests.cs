@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Datasets;
@@ -67,13 +68,14 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
         [TestMethod]
         public void GeneratesMembersForRelationshipTypeReleasedData()
         {
-            string targetSpecificationName = "Target Specification Name";
             string targetSpecificationId = "Target Specification Id";
+            string datasetRelationshipId = "Dataset Relationship Id";
+            string datasetRelationshipName = "Dataset Relationship Name";
 
             DatasetRelationshipSummary datasetRelationshipSummary = new DatasetRelationshipSummaryBuilder()
                 .WithType(DatasetRelationshipType.ReleasedData)
-                .WithTargetSpecificationId(targetSpecificationName)
-                .WithTargetSpecificationName(targetSpecificationId)
+                .WithTargetSpecificationId(targetSpecificationId)
+                .WithDatasetRelationship(new Reference(datasetRelationshipId, datasetRelationshipName))
                 .WithPublishedSpecificationConfigurationFundingLines(new List<PublishedSpecificationItem>
                 {
                     new PublishedSpecificationItem
@@ -124,10 +126,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
             fields.Should().HaveCount(2);
 
             fields.First().Declarators.First().Initializer.Value.GetFirstToken().ValueText
-                .Should().Be(targetSpecificationId);
+                .Should().Be(datasetRelationshipName);
 
             fields.Skip(1).First().Declarators.First().Initializer.Value.GetFirstToken().ValueText
-                .Should().Be(targetSpecificationName);
+                .Should().Be(datasetRelationshipId);
 
             IEnumerable<PropertyStatementSyntax> properties = result.OfType<PropertyStatementSyntax>();
             properties.Should().HaveCount(6);

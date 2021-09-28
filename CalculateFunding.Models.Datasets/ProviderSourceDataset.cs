@@ -21,9 +21,6 @@ namespace CalculateFunding.Models.Datasets
         [JsonProperty("dataDefinition")]
         public Reference DataDefinition { get; set; }
 
-        [JsonProperty("targetSpecificationId")]
-        public string TargetSpecificationId { get; set; }
-
         [JsonProperty("dataRelationship")]
         public Reference DataRelationship { get; set; }
 

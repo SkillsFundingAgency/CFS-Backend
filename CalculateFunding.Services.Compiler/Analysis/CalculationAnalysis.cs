@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Compiler.Analysis
 
                 datasetRelationshipSummary.PublishedSpecificationConfiguration.Calculations
                     .ToDictionary(_ => 
-                        $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.TargetSpecificationName)}.{calculationPrefix}_{_.TemplateId}_{_.SourceCodeName}", 
+                        $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.Name)}.{calculationPrefix}_{_.TemplateId}_{_.SourceCodeName}", 
                         _ => templateMappings
                             .SingleOrDefault(tm => tm.SpecificationId == datasetRelationshipSummary.PublishedSpecificationConfiguration.SpecificationId)
                             .TemplateMappingItems
@@ -174,7 +174,7 @@ namespace CalculateFunding.Services.Compiler.Analysis
                 datasetRelationshipSummary.PublishedSpecificationConfiguration.FundingLines
                     .ForEach(_ => fundingLineRelationshipSummaries.Add(new FundingLineReleasedDataRelationshipSummary
                     {
-                        FundingLineReferenceSourceCode = $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.TargetSpecificationName)}.{fundingLinePrefix}_{_.TemplateId}_{_.SourceCodeName}",
+                        FundingLineReferenceSourceCode = $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.Name)}.{fundingLinePrefix}_{_.TemplateId}_{_.SourceCodeName}",
                         FundingLineTargetSpecificationId = datasetRelationshipSummary.PublishedSpecificationConfiguration.SpecificationId,
                         FundingLineName = _.Name
                     }));

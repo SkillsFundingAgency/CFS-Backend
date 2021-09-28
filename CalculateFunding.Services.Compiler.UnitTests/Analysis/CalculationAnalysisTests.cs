@@ -13,6 +13,7 @@ using FundingLineCalculation = CalculateFunding.Models.Calcs.FundingLineCalculat
 using System.Linq;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
 {
@@ -275,8 +276,9 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
             string calcFiveId = NewRandomString();
             string enumValue = NewRandomString();
 
-            string targetSpecificationName = "Spec12345";
             string targetSpecificationId = NewRandomString();
+            string datasetRelationshipId = "Dataset123";
+            string datasetRelationshipName = NewRandomString();
 
             uint templateCalculationOneId = 1;
 
@@ -306,14 +308,13 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                         .WithId(calcFourId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcFiveName)
-                                .WithSourceCode($"return Datasets.{targetSpecificationName}.Calc_{templateCalculationOneId}_{calcFourName}")))
+                                .WithSourceCode($"return Datasets.{datasetRelationshipName}.Calc_{templateCalculationOneId}_{calcFourName}")))
                         .WithId(calcFiveId)
                         .WithSpecificationId(specificationId))
                 ),
                 DatasetRelationshipSummaries(
-                    NewDatasetRelationshipSummary(_ => _
-                        .WithTargetSpecificationName(targetSpecificationName)
-                        .WithTargetSpecificationId(targetSpecificationId)
+                    NewDatasetRelationshipSummary(_ => _.WithTargetSpecificationId(targetSpecificationId)
+                        .WithDatasetRelationship(new Reference(datasetRelationshipId, datasetRelationshipName))
                         .WithPublishedSpecificationConfigurationCalculations(
                             PublishedSpecificationItems(
                                 NewPublishedSpecificationItem(psi => psi

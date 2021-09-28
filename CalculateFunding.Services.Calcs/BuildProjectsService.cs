@@ -894,9 +894,6 @@ namespace CalculateFunding.Services.Calcs
                         Name = datasetRelationshipModel.Name,
                         DatasetDefinition = datasetDefinitions.FirstOrDefault(m => m.Id == datasetRelationshipModel.Definition?.Id),
                         RelationshipType = datasetRelationshipModel.RelationshipType,
-                        TargetSpecificationName = datasetRelationshipModel.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ?
-                            specificationSummary.Name :
-                            string.Empty,
                         TargetSpecificationFundingStreamId = datasetRelationshipModel.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ?
                             specificationSummary.FundingStreams.FirstOrDefault().Id :
                             string.Empty,
