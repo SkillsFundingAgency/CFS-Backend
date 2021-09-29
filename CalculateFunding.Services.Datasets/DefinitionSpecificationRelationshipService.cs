@@ -286,7 +286,11 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(relationshipVersion);
         }
 
-        public async Task<IActionResult> UpdateRelationship(UpdateDefinitionSpecificationRelationshipModel model, string specificationId, string relationshipId)
+        public async Task<IActionResult> UpdateRelationship(UpdateDefinitionSpecificationRelationshipModel model,
+            string specificationId,
+            string relationshipId,
+            Reference author,
+            string correlationId)
         {
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
@@ -299,6 +303,7 @@ namespace CalculateFunding.Services.Datasets
 
             model.RelationshipId = relationshipId;
             model.SpecificationId = specificationId;
+
             BadRequestObjectResult validationResult = (await _updateRelationshipModelValidator.ValidateAsync(model)).PopulateModelState();
 
             if (validationResult != null)
@@ -313,10 +318,12 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(404);
             }
 
+            string targetSpecificationId = definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.SpecificationId;
+
             DefinitionSpecificationRelationshipVersion newRelationshipVersion = definitionSpecificationRelationship.Current.DeepCopy(useCamelCase: false);
             newRelationshipVersion.Description = model.Description;
             newRelationshipVersion.LastUpdated = _dateTimeProvider.UtcNow;
-            newRelationshipVersion.PublishedSpecificationConfiguration = await CreatePublishedSpecificationConfiguration(specificationId, model.FundingLineIds, model.CalculationIds);
+            newRelationshipVersion.PublishedSpecificationConfiguration = await CreatePublishedSpecificationConfiguration(targetSpecificationId, model.FundingLineIds, model.CalculationIds);
             definitionSpecificationRelationship.Current = newRelationshipVersion = await _relationshipVersionRepository.CreateVersion(newRelationshipVersion, definitionSpecificationRelationship.Current);
 
             HttpStatusCode statusCode = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.SaveDefinitionSpecificationRelationship(definitionSpecificationRelationship));
@@ -338,14 +345,29 @@ namespace CalculateFunding.Services.Datasets
                 DefinesScope = newRelationshipVersion.IsSetAsProviderData
             };
 
-            await _calcsRepository.UpdateBuildProjectRelationships(specificationId, relationshipSummary);
+            await _jobManagement.QueueJob(new JobCreateModel
+            {
+                InvokerUserDisplayName = author.Name,
+                InvokerUserId = author.Id,
+                JobDefinitionId = JobConstants.DefinitionNames.PublishDatasetsDataJob,
+                SpecificationId = targetSpecificationId,
+                Trigger = new Trigger
+                {
+                    EntityId = targetSpecificationId,
+                    EntityType = "Specification",
+                    Message = "New Csv file generation triggered by dataset relationship spec"
+                },
+                Properties = new Dictionary<string, string> { { "specification-id", targetSpecificationId },
+                        { "relationship-id", newRelationshipVersion.RelationshipId } },
+                CorrelationId = correlationId
+            });
 
-            await _cacheProvider.RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specificationId}");
+            await _calcsRepository.UpdateBuildProjectRelationships(specificationId, relationshipSummary);
 
             // need to remove code context as the datasets have changed
             await _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CodeContext}{specificationId}");
 
-            Job reMapJob = await _calcsRepository.ReMapSpecificationReference(specificationId, relationshipId);
+            Job reMapJob = await _calcsRepository.ReMapSpecificationReference(targetSpecificationId, relationshipId);
 
             if (reMapJob == null)
             {

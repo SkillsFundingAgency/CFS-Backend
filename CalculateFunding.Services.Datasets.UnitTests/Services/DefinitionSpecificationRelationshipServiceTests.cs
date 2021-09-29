@@ -374,10 +374,13 @@ namespace CalculateFunding.Services.Datasets.Services
                         m.Current.LastUpdated == _utcNow &&
                         m.Current.Author.Id == author.Id));
 
-            await
-              cacheProvider
+            await cacheProvider
                   .Received(1)
                   .RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specificationId}"));
+            
+            await cacheProvider
+                .Received(1)
+                .RemoveByPatternAsync(Arg.Is($"{CacheKeys.CodeContext}{specificationId}"));
         }
 
         [TestMethod]
@@ -3581,9 +3584,11 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = NewRandomString();
             string specificationId = NewRandomString();
 
+            Reference user = new Reference("user-id-1", "user-name-1");
+
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
-            IActionResult result = await service.UpdateRelationship(null, specificationId, relationshipId);
+            IActionResult result = await service.UpdateRelationship(null, specificationId, relationshipId, user, null);
 
             result
                 .Should()
@@ -3599,6 +3604,8 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string specificationId = NewRandomString();
 
+            Reference user = new Reference("user-id-1", "user-name-1");
+
             UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
             {
                 Description = "desc",
@@ -3610,7 +3617,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
-            Func<Task> test = async () => await service.UpdateRelationship(model, specificationId, null);
+            Func<Task> test = async () => await service.UpdateRelationship(model, specificationId, null, user, null);
 
             test
                 .Should()
@@ -3631,9 +3638,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
+            Reference user = new Reference("user-id-1", "user-name-1");
+
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
-            Func<Task> test = async () => await service.UpdateRelationship(model, null, relationshipId);
+            Func<Task> test = async () => await service.UpdateRelationship(model, null, relationshipId, user, null);
 
             test
                 .Should()
@@ -3645,6 +3654,8 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string relationshipId = NewRandomString();
             string specificationId = NewRandomString();
+
+            Reference user = new Reference("user-id-1", "user-name-1");
 
             UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel();
 
@@ -3658,7 +3669,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, updateRelationshipModelValidator: validator);
 
-            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
+            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId, user, null);
 
             result
                 .Should()
@@ -3670,6 +3681,8 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string relationshipId = NewRandomString();
             string specificationId = NewRandomString();
+
+            Reference user = new Reference("user-id-1", "user-name-1");
 
             UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
             {
@@ -3687,7 +3700,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
-            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
+            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId, user, null);
 
             result
                 .Should()
@@ -3716,6 +3729,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
+            Reference user = new Reference("user-id-1", "user-name-1");
+
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
@@ -3729,7 +3744,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
-            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
+            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId, user, null);
 
             result
                 .Should()
@@ -3748,6 +3763,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string relationshipId = NewRandomString();
             string specificationId = NewRandomString();
+            string targetSpecificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string templateId = NewRandomString();
@@ -3792,7 +3808,7 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             PublishedSpecificationConfiguration publishedSpecificationConfiguration = new PublishedSpecificationConfiguration()
             {
-                SpecificationId = specificationId,
+                SpecificationId = targetSpecificationId,
                 FundingStreamId = fundingStreamId,
                 FundingPeriodId = fundingPeriodId,
                 FundingLines = new[]
@@ -3837,7 +3853,8 @@ namespace CalculateFunding.Services.Datasets.Services
                             Id = specificationId,
                             Name = specificationId
                         },
-                        RelationshipType = DatasetRelationshipType.ReleasedData
+                        RelationshipType = DatasetRelationshipType.ReleasedData,
+                        PublishedSpecificationConfiguration = publishedSpecificationConfiguration
                     }
                 });
 
@@ -3858,7 +3875,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, policiesApiClient: policiesApiClient,
                 relationshipVersionRepository: relationshipVersionRepository);
 
-            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
+            Reference user = new Reference("user-id-1", "user-name-1");
+
+            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId, user, null);
 
             result
                 .Should()
@@ -3881,6 +3900,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string relationshipId = NewRandomString();
             string specificationId = NewRandomString();
+            string targetSpecificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string templateId = NewRandomString();
@@ -3905,7 +3925,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             PublishedSpecificationConfiguration originalPublishedSpecificationConfiguration = new PublishedSpecificationConfiguration()
             {
-                SpecificationId = specificationId,
+                SpecificationId = targetSpecificationId,
                 FundingStreamId = fundingStreamId,
                 FundingPeriodId = fundingPeriodId,
                 FundingLines = new[]
@@ -3922,7 +3942,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             PublishedSpecificationConfiguration newPublishedSpecificationConfiguration = new PublishedSpecificationConfiguration()
             {
-                SpecificationId = specificationId,
+                SpecificationId = targetSpecificationId,
                 FundingStreamId = fundingStreamId,
                 FundingPeriodId = fundingPeriodId,
                 FundingLines = new[]
@@ -4003,22 +4023,41 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();
 
-            calcsRepository.ReMapSpecificationReference(Arg.Is(specificationId), Arg.Is(relationshipId))
+            calcsRepository.ReMapSpecificationReference(Arg.Is(targetSpecificationId), Arg.Is(relationshipId))
                 .Returns(new Job { JobDefinitionId = JobConstants.DefinitionNames.ReferencedSpecificationReMapJob });
 
             datasetRepository
                 .SaveDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
                 .Returns(HttpStatusCode.OK);
 
+            IJobManagement jobManagement = CreateJobManagement();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, policiesApiClient: policiesApiClient,
-                relationshipVersionRepository: relationshipVersionRepository, calcsRepository: calcsRepository);
+                relationshipVersionRepository: relationshipVersionRepository, calcsRepository: calcsRepository, jobManagement: jobManagement, cacheProvider: cacheProvider);
 
-            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
+            Reference user = new Reference("user-id-1", "user-name-1");
+
+            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId, user, null);
 
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
+
+            await jobManagement
+                .Received(1)
+                .QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.PublishDatasetsDataJob &&
+                    _.SpecificationId == targetSpecificationId));
+
+            await calcsRepository
+                .Received(1)
+                .UpdateBuildProjectRelationships(Arg.Is(specificationId), Arg.Any<Models.Calcs.DatasetRelationshipSummary>());
+
+            await cacheProvider
+                .Received(1)
+                .RemoveByPatternAsync(Arg.Is($"{CacheKeys.CodeContext}{specificationId}"));
 
             await
                 datasetRepository

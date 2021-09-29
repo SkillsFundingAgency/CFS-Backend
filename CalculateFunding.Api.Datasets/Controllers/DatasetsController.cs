@@ -167,7 +167,9 @@ namespace CalculateFunding.Api.Datasets.Controllers
             Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
 
-            return _definitionSpecificationRelationshipService.CreateRelationship(createDefinitionSpecificationRelationshipModel, user, correlationId);
+            return _definitionSpecificationRelationshipService.CreateRelationship(createDefinitionSpecificationRelationshipModel,
+                user,
+                correlationId);
         }
 
         [Route("api/specifications/{specificationId}/datasets/edit-definition-specification-relationship/{relationshipId}")]
@@ -176,7 +178,14 @@ namespace CalculateFunding.Api.Datasets.Controllers
         public Task<IActionResult> UpdateDefinitionSpecificationRelationship([FromRoute] string specificationId, [FromRoute] string relationshipId,
             [FromBody] UpdateDefinitionSpecificationRelationshipModel editDefinitionSpecificationRelationshipModel)
         {
-            return _definitionSpecificationRelationshipService.UpdateRelationship(editDefinitionSpecificationRelationshipModel, specificationId, relationshipId);
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+
+            return _definitionSpecificationRelationshipService.UpdateRelationship(editDefinitionSpecificationRelationshipModel,
+                specificationId,
+                relationshipId,
+                user,
+                correlationId);
         }
 
         [Route("api/datasets/validate-definitionspecification-relationship")]

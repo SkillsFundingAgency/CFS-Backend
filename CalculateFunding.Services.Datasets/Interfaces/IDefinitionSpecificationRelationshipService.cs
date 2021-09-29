@@ -9,7 +9,9 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 {
     public interface IDefinitionSpecificationRelationshipService
     {
-        Task<IActionResult> CreateRelationship(CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel, Reference user, string correlationId);
+        Task<IActionResult> CreateRelationship(CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel,
+            Reference user,
+            string correlationId);
 
         Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetRelationshipsBySpecificationId(string specificationId);
 
@@ -23,7 +25,9 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IActionResult> GetDataSourcesByRelationshipId(string relationshipId, int? top, int? pageNumber);
 
-        Task<IActionResult> AssignDatasourceVersionToRelationship(AssignDatasourceModel assignDatasourceModel, Reference user, string correlationId);
+        Task<IActionResult> AssignDatasourceVersionToRelationship(AssignDatasourceModel assignDatasourceModel,
+            Reference user,
+            string correlationId);
 
         Task<IActionResult> GetCurrentDatasetRelationshipFieldsBySpecificationId(string specificationId);
 
@@ -36,7 +40,12 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(string specificationId, string datasetDefinitionId);
         Task<IActionResult> ValidateRelationship(ValidateDefinitionSpecificationRelationshipModel validateDefinitionSpecificationRelationshipModel);
         Task<IActionResult> Migrate();
-        Task<IActionResult> UpdateRelationship(UpdateDefinitionSpecificationRelationshipModel editDefinitionSpecificationRelationshipModel, string specificationId, string relationshipId);
+        Task<IActionResult> UpdateRelationship(UpdateDefinitionSpecificationRelationshipModel editDefinitionSpecificationRelationshipModel,
+            string specificationId,
+            string relationshipId,
+            Reference author,
+            string correlationId);
+
         Task<IActionResult> GetFundingLineCalculations(string relationshipId);
     }
 }
