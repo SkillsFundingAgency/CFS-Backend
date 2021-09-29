@@ -984,9 +984,9 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-            string specificationId = definitionSpecificationRelationship.Current.Specification.Id;
+            string targetSpecificationId = definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.SpecificationId;
             PublishedSpecificationConfiguration publishedSpecificationConfiguration = await CreatePublishedSpecificationConfiguration(
-                specificationId,
+                targetSpecificationId,
                 definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration);
 
             return new OkObjectResult(publishedSpecificationConfiguration);

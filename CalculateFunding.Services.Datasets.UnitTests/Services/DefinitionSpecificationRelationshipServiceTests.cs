@@ -4135,6 +4135,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string datasetDefinitionId = NewRandomString();
             string specificationId = NewRandomString();
+            string targetSpecificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             uint fundingLineIdOne = NewRandomUint();
@@ -4153,9 +4154,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
+            SpecModel.SpecificationSummary targetSpecification = new SpecModel.SpecificationSummary
             {
-                Id = specificationId,
+                Id = targetSpecificationId,
                 FundingStreams = new[] { new Reference(fundingStreamId, fundingStreamId) },
                 FundingPeriod = new Reference(fundingPeriodId, fundingPeriodId),
                 TemplateIds = new Dictionary<string, string>() { { fundingStreamId, templateId } }
@@ -4164,7 +4165,7 @@ namespace CalculateFunding.Services.Datasets.Services
             Reference author = NewReference();
             PublishedSpecificationConfiguration currentPublishedSpecificationConfiguration = new PublishedSpecificationConfiguration()
             {
-                SpecificationId = specificationId,
+                SpecificationId = targetSpecificationId,
                 FundingStreamId = fundingStreamId,
                 FundingPeriodId = fundingPeriodId,
                 FundingLines = new[]
@@ -4179,8 +4180,8 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
-                .GetSpecificationSummaryById(Arg.Is<string>(specificationId))
-                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
+                .GetSpecificationSummaryById(Arg.Is<string>(targetSpecificationId))
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, targetSpecification));
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(datasetDefinitionId))
@@ -4224,7 +4225,7 @@ namespace CalculateFunding.Services.Datasets.Services
                             Type = FundingLineCalculationRelationship.FromIdField.ToLowerInvariant(),
                             One = new Calculation
                             {
-                                SpecificationId = specificationId
+                                SpecificationId = targetSpecificationId
                             }
                         }
                     }
@@ -4235,8 +4236,8 @@ namespace CalculateFunding.Services.Datasets.Services
             graphApiClient
                 .GetAllEntitiesRelatedToFundingLines(Arg.Is<string[]>(_ => 
                     _.Count() == 2 && 
-                    _.FirstOrDefault() == $"{specificationId}-{fundingStreamId}_{fundingLineIdOne}" &&
-                    _.LastOrDefault() == $"{specificationId}-{fundingStreamId}_{fundingLineIdTwo}"))
+                    _.FirstOrDefault() == $"{targetSpecificationId}-{fundingStreamId}_{fundingLineIdOne}" &&
+                    _.LastOrDefault() == $"{targetSpecificationId}-{fundingStreamId}_{fundingLineIdTwo}"))
                 .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<FundingLine>>>(HttpStatusCode.OK, fundingLineEntities));
 
             Models.Calcs.TemplateMapping templateMapping = new Models.Calcs.TemplateMapping
@@ -4283,7 +4284,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();
             calcsRepository
-                .GetTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId))
+                .GetTemplateMapping(Arg.Is(targetSpecificationId), Arg.Is(fundingStreamId))
                 .Returns(templateMapping);
 
             DefinitionSpecificationRelationshipService service = CreateService(
@@ -4303,7 +4304,7 @@ namespace CalculateFunding.Services.Datasets.Services
             OkObjectResult objectResult = result as OkObjectResult;
 
             PublishedSpecificationConfiguration resultAsPublishedSpecificationConfiguration = objectResult.Value as PublishedSpecificationConfiguration;
-            resultAsPublishedSpecificationConfiguration.SpecificationId.Should().Be(specificationId);
+            resultAsPublishedSpecificationConfiguration.SpecificationId.Should().Be(targetSpecificationId);
             resultAsPublishedSpecificationConfiguration.FundingStreamId.Should().Be(fundingStreamId);
             resultAsPublishedSpecificationConfiguration.FundingPeriodId.Should().Be(fundingPeriodId);
 
