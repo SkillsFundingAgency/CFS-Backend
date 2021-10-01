@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         public async Task ReleaseProviders(IEnumerable<string> providers, string specificationId)
         {
             IEnumerable<ReleasedProvider> releasedProviders =
-                await _releaseManagementRepository.CreateReleasedProviders(
+                await _releaseManagementRepository.CreateReleasedProvidersUsingAmbientTransaction(
                     providers.Where(_ => !_releaseToChannelSqlMappingContext.ReleasedProviders.ContainsKey(_))
                         .Select(_ => new ReleasedProvider
                         {

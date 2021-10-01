@@ -19,6 +19,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<(string fundingId, string version)> _templateIds = Enumerable.Empty<(string fundingId, string version)>();
         private string _providerVersionId;
         private PublishStatus _publishStatus;
+        private string _name;
 
         public SpecificationSummaryBuilder WithNoId()
         {
@@ -83,11 +84,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public SpecificationSummaryBuilder WithName(string name)
+        {
+            _name = name;
+
+            return this;
+        }
+
         public SpecificationSummary Build()
         {
             return new SpecificationSummary
             {
                 Id = _withNoId ? null : _id ?? NewRandomString(),
+                Name = _name ?? NewRandomString(),
                 FundingPeriod = _withNoFundingPeriod
                     ? null
                     : new Reference(_fundingPeriodId ?? NewRandomString(), NewRandomString()),

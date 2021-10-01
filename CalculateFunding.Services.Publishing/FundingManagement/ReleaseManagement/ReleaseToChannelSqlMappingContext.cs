@@ -18,5 +18,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         public Dictionary<string, ReleasedProvider> ReleasedProviders { get; }
 
         public Dictionary<string, ReleasedProviderVersion> ReleasedProviderVersions { get; }
+
+        public Specification Specification { get; set; }
     }
 }

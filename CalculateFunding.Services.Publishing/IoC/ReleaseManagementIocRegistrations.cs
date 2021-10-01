@@ -39,6 +39,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IReleaseProviderPersistanceService, ReleaseProviderPersistanceService>();
             builder.AddScoped<IReleaseToChannelSqlMappingContext, ReleaseToChannelSqlMappingContext>();
             builder.AddScoped<IProviderVersionReleaseService, ProviderVersionReleaseService>();
+            builder.AddScoped<IReleaseManagementSpecificationService, ReleaseManagementSpecificationService>();
 
             return builder;
         }

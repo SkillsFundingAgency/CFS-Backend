@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
@@ -177,7 +178,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
 
 
-        private async Task PopulateFundingStreamsAndPeriods(IEnumerable<Common.ApiClient.Specifications.Models.SpecificationSummary> specifications)
+        private async Task PopulateFundingStreamsAndPeriods(IEnumerable<SpecificationSummary> specifications)
         {
 
             IEnumerable<SqlModels.FundingPeriod> existingFundingPeriods = await _repo.GetFundingPeriods();
@@ -186,15 +187,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             _fundingPeriods = new Dictionary<string, SqlModels.FundingPeriod>(existingFundingPeriods.ToDictionary(_ => _.FundingPeriodCode));
             _fundingStreams = new Dictionary<string, SqlModels.FundingStream>(existingFundingStreams.ToDictionary(_ => _.FundingStreamCode));
 
-            var policyFundingStreams = await _policyClientPolicy.ExecuteAsync(() => _policyClient.GetFundingStreams());
-            var policyFundingPeriods = await _policyClientPolicy.ExecuteAsync(() => _policyClient.GetFundingPeriods());
+            ApiResponse<IEnumerable<FundingStream>> policyFundingStreams = await _policyClientPolicy.ExecuteAsync(() => _policyClient.GetFundingStreams());
+            ApiResponse<IEnumerable<FundingPeriod>> policyFundingPeriods = await _policyClientPolicy.ExecuteAsync(() => _policyClient.GetFundingPeriods());
 
             foreach (var spec in specifications)
             {
                 string fundingStreamId = spec.FundingStreams.First().Id;
                 if (!_fundingStreams.ContainsKey(fundingStreamId))
                 {
-                    var policyFundingStream = policyFundingStreams.Content.Single(_ => _.Id == fundingStreamId);
+                    FundingStream policyFundingStream = policyFundingStreams.Content.Single(_ => _.Id == fundingStreamId);
 
                     SqlModels.FundingStream fundingStream = new SqlModels.FundingStream()
                     {
@@ -208,7 +209,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
                 if (!_fundingPeriods.ContainsKey(spec.FundingPeriod.Id))
                 {
-                    var policyFundingPeriod = policyFundingPeriods.Content.SingleOrDefault(_ => _.Id == spec.FundingPeriod.Id);
+                    FundingPeriod policyFundingPeriod = policyFundingPeriods.Content.SingleOrDefault(_ => _.Id == spec.FundingPeriod.Id);
 
                     if (policyFundingPeriod != null)
                     {

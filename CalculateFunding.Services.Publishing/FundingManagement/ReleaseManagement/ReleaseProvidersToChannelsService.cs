@@ -32,6 +32,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly ILogger _logger;
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
         private readonly IReleaseManagementRepository _releaseManagementRepository;
+        private readonly IReleaseManagementSpecificationService _releaseManagementSpecificationService;
 
         public ReleaseProvidersToChannelsService(
             ISpecificationService specificationService,
@@ -42,7 +43,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IJobManagement jobManagement,
             ILogger logger,
             IPrerequisiteCheckerLocator prerequisiteCheckerLocator,
-            IReleaseManagementRepository releaseManagementRepository) : base(jobManagement, logger)
+            IReleaseManagementRepository releaseManagementRepository,
+            IReleaseManagementSpecificationService releaseManagementSpecificationService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
@@ -51,6 +53,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(releaseApprovedProvidersService, nameof(releaseApprovedProvidersService));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
+            Guard.ArgumentNotNull(releaseManagementSpecificationService, nameof(releaseManagementSpecificationService));
 
             _specificationService = specificationService;
             _policiesService = policiesService;
@@ -60,6 +63,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _logger = logger;
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
             _releaseManagementRepository = releaseManagementRepository;
+            _releaseManagementSpecificationService = releaseManagementSpecificationService;
         }
 
         public async Task<IActionResult> QueueReleaseProviderVersions(
@@ -144,6 +148,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             }
 
             _logger.Information("Prerequisites for publish passed");
+
+            await _releaseManagementSpecificationService.EnsureReleaseManagementSpecification(specification);
 
             string fundingStreamId = specification.FundingStreams.First().Id;
 

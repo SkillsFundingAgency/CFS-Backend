@@ -114,6 +114,24 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return await QuerySql<FundingStream>("SELECT * FROM fundingstreams");
         }
 
+        public async Task<FundingPeriod> GetFundingPeriodByCode(string code)
+        {
+            return await QuerySingleSql<FundingPeriod>("SELECT * FROM fundingperiods WHERE FundingPeriodCode=@code",
+                new
+                {
+                    code
+                });
+        }
+
+        public async Task<FundingStream> GetFundingStreamByCode(string code)
+        {
+            return await QuerySingleSql<FundingStream>("SELECT * FROM fundingstreams WHERE FundingStreamCode=@code",
+                new
+                {
+                    code
+                });
+        }
+
         public async Task<FundingStream> CreateFundingStream(FundingStream fundingStream)
         {
             fundingStream.FundingStreamId = await Insert(fundingStream);
@@ -121,9 +139,43 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return fundingStream;
         }
 
+        public async Task<FundingStream> CreateFundingStreamUsingAmbientTransaction(FundingStream fundingStream)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                fundingStream.FundingStreamId = await Insert(fundingStream);
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
+
+            return fundingStream;
+        }
+
         public async Task<FundingPeriod> CreateFundingPeriod(FundingPeriod fundingPeriod)
         {
             fundingPeriod.FundingPeriodId = await Insert(fundingPeriod);
+
+            return fundingPeriod;
+        }
+
+        public async Task<FundingPeriod> CreateFundingPeriodUsingAmbientTransaction(FundingPeriod fundingPeriod)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                fundingPeriod.FundingPeriodId = await Insert(fundingPeriod, _transaction);
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
 
             return fundingPeriod;
         }
@@ -184,6 +236,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return await QuerySql<Specification>("SELECT * FROM Specifications");
         }
 
+        public async Task<Specification> GetSpecificationById(string id)
+        {
+            return await QuerySingleSql<Specification>("SELECT * FROM Specifications WHERE SpecificationId=@id",
+                new
+                {
+                    id
+                });
+        }
+
         public async Task<Specification> CreateSpecification(Specification specification)
         {
             await Insert(specification);
@@ -191,7 +252,47 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return specification;
         }
 
-        public async Task<IEnumerable<ReleasedProvider>> CreateReleasedProviders(IEnumerable<ReleasedProvider> releasedProviders)
+        public async Task<Specification> CreateSpecificationUsingAmbientTransaction(Specification specification)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                await Insert(specification, _transaction);
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
+
+            return specification;
+        }
+
+        public async Task<bool> UpdateSpecificationUsingAmbientTransaction(Specification specification)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                bool success = await Update(specification, _transaction);
+
+                if (!success)
+                {
+                    _transaction.Rollback();
+                    throw new RetriableException("Unknown reason for update specification failure so retriable exception thrown");
+                }
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
+
+            return true;
+        }
+
+        public async Task<IEnumerable<ReleasedProvider>> CreateReleasedProvidersUsingAmbientTransaction(IEnumerable<ReleasedProvider> releasedProviders)
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
@@ -369,7 +470,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 });
         }
 
-        public async Task<IEnumerable<ReleasedProviderVersion>> CreateReleasedProviderVersions(IEnumerable<ReleasedProviderVersion> providerVersions)
+        public async Task<IEnumerable<ReleasedProviderVersion>> CreateReleasedProviderVersionsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersion> providerVersions)
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 

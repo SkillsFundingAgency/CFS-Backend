@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             }
 
             IEnumerable<ReleasedProviderVersion> releasedProviderVersions =
-                await _releaseManagementRepository.CreateReleasedProviderVersions(
+                await _releaseManagementRepository.CreateReleasedProviderVersionsUsingAmbientTransaction(
                     newProviderVersions
                         .Select(_ => new ReleasedProviderVersion
                         {

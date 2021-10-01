@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<IPrerequisiteChecker> _prerequisiteChecker;
         private Mock<IJobManagement> _jobManagement;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
+        private Mock<IReleaseManagementSpecificationService> _releaseManagementSpecificationService;
 
         [TestInitialize]
         public void SetUp()
@@ -51,6 +52,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _prerequisiteChecker = new Mock<IPrerequisiteChecker>();
             _jobManagement = new Mock<IJobManagement>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
+            _releaseManagementSpecificationService = new Mock<IReleaseManagementSpecificationService>();
 
             _releaseProvidersToChannelsService = new ReleaseProvidersToChannelsService(
                 _specificationService.Object,
@@ -61,7 +63,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _jobManagement.Object,
                 _logger.Object,
                 _prerequisiteCheckerLocator.Object,
-                _releaseManagementRepository.Object
+                _releaseManagementRepository.Object,
+                _releaseManagementSpecificationService.Object
                 );
         }
 

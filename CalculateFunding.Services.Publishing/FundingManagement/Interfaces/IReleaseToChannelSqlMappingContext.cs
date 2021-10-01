@@ -14,5 +14,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         /// Released provider versions. Key is the ProviderId e.g. UKPRN
         /// </summary>
         Dictionary<string, ReleasedProviderVersion> ReleasedProviderVersions { get; }
+
+        Specification Specification { get; set; }
     }
 }

@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private void ThenProvidersAreReleased(params string[] providers)
         {
             _releaseManagementRepository.Verify(_ => 
-                _.CreateReleasedProviders(It.Is<IEnumerable<ReleasedProvider>>(_ => 
+                _.CreateReleasedProvidersUsingAmbientTransaction(It.Is<IEnumerable<ReleasedProvider>>(_ => 
                     _.Select(rp => rp.ProviderId).SequenceEqual(providers))), Times.Once);
         }
 
