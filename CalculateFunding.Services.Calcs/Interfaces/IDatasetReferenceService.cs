@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface IDatasetReferenceService
     {
-        IEnumerable<DatasetReference> GetDatasetRelationShips(IEnumerable<Calculation> calculations, List<DatasetRelationshipSummary> datasetRelationShipSummary);
+        IEnumerable<DatasetReference> GetDatasetRelationShips(IEnumerable<Calculation> calculations, IEnumerable<DatasetRelationshipSummary> datasetRelationShipSummary);
     }
 }

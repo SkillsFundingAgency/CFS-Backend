@@ -122,7 +122,9 @@ namespace CalculateFunding.Services.Calcs.Analysis
                     .Where(_ => _.CalculationTwoId != null)
                     .Select(_ => new CalculationRelationship { CalculationOneId = _.CalculationOneId, CalculationTwoId = _.CalculationTwoId }));
 
-            IEnumerable<DatasetReference> datasetReferences = _datasetReferenceService.GetDatasetRelationShips(calculations, buildProject.DatasetRelationships);
+            IEnumerable<DatasetReference> datasetReferences = _datasetReferenceService.GetDatasetRelationShips(calculations,
+                                                                                                               buildProject.DatasetRelationships.Where(_ => 
+                                                                                                                _.RelationshipType != Models.Datasets.DatasetRelationshipType.ReleasedData));
 
             IEnumerable<CalculationEnumRelationship> calculationEnumRelationships = _calculationAnalysis.DetermineRelationshipsBetweenCalculationsAndEnums(calculations);
 

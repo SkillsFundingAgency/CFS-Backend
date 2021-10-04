@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Calcs
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
-        public IEnumerable<DatasetReference> GetDatasetRelationShips(IEnumerable<Calculation> calculations, List<DatasetRelationshipSummary> datasetRelationShipSummaries)
+        public IEnumerable<DatasetReference> GetDatasetRelationShips(IEnumerable<Calculation> calculations, IEnumerable<DatasetRelationshipSummary> datasetRelationShipSummaries)
         {
             List<DatasetReference> datasetReferences = new List<DatasetReference>();
 
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Calcs
             return Enumerable.Empty<string>();
         }
 
-        private void AddDataSetReference(Calculation calculation, string calcDatasetReference, List<DatasetRelationshipSummary> datasetRelationShipSummaries, IList<DatasetReference> datasetReferences)
+        private void AddDataSetReference(Calculation calculation, string calcDatasetReference, IEnumerable<DatasetRelationshipSummary> datasetRelationShipSummaries, IList<DatasetReference> datasetReferences)
         {
             string[] parts = calcDatasetReference.Split(".", StringSplitOptions.RemoveEmptyEntries);
             if (parts.Count() == 3)
