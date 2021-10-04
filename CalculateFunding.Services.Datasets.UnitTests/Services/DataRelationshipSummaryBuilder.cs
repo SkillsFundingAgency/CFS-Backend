@@ -9,11 +9,19 @@ namespace CalculateFunding.Services.Datasets.Services
 {
     public class DataRelationshipSummaryBuilder : TestEntityBuilder
     {
+        private string _id;
         private Reference _relationship;
         private DatasetDefinition _datasetDefinition;
         private bool _definesScope;
         private DatasetRelationshipType? _datasetRelationshipType = null;
         private PublishedSpecificationConfiguration _publishedSpecificationConfiguration = null;
+
+        public DataRelationshipSummaryBuilder WithId(string id)
+        {
+            _id = id;
+
+            return this;
+        }
 
         public DataRelationshipSummaryBuilder WithDefinesScope(bool definesScope)
         {
@@ -54,6 +62,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return new DatasetRelationshipSummary
             {
+                Id = _id ?? new RandomString(),
                 DatasetDefinition = _datasetDefinition,
                 Relationship = _relationship ?? new ReferenceBuilder()
                                    .Build(),

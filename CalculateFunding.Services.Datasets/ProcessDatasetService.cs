@@ -787,7 +787,7 @@ namespace CalculateFunding.Services.Datasets
                         }
 
                         sourceDataset.Current.Rows.Add(rows);
-                        sourceDataset.DataDefinitionId = relationshipSummary.DatasetId;
+                        sourceDataset.DataDefinitionId = relationshipSummary.Id;
                     }
                     else
                     {

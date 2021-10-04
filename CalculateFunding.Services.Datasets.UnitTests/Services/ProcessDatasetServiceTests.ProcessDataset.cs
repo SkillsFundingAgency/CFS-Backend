@@ -928,7 +928,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
-                    .WithDatasetDefinition(NewDatasetDefinition())))));
+                    .WithDatasetDefinition(NewDatasetDefinition(dd => dd.WithId(DataDefintionId)))))));
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -954,7 +954,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
-            ThenXProviderSourceDatasetsWereUpdate(2);
+            ThenXProviderSourceDatasetsWereUpdate(2, DataDefintionId);
         }
 
         [TestMethod]
@@ -991,7 +991,8 @@ namespace CalculateFunding.Services.Datasets.Services
             );
 
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
-                summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
+                summary.WithId(_relationshipId)
+                .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithPublishedSpecificationConfiguration(NewPublishedSpecificationConfiguration(psc => 
                         psc.WithSpecificationId(SpecificationId)
@@ -1024,7 +1025,8 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition.AsJson(false), tableLoadResult);
             string secondProviderId = NewRandomString();
-            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
+            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_relationshipId)
+                .WithId(_providerId)
                 .WithUPIN(_ukprn)),
                 NewApiProviderSummary(_ => _.WithId(secondProviderId)
                     .WithUKPRN(secondProviderUkprn)));
@@ -1032,7 +1034,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
-            ThenXProviderSourceDatasetsWereUpdate(2);
+            ThenXProviderSourceDatasetsWereUpdate(2, _relationshipId);
         }
 
         [TestMethod]
@@ -2301,10 +2303,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 Times.Never);
         }
 
-        private void ThenXProviderSourceDatasetsWereUpdate(int expectedCount)
+        private void ThenXProviderSourceDatasetsWereUpdate(int expectedCount, string dataDefinitionId)
         {
             _providerSourceDatasetBulkRepository.Verify(_ => _.UpdateCurrentProviderSourceDatasets(It.Is<IEnumerable<ProviderSourceDataset>>(ds =>
-                ds.Count() == expectedCount)),
+                ds.Count() == expectedCount && ds.All(_ => _.DataDefinition == null ? _.DataDefinitionId == dataDefinitionId : _.DataDefinition.Id == dataDefinitionId))),
                 Times.Once);
         }
 
