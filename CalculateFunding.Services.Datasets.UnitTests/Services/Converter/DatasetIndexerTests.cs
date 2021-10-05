@@ -53,6 +53,18 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         }
 
         [TestMethod]
+        public async Task SkipsIndexingDatasetWhenSuppliedDatasetIsReleased ()
+        {
+            Dataset dataset = NewDataset(_ => _.WithCurrent(NewDatasetVersion())
+                .WithDefinition(null));
+
+            await WhenTheDatasetAndVersionIsIndexed(dataset);
+
+            ThenTheDatasetWasNotIndexed();
+            AndTheDatasetsVersionWasIndexed(dataset);
+        }
+
+        [TestMethod]
         public void ThrowsExceptionWithIndexingErrorsWhenReturnedFromDatasetIndexing()
         {
             IndexError[] expectedErrors = new[]
@@ -137,10 +149,16 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 }))));  
         }
 
+        private void ThenTheDatasetWasNotIndexed()
+        {
+            _datasets.Verify(_ => _.Index(It.IsAny<IEnumerable<DatasetIndex>>()), Times.Never);
+        }
+
         private void AndTheDatasetsVersionWasIndexed(Dataset dataset)
         {
             DatasetVersion datasetVersion = dataset.Current;
-            
+            string definitionName = dataset.Definition?.Name;
+
             _datasetVersions.Verify(_ => _.Index(It.Is<IEnumerable<DatasetVersionIndex>>(indexes =>
                 ConstraintHelpers.AreEquivalent(indexes.SingleOrDefault(), new DatasetVersionIndex
                 {
@@ -151,7 +169,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                     BlobName = datasetVersion.BlobName,
                     ChangeNote = datasetVersion.Comment,
                     ChangeType = datasetVersion.ChangeType.ToString(),
-                    DefinitionName = dataset.Definition.Name,
+                    DefinitionName = definitionName,
                     Description = datasetVersion.Description,
                     LastUpdatedDate = datasetVersion.Date,
                     LastUpdatedByName = datasetVersion.Author.Name,

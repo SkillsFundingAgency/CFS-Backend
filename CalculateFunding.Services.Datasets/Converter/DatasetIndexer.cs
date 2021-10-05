@@ -66,6 +66,11 @@ namespace CalculateFunding.Services.Datasets.Converter
         {
             DatasetVersion datasetVersion = dataset.Current;
 
+            if (dataset.Definition == null)
+            {
+                return ArraySegment<IndexError>.Empty;
+            }
+
             return await _datasetSearchResilience.ExecuteAsync(() => _datasetsSearch.Index(new[]
             {
                 new DatasetIndex

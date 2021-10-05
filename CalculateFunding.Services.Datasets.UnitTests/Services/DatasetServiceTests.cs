@@ -2042,6 +2042,13 @@ namespace CalculateFunding.Services.Datasets.Services
                     {
                         PublishStatus = Models.Versioning.PublishStatus.Approved
                     }
+                },
+                new Dataset
+                {
+                    Current = new DatasetVersion
+                    {
+                        PublishStatus = Models.Versioning.PublishStatus.Approved
+                    }
                 }
             };
 

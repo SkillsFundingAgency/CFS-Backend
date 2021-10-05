@@ -256,8 +256,7 @@ namespace CalculateFunding.Services.Datasets
                 throw new InvalidOperationException($"Failed to create dataset for id: {model.Name} with status code {datasetStatusCode}");
             }
 
-            List<IndexError> indexErrors = (await IndexDatasetInSearch(dataset)).ToList();
-            indexErrors.AddRange(await IndexDatasetVersionInSearch(dataset, newVersion));
+            List<IndexError> indexErrors = (await IndexDatasetVersionInSearch(dataset, newVersion)).ToList();
 
             if (indexErrors.Any())
             {
@@ -1155,7 +1154,7 @@ namespace CalculateFunding.Services.Datasets
 
             List<DatasetIndex> searchEntries = new List<DatasetIndex>(searchBatchSize);
 
-            foreach (DocumentEntity<Dataset> dataset in datasets)
+            foreach (DocumentEntity<Dataset> dataset in datasets.Where(_ => _.Content.Definition != null))
             {
                 DatasetIndex datasetIndex = new DatasetIndex()
                 {
@@ -1171,7 +1170,8 @@ namespace CalculateFunding.Services.Datasets
                     ChangeType = dataset.Content.Current.ChangeType == DatasetChangeType.Unknown ? DatasetChangeType.NewVersion.ToString() : dataset.Content.Current.ChangeType.ToString(),
                     LastUpdatedById = dataset.Content.Current.Author?.Id,
                     FundingStreamId = dataset.Content.Current.FundingStream?.Id,
-                    FundingStreamName = dataset.Content.Current.FundingStream?.Name
+                    FundingStreamName = dataset.Content.Current.FundingStream?.Name,
+                    RelationshipId = dataset.Content.RelationshipId
                 };
 
                 searchEntries.Add(datasetIndex);
@@ -1328,7 +1328,10 @@ namespace CalculateFunding.Services.Datasets
 
             foreach (Dataset dataset in datasets)
             {
-                dataset.Definition.Name = datsetDefinitionReference.Name;
+                if (dataset.Definition != null)
+                {
+                    dataset.Definition.Name = datsetDefinitionReference.Name;
+                }
             }
 
             try
@@ -1845,11 +1848,16 @@ namespace CalculateFunding.Services.Datasets
             return dataset;
         }
 
-        private Task<IEnumerable<IndexError>> IndexDatasetInSearch(Dataset dataset)
+        private async Task<IEnumerable<IndexError>> IndexDatasetInSearch(Dataset dataset)
         {
             Guard.ArgumentNotNull(dataset, nameof(dataset));
 
-            return _datasetIndexSearchRepository.Index(new List<DatasetIndex>
+            if (dataset.Definition == null)
+            {
+                return ArraySegment<IndexError>.Empty;
+            }
+
+            return await _datasetIndexSearchRepository.Index(new List<DatasetIndex>
             {
                 new DatasetIndex
                 {

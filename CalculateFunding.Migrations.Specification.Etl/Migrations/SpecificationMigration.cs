@@ -537,23 +537,27 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
 
                                     SearchRepository<DatasetIndex> searchRepository = new SearchRepository<DatasetIndex>(searchRepositorySettings);
 
-                                    DatasetIndex datasetIndex = new DatasetIndex
+                                    if (item.content.Definition != null)
                                     {
-                                        DefinitionId = item.content.Definition?.id,
-                                        DefinitionName = item.content.Definition?.name,
-                                        Id = item.content.id,
-                                        LastUpdatedDate = !string.IsNullOrWhiteSpace(Convert.ToString(item.updatedAt)) ? DateTimeOffset.Parse(Convert.ToString(item.updatedAt)) : null,
-                                        Name = item.content.name,
-                                        Status = item.content.current.publishStatus,
-                                        Description = item.content.description,
-                                        Version = item.content.current.version,
-                                        ChangeNote = item.content.current.comment,
-                                        ChangeType = string.IsNullOrEmpty(item.content.current.changeType) ? DatasetChangeType.NewVersion.ToString() : item.content.current.changeType,
-                                        LastUpdatedByName = item.content.current.author?.name,
-                                        LastUpdatedById = item.content.current.author?.id
-                                    };
+                                        DatasetIndex datasetIndex = new DatasetIndex
+                                        {
+                                            DefinitionId = item.content.Definition?.id,
+                                            DefinitionName = item.content.Definition?.name,
+                                            Id = item.content.id,
+                                            LastUpdatedDate = !string.IsNullOrWhiteSpace(Convert.ToString(item.updatedAt)) ? DateTimeOffset.Parse(Convert.ToString(item.updatedAt)) : null,
+                                            Name = item.content.name,
+                                            Status = item.content.current.publishStatus,
+                                            Description = item.content.description,
+                                            Version = item.content.current.version,
+                                            ChangeNote = item.content.current.comment,
+                                            ChangeType = string.IsNullOrEmpty(item.content.current.changeType) ? DatasetChangeType.NewVersion.ToString() : item.content.current.changeType,
+                                            LastUpdatedByName = item.content.current.author?.name,
+                                            LastUpdatedById = item.content.current.author?.id,
+                                            RelationshipId = item.content.RelationshipId
+                                        };
 
-                                    await searchRepository.Index(new DatasetIndex[] { datasetIndex });
+                                        await searchRepository.Index(new DatasetIndex[] { datasetIndex });
+                                    }
 
                                     SearchRepository<DatasetVersionIndex> searchVersionRepository = new SearchRepository<DatasetVersionIndex>(searchRepositorySettings);
 
