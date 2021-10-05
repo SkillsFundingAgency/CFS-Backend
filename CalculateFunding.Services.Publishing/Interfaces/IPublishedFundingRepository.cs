@@ -72,6 +72,11 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string fundingPeriodId,
             string providerId);
 
+        Task<PublishedProviderVersion> GetReleasedPublishedProviderVersion(string fundingStreamId,
+            string fundingPeriodId,
+            string providerId,
+            int majorVersion);
+
         Task<PublishedProviderVersion> GetLatestPublishedProviderVersion(string fundingStreamId,
             string fundingPeriodId,
             string providerId);

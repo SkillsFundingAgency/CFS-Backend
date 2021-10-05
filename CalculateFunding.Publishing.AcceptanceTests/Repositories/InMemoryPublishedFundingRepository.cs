@@ -400,6 +400,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(publishedProvider);
         }
 
+        public Task<PublishedProviderVersion> GetReleasedPublishedProviderVersion(
+            string fundingStreamId, 
+            string fundingPeriodId, 
+            string providerId, 
+            int majorVersion)
+        {
+            PublishedProvider publishedProvider = _repo.PublishedProviders.SelectMany(c => c.Value).Where(p =>
+                  p.Value.Current.FundingStreamId == fundingStreamId
+                  && p.Value.Current.FundingPeriodId == fundingPeriodId
+                  && p.Value.Current.ProviderId == providerId
+                  && p.Value.Released.MajorVersion == majorVersion
+                  && p.Value.Released.Status == PublishedProviderStatus.Released).FirstOrDefault().Value;
+
+            return Task.FromResult(publishedProvider.Released);
+        }
+
         public Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,

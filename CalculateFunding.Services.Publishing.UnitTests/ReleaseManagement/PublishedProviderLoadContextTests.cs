@@ -103,6 +103,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         }
 
         [TestMethod]
+        public async Task LoadProviderVersionSetsAndReturnsProviderVersion()
+        {
+            GivenRepoReturnsProviderVersion();
+
+            _sut.SetSpecDetails(FundingStreamId, FundingPeriodId);
+
+            PublishedProviderVersion result = await _sut.LoadProviderVersion(_publishedProvider.Released.ProviderId, _publishedProvider.Released.MajorVersion);
+
+            result
+                .Should()
+                .BeEquivalentTo(_publishedProvider.Released);
+        }
+
+        [TestMethod]
         public void LoadProvider_ForMissingProvider_ThrowsInvalidOperationException()
         {
             GivenRepoReturnsNull();
@@ -115,6 +129,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Should()
                 .ThrowExactly<InvalidOperationException>()
                 .WithMessage("Published provider with provider ID 123 not found");
+        }
+
+        [TestMethod]
+        public void LoadProviderVersion_ForMissingProvider_ThrowsInvalidOperationException()
+        {
+            GivenRepoReturnsNull();
+
+            _sut.SetSpecDetails(FundingStreamId, FundingPeriodId);
+
+            Func<Task> result = async () => await _sut.LoadProviderVersion("123", 1);
+
+            result
+                .Should()
+                .ThrowExactly<InvalidOperationException>()
+                .WithMessage("Published provider with provider ID 123 and major version 1 not found");
         }
 
         [TestMethod]
@@ -159,6 +188,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _repo.Setup(s => s.GetPublishedProvider(
                             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                             .ReturnsAsync(_publishedProvider);
+        }
+
+        private void GivenRepoReturnsProviderVersion()
+        {
+            _repo.Setup(s => s.GetReleasedPublishedProviderVersion(
+                            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                            .ReturnsAsync(_publishedProvider.Released);
         }
 
         private void GivenBulkRepoReturnsPublishedProviders()

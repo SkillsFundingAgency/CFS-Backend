@@ -19,7 +19,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     {
         private readonly IPublishedFundingBulkRepository _bulkRepo;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-        ConcurrentDictionary<string, PublishedProvider> _providers = new ConcurrentDictionary<string, PublishedProvider>();
+
+        readonly ConcurrentDictionary<string, PublishedProvider> _providers = new ConcurrentDictionary<string, PublishedProvider>();
+        readonly ConcurrentDictionary<(string providerId, int majorVersion), PublishedProviderVersion> _providerVersionsByProviderIdAndMajorVersion 
+            = new ConcurrentDictionary<(string providerId, int majorVersion), PublishedProviderVersion>();
+
         private string _fundingStreamId;
         private string _fundingPeriodId;
 
@@ -53,6 +57,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(provider, nameof(provider));
 
             _providers.AddOrUpdate(provider.Current.ProviderId, provider, (key, existingItem) => { return provider; });
+        }
+
+        private void AddPublishedProviderVersion(PublishedProviderVersion publishedProviderVersion)
+        {
+            Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
+
+            _providerVersionsByProviderIdAndMajorVersion.AddOrUpdate(
+                (publishedProviderVersion.ProviderId, publishedProviderVersion.MajorVersion),
+                publishedProviderVersion,
+                (key, existingItem) => { return publishedProviderVersion; });
         }
 
         public bool ContainsKey(string key)
@@ -93,7 +107,20 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             AddProvider(publishedProvider);
 
             return publishedProvider;
+        }
 
+        public async Task<PublishedProviderVersion> LoadProviderVersion(string providerId, int majorVersion)
+        {
+            PublishedProviderVersion publishedProviderVersion 
+                = await _publishedFundingRepository.GetReleasedPublishedProviderVersion(_fundingStreamId, _fundingPeriodId, providerId, majorVersion);
+            if (publishedProviderVersion == null)
+            {
+                throw new InvalidOperationException($"Published provider with provider ID {providerId} and major version {majorVersion} not found");
+            }
+
+            AddPublishedProviderVersion(publishedProviderVersion);
+
+            return publishedProviderVersion;
         }
 
         public void SetSpecDetails(string fundingStreamId, string fundingPeriodId)
@@ -127,6 +154,26 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             }
 
             return providerIds.Select(providerId => _providers[providerId]);
+        }
+
+        public async Task<PublishedProviderVersion> GetOrLoadProviderVersion(string providerId, int majorVersion)
+        {
+            Guard.ArgumentNotNull(providerId, nameof(providerId));
+            Guard.ArgumentNotNull(majorVersion, nameof(majorVersion));
+
+            if (_providers.ContainsKey(providerId) && _providers[providerId].Released.MajorVersion == majorVersion)
+            {
+                return _providers[providerId].Released;
+            }
+
+            if(_providerVersionsByProviderIdAndMajorVersion.ContainsKey((providerId, majorVersion)))
+            {
+                return _providerVersionsByProviderIdAndMajorVersion[(providerId, majorVersion)];
+            }
+
+            await LoadProviderVersion(providerId, majorVersion);
+
+            return _providerVersionsByProviderIdAndMajorVersion[(providerId, majorVersion)];
         }
     }
 }

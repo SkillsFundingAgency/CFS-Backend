@@ -136,25 +136,34 @@ namespace CalculateFunding.Services.Publishing.Repositories
             }
 
             return document.Content;
+        }
 
-            //return (await _repository
-            //    .QuerySql<PublishedProvider>(new CosmosDbQuery
-            //    {
-            //        QueryText = @"SELECT *
-            //                     FROM c
-            //                     WHERE c.documentType = 'PublishedProvider'
-            //                     AND c.deleted = false
-            //                     AND c.content.current.providerId = @providerId
-            //                     AND c.content.current.fundingStreamId = @fundingStreamId
-            //                     AND c.content.current.fundingPeriodId = @fundingPeriodId",
-            //        Parameters = new[]
-            //        {
-            //            new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
-            //            new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId),
-            //            new CosmosDbQueryParameter("@providerId", providerId)
-            //        }
-            //    }))
-            //    .SingleOrDefault();
+        public async Task<PublishedProviderVersion> GetReleasedPublishedProviderVersion(
+            string fundingStreamId, 
+            string fundingPeriodId, 
+            string providerId, 
+            int majorVersion)
+        {
+            return (await _repository
+                .QuerySql<PublishedProviderVersion>(new CosmosDbQuery
+                {
+                    QueryText = @"SELECT *
+                                 FROM c
+                                 WHERE c.documentType = 'PublishedProviderVersion'
+                                 AND c.deleted = false
+                                 AND c.content.providerId = @providerId
+                                 AND c.content.fundingStreamId = @fundingStreamId
+                                 AND c.content.fundingPeriodId = @fundingPeriodId
+                                 AND c.content.majorVersion = @majorVersion",
+                    Parameters = new[]
+                    {
+                        new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                        new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId),
+                        new CosmosDbQueryParameter("@providerId", providerId),
+                        new CosmosDbQueryParameter("@majorVersion", majorVersion),
+                    }
+                }))
+                .SingleOrDefault();
         }
 
         public async Task<PublishedProvider> GetPublishedProviderBySpecificationId(
