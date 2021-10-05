@@ -148,7 +148,9 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
                     ParliamentaryConstituencyName = "Bermondsey and Old Southwark",
                     ParliamentaryConstituencyCode = "BOS",
                     CountryCode = "E",
-                    CountryName = "England"
+                    CountryName = "England",
+                    FurtherEducationTypeCode = "Further Education Code 1",
+                    FurtherEducationTypeName = "Further Education Name 1"
                 },
                 ProviderId = "12345678",
                 FundingStreamId = "PSG",

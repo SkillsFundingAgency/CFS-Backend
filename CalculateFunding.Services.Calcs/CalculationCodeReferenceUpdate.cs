@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Calcs
                         .GetRoot()
                         .DescendantNodes()
                         .OfType<MemberAccessExpressionSyntax>()
-                        .Single();
+                        .First();
                 }
 
                 replacementNodes.Add(invocation, replacementInvocation);

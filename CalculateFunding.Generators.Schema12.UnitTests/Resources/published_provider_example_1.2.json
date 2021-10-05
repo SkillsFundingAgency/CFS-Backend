@@ -28,6 +28,8 @@
       "status": "Approved",
       "phaseOfEducation": null,
       "localAuthorityName": "London",
+      "furtherEducationTypeCode": "Further Education Code 1",
+      "furtherEducationTypeName": "Further Education Name 1",
       "openReason": null,
       "closeReason": null,
       "trustStatus": "Supported by a trust",

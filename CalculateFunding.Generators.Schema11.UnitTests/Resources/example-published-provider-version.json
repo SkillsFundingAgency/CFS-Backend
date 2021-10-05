@@ -1224,6 +1224,8 @@
 		"ukprn": "188396",
 		"upin": null,
 		"establishmentNumber": null,
+		"furtherEducationTypeCode": "Further Education Code 1",
+		"furtherEducationTypeName": "Further Education Name 1",
 		"dfeEstablishmentNumber": "DFE establishment number",
 		"authority": "London",
 		"providerType": null,

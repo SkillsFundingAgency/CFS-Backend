@@ -96,6 +96,8 @@ namespace CalculateFunding.Generators.Schema11
                         publishedProviderVersion.Provider.Status,
                         publishedProviderVersion.Provider.PhaseOfEducation,
                         LocalAuthorityName = publishedProviderVersion.Provider.Authority,
+                        publishedProviderVersion.Provider.FurtherEducationTypeCode,
+                        publishedProviderVersion.Provider.FurtherEducationTypeName,
                         OpenReason = publishedProviderVersion.Provider.ReasonEstablishmentOpened,
                         CloseReason = publishedProviderVersion.Provider.ReasonEstablishmentClosed,
                         TrustStatus = publishedProviderVersion.Provider.TrustStatus.ToEnumMemberAttrValue(),

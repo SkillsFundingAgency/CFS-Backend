@@ -205,7 +205,9 @@ namespace CalculateFunding.Services.FundingDataZone
 		[PreviousLaCode],
 		[PreviousLaName],
 		[PreviousEstablishmentNumber],
-		[ProviderStatusId]
+		[ProviderStatusId],
+		[FurtherEducationTypecode],
+		[FurtherEducationTypename]
 	)
 	SELECT
 		@cloneProviderSnapshot,
@@ -267,7 +269,9 @@ namespace CalculateFunding.Services.FundingDataZone
 		p.[PreviousLaCode],
 		p.[PreviousLaName],
 		p.[PreviousEstablishmentNumber],
-		p.[ProviderStatusId]
+		p.[ProviderStatusId],
+		p.[FurtherEducationTypecode],
+		p.[FurtherEducationTypename]
 	FROM
 		Provider p
 	INNER JOIN PaymentOrganisation po ON p.[PaymentOrganisationId] = po.[PaymentOrganisationId]

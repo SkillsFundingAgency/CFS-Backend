@@ -328,6 +328,16 @@
         <span asp-validation-for="Provider.PreviousEstablishmentNumber" class="text-danger"></span>
     </div>
     <div class="mb-3">
+        <label asp-for="Provider.FurtherEducationTypeCode"></label>
+        <input asp-for="Provider.FurtherEducationTypeCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.FurtherEducationTypeCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.FurtherEducationTypeName"></label>
+        <input asp-for="Provider.FurtherEducationTypeName" type="text" class="form-control">
+        <span asp-validation-for="Provider.FurtherEducationTypeName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
         <label asp-for="Provider.PaymentOrganisationUkprn"></label>
         <input asp-for="Provider.PaymentOrganisationUkprn" type="text" list="organisations" class="form-control">
         <span asp-validation-for="Provider.PaymentOrganisationUkprn" class="text-danger"></span>

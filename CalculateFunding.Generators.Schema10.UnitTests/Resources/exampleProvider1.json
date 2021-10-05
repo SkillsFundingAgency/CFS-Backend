@@ -1,51 +1,53 @@
 {
-    "identifier": "12345678",
-    "name": "Example School 1",
-    "searchableName": "Example_School_1",
-    "otherIdentifiers": [
-      {
-        "type": "URN",
-        "value": "123453"
-      },
-      {
-        "type": "UKPRN",
-        "value": "12345678"
-      }
-    ],
-    "providerVersionId": "3",
-    "providerType": "Academies",
-    "providerSubType": "Academy alternative provision converter",
-    "providerDetails": {
-      "dateOpened": "2012-12-02T00:00:00+00:00",
-      "dateClosed": null,
-      "status": "Open",
-      "phaseOfEducation": "Secondary",
-      "localAuthorityName": "Camden",
-      "openReason": "Academy Converter",
-      "closeReason": null,
-      "trustStatus": "Supported by a single-academy trust",
-      "trustName": "Trust Name",
-      "town": "MOCK TOWN",
-      "postcode": "MOCK POSTCODE",
-      "companiesHouseNumber": "6237225",
-      "groupIdNumber": "GroupID2522",
-      "rscRegionName": "North West",
-      "rscRegionCode": "NW",
-      "governmentOfficeRegionName": "Gov Office Region 2",
-      "governmentOfficeRegionCode": "GRCC2",
-      "districtName": "District Name",
-      "districtCode": "DC",
-      "wardName": "South Bermondsey",
-      "wardCode": "WC522257",
-      "censusWardName": "Census Ward Name",
-      "censusWardCode": "Census Ward Code 1",
-      "middleSuperOutputAreaName": "MSOA Fifty Six",
-      "middleSuperOutputAreaCode": "MSOA56",
-      "lowerSuperOutputAreaName": "Lower 66",
-      "lowerSuperOutputAreaCode": "L66",
-      "parliamentaryConstituencyName": "Bermondsey and Old Southwark",
-      "parliamentaryConstituencyCode": "BOS",
-      "countryCode": "E",
-      "countryName": "England"
+  "identifier": "12345678",
+  "name": "Example School 1",
+  "searchableName": "Example_School_1",
+  "otherIdentifiers": [
+    {
+      "type": "URN",
+      "value": "123453"
+    },
+    {
+      "type": "UKPRN",
+      "value": "12345678"
     }
+  ],
+  "providerVersionId": "3",
+  "providerType": "Academies",
+  "providerSubType": "Academy alternative provision converter",
+  "providerDetails": {
+    "dateOpened": "2012-12-02T00:00:00+00:00",
+    "dateClosed": null,
+    "status": "Open",
+    "phaseOfEducation": "Secondary",
+    "localAuthorityName": "Camden",
+    "furtherEducationTypeCode": "Further Education Code 1",
+    "furtherEducationTypeName": "Further Education Name 1",
+    "openReason": "Academy Converter",
+    "closeReason": null,
+    "trustStatus": "Supported by a single-academy trust",
+    "trustName": "Trust Name",
+    "town": "MOCK TOWN",
+    "postcode": "MOCK POSTCODE",
+    "companiesHouseNumber": "6237225",
+    "groupIdNumber": "GroupID2522",
+    "rscRegionName": "North West",
+    "rscRegionCode": "NW",
+    "governmentOfficeRegionName": "Gov Office Region 2",
+    "governmentOfficeRegionCode": "GRCC2",
+    "districtName": "District Name",
+    "districtCode": "DC",
+    "wardName": "South Bermondsey",
+    "wardCode": "WC522257",
+    "censusWardName": "Census Ward Name",
+    "censusWardCode": "Census Ward Code 1",
+    "middleSuperOutputAreaName": "MSOA Fifty Six",
+    "middleSuperOutputAreaCode": "MSOA56",
+    "lowerSuperOutputAreaName": "Lower 66",
+    "lowerSuperOutputAreaCode": "L66",
+    "parliamentaryConstituencyName": "Bermondsey and Old Southwark",
+    "parliamentaryConstituencyCode": "BOS",
+    "countryCode": "E",
+    "countryName": "England"
   }
+}

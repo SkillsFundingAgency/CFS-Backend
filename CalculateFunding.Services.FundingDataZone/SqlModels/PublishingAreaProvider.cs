@@ -212,6 +212,12 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
         [Display(Name = "Previous establishment number")]
         public string PreviousEstablishmentNumber { get; set; }
 
+        [Display(Name = "Further education type code")]
+        public string FurtherEducationTypeCode { get; set; }
+
+        [Display(Name = "Further education type name")]
+        public string FurtherEducationTypeName { get; set; }
+
         [Display(Name = "Provider status")]
         [Required]
         public int? ProviderStatusId { get; set; }

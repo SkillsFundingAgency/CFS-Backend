@@ -406,6 +406,8 @@ namespace CalculateFunding.Services.Providers
                     PreviousLAcode = x.PreviousLACode,
                     PreviousLAname = x.PreviousLAName,
                     PreviousEstablishmentNumber = x.PreviousEstablishmentNumber,
+                    FurtherEducationTypeCode = x.FurtherEducationTypeCode,
+                    FurtherEducationTypeName = x.FurtherEducationTypeName,
                     Predecessors = x.Predecessors,
                     Successors = x.Successors
                 });

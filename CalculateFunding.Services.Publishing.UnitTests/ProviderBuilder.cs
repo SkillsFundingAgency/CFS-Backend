@@ -13,6 +13,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _providerId;
         private string _status;
         private string _establishmentNumber;
+        private string _furtherEducationTypeCode;
+        private string _furtherEducationTypeName;
         private string _authority;
         private string _laCode;
         private string _urn;
@@ -172,6 +174,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public ProviderBuilder WithFurtherEducationTypeCode(string furtherEducationTypeCode)
+        {
+            _furtherEducationTypeCode = furtherEducationTypeCode;
+
+            return this;
+        }
+
+        public ProviderBuilder WithFurtherEducationTypeName(string furtherEducationTypeName)
+        {
+            _furtherEducationTypeName = furtherEducationTypeName;
+
+            return this;
+        }
+
         public ProviderBuilder WithStatus(string status)
         {
             _status = status;
@@ -213,6 +229,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 DistrictCode = NewRandomString(),
                 DistrictName = NewRandomString(),
                 EstablishmentNumber = _establishmentNumber ?? NewRandomString(),
+                FurtherEducationTypeCode = _furtherEducationTypeCode ?? NewRandomString(),
+                FurtherEducationTypeName = _furtherEducationTypeName ?? NewRandomString(),
                 LegalName = NewRandomString(),
                 ProviderType = _providerType ?? NewRandomString(),
                 ProviderSubType = _providerSubType ?? NewRandomString(),

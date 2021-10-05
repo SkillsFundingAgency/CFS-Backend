@@ -590,6 +590,14 @@ namespace CalculateFunding.Services.CalcEngine
                         property.SetValue(data, providerSummary.ReasonEstablishmentClosed.EmptyIfNull());
                         break;
 
+                    case "FurtherEducationTypeCode":
+                        property.SetValue(data, providerSummary.FurtherEducationTypeCode.EmptyIfNull());
+                        break;
+
+                    case "FurtherEducationTypeName":
+                        property.SetValue(data, providerSummary.FurtherEducationTypeName.EmptyIfNull());
+                        break;
+
                     case "HasSuccessor":
                         property.SetValue(data, providerSummary.Successors.AnyWithNullCheck());
                         break;

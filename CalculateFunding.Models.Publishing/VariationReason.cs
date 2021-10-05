@@ -235,5 +235,15 @@ namespace CalculateFunding.Models.Publishing
         [SqlConstantId(44)]
         [EnumMember(Value = nameof(IndicativeToLive))]
         IndicativeToLive,
+
+        [Display(Name = "Further education type code updated")]
+        [SqlConstantId(45)]
+        [EnumMember(Value = nameof(FurtherEducationTypeCodeUpdated))]
+        FurtherEducationTypeCodeUpdated,
+
+        [Display(Name = "Further education type name updated")]
+        [SqlConstantId(46)]
+        [EnumMember(Value = nameof(FurtherEducationTypeNameUpdated))]
+        FurtherEducationTypeNameUpdated,
     }
 }

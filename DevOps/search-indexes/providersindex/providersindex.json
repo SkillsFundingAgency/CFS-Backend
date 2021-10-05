@@ -496,6 +496,22 @@
       "facetable": false
     },
     {
+      "name": "furtherEducationTypeCode",
+      "type": "Edm.String",
+      "searchable": false,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false
+    },
+    {
+      "name": "furtherEducationTypeName",
+      "type": "Edm.String",
+      "searchable": false,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false
+    },
+    {
       "name": "predecessors",
       "type": "Collection(Edm.String)",
       "searchable": false,

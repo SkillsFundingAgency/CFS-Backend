@@ -24,6 +24,8 @@
       "status": "Open",
       "phaseOfEducation": "Secondary",
       "localAuthorityName": "Camden",
+      "furtherEducationTypeCode": "Further Education Code 1",
+      "furtherEducationTypeName": "Further Education Name 1",
       "openReason": "Academy Converter",
       "closeReason": null,
       "trustStatus": "Supported by a single-academy trust",

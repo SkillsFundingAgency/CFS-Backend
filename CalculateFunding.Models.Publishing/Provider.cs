@@ -35,6 +35,14 @@ namespace CalculateFunding.Models.Publishing
         [VariationReasonValue(VariationReason.EstablishmentNumberFieldUpdated)]
         public string EstablishmentNumber { get; set; }
 
+        [JsonProperty("furtherEducationTypeCode")]
+        [VariationReasonValue(VariationReason.FurtherEducationTypeCodeUpdated)]
+        public string FurtherEducationTypeCode { get; set; }
+
+        [JsonProperty("furtherEducationTypeName")]
+        [VariationReasonValue(VariationReason.FurtherEducationTypeNameUpdated)]
+        public string FurtherEducationTypeName { get; set; }
+
         [JsonProperty("dfeEstablishmentNumber")]
         [VariationReasonValue(VariationReason.DfeEstablishmentNumberFieldUpdated)]
         public string DfeEstablishmentNumber { get; set; }

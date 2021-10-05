@@ -678,6 +678,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 PreviousLAcode = provider.PreviousLACode,
                 PreviousLAname = provider.PreviousLAName,
                 PreviousEstablishmentNumber = provider.PreviousEstablishmentNumber,
+                FurtherEducationTypeCode = provider.FurtherEducationTypeCode,
+                FurtherEducationTypeName = provider.FurtherEducationTypeName,
                 Predecessors = provider.Predecessors,
                 Successors = provider.Successors
             };

@@ -1225,6 +1225,8 @@
 		"upin": null,
 		"establishmentNumber": null,
 		"dfeEstablishmentNumber": "DFE establishment number",
+		"furtherEducationTypeCode": "Further Education Code 1",
+		"furtherEducationTypeName": "Further Education Name 1",
 		"authority": "London",
 		"providerType": null,
 		"providerSubType": null,

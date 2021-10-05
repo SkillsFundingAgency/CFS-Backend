@@ -96,6 +96,8 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
             provider.PreviousLaCode = Provider.PreviousLaCode;
             provider.PreviousLaName = Provider.PreviousLaName;
             provider.PreviousEstablishmentNumber = Provider.PreviousEstablishmentNumber;
+            provider.FurtherEducationTypeCode = Provider.FurtherEducationTypeCode;
+            provider.FurtherEducationTypeName = Provider.FurtherEducationTypeName;
             provider.StatusCode = Provider.StatusCode;
 
             if (Provider.ProviderStatusId.HasValue)

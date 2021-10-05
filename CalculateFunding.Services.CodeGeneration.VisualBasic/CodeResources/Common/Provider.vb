@@ -188,6 +188,14 @@ Public Class Provider
     <Description(Description:="Reason Establishment Closed")>
     Public Property ReasonEstablishmentClosed() As String
 
+    <Field(Id:="FurtherEducationTypeCode", Name:="FurtherEducationTypeCode")>
+    <Description(Description:="Further Education Type Code")>
+    Public Property FurtherEducationTypeCode() As String
+
+    <Field(Id:="FurtherEducationTypeName", Name:="FurtherEducationTypeName")>
+    <Description(Description:="Further Education Type Name")>
+    Public Property FurtherEducationTypeName() As String
+
     <Field(Id:="HasPredecessor", Name:="HasPredecessor")>
     <Description(Description:="Has one or more predecessors")>
     Public Property HasPredecessor() As Boolean
