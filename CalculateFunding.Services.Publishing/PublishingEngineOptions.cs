@@ -1,7 +1,7 @@
-using System.Runtime.CompilerServices;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Extensions.Configuration;
+using System.Runtime.CompilerServices;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing
         public PublishingEngineOptions(IConfiguration configuration)
         {
             Guard.ArgumentNotNull(configuration, nameof(configuration));
-            
+
             _configuration = configuration;
         }
 
@@ -39,19 +39,21 @@ namespace CalculateFunding.Services.Publishing
         public int ProfilingPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
         public int CreateLatestPublishedProviderVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
-        
+
         public int PublishedProviderCreateVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
         public int PublishedProviderSaveVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
         public int PublishedFundingConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
+        public int PublishedProviderLookupConcurrencyCount => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: 60);
+
         public int MaxRequestsPerTcpConnectionPublishedFundingCosmosBulkOptions => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: DefaultMaxRequestsPerTcpConnection);
-        
+
         public int MaxTcpConnectionsPerEndpointPublishedFundingCosmosBulkOptions => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: DefaultMaxTcpConnectionsPerEndpoint);
 
         public int MaxRequestsPerTcpConnectionCalculationsCosmosBulkOptions => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: DefaultMaxRequestsPerTcpConnection);
-        
+
         public int MaxTcpConnectionsPerEndpointCalculationsCosmosBulkOptions => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: DefaultMaxTcpConnectionsPerEndpoint);
 
         public int MaxBatchSizePublishedFunding => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: DefaultMaxBatchSize);

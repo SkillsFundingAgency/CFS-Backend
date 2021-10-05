@@ -127,8 +127,9 @@ namespace CalculateFunding.Services.Publishing.Repositories
             ConcurrentBag<PublishedProvider> concurrentObjects = new ConcurrentBag<PublishedProvider>();
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedFundingConcurrencyCount);
-            foreach (IEnumerable<KeyValuePair<string, string>> batchPublishedProviderIds in publishedProviderIds.ToBatches(_publishingEngineOptions.MaxBatchSizePublishedFunding))
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedProviderLookupConcurrencyCount);
+
+            foreach (KeyValuePair<string, string> publishedFundingIdPair in publishedProviderIds)
             {
                 await throttler.WaitAsync();
                 allTasks.Add(
@@ -136,20 +137,19 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     {
                         try
                         {
-                            List<Task<DocumentEntity<PublishedProvider>>> concurrentTasks = new List<Task<DocumentEntity<PublishedProvider>>>();
+                            DocumentEntity<PublishedProvider> result = await _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                                 _repository.ReadDocumentByIdPartitionedAsync<PublishedProvider>(
+                                     publishedFundingIdPair.Key,
+                                     publishedFundingIdPair.Value));
 
-                            foreach (KeyValuePair<string, string> publishedFundingIdPair in batchPublishedProviderIds)
+                            if (result != null && !result.Deleted)
                             {
-                                concurrentTasks.Add(
-                                    _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
-                                        _repository.ReadDocumentByIdPartitionedAsync<PublishedProvider>(
-                                            publishedFundingIdPair.Key,
-                                            publishedFundingIdPair.Value)));
+                                concurrentObjects.Add(result.Content);
                             }
-
-                            await TaskHelper.WhenAllAndThrow(concurrentTasks.ToArraySafe());
-
-                            concurrentTasks.ForEach(_ => concurrentObjects.Add(_.Result.Content));
+                            else
+                            {
+                                throw new InvalidOperationException($"Unable to find document with id {publishedFundingIdPair.Key} in partition {publishedFundingIdPair.Value}");
+                            }
                         }
                         finally
                         {

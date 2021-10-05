@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
@@ -22,6 +17,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using Provider = CalculateFunding.Models.Publishing.Provider;
 
@@ -162,13 +162,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
             Func<Task<(IDictionary<string, PublishedProvider>, IDictionary<string, PublishedProvider>)>> invocation = () => WhenPublishedProvidersAreReturned(specification);
 
+            string expectedMessage = $"Could not locate the successor provider: {successor.ProviderId} for provider ID {apiproviders.ElementAt(2).ProviderId}";
+
             invocation
                 .Should()
-                .Throw<ArgumentOutOfRangeException>();
+                .Throw<InvalidOperationException>()
+                .WithMessage(expectedMessage);
 
             _logger
                 .Received(1)
-                .Error($"Could not locate the successor provider:{successor.ProviderId}");
+                .Error(expectedMessage);
         }
 
 

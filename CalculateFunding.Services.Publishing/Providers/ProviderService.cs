@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
@@ -18,6 +14,10 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.ProviderVersion;
 using PublishedProvider = CalculateFunding.Models.Publishing.PublishedProvider;
 
@@ -221,9 +221,9 @@ namespace CalculateFunding.Services.Publishing.Providers
                         }
                         else if (successorCheck)
                         {
-                            string error = $"Could not locate the successor provider:{successor}";
+                            string error = $"Could not locate the successor provider: {successor} for provider ID {predecessor.ProviderId}";
                             _logger.Error(error);
-                            throw new ArgumentOutOfRangeException("Successor");
+                            throw new InvalidOperationException(error);
                         }
                     }
                 }
