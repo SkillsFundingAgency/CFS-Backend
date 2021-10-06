@@ -196,9 +196,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 Id = NewRandomString(),
                 Current = new CalculationVersion
                 {
-                    SourceCode = $"Dim calc as {calculationTemplateSourceCodeName}" +
-                $" Dim fundingLine as {fundingLineTemplateSourceCodeName}" +
-                $" return calc() + fundingLine()"
+                    SourceCode = @$"Dim calc as Decimal? = _1619.{calculationTemplateSourceCodeName}()
+Dim fundingLine as Decimal? = _1619.FundingLines.{fundingLineTemplateSourceCodeName}()
+return calc + fundingLine"
                 }
             });
 
@@ -211,9 +211,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 Id = NewRandomString(),
                 Current = new CalculationVersion
                 {
-                    SourceCode = $"Dim calc as {calculationTemplateSourceCodeName}_updated" +
-                    $" Dim fundingLine as {fundingLineTemplateSourceCodeName}_updated" +
-                    $" return calc() + fundingLine()"
+                    SourceCode = @$"Dim calc as Decimal? = _1619.{calculationTemplateSourceCodeName}_updated()
+Dim fundingLine as Decimal? = _1619.FundingLines.{fundingLineTemplateSourceCodeName}_updated()
+return calc + fundingLine"
                 }
             });
         }

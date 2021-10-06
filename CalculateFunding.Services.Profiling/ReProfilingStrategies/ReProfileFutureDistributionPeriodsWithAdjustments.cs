@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
             int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
 
-            if (context.Request.MidYearType == MidYearType.OpenerCatchup)
+            if (context.Request.MidYearType == MidYearType.OpenerCatchup || context.Request.MidYearType == MidYearType.Opener)
             {
                 ZeroPaidProfilePeriodValues(variationPointerIndex, orderedRefreshProfilePeriods);
             }

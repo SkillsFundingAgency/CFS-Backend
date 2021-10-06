@@ -45,12 +45,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 CalculationNamespace.Additional,
                 @"Dim ProvTypeMSS? As Decimal = Calculations.FundingFlagLAForHighNeeds()
 Dim FD? As Decimal = PSG.mssFinancialDisadvantageFunding ()
-Dim Travel? As Decimal = Calculations.mssFinancialDisadvantageFunding() + PSG.mssFinancialDisadvantageFunding()
+Dim Travel? As Decimal = PSG.Calculations.mssFinancialDisadvantageFunding() + Calculations.mssFinancialDisadvantageFundingTest() + PSG.mssFinancialDisadvantageFunding()
 If ProvTypeMSS.HasValue AndAlso FD.HasValue AndAlso Travel.HasValue Then Return FD + Travel
 Return Exclude()",
                 @"Dim ProvTypeMSS? As Decimal = Calculations.FundingFlagLAForHighNeeds()
 Dim FD? As Decimal = PSG.mssFinancialDisadvantageFunding ()
-Dim Travel? As Decimal = Calculations.MSSFinancialDisadvantageFundingNew() + PSG.mssFinancialDisadvantageFunding()
+Dim Travel? As Decimal = PSG.Calculations.MSSFinancialDisadvantageFundingNew() + Calculations.mssFinancialDisadvantageFundingTest() + PSG.mssFinancialDisadvantageFunding()
 If ProvTypeMSS.HasValue AndAlso FD.HasValue AndAlso Travel.HasValue Then Return FD + Travel
 Return Exclude()"
             };

@@ -30,8 +30,11 @@ namespace CalculateFunding.Services.Calcs
             foreach (SyntaxNode invocation in invocationsToReplace)
             {
                 string originalSpan = invocation.GetText().ToString();
-                string replacementSpan = originalSpan.Replace(oldCalcSourceCodeName, newCalcSourceCodeName, StringComparison.InvariantCultureIgnoreCase);
-
+                IEnumerable<string> originalCalcNames = invocation.DescendantNodes().Select(_  => _.GetText().ToString().Trim());
+                string replacementSpan = originalCalcNames.Any(_ => _.Equals(oldCalcSourceCodeName, StringComparison.InvariantCultureIgnoreCase)) ?
+                    originalSpan.Replace(oldCalcSourceCodeName, newCalcSourceCodeName, StringComparison.InvariantCultureIgnoreCase) :
+                    originalSpan;
+                
                 SyntaxNode replacementInvocation;
 
                 if (invocation is SimpleAsClauseSyntax)
