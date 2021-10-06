@@ -56,7 +56,7 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
 
             // Get Target Funding Period
             _logger.Information($"Retrieving funding period with FundingPeriodId={cloneOptions.TargetPeriodId}");
-            FundingPeriod targetFundingPeriod = await _sourceDataOperations.GetFundingPeriodById(cloneOptions.TargetPeriodId);
+            FundingPeriod targetFundingPeriod = await _targetDataOperations.GetFundingPeriodById(cloneOptions.TargetPeriodId);
             _logger.Information($"FundingPeriodId={cloneOptions.TargetPeriodId} exists");
             
             // Clone spec and assign to Funding Template Version with Target Funding Period ID

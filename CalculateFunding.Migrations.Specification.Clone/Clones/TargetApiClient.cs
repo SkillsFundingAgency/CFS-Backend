@@ -5,6 +5,8 @@ using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Extensions;
@@ -25,11 +27,13 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ICalculationsApiClient _calculationsApiClient;
         private readonly IDatasetsApiClient _datasetsApiClient;
+        private readonly IPoliciesApiClient _policiesApiClient;
 
         private readonly AsyncPolicy _specificationsPolicy;
         private readonly AsyncPolicy _jobsPolicy;
         private readonly AsyncPolicy _calcsPolicy;
         private readonly AsyncPolicy _datasetsPolicy;
+        private readonly AsyncPolicy _policiesPolicy;
 
         public TargetApiClient(
             ILogger logger,
@@ -37,7 +41,8 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
             ISpecificationsApiClient specificationsApiClient,
             IJobsApiClient jobsApiClient,
             ICalculationsApiClient calculationsApiClient,
-            IDatasetsApiClient datasetsApiClient)
+            IDatasetsApiClient datasetsApiClient,
+            IPoliciesApiClient policiesApiClient)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
 
@@ -45,23 +50,27 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(datasetsApiClient, nameof(datasetsApiClient));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
 
             Guard.ArgumentNotNull(batchCloneResiliencePolicies, nameof(batchCloneResiliencePolicies));
             Guard.ArgumentNotNull(batchCloneResiliencePolicies.SpecificationsApiClient, nameof(batchCloneResiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(batchCloneResiliencePolicies.JobsApiClient, nameof(batchCloneResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(batchCloneResiliencePolicies.CalcsApiClient, nameof(batchCloneResiliencePolicies.CalcsApiClient));
             Guard.ArgumentNotNull(batchCloneResiliencePolicies.DatasetsApiClient, nameof(batchCloneResiliencePolicies.DatasetsApiClient));
+            Guard.ArgumentNotNull(batchCloneResiliencePolicies.PoliciesApiClient, nameof(batchCloneResiliencePolicies.PoliciesApiClient));
 
             _logger = logger;
             _specificationsApiClient = specificationsApiClient;
             _jobsApiClient = jobsApiClient;
             _calculationsApiClient = calculationsApiClient;
             _datasetsApiClient = datasetsApiClient;
+            _policiesApiClient = policiesApiClient;
 
             _specificationsPolicy = batchCloneResiliencePolicies.SpecificationsApiClient;
             _jobsPolicy = batchCloneResiliencePolicies.JobsApiClient;
             _calcsPolicy = batchCloneResiliencePolicies.CalcsApiClient;
             _datasetsPolicy = batchCloneResiliencePolicies.DatasetsApiClient;
+            _policiesPolicy = batchCloneResiliencePolicies.PoliciesApiClient;
         }
 
         public async Task<SpecificationSummary> CreateSpecification(CreateSpecificationModel createSpecificationModel)
@@ -154,6 +163,14 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                 await _calcsPolicy.ExecuteAsync(() => _calculationsApiClient.GetCalculationsForSpecification(specificationId));
             calculationsResponse.ValidateApiResponse(_logger, $"{nameof(GetCalculationsForSpecification)}operation failed for SpecificationId={specificationId}");
             return calculationsResponse.Content;
+        }
+
+        public async Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
+        {
+            ApiResponse<FundingPeriod> targetFundingPeriodResponse =
+                await _policiesPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(fundingPeriodId));
+            targetFundingPeriodResponse.ValidateApiResponse(_logger, $"Error while retrieving FundingPeriodId={fundingPeriodId}");
+            return targetFundingPeriodResponse.Content;
         }
     }
 }

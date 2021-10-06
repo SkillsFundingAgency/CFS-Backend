@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -31,5 +32,7 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
         Task<DefinitionSpecificationRelationship> CreateRelationship(CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel);
 
         Task<IEnumerable<Calculation>> GetCalculationsForSpecification(string specificationId);
+
+        Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId);
     }
 }

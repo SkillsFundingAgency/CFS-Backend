@@ -93,14 +93,12 @@ namespace CalculateFunding.Migrations.Specification.Clone
                 ICancellationTokenProvider cancellationTokenProvider = ctx.GetService<ICancellationTokenProvider>();
 
                 ISpecificationsApiClient specificationsApiClient = new SpecificationsApiClient(httpClientFactory, logger, cancellationTokenProvider, clientKey: SourceSpecificationsClientKey);
-                IPoliciesApiClient policiesApiClient = new PoliciesApiClient(httpClientFactory, logger, cancellationTokenProvider, clientKey: SourcePoliciesClientKey);
                 ICalculationsApiClient calculationsApiClient = new CalculationsApiClient(httpClientFactory, logger, cancellationTokenProvider, clientKey: SourceCalcsClientKey);
                 IDatasetsApiClient datasetsApiClient = new DatasetsApiClient(httpClientFactory, logger, cancellationTokenProvider, clientKey: SourceDatasetsClientKey);
 
                 return new SourceApiClient(
                     batchCloneResiliencePolicies, 
                     specificationsApiClient,
-                    policiesApiClient,
                     calculationsApiClient,
                     datasetsApiClient,
                     logger);
@@ -117,6 +115,7 @@ namespace CalculateFunding.Migrations.Specification.Clone
                 IJobsApiClient jobsApiClient = new JobsApiClient(httpClientFactory, logger, cancellationTokenProvider, clientKey: TargetJobsClientKey);
                 ICalculationsApiClient calculationsApiClient = new CalculationsApiClient(httpClientFactory, logger, cancellationTokenProvider, clientKey: TargetCalcsClientKey);
                 IDatasetsApiClient datasetsApiClient = new DatasetsApiClient(httpClientFactory, logger, cancellationTokenProvider, clientKey: TargetDatasetsClientKey);
+                IPoliciesApiClient policiesApiClient = new PoliciesApiClient(httpClientFactory, logger, cancellationTokenProvider, clientKey: TargetPoliciesClientKey);
 
                 return new TargetApiClient(
                     logger,
@@ -124,7 +123,8 @@ namespace CalculateFunding.Migrations.Specification.Clone
                     specificationsApiClient,
                     jobsApiClient,
                     calculationsApiClient,
-                    datasetsApiClient);
+                    datasetsApiClient,
+                    policiesApiClient);
             });
 
             serviceCollection.AddTransient<ISpecificationClone, SpecificationClone>();
