@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+﻿using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Tests.Common.Helpers;
@@ -8,7 +7,6 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement

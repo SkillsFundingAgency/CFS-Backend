@@ -8,7 +8,6 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using SqlGroupingReason = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.GroupingReason;
@@ -314,6 +313,24 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
 
             return releasedProviders;
+        }
+
+        public async Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannelsUsingAmbientTransaction(ReleasedProviderVersionChannel providerVersionChannel)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                int entityID = await Insert(providerVersionChannel, _transaction);
+                providerVersionChannel.ReleasedProviderVersionChannelId = entityID;
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
+
+            return providerVersionChannel;
         }
 
         public async Task<int> QueryPublishedFundingCount(

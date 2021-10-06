@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Common.Sql.Interfaces;
-using CalculateFunding.Models.External.V4;
+﻿using CalculateFunding.Models.External.V4;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 using System.Collections.Generic;
@@ -35,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<FundingGroup> CreateFundingGroup(FundingGroup fundingGroup);
         Task<FundingGroup> GetFundingGroup(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue);
         Task<IEnumerable<ReleasedProviderVersion>> CreateReleasedProviderVersionsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersion> providerVersions);
+        Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannelsUsingAmbientTransaction(ReleasedProviderVersionChannel providerVersionChannel);
         Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionInFundingGroups(string id, int channelId);
         Task<FundingGroupVersion> GetFundingGroupVersion(int fundingGroupId, int majorVersion);
         Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersions(string specificationId, IEnumerable<int> channelIds);

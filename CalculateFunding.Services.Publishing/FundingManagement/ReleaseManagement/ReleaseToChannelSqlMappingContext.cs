@@ -13,11 +13,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         {
             ReleasedProviders = new Dictionary<string, ReleasedProvider>();
             ReleasedProviderVersions = new Dictionary<string, ReleasedProviderVersion>();
+            ReleasedProviderVersionChannels = new Dictionary<string, ReleasedProviderVersionChannel>();
         }
 
         public Dictionary<string, ReleasedProvider> ReleasedProviders { get; }
 
         public Dictionary<string, ReleasedProviderVersion> ReleasedProviderVersions { get; }
+
+        public Dictionary<string, ReleasedProviderVersionChannel> ReleasedProviderVersionChannels { get; }
 
         public Specification Specification { get; set; }
     }

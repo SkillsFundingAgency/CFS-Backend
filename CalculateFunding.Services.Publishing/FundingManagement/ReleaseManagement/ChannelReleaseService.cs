@@ -1,10 +1,12 @@
 ﻿using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IChannelOrganisationGroupChangeDetector _channelOrganisationGroupChangeDetector;
         private readonly IReleaseProviderPersistanceService _releaseProviderPersistanceService;
         private readonly IProviderVersionReleaseService _providerVersionReleaseService;
+        private readonly IProviderVersionToChannelReleaseService _providerVersionToChannelReleaseService;
 
         public ChannelReleaseService(
             IPublishedProvidersLoadContext publishProvidersLoadContext,
@@ -26,7 +29,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IChannelOrganisationGroupGeneratorService channelOrganisationGroupGeneratorService,
             IChannelOrganisationGroupChangeDetector channelOrganisationGroupChangeDetector,
             IReleaseProviderPersistanceService releaseProviderPersistanceService,
-            IProviderVersionReleaseService providerVersionReleaseService)
+            IProviderVersionReleaseService providerVersionReleaseService,
+            IProviderVersionToChannelReleaseService providerVersionToChannelReleaseService)
         {
             Guard.ArgumentNotNull(publishProvidersLoadContext, nameof(publishProvidersLoadContext));
             Guard.ArgumentNotNull(providersForChannelFilterService, nameof(providersForChannelFilterService));
@@ -34,6 +38,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(channelOrganisationGroupChangeDetector, nameof(channelOrganisationGroupChangeDetector));
             Guard.ArgumentNotNull(releaseProviderPersistanceService, nameof(releaseProviderPersistanceService));
             Guard.ArgumentNotNull(providerVersionReleaseService, nameof(providerVersionReleaseService));
+            Guard.ArgumentNotNull(providerVersionToChannelReleaseService, nameof(providerVersionToChannelReleaseService));
 
             _publishProvidersLoadContext = publishProvidersLoadContext;
             _providersForChannelFilterService = providersForChannelFilterService;
@@ -41,12 +46,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _channelOrganisationGroupChangeDetector = channelOrganisationGroupChangeDetector;
             _releaseProviderPersistanceService = releaseProviderPersistanceService;
             _providerVersionReleaseService = providerVersionReleaseService;
+            _providerVersionToChannelReleaseService = providerVersionToChannelReleaseService;
         }
 
         public async Task ReleaseProvidersForChannel(Channel channel, 
             FundingConfiguration fundingConfiguration, 
             SpecificationSummary specification, 
-            IEnumerable<string> batchProviderIds)
+            IEnumerable<string> batchProviderIds,
+            Reference author)
         {
             Guard.ArgumentNotNull(channel, nameof(channel));
 
@@ -74,13 +81,19 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 .Distinct()
                 .Select(_ => providersToRelease[_]);
 
-            await _releaseProviderPersistanceService.ReleaseProviders(
+            IEnumerable<ReleasedProvider> releasedProviders = await _releaseProviderPersistanceService.ReleaseProviders(
                 providersInGroupsToRelease.Select(_ => _.ProviderId),
                 specification.Id);
 
             await _providerVersionReleaseService.ReleaseProviderVersions(
                 providersInGroupsToRelease,
                 specification.Id);
+
+            await _providerVersionToChannelReleaseService.ReleaseProviderVersionChannel(
+                releasedProviders,
+                channel.ChannelId,
+                DateTime.UtcNow,
+                author);
         }
     }
 }

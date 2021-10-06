@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Common.Sql.Interfaces;
-using CalculateFunding.Models.Publishing;
+﻿using CalculateFunding.Models.Publishing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

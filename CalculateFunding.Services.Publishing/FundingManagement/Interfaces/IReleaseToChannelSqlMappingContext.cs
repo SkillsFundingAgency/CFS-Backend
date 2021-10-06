@@ -15,6 +15,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         /// </summary>
         Dictionary<string, ReleasedProviderVersion> ReleasedProviderVersions { get; }
 
+        /// <summary>
+        /// Released provider version channels. Key is providerId_channelId e.g. UKPRN_1
+        /// </summary>
+        Dictionary<string, ReleasedProviderVersionChannel> ReleasedProviderVersionChannels { get; }
+
         Specification Specification { get; set; }
     }
 }

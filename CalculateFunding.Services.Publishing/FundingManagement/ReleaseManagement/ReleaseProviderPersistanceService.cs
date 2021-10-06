@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _releaseManagementRepository = releaseManagementRepository;
         }
 
-        public async Task ReleaseProviders(IEnumerable<string> providers, string specificationId)
+        public async Task<IEnumerable<ReleasedProvider>> ReleaseProviders(IEnumerable<string> providers, string specificationId)
         {
             IEnumerable<ReleasedProvider> releasedProviders =
                 await _releaseManagementRepository.CreateReleasedProvidersUsingAmbientTransaction(
@@ -35,6 +35,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                         }));
 
             _releaseToChannelSqlMappingContext.ReleasedProviders.AddOrUpdateRange(releasedProviders.ToDictionary(_ => _.ProviderId));
+
+            return releasedProviders;
         }
     }
 }
