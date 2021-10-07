@@ -139,9 +139,9 @@ namespace CalculateFunding.Services.Publishing.Repositories
         }
 
         public async Task<PublishedProviderVersion> GetReleasedPublishedProviderVersion(
-            string fundingStreamId, 
-            string fundingPeriodId, 
-            string providerId, 
+            string fundingStreamId,
+            string fundingPeriodId,
+            string providerId,
             int majorVersion)
         {
             return (await _repository
@@ -336,6 +336,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             StringBuilder queryTextBuilder = new StringBuilder(@"
                                 SELECT c.id as id, c.content.partitionKey as partitionKey FROM c
                                 WHERE c.documentType = 'PublishedProvider'
+                                AND c.deleted = false
                                 AND c.content.current.fundingStreamId = @fundingStreamId
                                 AND c.content.current.fundingPeriodId = @fundingPeriodId
                                 AND (c.content.current.status = 'Draft' OR c.content.current.status = 'Updated')");
