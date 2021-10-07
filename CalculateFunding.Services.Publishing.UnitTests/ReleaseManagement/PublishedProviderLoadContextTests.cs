@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private Fixture _fixture;
         private IEnumerable<PublishedProvider> _publishedProviders;
         private PublishedProvider _publishedProvider;
+        private PublishedProviderVersion _publishedProviderVersion;
         private IEnumerable<string> _providerIds;
 
         [TestInitialize]
@@ -35,7 +36,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _fixture = new Fixture();
             _publishedProviders = _fixture.CreateMany<PublishedProvider>(TotalProviderCount);
             _publishedProvider = _publishedProviders.First();
+            
             _providerIds = _publishedProviders.Select(s => s.Current.ProviderId);
+
+            _publishedProviderVersion = _fixture.Create<PublishedProviderVersion>();
         }
 
         [TestMethod]
@@ -113,7 +117,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
             result
                 .Should()
-                .BeEquivalentTo(_publishedProvider.Released);
+                .BeEquivalentTo(_publishedProviderVersion);
         }
 
         [TestMethod]
@@ -176,6 +180,63 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             AssertProvidersWereRetrievedFromRepo();
         }
 
+        [TestMethod]
+        public async Task GetOrLoadProviderByMajorVersionReturnsProviders_WhereTheyAlreadyExistInMemory()
+        {
+            GivenPublishedProvidersExistInMemory();
+            
+            string providerId = _providerIds.FirstOrDefault();
+            PublishedProvider matchingPublishedProvider = _publishedProviders.FirstOrDefault(_ => _.Current.ProviderId == _providerIds.FirstOrDefault());
+
+            PublishedProvider result = await _sut.GetOrLoadProvider(providerId, matchingPublishedProvider.Released.MajorVersion);
+
+            result
+                .Should()
+                .BeEquivalentTo(matchingPublishedProvider);
+
+            AssertReleasedProviderNotRetrievedFromRepo();
+        }
+
+        [TestMethod]
+        public async Task GetOrLoadProviderByMajorVersionReturnsProviders_WhereTheyDoNotExistInMemory()
+        {
+            GivenRepoReturnsProvider();
+
+            _sut.SetSpecDetails(FundingStreamId, FundingPeriodId);
+
+            PublishedProvider result = await _sut.GetOrLoadProvider(_publishedProvider.Current.ProviderId, _publishedProvider.Released.MajorVersion);
+
+            result
+                .Should()
+                .BeEquivalentTo(_publishedProvider);
+
+            AssertProviderRetrievedFromRepo();
+        }
+
+        [TestMethod]
+        public async Task GetOrLoadProviderByMajorVersionReturnsProviders_WhereMajorVersionDoesNotExistsInMemory()
+        {
+            GivenPublishedProvidersExistInMemory();
+            GivenRepoReturnsProviderVersion();
+
+            string providerId = _providerIds.FirstOrDefault();
+            _publishedProviderVersion.ProviderId = providerId;
+
+            PublishedProvider result = await _sut.GetOrLoadProvider(providerId, _publishedProviderVersion.MajorVersion);
+
+            result
+                .Released
+                .Should()
+                .BeEquivalentTo(_publishedProviderVersion);
+
+            result
+                .Current
+                .Should()
+                .BeEquivalentTo(_publishedProvider.Current);
+
+            AssertReleasedProviderRetrievedFromRepo();
+        }
+
         private void GivenRepoReturnsNull()
         {
             _repo.Setup(s => s.GetPublishedProvider(
@@ -194,7 +255,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             _repo.Setup(s => s.GetReleasedPublishedProviderVersion(
                             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
-                            .ReturnsAsync(_publishedProvider.Released);
+                            .ReturnsAsync(_publishedProviderVersion);
         }
 
         private void GivenBulkRepoReturnsPublishedProviders()
@@ -220,5 +281,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _bulkRepo.Verify(s => s.TryGetPublishedProvidersByProviderId(
                             It.IsAny<IEnumerable<string>>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
+
+        private void AssertReleasedProviderNotRetrievedFromRepo()
+        {
+            _repo.Verify(s => s.GetReleasedPublishedProviderVersion(
+                            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        }
+
+        private void AssertReleasedProviderRetrievedFromRepo()
+        {
+            _repo.Verify(s => s.GetReleasedPublishedProviderVersion(
+                            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+        }
+
+        private void AssertProviderRetrievedFromRepo()
+        {
+            _repo.Verify(s => s.GetPublishedProvider(
+                            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+        
     }
 }

@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private bool? _enableUserEditableRuleBasedProfiles;
         private bool? _enableUserEditableCustomProfiles;
         private IEnumerable<FundingConfigurationChannel> _releaseChannels;
+        private IEnumerable<FundingVariation> _fundingVariations;
 
         public FundingConfigurationBuilder WithId(string id)
         {
@@ -73,6 +74,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public FundingConfigurationBuilder WithFundingVariations(params FundingVariation[] fundingVariations)
+        {
+            _fundingVariations = fundingVariations;
+            return this;
+        }
+
 
         public FundingConfiguration Build()
         {
@@ -85,7 +92,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 DefaultTemplateVersion = _defaultTemplateVersion,
                 EnableUserEditableCustomProfiles = _enableUserEditableCustomProfiles ?? NewRandomFlag(),
                 EnableUserEditableRuleBasedProfiles = _enableUserEditableRuleBasedProfiles ?? NewRandomFlag(),
-                ReleaseChannels = _releaseChannels ?? Array.Empty<FundingConfigurationChannel>()
+                ReleaseChannels = _releaseChannels ?? Array.Empty<FundingConfigurationChannel>(),
+                ReleaseManagementVariations = _fundingVariations ?? Array.Empty<FundingVariation>()
             };
         }
     }

@@ -156,24 +156,37 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             return providerIds.Select(providerId => _providers[providerId]);
         }
 
-        public async Task<PublishedProviderVersion> GetOrLoadProviderVersion(string providerId, int majorVersion)
+        public async Task<PublishedProvider> GetOrLoadProvider(string providerId, int majorVersion)
         {
             Guard.ArgumentNotNull(providerId, nameof(providerId));
             Guard.ArgumentNotNull(majorVersion, nameof(majorVersion));
 
-            if (_providers.ContainsKey(providerId) && _providers[providerId].Released.MajorVersion == majorVersion)
+            if (!_providers.ContainsKey(providerId))
             {
-                return _providers[providerId].Released;
+                await LoadProvider(providerId);
             }
 
-            if(_providerVersionsByProviderIdAndMajorVersion.ContainsKey((providerId, majorVersion)))
+            if (_providers.ContainsKey(providerId) && _providers[providerId].Released.MajorVersion == majorVersion)
             {
-                return _providerVersionsByProviderIdAndMajorVersion[(providerId, majorVersion)];
+                return _providers[providerId];
+            }
+
+            if (_providerVersionsByProviderIdAndMajorVersion.ContainsKey((providerId, majorVersion)))
+            {
+                return new PublishedProvider
+                {
+                    Released = _providerVersionsByProviderIdAndMajorVersion[(providerId, majorVersion)],
+                    Current = _providers[providerId].Current
+                };
             }
 
             await LoadProviderVersion(providerId, majorVersion);
 
-            return _providerVersionsByProviderIdAndMajorVersion[(providerId, majorVersion)];
+            return new PublishedProvider
+            {
+                Released = _providerVersionsByProviderIdAndMajorVersion[(providerId, majorVersion)],
+                Current = _providers[providerId].Current
+            };
         }
     }
 }

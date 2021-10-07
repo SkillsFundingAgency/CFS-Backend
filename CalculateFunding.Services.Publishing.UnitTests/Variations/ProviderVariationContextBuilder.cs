@@ -17,6 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         private IEnumerable<string> _errors;
         private IPoliciesService _policiesService;
         private IDictionary<string, PublishedProviderSnapShots> _allPublishedProviderSnapshots;
+        private ICollection<VariationReason> _variationReasons;
 
         public ProviderVariationContextBuilder WithUpdatedTotalFunding(decimal? updatedTotalFunding)
         {
@@ -60,6 +61,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             return this;
         }
 
+        public ProviderVariationContextBuilder WithVariationReasons(params VariationReason[] variationReasons)
+        {
+            _variationReasons = variationReasons;
+
+            return this;
+        }
+
         public ProviderVariationContext Build()
         {
             ProviderVariationContext providerVariationContext = new ProviderVariationContext(_policiesService)
@@ -67,7 +75,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 UpdatedProvider = _currentState,
                 PublishedProvider = _publishedProvider,
                 UpdatedTotalFunding = _updatedTotalFunding,
-                AllPublishedProviderSnapShots= _allPublishedProviderSnapshots
+                AllPublishedProviderSnapShots= _allPublishedProviderSnapshots,
+                VariationReasons = _variationReasons ?? new List<VariationReason>()
             };
 
             if (_errors?.Any() == true)
