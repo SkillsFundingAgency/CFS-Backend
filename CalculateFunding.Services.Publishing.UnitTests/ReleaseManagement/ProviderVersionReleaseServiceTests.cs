@@ -147,8 +147,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private void ThenProvidersAreReleased(params PublishedProviderVersion[] providerVersions)
         {
             _releaseManagementRepository.Verify(_ =>
-                _.CreateReleasedProviderVersionsUsingAmbientTransaction(It.Is<IEnumerable<ReleasedProviderVersion>>(_ =>
-                    _.Select(rp => rp.FundingId).SequenceEqual(providerVersions.Select(s => s.FundingId)))), Times.Once);
+                _.CreateReleasedProviderVersionsUsingAmbientTransaction(It.IsAny<ReleasedProviderVersion>()), Times.Exactly(providerVersions.Count()));
         }
 
         private void AndTheContextIsUpdated(params PublishedProviderVersion[] providers)

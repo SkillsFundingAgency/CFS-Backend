@@ -487,19 +487,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 });
         }
 
-        public async Task<IEnumerable<ReleasedProviderVersion>> CreateReleasedProviderVersionsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersion> providerVersions)
+        public async Task<ReleasedProviderVersion> CreateReleasedProviderVersionsUsingAmbientTransaction(ReleasedProviderVersion providerVersion)
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
             try
             {
-                bool success = await BulkInsert(providerVersions.ToList(), _transaction);
-
-                if (!success)
-                {
-                    _transaction.Rollback();
-                    throw new RetriableException("Unknown reason for insert failure so retriable exception thrown");
-                }
+                int id = await Insert(providerVersion, _transaction);
+                providerVersion.ReleasedProviderVersionId = id;
             }
             catch
             {
@@ -507,7 +502,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 throw;
             }
 
-            return providerVersions;
+            return providerVersion;
         }
     }
 }

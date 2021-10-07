@@ -1,11 +1,8 @@
 ﻿using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
-using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,26 +32,23 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IEnumerable<PublishedProviderVersion> newProviderVersions = publishedProviderVersions
                 .Where(_ => !_releaseToChannelSqlMappingContext.ReleasedProviderVersions.ContainsKey(_.ProviderId));
 
-            Dictionary<string, string> providerIdLookupFromFundingId = publishedProviderVersions.ToDictionary(_ => _.FundingId, _ => _.ProviderId);
-
             if (!VerifyProvidersExistInContext(newProviderVersions))
             {
                 throw new KeyNotFoundException("Providers missing from sql mapping context");
             }
 
-            IEnumerable<ReleasedProviderVersion> releasedProviderVersions =
-                await _releaseManagementRepository.CreateReleasedProviderVersionsUsingAmbientTransaction(
-                    newProviderVersions
-                        .Select(_ => new ReleasedProviderVersion
-                        {
-                            MajorVersion = _.MajorVersion,
-                            MinorVersion = _.MinorVersion,
-                            FundingId = _.FundingId,
-                            ReleasedProviderId = _releaseToChannelSqlMappingContext.ReleasedProviders[_.ProviderId].ReleasedProviderId
-                        }));
+            foreach (PublishedProviderVersion providerVersion in newProviderVersions)
+            {
+                ReleasedProviderVersion releasedProviderVersion = await _releaseManagementRepository.CreateReleasedProviderVersionsUsingAmbientTransaction(new ReleasedProviderVersion
+                {
+                    MajorVersion = providerVersion.MajorVersion,
+                    MinorVersion = providerVersion.MinorVersion,
+                    FundingId = providerVersion.FundingId,
+                    ReleasedProviderId = _releaseToChannelSqlMappingContext.ReleasedProviders[providerVersion.ProviderId].ReleasedProviderId
+                });
 
-            _releaseToChannelSqlMappingContext.ReleasedProviderVersions
-                .AddOrUpdateRange(releasedProviderVersions.ToDictionary(_ => providerIdLookupFromFundingId[_.FundingId]));
+                _releaseToChannelSqlMappingContext.ReleasedProviderVersions.Add(providerVersion.ProviderId, releasedProviderVersion);
+            }
         }
 
         private bool VerifyProvidersExistInContext(IEnumerable<PublishedProviderVersion> newProviderVersions)

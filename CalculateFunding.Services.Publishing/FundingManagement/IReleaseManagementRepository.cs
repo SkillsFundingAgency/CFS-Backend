@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<FundingPeriod> CreateFundingPeriod(FundingPeriod fundingPeriod);
         Task<FundingGroup> CreateFundingGroup(FundingGroup fundingGroup);
         Task<FundingGroup> GetFundingGroup(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue);
-        Task<IEnumerable<ReleasedProviderVersion>> CreateReleasedProviderVersionsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersion> providerVersions);
+        Task<ReleasedProviderVersion> CreateReleasedProviderVersionsUsingAmbientTransaction(ReleasedProviderVersion providerVersion);
         Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannelsUsingAmbientTransaction(ReleasedProviderVersionChannel providerVersionChannel);
         Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionInFundingGroups(string id, int channelId);
         Task<FundingGroupVersion> GetFundingGroupVersion(int fundingGroupId, int majorVersion);
