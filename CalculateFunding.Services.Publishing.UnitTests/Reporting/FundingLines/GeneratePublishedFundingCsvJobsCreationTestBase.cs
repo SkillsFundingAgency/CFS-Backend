@@ -118,9 +118,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
             await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLines, fundingStreamIds);
 
-            ThenTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.History, null, null, null);
-            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.Released, null, null, null);
-            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentState, null, null, null);
+            ThenTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.History, null, null, fundingStreamIds.FirstOrDefault());
+            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.Released, null, null, fundingStreamIds.FirstOrDefault());
+            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentState, null, null, fundingStreamIds.FirstOrDefault());
 
             foreach ((string Code, string Name) in fundingLines)
             {

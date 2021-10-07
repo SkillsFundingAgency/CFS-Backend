@@ -81,7 +81,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
                    publishedFundingCsvJobsRequest.CorrelationId,
                    publishedFundingCsvJobsRequest.User,
                    jobType,
-                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
+                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId,
+                   fundingStreamId: publishedFundingCsvJobsRequest.FundingStreamIds.FirstOrDefault()));
             }
            
             foreach ((string Code, string Name) in publishedFundingCsvJobsRequest.FundingLines)
