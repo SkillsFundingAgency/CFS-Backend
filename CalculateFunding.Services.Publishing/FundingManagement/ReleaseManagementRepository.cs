@@ -333,6 +333,27 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return providerVersionChannel;
         }
 
+        public async Task<IEnumerable<ReleasedProviderChannelVariationReason>> CreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(IEnumerable<ReleasedProviderChannelVariationReason> variationReasons)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                foreach (ReleasedProviderChannelVariationReason variationReason in variationReasons)
+                {
+                    int id = await Insert(variationReason, _transaction);
+                    variationReason.ReleasedProviderChannelVariationReasonId = id;
+                }
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
+
+            return variationReasons;
+        }
+
         public async Task<int> QueryPublishedFundingCount(
             int channelId,
             IEnumerable<string> fundingStreamIds,

@@ -66,5 +66,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<Specification> GetSpecificationById(string id);
         Task<FundingPeriod> CreateFundingPeriodUsingAmbientTransaction(FundingPeriod fundingPeriod);
         Task<FundingStream> CreateFundingStreamUsingAmbientTransaction(FundingStream fundingStream);
+        Task<IEnumerable<ReleasedProviderChannelVariationReason>> CreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(IEnumerable<ReleasedProviderChannelVariationReason> variationReason);
     }
 }
