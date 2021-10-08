@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Polly;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using ApiFundingLineType = CalculateFunding.Common.TemplateMetadata.Enums.FundingLineType;
 
@@ -82,10 +83,13 @@ namespace CalculateFunding.Services.Publishing
                 return error;
             }
 
-            error = currentVariationPointersRequest.Result.IsSuccessOrReturnFailureResultAction("Variation pointers");
-            if (error != null)
+            if (currentVariationPointersRequest.Result.StatusCode != HttpStatusCode.NoContent)
             {
-                return error;
+                error = currentVariationPointersRequest.Result.IsSuccessOrReturnFailureResultAction("Variation pointers");
+                if (error != null)
+                {
+                    return error;
+                }
             }
 
             IOrderedEnumerable<Common.ApiClient.Policies.Models.TemplateMetadataFundingLine> sortedPaymentFundingLines = fundingLinesRequest.Result.Content
@@ -99,7 +103,7 @@ namespace CalculateFunding.Services.Publishing
 
             foreach (Common.ApiClient.Policies.Models.TemplateMetadataFundingLine fundingLine in sortedPaymentFundingLines)
             {
-                Common.ApiClient.Specifications.Models.ProfileVariationPointer existingPointer = currentVariationPointersRequest.Result.Content.FirstOrDefault(_ => _.FundingLineId == fundingLine.FundingLineCode);
+                Common.ApiClient.Specifications.Models.ProfileVariationPointer existingPointer = currentVariationPointersRequest.Result.Content?.FirstOrDefault(_ => _.FundingLineId == fundingLine.FundingLineCode);
 
                 AvailableVariationPointerProfilePeriod selectedVariationPointer = null;
                 if (existingPointer != null)

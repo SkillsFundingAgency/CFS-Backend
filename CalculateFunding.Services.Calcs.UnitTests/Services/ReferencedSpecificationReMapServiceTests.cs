@@ -243,7 +243,7 @@ return calc + fundingLine"
             actualJob.SpecificationId.Should().Be(_specificationId);
             actualJob.Properties[DatasetSpecificationRelationshipId].Should().Be(_datasetSpecificationRelationshipId);
         }
-        
+
         private void AndTheDatasetSpecificationRelationshipUpdated()
         {
             _datasetsApiClient.Setup(_ => _.UpdateDefinitionSpecificationRelationship(It.IsAny<UpdateDefinitionSpecificationRelationshipModel>(),

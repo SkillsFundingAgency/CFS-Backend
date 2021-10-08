@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             }
 
             AdjustFuturePeriodFundingLineValues(orderedExistingProfilePeriods, variationPointerIndex, reProfileRequest, orderedRefreshProfilePeriods, readonlyOrderedRefreshProfilePeriods);
-            
+
             return new ReProfileStrategyResult
             {
                 DistributionPeriods = MapIntoDistributionPeriods(context),
@@ -59,7 +59,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
         {
             decimal fundingLineTotal = reProfileRequest.FundingLineTotal;
             decimal existingFundingLineTotal = reProfileRequest.ExistingFundingLineTotal;
-            
+
             decimal amountAlreadyPaid = orderedExistingProfilePeriods.Take(variationPointerIndex).Sum(x => x.GetProfileValue());
             decimal amountThatShouldHaveBeenPaid = readonlyOrderedRefreshProfilePeriods.Take(variationPointerIndex)
                                                     .Sum(x => x.GetProfileValue());
@@ -114,13 +114,13 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
         }
 
         private static void DistributeRemainingBalance(
-            IProfilePeriod[] orderedRefreshProfilePeriods, 
+            IProfilePeriod[] orderedRefreshProfilePeriods,
             int variationPointerIndex,
             decimal fundingLineTotal,
             decimal amountToBeAdjustedInNextPeriod)
         {
             IProfilePeriod periodToAdjust = orderedRefreshProfilePeriods[variationPointerIndex];
-            
+
             decimal profileValue = periodToAdjust.GetProfileValue() + amountToBeAdjustedInNextPeriod;
 
             periodToAdjust.SetProfiledValue(Math.Round(profileValue, 2));

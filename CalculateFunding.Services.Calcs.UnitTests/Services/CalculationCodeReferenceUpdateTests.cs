@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
     {
         [TestMethod]
         [DynamicData(nameof(CalculationNameChangeExamples), DynamicDataSourceType.Method)]
-        public void RenameCalculation(string oldName, 
+        public void RenameCalculation(string oldName,
             string newName,
             string fundingStreamId,
             CalculationNamespace calculationNamespace,
