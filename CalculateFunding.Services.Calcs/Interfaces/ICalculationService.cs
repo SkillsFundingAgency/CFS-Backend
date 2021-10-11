@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task DeleteCalculations(Message message);
 
-        Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(CalculationVersionComparisonModel comparison, Reference user);
+        Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationOrFundinglineChange(string previousName, string currentName, string specificationId, string @namespace, Reference user, bool isEnum = true);
 
         Task<IActionResult> UpdateTemplateCalculationsForSpecification(string specificationId, string datasetDefinitionId, Reference user);
 

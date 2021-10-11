@@ -183,7 +183,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             AndTheProcessMappingsWasNotCalled(fundingStreamOne, existingTemplateIdOne, specificationId);
             AndTheProcessMappingsWasNotCalled(fundingStreamThree, existingTemplateIdThree, specificationId);
             AndTheDetectObsoleteFundingLinesJobWasCreated(user, correlationId, specificationId, fundingStreamTwo, fundingPeriodId, existingTemplateIdTwo, changedTemplateIdTwo);
-            AndTheAssignTemplateCalculationJobWasCreated(user, correlationId, specificationId, fundingStreamTwo, fundingPeriodId, changedTemplateIdTwo);
+            AndTheAssignTemplateCalculationJobWasCreated(user, correlationId, specificationId, fundingStreamTwo, fundingPeriodId, changedTemplateIdTwo, existingTemplateIdTwo);
             AndTheAssignTemplateCalculationJobWasNotCreated(user, correlationId, specificationId, fundingStreamTwo, fundingPeriodId, existingTemplateIdTwo);
             AndTheAssignTemplateCalculationJobWasNotCreated(user, correlationId, specificationId, fundingStreamOne, fundingPeriodId, existingTemplateIdOne);
             AndTheAssignTemplateCalculationJobWasNotCreated(user, correlationId, specificationId, fundingStreamOne, fundingPeriodId, existingTemplateIdThree);
@@ -271,14 +271,16 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private void AndTheAssignTemplateCalculationJobWasNotCreated(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
-            string templateVersionId)
+            string templateVersionId,
+            string previousTemplateVersionId = null)
         {
             AndTheAssignTemplateCalculationJobWasNotCreated(null,
                 null,
                 specificationId,
                 fundingStreamId,
                 fundingPeriodId,
-                templateVersionId);
+                templateVersionId,
+                previousTemplateVersionId);
         }
 
         private void AndTheAssignTemplateCalculationJobWasNotCreated(Reference user,
@@ -286,7 +288,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
-            string templateVersionId)
+            string templateVersionId,
+            string previousTemplateVersion = null)
         {
             AndTheAssignTemplateCalculationJobWasCreatedXTimes(user,
                            correlationId,
@@ -294,6 +297,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                            fundingStreamId,
                            fundingPeriodId,
                            templateVersionId,
+                           previousTemplateVersion,
                            Times.Never());
         }
 
@@ -336,7 +340,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
-            string templateVersionId)
+            string templateVersionId,
+            string previousTemplateVersionId = null)
         {
             AndTheAssignTemplateCalculationJobWasCreatedXTimes(user,
                 correlationId,
@@ -344,6 +349,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 fundingStreamId,
                 fundingPeriodId,
                 templateVersionId,
+                previousTemplateVersionId,
                 Times.Once());
         }
 
@@ -379,6 +385,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string fundingStreamId,
             string fundingPeriodId,
             string templateVersionId,
+            string previousTemplateVersion,
             Times times)
         {
             string userId = user?.Id;
@@ -393,7 +400,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
                         "specification-id", specificationId,
                         "fundingstream-id", fundingStreamId,
                         "fundingperiod-id", fundingPeriodId,
-                        "template-version", templateVersionId))),
+                        "template-version", templateVersionId,
+                        "previous-template-version", previousTemplateVersion))),
                 times);
         }
 

@@ -51,8 +51,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 CurrentName = "Calculation To Update",
                 PreviousName = "Original Name",
                 SpecificationId = specificationId,
-                CalculationDataType = CalculationDataType.Enum,
-                Namespace = "Calculations"
+                Namespace = "Calculations",
+                CalculationDataType = CalculationDataType.Enum
             };
 
             Reference user = new Reference("userId", "User Name");
@@ -130,7 +130,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new Build());
 
             // Act
-            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationChange(comparison, user);
+            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationOrFundinglineChange(comparison.PreviousName,
+                comparison.CurrentName,
+                specificationId,
+                comparison.Namespace,
+                user,
+                comparison.CalculationDataType == CalculationDataType.Enum);
 
             // Assert
             updatedCalculations
@@ -258,7 +263,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new Build());
 
             // Act
-            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationChange(comparison, user);
+            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationOrFundinglineChange(comparison.PreviousName,
+                comparison.CurrentName,
+                specificationId,
+                comparison.Namespace,
+                user,
+                comparison.CalculationDataType == CalculationDataType.Enum);
 
             // Assert
             updatedCalculations
@@ -370,7 +380,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(calculationVersion);
 
             // Act
-            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationChange(comparison, user);
+            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationOrFundinglineChange(comparison.PreviousName,
+                comparison.CurrentName,
+                specificationId,
+                comparison.Namespace,
+                user,
+                comparison.CalculationDataType == CalculationDataType.Enum);
 
             // Assert
             updatedCalculations

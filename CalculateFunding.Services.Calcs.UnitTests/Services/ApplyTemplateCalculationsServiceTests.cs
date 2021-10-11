@@ -52,6 +52,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         private string _fundingPeriodId;
         private string _correlationId;
         private string _templateVersion;
+        private string _previousTemplateVersion;
         private string _userId;
         private string _userName;
         private string _jobId;
@@ -60,6 +61,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         private const string SpecificationId = "specification-id";
         private const string FundingStreamId = "fundingstream-id";
         private const string TemplateVersion = "template-version";
+        private const string PreviousTemplateVersion = "previous-template-version";
         private const string CorrelationId = "sfa-correlationId";
         private const string UserId = "user-id";
         private const string UserName = "user-name";
@@ -88,6 +90,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             _fundingStreamId = $"{NewRandomString()}_fundingStreamId";
             _fundingPeriodId = $"{NewRandomString()}_fundingPeriodId";
             _templateVersion = $"{NewRandomString()}_templateVersion";
+            _previousTemplateVersion = $"{NewRandomString()}_previousTemplateVersion";
             _jobId = $"{NewRandomString()}_jobId";
 
             _calculationsRepository.UpdateTemplateMapping(Arg.Any<string>(),
@@ -304,9 +307,11 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             string calculationName1 = "calculationName1";
             string calculationName2 = "calculationName2";
             string calculationName3 = "calculationName3";
+            string fundingLine = "fundingLine";
 
             string newCalculationName1 = "newCalculationName1";
             string newCalculationName2 = "newCalculationName2";
+            string newFundingLine = "newFundingLine";
 
             string newCalculationId4 = "newCalculationId4";
             string newCalculationId5 = "newCalculationId5";
@@ -330,11 +335,16 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 mappingWithMissingCalculation3));
 
             TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(NewFundingLine(fl =>
-                fl.WithCalculations(
+                fl.WithName(newFundingLine)
+                    .WithCalculations(
                     NewTemplateMappingCalculation(),
                     NewTemplateMappingCalculation(),
                     NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId1).WithName(newCalculationName1).WithValueFormat(calculationValueFormat1)),
                     NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId2).WithName(newCalculationName2).WithValueFormat(calculationValueFormat2))))));
+            
+            TemplateMetadataContents previousTemplateMetadataContents = templateMetadataContents.DeepCopy();
+            previousTemplateMetadataContents.RootFundingLines.First().Name = fundingLine;
+
             TemplateCalculation templateCalculationOne = NewTemplateMappingCalculation(_ => _.WithName("template calculation 1"));
             TemplateCalculation templateCalculationTwo = NewTemplateMappingCalculation(_ => _.WithName("template calculation 2"));
 
@@ -356,10 +366,11 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                                             x.WithValueType(calculationValueType3);
                                         })));
 
-            GivenAValidMessage();
+            GivenAValidMessage(_previousTemplateVersion);
             AndTheJobCanBeRun();
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
+            AndThePreviousTemplateMetaDataContents(previousTemplateMetadataContents);
 
             CalculationValueType calculationValueTypeOne = templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>();
             CalculationValueType calculationValueTypeTwo = templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>();
@@ -405,8 +416,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .CalculationId
                 .Should().Be(newCalculationId5);
 
-            AndTheCalculationCodeOnCalculationChangeUpdated(calculationId1, newCalculationName1, calculationName1, _specificationId, 1);
-            AndTheCalculationCodeOnCalculationChangeUpdated(calculationId2, newCalculationName2, calculationName2, _specificationId, 1);
+            AndTheCalculationCodeOnCalculationChangeUpdated(newCalculationName1, calculationName1, _specificationId, 1);
+            AndTheCalculationCodeOnCalculationChangeUpdated(newCalculationName2, calculationName2, _specificationId, 1);
+            AndTheCalculationCodeOnCalculationChangeUpdated(newFundingLine, fundingLine, _specificationId, 1);
             AndUpdateBuildProjectCalled(_specificationId, 2);
             AndTheTemplateMappingWasUpdated(templateMapping, 1);
             AndTheJobsStartWasLogged();
@@ -585,12 +597,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .Should().Be(parameterName);
         }
 
-        private void GivenAValidMessage()
+        private void GivenAValidMessage(string previousTemplateVersion = null)
         {
-            GivenTheOtherwiseValidMessage();
+            GivenTheOtherwiseValidMessage(previousTemplateVersion: previousTemplateVersion);
         }
 
-        private void GivenTheOtherwiseValidMessage(Action<MessageBuilder> overrides = null)
+        private void GivenTheOtherwiseValidMessage(Action<MessageBuilder> overrides = null, string previousTemplateVersion = null)
         {
             MessageBuilder messageBuilder = new MessageBuilder()
                 .WithUserProperty(SpecificationId, _specificationId)
@@ -600,6 +612,11 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .WithUserProperty(UserId, _userId)
                 .WithUserProperty(UserName, _userName)
                 .WithUserProperty(JobId, _jobId);
+
+            if (!string.IsNullOrWhiteSpace(previousTemplateVersion))
+            {
+                messageBuilder.WithUserProperty(PreviousTemplateVersion, previousTemplateVersion);
+            }
 
             overrides?.Invoke(messageBuilder);
 
@@ -638,6 +655,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, templateMetadataContents));
         }
 
+        private void AndThePreviousTemplateMetaDataContents(TemplateMetadataContents templateMetadataContents)
+        {
+            _policies.GetFundingTemplateContents(_fundingStreamId, _fundingPeriodId, _previousTemplateVersion)
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, templateMetadataContents));
+        }
+
         private async Task WhenTheTemplateCalculationsAreApplied()
         {
             await _service.Run(_message);
@@ -672,24 +695,26 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         private void AndTheCalculationCodeOnCalculationChangeReturned(string calculationId, string currentName, string previousName, string specificationId, IEnumerable<Calculation> updatedCalculations)
         {
             _calculationService
-                .UpdateCalculationCodeOnCalculationChange(Arg.Is<CalculationVersionComparisonModel>(_ => _.CalculationId == calculationId &&
-                    _.CurrentName == currentName &&
-                    _.PreviousName == previousName &&
-                    _.SpecificationId == specificationId
-                ),
-                Arg.Any<Reference>())
+                .UpdateCalculationCodeOnCalculationOrFundinglineChange(Arg.Is(previousName),
+                    Arg.Is(currentName),
+                    Arg.Is(specificationId),
+                    Arg.Any<string>(),
+                    Arg.Any<Reference>(),
+                    false
+                )
                 .Returns(updatedCalculations);
         }
 
-        private void AndTheCalculationCodeOnCalculationChangeUpdated(string calculationId, string currentName, string previousName, string specificationId, int numberOfCalls)
+        private void AndTheCalculationCodeOnCalculationChangeUpdated(string currentName, string previousName, string specificationId, int numberOfCalls)
         {
             _calculationService.Received(numberOfCalls)
-                .UpdateCalculationCodeOnCalculationChange(Arg.Is<CalculationVersionComparisonModel>(_ => _.CalculationId == calculationId &&
-                    _.CurrentName == currentName &&
-                    _.PreviousName == previousName &&
-                    _.SpecificationId == specificationId
-                ),
-                Arg.Any<Reference>());
+                .UpdateCalculationCodeOnCalculationOrFundinglineChange(Arg.Is(previousName),
+                    Arg.Is(currentName),
+                    Arg.Is(specificationId),
+                    Arg.Any<string>(),
+                    Arg.Any<Reference>(),
+                    false
+                );
         }
 
         private void AndUpdateBuildProjectCalled(string specificationId, int numberOfCalls)

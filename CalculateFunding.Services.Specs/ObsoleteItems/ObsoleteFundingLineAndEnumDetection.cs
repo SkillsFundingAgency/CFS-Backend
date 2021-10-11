@@ -114,6 +114,11 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                 {
                     IEnumerable<Entity<Enum>> enumEntities = enumEntitiesApiResponse.Content;
 
+                    if (enumEntities.IsNullOrEmpty())
+                    {
+                        continue;
+                    }
+
                     IEnumerable<Calculation> enumCalculations = enumEntities
                         .Where(_ => _.Relationships != null)
                         .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(CalculationEnumRelationship.ToIdField, StringComparison.InvariantCultureIgnoreCase)))
@@ -236,7 +241,7 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                     .Select(rel => ((object)rel.One).AsJson().AsPoco<Calculation>().CalculationId)
                     .Distinct();
 
-                if (!fundingLineCalculationIds.Any())
+                if (fundingLineCalculationIds.IsNullOrEmpty())
                 {
                     continue;
                 }

@@ -88,7 +88,7 @@ namespace CalculateFunding.Services.Specs
                 }
 
                 await AssignTemplateWithSpecification(specificationVersion, templateVersionId, fundingStreamId, fundingPeriodId);
-                await QueueAssignTemplateCalculationsJob(user, correlationId, specificationId, fundingStreamId, fundingPeriodId, templateVersionId, parentJobId);
+                await QueueAssignTemplateCalculationsJob(user, correlationId, specificationId, fundingStreamId, fundingPeriodId, previousTemplateVersionId, templateVersionId, parentJobId);
             }
 
             return assignTemplateJobQueued;
@@ -138,6 +138,7 @@ namespace CalculateFunding.Services.Specs
             string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
+            string previousTemplateVersionId,
             string templateVersionId,
             string parentJobId) =>
             _jobs.QueueJob(new JobCreateModel
@@ -167,6 +168,9 @@ namespace CalculateFunding.Services.Specs
                     },
                     {
                         "template-version", templateVersionId
+                    },
+                    {
+                        "previous-template-version", previousTemplateVersionId
                     }
                 }
             });

@@ -31,6 +31,7 @@ namespace CalculateFunding.Services.Calcs
 {
     public class ApplyTemplateCalculationsService : JobProcessingService, IApplyTemplateCalculationsService
     {
+        private const string FundingLinesNamespace = "FundingLines";
         private readonly ICreateCalculationService _createCalculationService;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IPoliciesApiClient _policiesApiClient;
@@ -94,6 +95,7 @@ namespace CalculateFunding.Services.Calcs
             string specificationId = UserPropertyFrom(message, "specification-id");
             string fundingStreamId = UserPropertyFrom(message, "fundingstream-id");
             string templateVersion = UserPropertyFrom(message, "template-version");
+            string previousTemplateVersion = UserPropertyFrom(message, "previous-template-version", false);
 
             string correlationId = message.GetCorrelationId();
             Reference author = message.GetUserDetails();
@@ -118,21 +120,21 @@ namespace CalculateFunding.Services.Calcs
 
             SpecificationSummary specificationSummary = specificationApiResponse.Content;
 
-            ApiResponse<TemplateMetadataContents> templateContentsResponse = await _policiesResiliencePolicy.ExecuteAsync(
-                () => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, specificationSummary.FundingPeriod.Id, templateVersion));
+            FundingLine[] flattenedFundingLines = await GetFundingLines(fundingStreamId, specificationSummary.FundingPeriod.Id, templateVersion);
+            IEnumerable<(string previousName, string currentName)> fundingLineChanges = null;
 
-            TemplateMetadataContents templateMetadataContents = templateContentsResponse?.Content;
-
-            if (templateMetadataContents == null)
+            if (!string.IsNullOrWhiteSpace(previousTemplateVersion))
             {
-                LogAndThrowException<NonRetriableException>(
-                    $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId}, funding period id {specificationSummary.FundingPeriod.Id} and template version {templateVersion}");
+                FundingLine[] previousFlattenedFundingLines = await GetFundingLines(fundingStreamId, specificationSummary.FundingPeriod.Id, previousTemplateVersion);
+                Dictionary<uint, FundingLine> previousFlattenedFundingLinesDictionary = previousFlattenedFundingLines.ToDictionary(_ => _.TemplateLineId);
+                fundingLineChanges = flattenedFundingLines.Where(_ => previousFlattenedFundingLinesDictionary.ContainsKey(_.TemplateLineId) && _.Name != previousFlattenedFundingLinesDictionary[_.TemplateLineId].Name).Select(_ =>
+                {
+                    return (previousFlattenedFundingLinesDictionary[_.TemplateLineId].Name, _.Name);
+                });
             }
 
             TemplateMappingItem[] mappingsWithoutCalculations = templateMapping.TemplateMappingItems.Where(_ => _.CalculationId.IsNullOrWhitespace())
                 .ToArray();
-
-            FundingLine[] flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
 
             IDictionary<uint, Calculation> uniqueTemplateCalculations = flattenedFundingLines
                 .SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations))
@@ -152,7 +154,8 @@ namespace CalculateFunding.Services.Calcs
                 correlationId,
                 author,
                 uniqueTemplateCalculations,
-                startingItemCount);
+                startingItemCount,
+                fundingLineChanges);
 
             TemplateMappingItem[] newMappingsWithCalculations = await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
                 mappingsWithCalculations,
@@ -176,12 +179,29 @@ namespace CalculateFunding.Services.Calcs
             await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
         }
 
+        private async Task<FundingLine[]> GetFundingLines(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        {
+            ApiResponse<TemplateMetadataContents> templateContentsResponse = await _policiesResiliencePolicy.ExecuteAsync(
+                () => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion));
+
+            TemplateMetadataContents templateMetadataContents = templateContentsResponse?.Content;
+
+            if (templateMetadataContents == null)
+            {
+                LogAndThrowException<NonRetriableException>(
+                    $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId}, funding period id {fundingPeriodId} and template version {templateVersion}");
+            }
+
+            return templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
+        }
+
         private async Task EnsureAllExistingCalculationsModified(TemplateMappingItem[] mappingsWithCalculations,
             SpecificationSummary specification,
             string correlationId,
             Reference author,
             IDictionary<uint, Calculation> uniqueTemplateCalculations,
-            int startingItemCount)
+            int startingItemCount,
+            IEnumerable<(string previousName, string currentName)> fundingLineChanges)
         {
             if (!mappingsWithCalculations.Any()) return;
 
@@ -208,9 +228,9 @@ namespace CalculateFunding.Services.Calcs
                         CalculationId = existingCalculation.Id,
                         CurrentName = templateCalculation.Name,
                         PreviousName = existingCalculation.Current.Name,
+                        Namespace = existingCalculation.Namespace,
                         SpecificationId = specification.Id,
-                        CalculationDataType = existingCalculation.Current.DataType,
-                        Namespace = existingCalculation.Namespace
+                        CalculationDataType = existingCalculation.Current.DataType
                     });
                 }
 
@@ -250,8 +270,28 @@ namespace CalculateFunding.Services.Calcs
             // now all the calc names have been updated we need to update all the references in the calc source
             foreach (CalculationVersionComparisonModel calculationVersionComparisonModel in calcNameChanges)
             {
-                updatedCalculations.AddRange(await _calculationService.UpdateCalculationCodeOnCalculationChange(calculationVersionComparisonModel,
-                author));
+                updatedCalculations.AddRange(await _calculationService.UpdateCalculationCodeOnCalculationOrFundinglineChange(calculationVersionComparisonModel.PreviousName,
+                    calculationVersionComparisonModel.CurrentName,
+                    calculationVersionComparisonModel.SpecificationId,
+                    calculationVersionComparisonModel.Namespace,
+                    author,
+                    calculationVersionComparisonModel.CalculationDataType == CalculationDataType.Enum
+                ));
+            }
+
+            // now all the funding line name references in the calc source
+            if (fundingLineChanges.AnyWithNullCheck())
+            {
+                foreach ((string previousName, string currentName) in fundingLineChanges)
+                {
+                    updatedCalculations.AddRange(await _calculationService.UpdateCalculationCodeOnCalculationOrFundinglineChange(previousName,
+                        currentName,
+                        specification.Id,
+                        FundingLinesNamespace,
+                        author,
+                        false
+                    ));
+                }
             }
 
             if (madeChanges || updatedCalculations.Any())
@@ -409,11 +449,14 @@ namespace CalculateFunding.Services.Calcs
             templateMapping.CalculationId = createCalculationResponse.Calculation.Id;
         }
 
-        private string UserPropertyFrom(Message message, string key)
+        private string UserPropertyFrom(Message message, string key, bool guard = true)
         {
             string userProperty = message.GetUserProperty<string>(key);
 
-            Guard.IsNullOrWhiteSpace(userProperty, key);
+            if (guard)
+            {
+                Guard.IsNullOrWhiteSpace(userProperty, key);
+            }
 
             return userProperty;
         }

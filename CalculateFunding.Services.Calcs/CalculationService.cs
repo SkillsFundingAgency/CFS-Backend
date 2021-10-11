@@ -555,15 +555,6 @@ namespace CalculateFunding.Services.Calcs
             _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
         }
 
-        public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(CalculationVersionComparisonModel comparison, Reference user)
-        {
-            string oldCalcSourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(comparison.PreviousName);
-            string newCalcSourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(comparison.CurrentName);
-            string @namespace = _typeIdentifierGenerator.GenerateIdentifier(comparison.Namespace);
-
-            return await UpdateCalculationCodeOnCalculationChange(oldCalcSourceCodeName, newCalcSourceCodeName, comparison.SpecificationId, @namespace, user, comparison.CalculationDataType == CalculationDataType.Enum);
-        }
-
         public async Task<IActionResult> EditCalculation(string specificationId,
             string calculationId,
             CalculationEditModel calculationEditModel,
@@ -1329,11 +1320,15 @@ End Select");
             };
         }
 
-        private async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(string oldCalcSourceCodeName, string newCalcSourceCodeName, string specificationId, string @namespace, Reference user, bool isEnum)
+        public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationOrFundinglineChange(string oldSourceCodeName, string newSourceCodeName, string specificationId, string @namespace, Reference user, bool isEnum)
         {
             List<Calculation> updatedCalculations = new List<Calculation>();
 
-            if (oldCalcSourceCodeName != newCalcSourceCodeName)
+            string oldSourceCodeNameEscaped = _typeIdentifierGenerator.GenerateIdentifier(oldSourceCodeName);
+            string newSourceCodeNameEscaped = _typeIdentifierGenerator.GenerateIdentifier(newSourceCodeName);
+            string namespaceEscaped = _typeIdentifierGenerator.GenerateIdentifier(@namespace);
+
+            if (oldSourceCodeNameEscaped != newSourceCodeNameEscaped)
             {
                 IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
 
@@ -1342,15 +1337,16 @@ End Select");
                     string sourceCode = calculation.Current.SourceCode;
 
                     string result = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(sourceCode,
-                        oldCalcSourceCodeName,
-                        newCalcSourceCodeName,
-                        @namespace);
+                        oldSourceCodeNameEscaped,
+                        newSourceCodeNameEscaped,
+                        namespaceEscaped);
 
                     if (isEnum)
                     {
                         result = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(result,
-                            $"{oldCalcSourceCodeName}Options",
-                            $"{newCalcSourceCodeName}Options");
+                            $"{oldSourceCodeNameEscaped}Options",
+                            $"{newSourceCodeNameEscaped}Options",
+                            null);
                     }
 
                     if (result != sourceCode)

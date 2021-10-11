@@ -28,7 +28,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
-using UpdateDefinitionSpecificationRelationshipModel = CalculateFunding.Common.ApiClient.DataSets.Models.UpdateDefinitionSpecificationRelationshipModel;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -36,6 +35,7 @@ namespace CalculateFunding.Services.Calcs
     {
         private const string SpecificationId = "specification-id";
         private const string DatasetSpecificationRelationshipId = "dataset-specification-relationship-id";
+        private const string FundingLinesNamespace = "FundingLines";
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly ISpecificationsApiClient _specificationsApiClient;
@@ -181,7 +181,10 @@ namespace CalculateFunding.Services.Calcs
                         string newSouceCodeName = _typeIdentifierGenerator.GenerateIdentifier(_.Value.Name);
                         sourceCalculations.ForEach(calc =>
                         {
-                            calc.Current.SourceCode = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(calc.Current.SourceCode, calculations[_.Key].SourceCodeName, newSouceCodeName);
+                            calc.Current.SourceCode = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(calc.Current.SourceCode,
+                                calculations[_.Key].SourceCodeName,
+                                newSouceCodeName,
+                                calc.Namespace);
                         });
                     }
                 });
@@ -197,7 +200,10 @@ namespace CalculateFunding.Services.Calcs
                         string newSouceCodeName = _typeIdentifierGenerator.GenerateIdentifier(_.Value.Name);
                         sourceCalculations.ForEach(calc =>
                         {
-                            calc.Current.SourceCode = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(calc.Current.SourceCode, fundingLines[_.Key].SourceCodeName, newSouceCodeName);
+                            calc.Current.SourceCode = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(calc.Current.SourceCode,
+                                fundingLines[_.Key].SourceCodeName,
+                                newSouceCodeName,
+                                FundingLinesNamespace);
                         });
                     }
                 });

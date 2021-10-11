@@ -196,6 +196,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 Id = NewRandomString(),
                 Current = new CalculationVersion
                 {
+                    Namespace = CalculationNamespace.Template,
                     SourceCode = @$"Dim calc as Decimal? = _1619.{calculationTemplateSourceCodeName}()
 Dim fundingLine as Decimal? = _1619.FundingLines.{fundingLineTemplateSourceCodeName}()
 return calc + fundingLine"
@@ -211,6 +212,7 @@ return calc + fundingLine"
                 Id = NewRandomString(),
                 Current = new CalculationVersion
                 {
+                    Namespace = CalculationNamespace.Template,
                     SourceCode = @$"Dim calc as Decimal? = _1619.{calculationTemplateSourceCodeName}_updated()
 Dim fundingLine as Decimal? = _1619.FundingLines.{fundingLineTemplateSourceCodeName}_updated()
 return calc + fundingLine"

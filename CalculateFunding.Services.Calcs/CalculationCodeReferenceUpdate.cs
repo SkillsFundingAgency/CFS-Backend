@@ -11,7 +11,9 @@ namespace CalculateFunding.Services.Calcs
 {
     public class CalculationCodeReferenceUpdate : ICalculationCodeReferenceUpdate
     {
-        public string ReplaceSourceCodeReferences(string sourceCode, string oldCalcSourceCodeName, string newCalcSourceCodeName, string calculationNamespace = null)
+        private const string FundingLinesNamespace = "FundingLines";
+
+        public string ReplaceSourceCodeReferences(string sourceCode, string oldCalcSourceCodeName, string newCalcSourceCodeName, string @namespace = null)
         {
             Guard.IsNullOrWhiteSpace(sourceCode, nameof(sourceCode));
             Guard.IsNullOrWhiteSpace (oldCalcSourceCodeName, nameof(oldCalcSourceCodeName));
@@ -22,7 +24,7 @@ namespace CalculateFunding.Services.Calcs
 
             SyntaxNode[] invocationsToReplace = root
                 .DescendantNodes()
-                .Where(_ => (_ is MemberAccessExpressionSyntax || _ is SimpleAsClauseSyntax) && IsForOldCalculationName(_, calculationNamespace, oldCalcSourceCodeName))
+                .Where(_ => (_ is MemberAccessExpressionSyntax || _ is SimpleAsClauseSyntax) && HasReference(_, @namespace, oldCalcSourceCodeName))
                 .ToArray();
 
             Dictionary<SyntaxNode, SyntaxNode> replacementNodes = new Dictionary<SyntaxNode, SyntaxNode>();
@@ -30,10 +32,7 @@ namespace CalculateFunding.Services.Calcs
             foreach (SyntaxNode invocation in invocationsToReplace)
             {
                 string originalSpan = invocation.GetText().ToString();
-                IEnumerable<string> originalCalcNames = invocation.DescendantNodes().Select(_  => _.GetText().ToString().Trim());
-                string replacementSpan = originalCalcNames.Any(_ => _.Equals(oldCalcSourceCodeName, StringComparison.InvariantCultureIgnoreCase)) ?
-                    originalSpan.Replace(oldCalcSourceCodeName, newCalcSourceCodeName, StringComparison.InvariantCultureIgnoreCase) :
-                    originalSpan;
+                string replacementSpan = originalSpan.Replace(oldCalcSourceCodeName, newCalcSourceCodeName, StringComparison.InvariantCultureIgnoreCase);
                 
                 SyntaxNode replacementInvocation;
 
@@ -57,14 +56,24 @@ namespace CalculateFunding.Services.Calcs
             return root.ReplaceNodes(replacementNodes.Keys, (x, y) => replacementNodes[x]).ToString();
         }
 
-        private bool IsForOldCalculationName(SyntaxNode statementSyntax,
+        private bool HasReference(SyntaxNode statementSyntax,
             string calculationNamespace,
             string calculationName)
         {
-            string text = statementSyntax.GetText().ToString();
+            IEnumerable<string> texts = statementSyntax.DescendantNodes().Select(_ => _.GetText().ToString().Trim());
 
-            return text.Contains(calculationNamespace ?? string.Empty, StringComparison.CurrentCultureIgnoreCase) &&
-                   text.Contains(calculationName, StringComparison.CurrentCultureIgnoreCase);
+            // if this is a funding line and we haven't passed the funding line namespace in then we need to filter it out
+            if (calculationNamespace != FundingLinesNamespace && texts.Any(_ => _.Equals(FundingLinesNamespace, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return false;
+            }
+
+            bool namespaceCheck = calculationNamespace != null ?
+                texts.Any(_ => _.Equals(calculationNamespace, StringComparison.InvariantCultureIgnoreCase)) :
+                true;
+
+            return namespaceCheck &&
+                   texts.Any(_ => _.Equals(calculationName, StringComparison.InvariantCultureIgnoreCase));
         }
     }
 }
