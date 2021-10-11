@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 3, 
                 NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
                 NewDecimals(1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100),
-                NewDecimals(0, 0, 0, 1573.00M, 1573.00M, 1573.00M, 1573.00M, 1573.00M, 1573.00M, 1573.00M),
+                NewDecimals(0, 0, 0, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.42M),
             };
             yield return new object []
             {

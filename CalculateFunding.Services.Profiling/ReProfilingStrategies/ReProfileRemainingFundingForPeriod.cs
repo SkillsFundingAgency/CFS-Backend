@@ -55,12 +55,15 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
                 differenceToDistribute += adjustedProfileValue;
 
-                profilePeriod.SetProfiledValue(Math.Round(fundingLineTotal / newFundingTotal, 2, MidpointRounding.AwayFromZero) * adjustedProfileValue);
+                profilePeriod.SetProfiledValue(Math.Round(fundingLineTotal / newFundingTotal * adjustedProfileValue, 2, MidpointRounding.AwayFromZero));
             }
+
+
+            decimal remainder = fundingLineTotal - orderedRefreshProfilePeriods.Sum(x => x.GetProfileValue());
 
             IProfilePeriod finalProfilePeriod = orderedRefreshProfilePeriods.Last();
 
-            finalProfilePeriod.SetProfiledValue(finalProfilePeriod.GetProfileValue() + (fundingLineTotal - differenceToDistribute));
+            finalProfilePeriod.SetProfiledValue(finalProfilePeriod.GetProfileValue() + (fundingLineTotal - differenceToDistribute) + remainder);
         }
     }
 }
