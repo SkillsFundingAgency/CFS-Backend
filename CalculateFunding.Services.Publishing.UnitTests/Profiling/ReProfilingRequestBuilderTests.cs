@@ -158,6 +158,105 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         }
 
         [TestMethod]
+        public async Task TreatsNothingAsIsPaidIfThereAreVariationPointersWithoutAssociatedPeriodForTheFundingLine()
+        {
+            string providerId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string profilePattern = NewRandomString();
+            decimal fundingLineTotal = NewRandomAmount();
+            ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
+
+            PublishedProviderVersion publishedProviderVersion = NewPublisherProviderVersion(pvp =>
+                    pvp.WithFundingLines(NewFundingLine(),
+                        NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCode)
+                            .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithDistributionPeriodId("dp1")
+                                    .WithAmount(23)
+                                    .WithOccurence(0)
+                                    .WithYear(2021)
+                                    .WithType(ProfilePeriodType.CalendarMonth)
+                                    .WithTypeValue("January")),
+                                    NewProfilePeriod(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithAmount(24)
+                                        .WithOccurence(1)
+                                        .WithYear(2021)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithTypeValue("January")),
+                                    NewProfilePeriod(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithAmount(25)
+                                        .WithOccurence(0)
+                                        .WithYear(2021)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithTypeValue("March")),
+                                    NewProfilePeriod(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithAmount(26)
+                                        .WithOccurence(0)
+                                        .WithYear(2021)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithTypeValue("April"))
+                                    ))))));
+            AndTheVariationPointers(publishedProviderVersion.SpecificationId, NewProfileVariationPointer(),
+                NewProfileVariationPointer(_ => _.WithFundingLineId(fundingLineCode)
+                    .WithOccurence(1)
+                    .WithYear(2021)
+                    .WithTypeValue("January")
+                    .WithPeriodType("CalenderMonth")),
+                NewProfileVariationPointer(_ => _.WithFundingLineId(fundingLineCode)
+                    .WithOccurence(1)
+                    .WithYear(2021)
+                    .WithFundingStreamId(publishedProviderVersion.FundingStreamId)
+                    .WithTypeValue("March")
+                    .WithPeriodType("CalenderMonth")));
+
+            ReProfileRequest reProfileRequest = await WhenTheReProfileRequestIsBuilt(fundingLineCode,
+                profilePattern,
+                publishedProviderVersion,
+                profileConfigurationType,
+                fundingLineTotal);
+
+            reProfileRequest
+                .Should()
+                .BeEquivalentTo(new ReProfileRequest
+                {
+                    ConfigurationType = profileConfigurationType,
+                    FundingLineCode = fundingLineCode,
+                    ExistingFundingLineTotal = 23 + 24 + 25 + 26,
+                    FundingLineTotal = fundingLineTotal,
+                    FundingPeriodId = publishedProviderVersion.FundingPeriodId,
+                    FundingStreamId = publishedProviderVersion.FundingStreamId,
+                    ProfilePatternKey = profilePattern,
+                    VariationPointerIndex = 3,
+                    ExistingPeriods = new[]
+                    {
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(23)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("January")
+                            .WithYear(2021)),
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(1)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(24)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("January")
+                            .WithYear(2021)),
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(25)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("March")
+                            .WithYear(2021)),//is paid up until here according to the variation pointer for this funding line
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(null)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("April")
+                            .WithYear(2021))
+                    }
+                });
+        }
+
+        [TestMethod]
         [DataRow(true, true)]
         [DataRow(true, false)]
         [DataRow(false, false)]

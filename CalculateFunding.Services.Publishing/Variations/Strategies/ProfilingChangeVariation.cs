@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
@@ -74,9 +75,27 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                                                                  _.Year == variationPointer.Year &&
                                                                  _.TypeValue == variationPointer.TypeValue);
 
-                if (variationPointerIndex > 0)
+                if (variationPointerIndex == -1)
                 {
-                    return false;
+                    // if the variation pointer cannot be located then pick the last period which is less than the variation pointer date
+                    ProfilePeriod profilePeriod = periods.LastOrDefault(_ =>
+                    {
+                        DateTime dateTime = new DateTime(_.Year, DateTime.ParseExact(_.TypeValue, "MMMM", CultureInfo.CurrentCulture).Month, _.Occurrence + 1);
+                        DateTime vpDateTime = new DateTime(variationPointer.Year, DateTime.ParseExact(variationPointer.TypeValue, "MMMM", CultureInfo.CurrentCulture).Month, variationPointer.Occurrence + 1);
+                        return dateTime < vpDateTime;
+                    });
+
+                    if (profilePeriod != null)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (variationPointerIndex > 0)
+                    {
+                        return false;
+                    }
                 }
             }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
@@ -145,8 +146,23 @@ namespace CalculateFunding.Services.Publishing.Profiling
 
             if (variationPointerIndex == -1)
             {
-                throw new ArgumentOutOfRangeException(nameof(variationPointer),
+                // if the variation pointer cannot be located then pick the last period which is less than the variation pointer date
+                ProfilePeriod profilePeriod = profilePeriods.LastOrDefault(_ =>
+                {
+                    DateTime dateTime = new DateTime(_.Year, DateTime.ParseExact(_.TypeValue, "MMMM", CultureInfo.CurrentCulture).Month, _.Occurrence + 1);
+                    DateTime vpDateTime = new DateTime(variationPointer.Year, DateTime.ParseExact(variationPointer.TypeValue, "MMMM", CultureInfo.CurrentCulture).Month, variationPointer.Occurrence + 1);
+                    return dateTime < vpDateTime;
+                });
+
+                if (profilePeriod == null)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(variationPointer),
                     $"Did not locate profile period corresponding to variation pointer for funding line id {variationPointer.FundingLineId} against provider: {providerId}");
+                }
+
+                return profilePeriods.IndexOf(_ => _.Occurrence == profilePeriod.Occurrence &&
+                                                                    _.Year == profilePeriod.Year &&
+                                                                    _.TypeValue == profilePeriod.TypeValue) + 1;
             }
 
             return variationPointerIndex;

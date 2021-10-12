@@ -159,7 +159,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 Author = _.Author,
                 Date = _.Date,
                 Status = _.Status,
-                VariationReasons = _.VariationReasons.Select(s => s.ToString()).ToArray(),
+                VariationReasons = _.VariationReasons?.Select(s => s.ToString()).ToArray(),
                 TotalFunding = _.TotalFunding,
                 FundingLines = _.FundingLines
             }));

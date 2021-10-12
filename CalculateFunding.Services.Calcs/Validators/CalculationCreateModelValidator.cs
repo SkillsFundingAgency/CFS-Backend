@@ -110,11 +110,11 @@ namespace CalculateFunding.Services.Calcs.Validators
              .Custom((fs, context) =>
              {
                  CalculationCreateModel calculationCreateModel = context.ParentContext.InstanceToValidate as CalculationCreateModel;
-                 
+
                  //only validate funding stream id for template calcs
                  var isTemplateCalculation = calculationCreateModel.CalculationType == CalculationType.Template;
-                 
-                 if (isTemplateCalculation && 
+
+                 if (isTemplateCalculation &&
                      string.IsNullOrWhiteSpace(calculationCreateModel.FundingStreamId))
                  {
                      context.AddFailure("Null or empty funding stream id provided.");
@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                          {
                              return;
                          }
-                         
+
                          Reference fundingStream = specificationSummary.FundingStreams.FirstOrDefault(m => m.Id == calculationCreateModel.FundingStreamId);
 
                          if (fundingStream == null)
