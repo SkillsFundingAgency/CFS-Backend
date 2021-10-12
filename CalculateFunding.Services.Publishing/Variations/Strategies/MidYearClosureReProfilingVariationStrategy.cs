@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public string Name => "MidYearClosureReProfiling";
 
-        public Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext,
+        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext,
             IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
@@ -25,15 +25,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 providerVariationContext.UpdatedProvider.Status != Closed ||
                 HasNoReleasedAllocations(providerVariationContext, priorState))
             {
-                return Task.FromResult(StrategyResult);
+                return Task.FromResult(false);
             }
 
             providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext));
 
             // Stop subsequent strategies                    
-            StrategyResult.StopSubsequentStrategies = true;
-
-            return Task.FromResult(StrategyResult);
+            return Task.FromResult(true);
         }
 
         private bool HasNoReleasedAllocations(ProviderVariationContext providerVariationContext,

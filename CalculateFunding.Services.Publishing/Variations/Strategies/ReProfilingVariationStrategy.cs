@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public string Name => "ReProfiling";
 
-        public Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext,
+        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext,
             IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
@@ -29,12 +29,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 HasNoProfilingChanges(priorState, refreshState, providerVariationContext) ||
                 HasNoPaidPeriods(providerVariationContext, priorState))
             {
-                return Task.FromResult(StrategyResult);
+                return Task.FromResult(false);
             }
 
             providerVariationContext.QueueVariationChange(new ReProfileVariationChange(providerVariationContext));
 
-            return Task.FromResult(StrategyResult);
+            return Task.FromResult(false);
         }
 
         protected override bool ExtraFundingLinePredicate(PublishedProviderVersion refreshState,

@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public string Name => "CalculationValuesUpdated";
 
-        public Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if(priorState?.Calculations == null || refreshState?.Calculations == null)
             {
-                return Task.FromResult(StrategyResult);
+                return Task.FromResult(false);
             }
 
             foreach (FundingCalculation priorFundingCalculation in priorState.Calculations)
@@ -42,14 +42,14 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if (!calculationValuesUpdated)
             {
-                return Task.FromResult(StrategyResult);
+                return Task.FromResult(false);
             }
 
             providerVariationContext.AddVariationReasons(VariationReason.CalculationValuesUpdated);
 
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
 
-            return Task.FromResult(StrategyResult);
+            return Task.FromResult(false);
         }
     }
 }

@@ -6,6 +6,5 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public const string Closed = "Closed";
         public const string Opened = "Open";
-        protected VariationStrategyResult StrategyResult = new VariationStrategyResult();
     }
 }

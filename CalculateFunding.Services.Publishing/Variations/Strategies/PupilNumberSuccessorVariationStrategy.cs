@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         public string Name => "PupilNumberSuccessor";
 
-        public async Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public async Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
             
@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 updatedProvider.Status != Closed ||
                 successorId.IsNullOrWhitespace())
             {
-                return StrategyResult;
+                return false;
             }
 
             PublishedProvider successorProvider = await GetOrCreateSuccessorProvider(providerVariationContext, successorId);
@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 providerVariationContext.RecordErrors(    
                     $"Unable to run Pupil Number Successor variation as could not locate or create a successor provider with id:{successorId}");
 
-                return StrategyResult;
+                return false;
             }
 
             string providerId = providerVariationContext.ProviderId;
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             
             providerVariationContext.QueueVariationChange(new MovePupilNumbersToSuccessorChange(providerVariationContext));
 
-            return StrategyResult;
+            return false;
         }
     }
 }

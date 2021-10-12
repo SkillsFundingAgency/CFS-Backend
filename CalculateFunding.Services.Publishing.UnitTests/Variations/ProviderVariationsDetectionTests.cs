@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             string providerVersionId = NewRandomString();
 
             _variationStrategy.DetermineVariations(Arg.Is<ProviderVariationContext>(ctx => ctx.ProviderVersionId == providerVersionId), Arg.Any<IEnumerable<string>>())
-                .Returns(new VariationStrategyResult());
+                .Returns(false);
 
             ProviderVariationContext providerVariationContext = await _factory.CreateRequiredVariationChanges(existingPublishedProvider,
                 updatedTotalFunding,
@@ -120,7 +120,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             string fundingLineCodeOne = NewRandomString();
             string variationTwo = NewRandomString();
             IVariationStrategy variationStrategyOne = Substitute.For<IVariationStrategy>();
-            VariationStrategyResult variationStrategyResultOne = new VariationStrategyResult() { StopSubsequentStrategies = true };
+            bool variationStrategyResultOne = true;
 
 
             FundingVariation[] fundingVariations = new[] {NewFundingVariation(fv => fv.WithName(variationOne)

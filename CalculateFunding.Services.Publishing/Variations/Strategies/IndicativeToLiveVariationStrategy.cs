@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public string Name => "IndicativeToLive";
 
-        public Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
@@ -25,13 +25,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 refreshState.IsIndicative
                 )
             {
-                return Task.FromResult(StrategyResult);
+                return Task.FromResult(false);
             }
 
             providerVariationContext.AddVariationReasons(VariationReason.IndicativeToLive);
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
 
-            return Task.FromResult(StrategyResult);
+            return Task.FromResult(false);
         }
     }
 }

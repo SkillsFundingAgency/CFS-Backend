@@ -14,15 +14,16 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public string Name => "DistributionProfile";
 
-        public Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             if (providerVariationContext.ReleasedState == null)
             {
-                return Task.FromResult(StrategyResult);
+                return Task.FromResult(false);
             }
 
             string keyForOrganisationGroups = ProviderVariationContext.OrganisationGroupsKey(providerVariationContext.ReleasedState.FundingStreamId, providerVariationContext.ReleasedState.FundingPeriodId);
-            
+            bool stopSubsequentStrategies = false;
+
             if (providerVariationContext.OrganisationGroupResultsData.ContainsKey(keyForOrganisationGroups))
             {
                 IEnumerable<OrganisationGroupResult> organisationGroups = providerVariationContext.OrganisationGroupResultsData[keyForOrganisationGroups];
@@ -30,11 +31,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 if (organisationGroups.Any(x => x.GroupReason == OrganisationGroupingReason.Contracting))
                 {
                     // Stop subsequent strategies                    
-                    StrategyResult.StopSubsequentStrategies = true;
+                    stopSubsequentStrategies = true;
                 }
             }
 
-            return Task.FromResult(StrategyResult);
+            return Task.FromResult(stopSubsequentStrategies);
         }
     }
 }

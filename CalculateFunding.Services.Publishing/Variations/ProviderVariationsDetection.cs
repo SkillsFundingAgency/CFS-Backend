@@ -57,10 +57,10 @@ namespace CalculateFunding.Services.Publishing.Variations
             foreach (FundingVariation configuredVariation in variations.OrderBy(_ => _.Order))
             {
                 IVariationStrategy variationStrategy = _variationStrategyServiceLocator.GetService(configuredVariation.Name);
+                
+                bool stopSubsequentStrategies = await variationStrategy.DetermineVariations(providerVariationContext, configuredVariation.FundingLineCodes);
 
-                VariationStrategyResult variationStrategyResult = await variationStrategy.DetermineVariations(providerVariationContext, configuredVariation.FundingLineCodes);
-
-                if(variationStrategyResult.StopSubsequentStrategies)
+                if (stopSubsequentStrategies)
                 {
                     break;
                 }

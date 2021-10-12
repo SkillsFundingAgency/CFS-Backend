@@ -87,17 +87,17 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         public string Name => "ProviderMetadata";
 
-        public async Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public async Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             if (providerVariationContext.PriorState == null || providerVariationContext.UpdatedProvider == null || providerVariationContext.ReleasedState == null)
             {
-                return StrategyResult;
+                return false;
             }
 
             string schemaVersion = await providerVariationContext.GetReleasedStateSchemaVersion();
 
             if (string.IsNullOrWhiteSpace(schemaVersion))
-                return StrategyResult;
+                return false;
 
             IList<VariationCheck> variationChecksToPerform = VariationChecks.Where(x => !x.ApplicableSchemaVersions.Any()).Select(x => x.VariationCheck) // No applicable schema versions
                                                             .Concat(VariationChecks.Where(x => x.ApplicableSchemaVersions.Contains(schemaVersion)).Select(x => x.VariationCheck)) // specific schema versions
@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
             }
 
-            return StrategyResult;
+            return false;
         }
     }
 }

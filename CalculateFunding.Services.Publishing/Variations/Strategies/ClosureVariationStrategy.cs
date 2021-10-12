@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public string Name => "Closure";
 
-        public Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
@@ -25,14 +25,14 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 providerVariationContext.UpdatedProvider.Status != Closed ||
                 providerVariationContext.UpdatedProvider.GetSuccessors().Any())
             {
-                return Task.FromResult(StrategyResult);
+                return Task.FromResult(false);
             }
 
             if (providerVariationContext.UpdatedTotalFunding != priorState.TotalFunding)
             {
                 providerVariationContext.RecordErrors("Unable to run Closure variation as TotalFunding has changed during the refresh funding");
 
-                return Task.FromResult(StrategyResult);
+                return Task.FromResult(false);
             }
 
 
@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             providerVariationContext.QueueVariationChange(new ZeroInitialPaymentProfilesChange(providerVariationContext));
             providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext));
 
-            return Task.FromResult(StrategyResult);
+            return Task.FromResult(false);
         }
     }
 }

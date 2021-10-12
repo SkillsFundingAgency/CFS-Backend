@@ -28,10 +28,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext(_ => _.PublishedProvider.Released = null);
 
-            VariationStrategyResult result = await WhenTheVariationsAreDetermined();
+            bool result = await WhenTheVariationsAreDetermined();
 
             result
-                .StopSubsequentStrategies
                 .Should()
                 .BeFalse();
         }
@@ -59,15 +58,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.OrganisationGroupResultsData = organisationGroupResultsData;
             });
 
-            VariationStrategyResult result = await WhenTheVariationsAreDetermined();
+            bool result = await WhenTheVariationsAreDetermined();
 
             result
-                .StopSubsequentStrategies
                 .Should()
                 .BeTrue();
         }
 
-        private async Task<VariationStrategyResult> WhenTheVariationsAreDetermined()
+        private async Task<bool> WhenTheVariationsAreDetermined()
         {
             return await _variationStrategy.DetermineVariations(VariationContext, null);
         }
