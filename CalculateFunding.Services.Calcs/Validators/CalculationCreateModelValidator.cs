@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                   {
                       if (!string.IsNullOrWhiteSpace(calculationCreateModel.SpecificationId))
                       {
-                          Calculation calculation = _calculationRepository.GetCalculationsBySpecificationIdAndCalculationName(calculationCreateModel.SpecificationId, calculationCreateModel.Name).Result;
+                          Calculation calculation = _calculationRepository.GetCalculationBySpecificationIdAndCalculationName(calculationCreateModel.SpecificationId, calculationCreateModel.Name).Result;
 
                           if (calculation != null)
                               context.AddFailure($"A calculation already exists with the name: '{calculationCreateModel.Name}' for this specification");

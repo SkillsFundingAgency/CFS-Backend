@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Calcs
             return await _cosmosRepository.Query<TemplateMapping>(x => x.Content.SpecificationId == specificationId);
         }
 
-        public async Task<Calculation> GetCalculationsBySpecificationIdAndCalculationName(string specificationId, string calculationName)
+        public async Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(calculationName, nameof(calculationName));
@@ -114,9 +114,9 @@ namespace CalculateFunding.Services.Calcs
                 return;
 
             if (deletionType == DeletionType.SoftDelete)
-                await _cosmosRepository.BulkDeleteAsync(existingCalculations.Select(c => new KeyValuePair<string, Calculation>(null, c)), hardDelete:false);
+                await _cosmosRepository.BulkDeleteAsync(existingCalculations.Select(c => new KeyValuePair<string, Calculation>(null, c)), hardDelete: false);
             if (deletionType == DeletionType.PermanentDelete)
-                await _cosmosRepository.BulkDeleteAsync(existingCalculations.Select(c => new KeyValuePair<string, Calculation>(null, c)), hardDelete:true);
+                await _cosmosRepository.BulkDeleteAsync(existingCalculations.Select(c => new KeyValuePair<string, Calculation>(null, c)), hardDelete: true);
         }
 
         public async Task DeleteTemplateMappingsBySpecificationId(string specificationId, DeletionType deletionType)
@@ -277,7 +277,7 @@ namespace CalculateFunding.Services.Calcs
                 .Where(_ => _.Content.CalculationIds.Any(calc => calc == calculationId) &&
                             _.Content.ItemType == obsoleteItemType)
                 .ToArray();
-        
+
         public async Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForCalculation(string calculationId,
             ObsoleteItemType obsoleteItemType)
             => await _cosmosRepository.Query<ObsoleteItem>(_ => _.Content.CalculationIds.Any(calc => calc == calculationId) &&

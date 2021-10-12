@@ -433,10 +433,10 @@ namespace CalculateFunding.Services.Calcs
         }
 
         public async Task<IActionResult> CreateAdditionalCalculation(
-            string specificationId, 
-            CalculationCreateModel model, 
-            Reference author, 
-            string correlationId, 
+            string specificationId,
+            CalculationCreateModel model,
+            Reference author,
+            string correlationId,
             bool skipCalcRun = false,
             bool skipQueueCodeContextCacheUpdate = false,
             bool overrideCreateModelAuthor = false)
@@ -632,7 +632,7 @@ namespace CalculateFunding.Services.Calcs
                 string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
 
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
-                
+
                 if (skipInstruct)
                 {
                     return new OkObjectResult(result.CurrentVersion);
@@ -894,7 +894,7 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty calculation name provided");
             }
 
-            Calculation calculation = await _calculationsRepository.GetCalculationsBySpecificationIdAndCalculationName(model.SpecificationId, model.Name);
+            Calculation calculation = await _calculationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name);
 
             if (calculation == null)
             {
@@ -937,7 +937,7 @@ namespace CalculateFunding.Services.Calcs
             foreach (DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel in relationships)
             {
                 fieldIdentifiers.AddRange(
-                    currentFieldDefinitionNames.Select(m => 
+                    currentFieldDefinitionNames.Select(m =>
                         $"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(datasetSpecificationRelationshipViewModel.Name)}.{_typeIdentifierGenerator.GenerateIdentifier(m)}"));
             }
 
@@ -1153,7 +1153,7 @@ namespace CalculateFunding.Services.Calcs
                 return new NotFoundObjectResult(message);
             }
 
-            ApiResponse<ApiClientSelectDatasourceModel> datasetRelationshipResponse = 
+            ApiResponse<ApiClientSelectDatasourceModel> datasetRelationshipResponse =
                 await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetDataSourcesByRelationshipId(datasetRelationshipId, top: null, pageNumber: null));
             if (!datasetRelationshipResponse.StatusCode.IsSuccess() || datasetRelationshipResponse.Content == null)
             {
@@ -1456,7 +1456,7 @@ End Select");
             IEnumerable<ObsoleteItem> obsoleteItems = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetObsoleteItemsForSpecification(buildProject.SpecificationId));
 
             buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, obsoleteItems, compilerOptions);
-            
+
             if (!buildProject.Build.Success)
             {
                 string compilerMessages = string.Join(Environment.NewLine, buildProject.Build.CompilerMessages?.Select(_ => _.Message) ?? ArraySegment<string>.Empty);
@@ -1488,7 +1488,7 @@ End Select");
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{currentVersion.SpecificationId}"));
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CurrentCalculationsForSpecification}{currentVersion.SpecificationId}"));
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CalculationsMetadataForSpecification}{currentVersion.SpecificationId}"));
-            
+
             // Set current version in cache
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.CurrentCalculation}{currentVersion.Id}", currentVersion, TimeSpan.FromDays(7), true));
         }

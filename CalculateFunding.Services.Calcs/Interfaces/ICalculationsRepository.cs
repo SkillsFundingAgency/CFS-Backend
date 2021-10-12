@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<CompilerOptions> GetCompilerOptions(string specificationId);
 
-        Task<Calculation> GetCalculationsBySpecificationIdAndCalculationName(string specificationId, string calculationName);
+        Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName);
 
         Task<IEnumerable<CalculationMetadata>> GetCalculationsMetatadataBySpecificationId(string specificationId);
 

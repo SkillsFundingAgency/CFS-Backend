@@ -83,7 +83,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
-                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(SpecificationId), Arg.Is(CalculationName))
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(SpecificationId), Arg.Is(CalculationName))
                 .Returns(calc);
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, logger: logger);
@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
-                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(SpecificationId), Arg.Is(CalculationName))
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(SpecificationId), Arg.Is(CalculationName))
                 .Returns((Calculation)null);
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, logger: logger);

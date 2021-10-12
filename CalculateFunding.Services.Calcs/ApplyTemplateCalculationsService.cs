@@ -157,7 +157,7 @@ namespace CalculateFunding.Services.Calcs
                 startingItemCount,
                 fundingLineChanges);
 
-            TemplateMappingItem[] newMappingsWithCalculations = await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
+            await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
                 mappingsWithCalculations,
                 fundingStreamId,
                 specificationSummary,
@@ -261,7 +261,7 @@ namespace CalculateFunding.Services.Calcs
 
                 if (!(editCalculationResult is OkObjectResult))
                 {
-                    LogAndThrowException<Exception>("Unable to edit template calculation for template mapping");
+                    LogAndThrowException<Exception>($"Unable to edit template calculation for template mapping id {templateCalculation.TemplateCalculationId}");
                 }
             }
 
@@ -346,7 +346,7 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        private async Task<TemplateMappingItem[]> EnsureAllRequiredCalculationsExist(TemplateMappingItem[] mappingsWithoutCalculations,
+        private async Task EnsureAllRequiredCalculationsExist(TemplateMappingItem[] mappingsWithoutCalculations,
             TemplateMappingItem[] mappingsWithCalculations,
             string fundingStreamId,
             SpecificationSummary specification,
@@ -355,23 +355,52 @@ namespace CalculateFunding.Services.Calcs
             int startingItemCount,
             IDictionary<uint, Calculation> uniqueTemplateCalculations)
         {
-            if (!mappingsWithoutCalculations.Any()) return mappingsWithCalculations;
+            if (!mappingsWithoutCalculations.Any()) return;
 
-            bool createdNewCalculations = false;
-
-            TemplateMappingItem[] newMappingsWithCalculations = new TemplateMappingItem[0];
+            bool madeChanges = false;
 
             for (int calculationCount = 0; calculationCount < mappingsWithoutCalculations.Length; calculationCount++)
             {
                 TemplateMappingItem newMappingWithCalculation = mappingsWithoutCalculations[calculationCount];
 
-                Models.Calcs.Calculation calculation = await _calculationsRepository.GetCalculationsBySpecificationIdAndCalculationName(specification.Id, newMappingWithCalculation.Name);
+                Models.Calcs.Calculation calculation = await _calculationsRepository.GetCalculationBySpecificationIdAndCalculationName(specification.Id, newMappingWithCalculation.Name);
 
                 // if this was originally a template calculation then we need to resurrect it
                 if (calculation != null && (calculation.Current.WasTemplateCalculation || calculation.Current.CalculationType == CalculationType.Template))
                 {
-                    newMappingWithCalculation.CalculationId = calculation.Id;
-                    newMappingsWithCalculations = newMappingsWithCalculations.Concat(new[] { newMappingWithCalculation }).ToArray();
+                    newMappingWithCalculation.CalculationId = calculation.Current.CalculationId;
+
+                    Calculation templateCalculation = uniqueTemplateCalculations[newMappingWithCalculation.TemplateId];
+
+                    CalculationEditModel calculationEditModel = new CalculationEditModel
+                    {
+                        Description = calculation.Current.Description,
+                        SourceCode = calculation.Current.SourceCode,
+                        Name = templateCalculation.Name,
+                        ValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                        AllowedEnumTypeValues = templateCalculation.AllowedEnumTypeValues,
+                        DataType = templateCalculation.Type.ToCalculationDataType(),
+                    };
+
+                    IActionResult editCalculationResult = await _calculationService.EditCalculation(specification.Id,
+                        calculation.Current.CalculationId,
+                        calculationEditModel,
+                        author,
+                        correlationId,
+                        setAdditional: false,
+                        skipInstruct: true,
+                        skipValidation: true,
+                        updateBuildProject: false,
+                        setTemplate: true,
+                        calculationEditMode: CalculationEditMode.System,
+                        existingCalculation: calculation);
+
+                    madeChanges = true;
+
+                    if (!(editCalculationResult is OkObjectResult))
+                    {
+                        LogAndThrowException<Exception>($"Unable to resurrect template calculation for template mapping id {templateCalculation.TemplateCalculationId}");
+                    }
                 }
                 else
                 {
@@ -382,18 +411,16 @@ namespace CalculateFunding.Services.Calcs
                         correlationId,
                         uniqueTemplateCalculations);
 
-                    createdNewCalculations = true;
+                    madeChanges = true;
                 }
 
                 if ((calculationCount + 1) % 10 == 0) await NotifyProgress(startingItemCount + calculationCount + 1);
             }
 
-            if (createdNewCalculations)
+            if (madeChanges)
             {
                 await _calculationService.UpdateBuildProject(specification);
             }
-
-            return newMappingsWithCalculations;
         }
 
         private async Task InitiateCalculationRun(string specificationId, Reference user, string correlationId)

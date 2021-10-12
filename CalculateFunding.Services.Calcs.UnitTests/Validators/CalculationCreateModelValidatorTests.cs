@@ -170,7 +170,7 @@ namespace CalculateFunding.Services.Calcs.Validators
 
             ICalculationsRepository calculationsRepository = CreateCalculationRepository();
             calculationsRepository
-                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns(calculationWithSameName);
 
             CalculationCreateModelValidator validator = CreateValidator(calculationRepository: calculationsRepository);
@@ -257,7 +257,7 @@ namespace CalculateFunding.Services.Calcs.Validators
 
             ICalculationsRepository calculationsRepository = CreateCalculationRepository();
             calculationsRepository
-                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns((Calculation)null);
 
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary
@@ -310,7 +310,7 @@ namespace CalculateFunding.Services.Calcs.Validators
 
             ICalculationsRepository calculationsRepository = CreateCalculationRepository();
             calculationsRepository
-                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns((Calculation)null);
 
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary
@@ -352,7 +352,7 @@ namespace CalculateFunding.Services.Calcs.Validators
           
             ICalculationsRepository calculationsRepository = CreateCalculationRepository();
             calculationsRepository
-                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns((Calculation)null);
 
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary
@@ -395,7 +395,7 @@ namespace CalculateFunding.Services.Calcs.Validators
            
             ICalculationsRepository calculationsRepository = CreateCalculationRepository();
             calculationsRepository
-                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns((Calculation)null);
 
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary

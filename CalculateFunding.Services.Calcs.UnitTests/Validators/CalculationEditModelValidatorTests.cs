@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Calcs.Validators
 
             ICalculationsRepository calculationsRepository = CreateCalculationRepository();
             calculationsRepository
-                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns(calculationWithSameName);
 
             CalculationEditModelValidator validator = CreateValidator(calculationRepository: calculationsRepository);
@@ -177,7 +177,7 @@ namespace CalculateFunding.Services.Calcs.Validators
 
             ICalculationsRepository calculationsRepository = CreateCalculationRepository();
             calculationsRepository
-                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns((Calculation)null);
 
             CalculationEditModelValidator validator = CreateValidator(calculationsRepository);
@@ -205,7 +205,7 @@ namespace CalculateFunding.Services.Calcs.Validators
 
             ICalculationsRepository calculationsRepository = CreateCalculationRepository();
             calculationsRepository
-                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns(calculationWithSameName);
 
             CalculationEditModelValidator validator = CreateValidator(calculationRepository: calculationsRepository);
