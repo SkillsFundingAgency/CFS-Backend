@@ -12,12 +12,14 @@
     <None Remove="Resources\DSG.json" />
     <None Remove="Resources\existing.json" />
     <None Remove="Resources\NMSS-003.json" />
+    <None Remove="Resources\NMSS-004.json" />
     <None Remove="Resources\PESPORTSPREM.json" />
     <None Remove="Resources\RPA-001.json" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\DSG.json" />
+    <EmbeddedResource Include="Resources\NMSS-004.json" />
     <EmbeddedResource Include="Resources\NMSS-003.json" />
     <EmbeddedResource Include="Resources\PESPORTSPREM.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

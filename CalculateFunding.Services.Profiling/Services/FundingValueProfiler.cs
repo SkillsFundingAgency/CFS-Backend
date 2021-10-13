@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Services.Profiling.Extensions;
 using CalculateFunding.Services.Profiling.Models;
+using CalculateFunding.Services.Profiling.ReProfilingStrategies;
 
 namespace CalculateFunding.Services.Profiling.Services
 {
@@ -189,13 +190,16 @@ namespace CalculateFunding.Services.Profiling.Services
                     return pp.WithValue(roundedValue);
                 }).ToList();
 
-                DeliveryProfilePeriod last = profiledValues.Last();
+                IEnumerable<DeliveryProfilePeriod> orderedDeliveryProfilePeriods = new YearMonthOrderedProfilePeriods<DeliveryProfilePeriod>(profiledValues);
+                DeliveryProfilePeriod lastUsedProfilePeriod = orderedDeliveryProfilePeriods.Last(p => p.ProfileValue > 0);
 
-                IEnumerable<DeliveryProfilePeriod> withoutLast = profiledValues.Take(profiledValues.Count - 1).ToList();
+                IEnumerable<DeliveryProfilePeriod> withoutLast = profiledValues
+                    .Where(p => !(p.Year == lastUsedProfilePeriod.Year && p.TypeValue == lastUsedProfilePeriod.TypeValue && p.Occurrence == lastUsedProfilePeriod.Occurrence));
 
                 calculatedDeliveryProfile.AddRange(
-                    withoutLast.Append(
-                        last.WithValue(allocationValueToBeProfiled - withoutLast.Sum(cdp => cdp.ProfileValue))));
+                    new YearMonthOrderedProfilePeriods<DeliveryProfilePeriod>(
+                        withoutLast.Append(
+                            lastUsedProfilePeriod.WithValue(allocationValueToBeProfiled - withoutLast.Sum(cdp => cdp.ProfileValue)))));
             }
 
             if (negativeAllocation)
