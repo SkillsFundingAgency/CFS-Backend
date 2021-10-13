@@ -103,33 +103,126 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             
             await WhenTheSchemaIsRecreated(specificationId, fundingStreamId);
 
-            string[] providerColumns = new[] { "ProviderId",
-                "ProviderName",
-                "UKPRN",
-                "URN",
-                "Authority",
-                "ProviderType",
-                "ProviderSubtype",
-                "DateOpened",
-                "DateClosed",
-                "LaCode",
-                "Status",
-                "Successor",
-                "TrustCode",
-                "TrustName",
-                "PaymentOrganisationIdentifier",
-                "PaymentOrganisationName",
-                "IsIndicative"
-            };
+            Dictionary<string, SqlColumnDefinition> providerColumns = new List<SqlColumnDefinition>() {
+                new SqlColumnDefinition
+                {
+                    Name = "ProviderId",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ProviderName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "UKPRN",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "URN",
+                    Type = "[varchar](32)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Authority",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ProviderType",
+                    Type = "[varchar](128)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ProviderSubtype",
+                    Type = "[varchar](128)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "DateOpened",
+                    Type = "datetime",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "DateClosed",
+                    Type = "datetime",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LaCode",
+                    Type = "[varchar](32)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Status",
+                    Type = "[varchar](64)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Successor",
+                    Type = "[varchar](128)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "TrustCode",
+                    Type = "[varchar](32)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "TrustName",
+                    Type = "[nvarchar](128)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "PaymentOrganisationIdentifier",
+                    Type = "[varchar](32)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "PaymentOrganisationName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "IsIndicative",
+                    Type = "[bit]",
+                    AllowNulls = false
+                }
+            }.ToDictionary(_ => _.Name);
 
             ThenTheGenerateCreateTableSqlWasCalled($"{fundingStreamTablePrefix}_Providers", fundingStreamId, fundingPeriodId, providerColumns);
 
             ThenTheTotalNumberOfDDLScriptsExecutedWas(7);
         }
 
-        private void ThenTheGenerateCreateTableSqlWasCalled(string tableName, string fundingStreamId, string fundingPeriodId, string[] columns)
+        private void ThenTheGenerateCreateTableSqlWasCalled(string tableName, string fundingStreamId, string fundingPeriodId, IDictionary<string, SqlColumnDefinition> columns)
         {
-            _sqlSchemaGenerator.Verify(_ => _.GenerateCreateTableSql(tableName, fundingStreamId, fundingPeriodId, It.Is<IEnumerable<SqlColumnDefinition>>(x => x.All(cd => columns.Contains(cd.Name)))),
+            _sqlSchemaGenerator.Verify(_ => _.GenerateCreateTableSql(
+                    tableName, 
+                    fundingStreamId, 
+                    fundingPeriodId, 
+                    It.Is<IEnumerable<SqlColumnDefinition>>(x => 
+                        x.All(cd => columns.ContainsKey(cd.Name) && columns[cd.Name].Type == cd.Type)
+                    )
+                ),
                 Times.Once);
         }
 

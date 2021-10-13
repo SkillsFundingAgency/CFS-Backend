@@ -433,7 +433,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 new SqlColumnDefinition
                 {
                     Name = "Successor",
-                    Type = "[varchar](32)",
+                    Type = "[varchar](128)",
                     AllowNulls = true
                 },
                 new SqlColumnDefinition
