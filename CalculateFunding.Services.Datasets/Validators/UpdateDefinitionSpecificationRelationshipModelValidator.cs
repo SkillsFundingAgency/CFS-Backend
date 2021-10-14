@@ -108,17 +108,17 @@ namespace CalculateFunding.Services.Datasets.Validators
             if (relationshipModel.FundingLineIds.IsNullOrEmpty() && relationshipModel.CalculationIds.IsNullOrEmpty()) return;
 
             ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
-               await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(relationshipModel.SpecificationId));
+               await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(relationshipModel.TargetSpecificationId));
 
             if (!specificationSummaryApiResponse.StatusCode.IsSuccess() && specificationSummaryApiResponse.StatusCode != HttpStatusCode.NotFound)
             {
-                string errorMessage = $"Failed to fetch specification summary for specification ID: {relationshipModel.SpecificationId} with StatusCode={specificationSummaryApiResponse.StatusCode}";
+                string errorMessage = $"Failed to fetch specification summary for specification ID: {relationshipModel.TargetSpecificationId} with StatusCode={specificationSummaryApiResponse.StatusCode}";
                 throw new RetriableException(errorMessage);
             }
 
             if(specificationSummaryApiResponse.StatusCode == HttpStatusCode.NotFound || specificationSummaryApiResponse.Content == null)
             {
-                context.AddFailure($"Specification - {relationshipModel.SpecificationId} not found");
+                context.AddFailure($"Specification - {relationshipModel.TargetSpecificationId} not found");
                 return;
             }
 

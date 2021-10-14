@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
         [DynamicData(nameof(MissingCalculationExamples), DynamicDataSourceType.Method)]
         public void ThrowsArgumentExceptionIfNoCalculationsSuppliedToAnalyse(IEnumerable<Calculation> calculations)
         {
-            Action invocation = () => WhenTheCalculationsAreAnalysed(calculations, null, null);
+            Action invocation = () => WhenTheCalculationsAreAnalysed(calculations, null);
 
             invocation
                 .Should()
@@ -48,12 +48,11 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
         public void LocatesRelatedCalculationsFromSourceCode(
             IEnumerable<Calculation> calculations,
             IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries,
-            IEnumerable<TemplateMapping> templateMappings,
             IEnumerable<CalculationRelationship> expectedCalculationRelationships,
             IEnumerable<CalculationRelationship> expectedReleasedDataCalculationRelationships,
             IEnumerable<CalculationEnumRelationship> expectedEnumCalculationRelationships)
         {
-            WhenTheCalculationsAreAnalysed(calculations, datasetRelationshipSummaries, templateMappings);
+            WhenTheCalculationsAreAnalysed(calculations, datasetRelationshipSummaries);
 
             ThenTheCalculationRelationshipsShouldMatch(expectedCalculationRelationships);
 
@@ -119,13 +118,12 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
 
         private void WhenTheCalculationsAreAnalysed(
             IEnumerable<Calculation> calculations,
-            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries,
-            IEnumerable<TemplateMapping> templateMappings)
+            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries)
         {
             _relationships = _analysis.DetermineRelationshipsBetweenCalculations(@namespace => @namespace, calculations);
 
             _releasedDataCalculationRelationships = 
-                _analysis.DetermineRelationshipsBetweenReleasedDataCalculations(@namespace => @namespace, calculations, datasetRelationshipSummaries, templateMappings);
+                _analysis.DetermineRelationshipsBetweenReleasedDataCalculations(@namespace => @namespace, calculations, datasetRelationshipSummaries);
 
             _enumRelationships = _analysis.DetermineRelationshipsBetweenCalculationsAndEnums(calculations);
         }
@@ -320,13 +318,6 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                                 NewPublishedSpecificationItem(psi => psi
                                     .WithTemplateId(templateCalculationOneId)
                                     .WithSourceCodeName(calcFourName)))))),
-                TemplateMappings(
-                    NewTemplateMapping(_ => _
-                        .WithSpecificationId(targetSpecificationId)
-                        .WithItems(
-                            NewTemplateMappingItem(tmi => tmi
-                                .WithTemplateId(templateCalculationOneId)
-                                .WithCalculationId(calcFourId))))),
                 CalculationRelationships(NewCalculationRelationship(_ => _.WithCalculationOneId(calcTwoId)
                         .WithCalculationTwoId(calcOneId)),
                     NewCalculationRelationship(_ => _.WithCalculationOneId(calcThreeId)
@@ -336,7 +327,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                 CalculationRelationships(
                     NewCalculationRelationship(_ => _
                         .WithCalculationOneId(calcFiveId)
-                        .WithCalculationTwoId(calcFourId))),
+                        .WithCalculationTwoId($"Datasets.{datasetRelationshipName}.Calc_{templateCalculationOneId}_{calcFourName}"))),
                 CalulationEnumRelationships(NewCalculationEnumRelationship(_ => _.WithCalculation(new Models.Graph.Calculation{SpecificationId = calculation.SpecificationId,
                             CalculationId = calculation.Id,
                             FundingStream = calculation.FundingStreamId,
@@ -374,7 +365,6 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                         .WithSpecificationId(specificationId))
                 ),
                 Array.Empty<DatasetRelationshipSummary>(),
-                Array.Empty<TemplateMapping>(),
                 CalculationRelationships(NewCalculationRelationship(_ => _.WithCalculationOneId(calcTwoId)
                         .WithCalculationTwoId(calcOneId))),
                 Array.Empty<CalculationRelationship>(),
@@ -404,7 +394,6 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                         .WithSpecificationId(specificationId))
                 ),
                 Array.Empty<DatasetRelationshipSummary>(),
-                Array.Empty<TemplateMapping>(),
                 Array.Empty<CalculationRelationship>(),
                 Array.Empty<CalculationRelationship>(),
                 Array.Empty<CalculationEnumRelationship>()

@@ -301,16 +301,6 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult("Null EditDefinitionSpecificationRelationshipModel was provided to UpdateRelationship");
             }
 
-            model.RelationshipId = relationshipId;
-            model.SpecificationId = specificationId;
-
-            BadRequestObjectResult validationResult = (await _updateRelationshipModelValidator.ValidateAsync(model)).PopulateModelState();
-
-            if (validationResult != null)
-            {
-                return validationResult;
-            }
-
             DefinitionSpecificationRelationship definitionSpecificationRelationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
 
             if (definitionSpecificationRelationship == null || definitionSpecificationRelationship.Current.RelationshipType != DatasetRelationshipType.ReleasedData)
@@ -319,7 +309,17 @@ namespace CalculateFunding.Services.Datasets
             }
 
             string targetSpecificationId = definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.SpecificationId;
+            
+            model.RelationshipId = relationshipId;
+            model.SpecificationId = specificationId;
+            model.TargetSpecificationId = targetSpecificationId;
 
+            BadRequestObjectResult validationResult = (await _updateRelationshipModelValidator.ValidateAsync(model)).PopulateModelState();
+
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             DefinitionSpecificationRelationshipVersion newRelationshipVersion = definitionSpecificationRelationship.Current.DeepCopy(useCamelCase: false);
             newRelationshipVersion.Description = model.Description;
             newRelationshipVersion.LastUpdated = _dateTimeProvider.UtcNow;
@@ -353,7 +353,7 @@ namespace CalculateFunding.Services.Datasets
                 SpecificationId = targetSpecificationId,
                 Trigger = new Trigger
                 {
-                    EntityId = targetSpecificationId,
+                    EntityId = specificationId,
                     EntityType = "Specification",
                     Message = "New Csv file generation triggered by dataset relationship spec"
                 },

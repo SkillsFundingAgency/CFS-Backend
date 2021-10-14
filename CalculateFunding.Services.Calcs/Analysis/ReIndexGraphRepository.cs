@@ -426,7 +426,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             Guard.ArgumentNotNull(specification, nameof(specification));
 
             await UpsertSpecificationNode(specificationCalculationRelationships.Specification);
-            await UpsertCalculationNodes(specificationCalculationRelationships.Calculations);
+            await UpsertCalculationNodes(specificationCalculationRelationships.Calculations, specificationCalculationRelationships.CalculationRelationships, specification.SpecificationId);
             await UpsertSpecificationRelationships(specificationCalculationRelationships);
             await UpsertCalculationRelationships(specificationCalculationRelationships.CalculationRelationships);
             await UpsertDataFieldRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships);
@@ -599,12 +599,24 @@ namespace CalculateFunding.Services.Calcs.Analysis
             EnsureApiCallSucceeded(response, "Unable to create specification node");
         }
 
-        private async Task UpsertCalculationNodes(IEnumerable<Calculation> calculations)
+        private async Task UpsertCalculationNodes(IEnumerable<Calculation> calculations, IEnumerable<CalculationRelationship> calculationRelationships, string specificationId)
         {
             if (calculations.IsNullOrEmpty())
             {
                 return;
             }
+
+            Dictionary<string, Calculation> calcDictionary = calculations.ToDictionary(_ => _.CalculationId);
+
+            calculations = calculations.Concat(calculationRelationships.Where(_ =>
+                !calcDictionary.ContainsKey(_.CalculationTwoId)).Select(_ =>
+                    new Calculation { 
+                        CalculationId = _.CalculationTwoId,
+                        CalculationName = _.CalculationTwoId,
+                        SpecificationId = specificationId,
+                        CalculationType = Models.Graph.CalculationType.Template
+                    }
+                ));
 
             PagedContext<ApiCalculation> pagedRequests = new PagedContext<ApiCalculation>(_mapper.Map<IEnumerable<ApiCalculation>>(calculations),
                 PageSize);

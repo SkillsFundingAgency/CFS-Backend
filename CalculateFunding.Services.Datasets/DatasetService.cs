@@ -1516,26 +1516,23 @@ namespace CalculateFunding.Services.Datasets
 
                     if (missingFundingLines.Any())
                     {
-                        if (await ProcessObsoleteItems(definitionSpecificationRelationship.Current.Specification.Id,
+                        hasChanges = true;
+                        await ProcessObsoleteItems(definitionSpecificationRelationship.Current.Specification.Id,
                             definitionSpecificationRelationship.Id,
                             definitionSpecificationRelationship.Name,
-                            specificationSummary.Name,
                             missingFundingLines,
                             CodeGenerationDatasetTypeConstants.FundingLinePrefix,
                             obsoleteDataFieldsForRelationship,
-                            async(_) =>
+                            async (_) =>
                             {
                                 ApiResponse<IEnumerable<GraphEntityFundingLine>> fundingLineEntities = await _graph.GetAllEntitiesRelatedToFundingLine(_);
 
                                 return fundingLineEntities?.Content?
                                 .Where(_ => _.Relationships != null)
-                                .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(FundingLineCalculationRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
+                                .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(FundingLineCalculationRelationship.ToIdField, StringComparison.InvariantCultureIgnoreCase)))
                                 .Select(rel => ((object)rel.One).AsJson().AsPoco<GraphCalculation>())
                                 .Distinct();
-                            }))
-                        {
-                            hasChanges = true;
-                        }
+                            });
                     }
                 }
 
@@ -1554,10 +1551,10 @@ namespace CalculateFunding.Services.Datasets
 
                     if (missingCalculations.Any())
                     {
-                        if (await ProcessObsoleteItems(definitionSpecificationRelationship.Current.Specification.Id,
+                        hasChanges = true;
+                        await ProcessObsoleteItems(definitionSpecificationRelationship.Current.Specification.Id,
                             definitionSpecificationRelationship.Id,
                             definitionSpecificationRelationship.Name,
-                            specificationSummary.Name,
                             missingCalculations,
                             CodeGenerationDatasetTypeConstants.CalculationPrefix,
                             obsoleteDataFieldsForRelationship,
@@ -1567,13 +1564,10 @@ namespace CalculateFunding.Services.Datasets
 
                                 return calculationEntities?.Content?
                                 .Where(_ => _.Relationships != null)
-                                .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(CalculationRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
+                                .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(CalculationRelationship.ToIdField, StringComparison.InvariantCultureIgnoreCase)))
                                 .Select(rel => ((object)rel.One).AsJson().AsPoco<GraphCalculation>())
                                 .Distinct();
-                            }))
-                        {
-                            hasChanges = true;
-                        }
+                            });
                     }
                 }
 
@@ -1586,27 +1580,37 @@ namespace CalculateFunding.Services.Datasets
                         string errorMessage = $"Failed to save definition specification relationship for obsolete items for relationship:{definitionSpecificationRelationship.Id}.";
                         throw new RetriableException(errorMessage);
                     }
+
+                    DefinitionSpecificationRelationshipVersion relationshipVersion = definitionSpecificationRelationship.Current;
+
+                    DatasetRelationshipSummary relationshipSummary = new DatasetRelationshipSummary
+                    {
+                        Name = relationshipVersion.Name,
+                        Id = Guid.NewGuid().ToString(),
+                        Relationship = new Reference(relationshipVersion.Id, relationshipVersion.Name),
+                        DataGranularity = relationshipVersion.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
+                        DefinesScope = relationshipVersion.IsSetAsProviderData
+                    };
+
+                    await _calcsRepository.UpdateBuildProjectRelationships(definitionSpecificationRelationship.Current.Specification.Id, relationshipSummary);
                 }
             }
         }
 
-        private async Task<bool> ProcessObsoleteItems(string specificationId,
+        private async Task ProcessObsoleteItems(string specificationId,
             string relationshipId,
             string relationshipName,
-            string targetSpecificationName,
             IEnumerable<PublishedSpecificationItem> publishedItems, 
             string prefix,
             IDictionary<string, ObsoleteItem> obsoleteDataFieldsForRelationship,
             Func<string, Task<IEnumerable<GraphCalculation>>> getGraphEntities)
         {
-            bool hasChanges = false;
-
             foreach (PublishedSpecificationItem publishedSpecificationItem in publishedItems)
             {
                 publishedSpecificationItem.IsObsolete = true;
                 ObsoleteItem obsoleteItem = null;
 
-                IEnumerable<GraphCalculation> calculations = await getGraphEntities($"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(targetSpecificationName)}.{prefix}_{publishedSpecificationItem.TemplateId}_{publishedSpecificationItem.SourceCodeName}");
+                IEnumerable<GraphCalculation> calculations = await getGraphEntities($"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(relationshipName)}.{prefix}_{publishedSpecificationItem.TemplateId}_{publishedSpecificationItem.SourceCodeName}");
 
                 if (calculations.IsNullOrEmpty())
                 {
@@ -1624,6 +1628,7 @@ namespace CalculateFunding.Services.Datasets
                         DatasetFieldName = publishedSpecificationItem.Name,
                         DatasetDatatype = publishedSpecificationItem.FieldType.AsMatchingEnum<DatasetFieldType>(),
                         IsReleasedData = true,
+                        Id = Guid.NewGuid().ToString(),
                         ItemType = ObsoleteItemType.DatasetField
                     });
                 }
@@ -1647,11 +1652,7 @@ namespace CalculateFunding.Services.Datasets
                         throw new Exception(message);
                     }
                 });
-
-                hasChanges = true;
             }
-
-            return hasChanges;
         }
 
         private async Task ClearDownObsoleteItems(string specificationId)

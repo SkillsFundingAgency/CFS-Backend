@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             result.Should().BeOfType<BadRequestObjectResult>();
             _logger.Received(1)
-                .Error(Arg.Is("No edit modeld was provided to EditSpecification"));
+                .Error(Arg.Is("No edit model was provided to EditSpecification"));
         }
 
         [DataTestMethod]

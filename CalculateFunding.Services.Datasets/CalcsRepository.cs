@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Polly;
 using ObsoleteItem = CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems.ObsoleteItem;
@@ -95,6 +96,11 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(obsoleteItem, nameof(obsoleteItem));
 
             ApiResponse<ObsoleteItem> apiResponse = await _apiClientPolicy.ExecuteAsync(() => _apiClient.CreateObsoleteItem(obsoleteItem));
+
+            if (!apiResponse.StatusCode.IsSuccess())
+            {
+                throw new Exception($"Unable to create an obsoleitem: {apiResponse.Message}");
+            }
 
             return apiResponse.Content;
         }

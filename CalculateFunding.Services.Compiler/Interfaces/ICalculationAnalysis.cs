@@ -15,8 +15,7 @@ namespace CalculateFunding.Services.Compiler.Interfaces
         IEnumerable<CalculationRelationship> DetermineRelationshipsBetweenReleasedDataCalculations(
             Func<string, string> GetSourceCodeName,
             IEnumerable<Calculation> sourceCalculations,
-            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries,
-            IEnumerable<TemplateMapping> templateMappings);
+            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries);
         
         IEnumerable<FundingLineCalculationRelationship> DetermineRelationshipsBetweenFundingLinesAndCalculations(
             Func<string, string> GetSourceCodeName, 

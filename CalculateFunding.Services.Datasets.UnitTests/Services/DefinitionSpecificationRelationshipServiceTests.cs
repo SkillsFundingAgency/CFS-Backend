@@ -3667,7 +3667,20 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IValidator<UpdateDefinitionSpecificationRelationshipModel> validator = CreateUpdateRelationshipModelValidator(validationResult);
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, updateRelationshipModelValidator: validator);
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(new DefinitionSpecificationRelationship
+                {
+                    Current = new DefinitionSpecificationRelationshipVersion
+                    {
+                        RelationshipType = DatasetRelationshipType.ReleasedData,
+                        PublishedSpecificationConfiguration = new PublishedSpecificationConfiguration { SpecificationId = specificationId}
+                    }
+                });
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, updateRelationshipModelValidator: validator, datasetRepository: datasetRepository);
 
             IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId, user, null);
 

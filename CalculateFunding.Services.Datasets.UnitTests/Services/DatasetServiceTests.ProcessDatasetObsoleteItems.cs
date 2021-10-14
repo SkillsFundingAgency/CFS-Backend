@@ -81,8 +81,10 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             GivenMessageWithSpecificationId();
             AndSpecification();
+            string relationshipName = "Relationship";
 
-            DefinitionSpecificationRelationship relationshipOne = NewDefinitionSpecificationRelationship(r => r.WithCurrent(
+            DefinitionSpecificationRelationship relationshipOne = NewDefinitionSpecificationRelationship(r => r.WithName(relationshipName)
+                                    .WithCurrent(
                                     NewDefinitionSpecificationRelationshipVersion(rv => rv.WithSpecification(new Reference { Id = _specificationId })
                                         .WithPublishedSpecificationConfiguration(
                                             new PublishedSpecificationConfiguration
@@ -100,19 +102,19 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string calculationReferencingReleasedDataFundingLine = Guid.NewGuid().ToString();
             string obsoleteFundingLineItemId = Guid.NewGuid().ToString();
-            AndTheCalculationReferencesObsoleteFundingLine(calculationReferencingReleasedDataFundingLine, $"Datasets.{_specificationName}.{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{_fundingLineIds.First()}_{_fundingLineIds.First()}");
+            AndTheCalculationReferencesObsoleteFundingLine(calculationReferencingReleasedDataFundingLine, $"Datasets.{relationshipName}.{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{_fundingLineIds.First()}_{_fundingLineIds.First()}");
             AndTheObsoleteItemsAreCreatedSuccessfully(obsoleteFundingLineItemId, _fundingLineIds.First().ToString());
             AndCalculationAddedToObsoleteItem(obsoleteFundingLineItemId, calculationReferencingReleasedDataFundingLine);
 
             string obsoleteCalculationItemId = Guid.NewGuid().ToString();
             string calculationReferencingReleasedDataCalculation = Guid.NewGuid().ToString();
-            AndTheCalculationReferencesObsoleteCalculation(calculationReferencingReleasedDataCalculation, $"Datasets.{_specificationName}.{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{_calculationIds.First()}_{_calculationIds.First()}");
+            AndTheCalculationReferencesObsoleteCalculation(calculationReferencingReleasedDataCalculation, $"Datasets.{relationshipName}.{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{_calculationIds.First()}_{_calculationIds.First()}");
             AndTheObsoleteItemsAreCreatedSuccessfully(obsoleteCalculationItemId, _calculationIds.First().ToString());
             AndCalculationAddedToObsoleteItem(obsoleteCalculationItemId, calculationReferencingReleasedDataCalculation);
 
             AndDatasetRelationshipsSavedSuccessfully();
             await WhenProcessDatasetObsoleteItems();
-            ThenObsoleteItemsSaved();
+            ThenObsoleteItemsSaved(relationshipName);
         }
 
         [TestMethod]
@@ -189,7 +191,7 @@ namespace CalculateFunding.Services.Datasets.Services
             });
         }
 
-        private void ThenObsoleteItemsSaved()
+        private void ThenObsoleteItemsSaved(string relationshipName)
         {
             _calcsRepository.Verify(_ => _.CreateObsoleteItem(It.Is<ObsoleteItem>(obsoleteItem => 
                     obsoleteItem.SpecificationId == _specificationId &&
@@ -293,7 +295,7 @@ namespace CalculateFunding.Services.Datasets.Services
                                     One = new GraphCalculation {
                                         CalculationId = calculationId
                                     },
-                                    Type = FundingLineCalculationRelationship.FromIdField
+                                    Type = FundingLineCalculationRelationship.ToIdField
                                 } 
                             }
                         } 
@@ -311,7 +313,7 @@ namespace CalculateFunding.Services.Datasets.Services
                                     One = new GraphCalculation {
                                         CalculationId = calculationId
                                     },
-                                    Type = CalculationRelationship.FromIdField
+                                    Type = CalculationRelationship.ToIdField
                                 }
                             }
                         }

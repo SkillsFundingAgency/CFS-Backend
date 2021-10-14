@@ -28,7 +28,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         private Mock<ISpecificationsApiClient> _specifications;
         private Mock<IDatasetReferenceService> _datasetReferenceService;
         private Mock<IBuildProjectsService> _buildProjectsService;
-        private Mock<ICalculationsRepository> _calculationsRepository;
 
         private SpecificationCalculationAnalysis _analysis;
 
@@ -40,7 +39,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             _specifications = new Mock<ISpecificationsApiClient>();
             _buildProjectsService = new Mock<IBuildProjectsService>();
             _datasetReferenceService = new Mock<IDatasetReferenceService>();
-            _calculationsRepository = new Mock<ICalculationsRepository>();
 
             _analysis = new SpecificationCalculationAnalysis(
                 new ResiliencePolicies
@@ -53,8 +51,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 _calculationsAnalysis.Object,
                 _buildProjectsService.Object,
                 _datasetReferenceService.Object,
-                Mapper.Object,
-                _calculationsRepository.Object);
+                Mapper.Object);
         }
 
         [TestMethod]
@@ -195,8 +192,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 .Setup(_ => _.DetermineRelationshipsBetweenReleasedDataCalculations(
                     It.IsAny<Func<string, string>>(), 
                     calculations,
-                    datasetRelationships.Where(_ => _.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData),
-                    It.IsAny<IEnumerable<TemplateMapping>>()))
+                    datasetRelationships.Where(_ => _.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData)))
                 .Returns(relationships);
         }
 

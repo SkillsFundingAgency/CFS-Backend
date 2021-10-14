@@ -5,7 +5,6 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.UnitTests.Builders;
@@ -26,6 +25,7 @@ namespace CalculateFunding.Services.Datasets.Validators
     public class UpdateDefinitionSpecificationRelationshipModelValidatorTests
     {
         private readonly string _specificationId;
+        private readonly string _targetSpecificationId;
         private readonly IEnumerable<uint> _calculationIds;
         private readonly IEnumerable<uint> _fundingLineIds;
         private readonly string _fundingStreamId;
@@ -38,6 +38,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         public UpdateDefinitionSpecificationRelationshipModelValidatorTests()
         {
             _specificationId = NewRandomString();
+            _targetSpecificationId = NewRandomString();
             _fundingStreamId = NewRandomString();
             _fundingPeriodId = NewRandomString();
             _calculationIds = new[] { NewRandomUint() };
@@ -270,7 +271,14 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .WithFundingPeriodId(_fundingPeriodId)
                 .WithFundingStreamIds(new[] { _fundingStreamId })
                 .WithTemplateVersions((_fundingStreamId, TemplateVersion)))));
-            
+
+            client.Setup(x => x.GetSpecificationSummaryById(_targetSpecificationId))
+                .ReturnsAsync(!isValid ? null : new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, NewSpecificationSummary(_ =>
+                _.WithId(_targetSpecificationId)
+                .WithFundingPeriodId(_fundingPeriodId)
+                .WithFundingStreamIds(new[] { _fundingStreamId })
+                .WithTemplateVersions((_fundingStreamId, TemplateVersion)))));
+
             return client;
         }
 
@@ -281,6 +289,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                 CalculationIds = _calculationIds,
                 FundingLineIds = _fundingLineIds,
                 SpecificationId = _specificationId,
+                TargetSpecificationId = _targetSpecificationId,
                 RelationshipId = _relationshipId,
                 Description = NewRandomString()
             };

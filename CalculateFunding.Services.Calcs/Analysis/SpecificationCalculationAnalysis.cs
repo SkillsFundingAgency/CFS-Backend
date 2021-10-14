@@ -31,7 +31,6 @@ namespace CalculateFunding.Services.Calcs.Analysis
         private readonly IDatasetReferenceService _datasetReferenceService;
         private readonly IMapper _mapper;
         private readonly VisualBasicTypeIdentifierGenerator _typeIdentifierGenerator;
-        private readonly ICalculationsRepository _calculationsRepository;
 
         public SpecificationCalculationAnalysis(ICalcsResiliencePolicies policies, 
             ISpecificationsApiClient specifications, 
@@ -39,8 +38,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             ICalculationAnalysis calculationAnalysis,
             IBuildProjectsService buildProjectsService,
             IDatasetReferenceService datasetReferenceService,
-            IMapper mapper,
-            ICalculationsRepository calculationsRepository)
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(policies?.CalculationsRepository, nameof(policies.CalculationsRepository));
             Guard.ArgumentNotNull(policies?.SpecificationsApiClient, nameof(policies.SpecificationsApiClient));
@@ -50,7 +48,6 @@ namespace CalculateFunding.Services.Calcs.Analysis
             Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
             Guard.ArgumentNotNull(datasetReferenceService, nameof(datasetReferenceService));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
-            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
 
             _specificationsResilience = policies.SpecificationsApiClient;
             _calculationsResilience = policies.CalculationsRepository;
@@ -60,7 +57,6 @@ namespace CalculateFunding.Services.Calcs.Analysis
             _buildProjectsService = buildProjectsService;
             _datasetReferenceService = datasetReferenceService;
             _mapper = mapper;
-            _calculationsRepository = calculationsRepository;
 
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
@@ -93,13 +89,10 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             BuildProject buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
 
-            IEnumerable<TemplateMapping> templateMappings = await GetReleasedDataReferenceTemplateMappins(buildProject);
-
             IEnumerable<CalculationRelationship> releasedDataCalculationRelationships = _calculationAnalysis.DetermineRelationshipsBetweenReleasedDataCalculations(
                 (@namespace) => _typeIdentifierGenerator.GenerateIdentifier(@namespace),
                 calculations,
-                buildProject.DatasetRelationships.Where(_ => _.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData),
-                templateMappings);
+                buildProject.DatasetRelationships.Where(_ => _.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData));
 
             calculationRelationships = calculationRelationships.Concat(releasedDataCalculationRelationships);
 
@@ -145,29 +138,6 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 DatasetDataFieldRelationships = datasetReferences.Select(_ => new DatasetDataFieldRelationship { Dataset = _.Dataset, DataField = _.DataField }),
                 DatasetDatasetDefinitionRelationships = datasetReferences.Select(_ => new DatasetDatasetDefinitionRelationship { Dataset = _.Dataset, DatasetDefinition = _.DatasetDefinition })
             };
-        }
-
-        private async Task<IEnumerable<TemplateMapping>> GetReleasedDataReferenceTemplateMappins(BuildProject buildProject)
-        {
-            List<Task<TemplateMapping>> templateMappingsTasks = new List<Task<TemplateMapping>>();
-
-            foreach (DatasetRelationshipSummary datasetRelationship in 
-                buildProject.DatasetRelationships.Where(_ => _.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData))
-            {
-                if (datasetRelationship.PublishedSpecificationConfiguration == null)
-                {
-                    continue;
-                }
-
-                templateMappingsTasks.Add(_calculationsResilience.ExecuteAsync(() =>
-                    _calculationsRepository.GetTemplateMapping(
-                        datasetRelationship.PublishedSpecificationConfiguration.SpecificationId,
-                        datasetRelationship.TargetSpecificationFundingStreamId)));
-            }
-
-            await Task.WhenAll(templateMappingsTasks);
-
-            return templateMappingsTasks.Select(_ => _.Result);
         }
     }
 }

@@ -797,7 +797,7 @@ namespace CalculateFunding.Services.Specs
 
             if (editModel == null)
             {
-                _logger.Error("No edit modeld was provided to EditSpecification");
+                _logger.Error("No edit model was provided to EditSpecification");
                 return new BadRequestObjectResult("Null edit specification model provided");
             }
 

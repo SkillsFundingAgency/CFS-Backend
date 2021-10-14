@@ -40,14 +40,13 @@ namespace CalculateFunding.Services.Compiler.Analysis
         public IEnumerable<CalculationRelationship> DetermineRelationshipsBetweenReleasedDataCalculations(
             Func<string, string> GetSourceCodeName,
             IEnumerable<Calculation> sourceCalculations,
-            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries,
-            IEnumerable<TemplateMapping> templateMappings)
+            IEnumerable<DatasetRelationshipSummary> datasetRelationshipSummaries)
         {
             Guard.IsNotEmpty(sourceCalculations, nameof(sourceCalculations));
 
             string calculationPrefix = CodeGenerationDatasetTypeConstants.CalculationPrefix;
 
-            Dictionary<string, string> calculationIdsBySourceCodeName = new Dictionary<string, string>();
+            HashSet<string> calculationIdsBySourceCodeName = new HashSet<string>();
 
             foreach (DatasetRelationshipSummary datasetRelationshipSummary in datasetRelationshipSummaries)
             {
@@ -56,20 +55,13 @@ namespace CalculateFunding.Services.Compiler.Analysis
                     continue;
                 }
 
-                datasetRelationshipSummary.PublishedSpecificationConfiguration.Calculations
-                    .ToDictionary(_ => 
-                        $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.Name)}.{calculationPrefix}_{_.TemplateId}_{_.SourceCodeName}", 
-                        _ => templateMappings
-                            .SingleOrDefault(tm => tm.SpecificationId == datasetRelationshipSummary.PublishedSpecificationConfiguration.SpecificationId)
-                            .TemplateMappingItems
-                            .SingleOrDefault(tmi => tmi.TemplateId == _.TemplateId)
-                            .CalculationId)
-                    .ForEach(_ => calculationIdsBySourceCodeName.Add(_.Key, _.Value));
+                calculationIdsBySourceCodeName = datasetRelationshipSummary.PublishedSpecificationConfiguration.Calculations
+                    .Select(_ => $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.Name)}.{calculationPrefix}_{_.TemplateId}_{_.SourceCodeName}").ToHashSet();
             }
 
             return sourceCalculations.SelectMany(_ =>
             {
-                IEnumerable<string> relatedCalculationNames = SourceCodeHelpers.GetReferencedReleasedDataCalculations(calculationIdsBySourceCodeName.Keys, _.Current.SourceCode);
+                IEnumerable<string> relatedCalculationNames = SourceCodeHelpers.GetReferencedReleasedDataCalculations(calculationIdsBySourceCodeName, _.Current.SourceCode);
 
                 return relatedCalculationNames.Select(rel => new CalculationRelationship
                 {
