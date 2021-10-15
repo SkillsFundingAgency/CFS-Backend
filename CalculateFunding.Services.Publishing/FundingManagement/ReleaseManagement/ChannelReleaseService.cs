@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IProviderVersionReleaseService _providerVersionReleaseService;
         private readonly IProviderVersionToChannelReleaseService _providerVersionToChannelReleaseService;
         private readonly IGenerateVariationReasonsForChannelService _generateVariationReasonsForChannelService;
+        private readonly IPublishedProviderContentChannelPersistanceService _publishedProviderContentChannelPersistanceService;
 
         public ChannelReleaseService(
             IPublishedProvidersLoadContext publishProvidersLoadContext,
@@ -33,7 +34,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IReleaseProviderPersistanceService releaseProviderPersistanceService,
             IProviderVersionReleaseService providerVersionReleaseService,
             IProviderVersionToChannelReleaseService providerVersionToChannelReleaseService,
-            IGenerateVariationReasonsForChannelService generateVariationReasonsForChannelService)
+            IGenerateVariationReasonsForChannelService generateVariationReasonsForChannelService,
+            IPublishedProviderContentChannelPersistanceService publishedProviderContentChannelPersistanceService)
         {
             Guard.ArgumentNotNull(publishProvidersLoadContext, nameof(publishProvidersLoadContext));
             Guard.ArgumentNotNull(providersForChannelFilterService, nameof(providersForChannelFilterService));
@@ -43,6 +45,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(providerVersionReleaseService, nameof(providerVersionReleaseService));
             Guard.ArgumentNotNull(providerVersionToChannelReleaseService, nameof(providerVersionToChannelReleaseService));
             Guard.ArgumentNotNull(generateVariationReasonsForChannelService, nameof(generateVariationReasonsForChannelService));
+            Guard.ArgumentNotNull(publishedProviderContentChannelPersistanceService, nameof(publishedProviderContentChannelPersistanceService));
 
             _publishProvidersLoadContext = publishProvidersLoadContext;
             _providersForChannelFilterService = providersForChannelFilterService;
@@ -52,6 +55,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _providerVersionReleaseService = providerVersionReleaseService;
             _providerVersionToChannelReleaseService = providerVersionToChannelReleaseService;
             _generateVariationReasonsForChannelService = generateVariationReasonsForChannelService;
+            _publishedProviderContentChannelPersistanceService = publishedProviderContentChannelPersistanceService;
         }
 
         public async Task ReleaseProvidersForChannel(Channel channel, 
@@ -106,6 +110,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 specification,
                 fundingConfiguration,
                 allOrganisationGroupsForBatch.GroupByProviderId());
+
+            await _publishedProviderContentChannelPersistanceService
+                .SavePublishedProviderVariationReasonContents(specification, providersInGroupsToRelease, channel, variationReasonsForProviders);
         }
     }
 }

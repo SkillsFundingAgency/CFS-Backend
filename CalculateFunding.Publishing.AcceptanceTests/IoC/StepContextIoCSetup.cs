@@ -57,6 +57,8 @@ using PublishedFundingContentsGenerator10 = CalculateFunding.Generators.Schema10
 using PublishedFundingContentsGenerator11 = CalculateFunding.Generators.Schema11.PublishedFundingContentsGenerator;
 using PublishedFundingContentsGenerator12 = CalculateFunding.Generators.Schema12.PublishedFundingContentsGenerator;
 using CalculateFunding.Generators.Schema10;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 {
@@ -314,6 +316,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderContentPersistanceService, IPublishedProviderContentPersistanceService>();
             RegisterTypeAs<PublishedFundingContentsPersistanceService, IPublishedFundingContentsPersistanceService>();
             RegisterTypeAs<PublishedFundingCsvJobsService, IPublishedFundingCsvJobsService>();
+
+            RegisterTypeAs<PublishedProviderChannelVersionService, IPublishedProviderChannelVersionService>();
+            RegisterTypeAs<PublishedProviderContentChannelPersistanceService, IPublishedProviderContentChannelPersistanceService>();
+
 
             RegisterTypeAs<VariationErrorRecorder, IRecordVariationErrors>();
             RegisterTypeAs<RefreshService, IRefreshService>();

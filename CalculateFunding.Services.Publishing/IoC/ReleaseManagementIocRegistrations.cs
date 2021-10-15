@@ -44,6 +44,9 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IGenerateVariationReasonsForChannelService, GenerateVariationReasonsForChannelService>();
             builder.AddScoped<IProviderVariationReasonsReleaseService, ProviderVariationReasonsReleaseService>();
 
+            builder.AddScoped<IPublishedProviderChannelVersionService, PublishedProviderChannelVersionService>();
+            builder.AddScoped<IPublishedProviderContentChannelPersistanceService, PublishedProviderContentChannelPersistanceService>();
+
             return builder;
         }
     }
