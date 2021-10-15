@@ -111,7 +111,9 @@ namespace CalculateFunding.Services.Profiling.Services
             IReadOnlyCollection<DeliveryProfilePeriod> allocationProfilePeriods =
                 GetProfilePeriodsForAllocation(profilePattern);
 
-            return ApplyProfilePattern(fundingValue, profilePattern, allocationProfilePeriods, roundingStrategy);
+            return fundingValue == 0 ? 
+                    allocationProfilePeriods : 
+                    ApplyProfilePattern(fundingValue, profilePattern, allocationProfilePeriods, roundingStrategy);
         }
 
         private IReadOnlyCollection<DeliveryProfilePeriod> GetProfilePeriodsForAllocation(
@@ -191,7 +193,8 @@ namespace CalculateFunding.Services.Profiling.Services
                 }).ToList();
 
                 IEnumerable<DeliveryProfilePeriod> orderedDeliveryProfilePeriods = new YearMonthOrderedProfilePeriods<DeliveryProfilePeriod>(profiledValues);
-                DeliveryProfilePeriod lastUsedProfilePeriod = orderedDeliveryProfilePeriods.Last(p => p.ProfileValue > 0);
+                
+                DeliveryProfilePeriod lastUsedProfilePeriod = orderedDeliveryProfilePeriods.Last(p => p.ProfileValue != 0);
 
                 IEnumerable<DeliveryProfilePeriod> withoutLast = profiledValues
                     .Where(p => !(p.Year == lastUsedProfilePeriod.Year && p.TypeValue == lastUsedProfilePeriod.TypeValue && p.Occurrence == lastUsedProfilePeriod.Occurrence));
