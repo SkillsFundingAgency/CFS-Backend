@@ -276,28 +276,29 @@ namespace CalculateFunding.Services.Profiling.Tests
         }
 
         [TestMethod]
-        [DataRow("ReProfileRemainingFundingForPeriod")]
-        [DataRow(null)]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithInitialFundingStrategyIfRequestIsMidYear(string key)
+        [DataRow("ReProfileRemainingFundingForPeriod", MidYearType.Opener)]
+        [DataRow("ReProfileFutureDistributionPeriodsWithAdjustments", MidYearType.OpenerCatchup)]
+        [DataRow("ReProfileFutureDistributionPeriodsWithAdjustments", MidYearType.Closure)]
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithMidYearStrategy(string key, MidYearType midYearType)
         {
             decimal newFundingTotal = NewRandomTotal();
-            
+
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
                 .WithExistingFundingValue(newFundingTotal * -1)
-                .WithMidYearCatchup(MidYearType.Opener));
+                .WithMidYearCatchup(midYearType));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
 
             FundingStreamPeriodProfilePattern profilePattern = NewFundingStreamPeriodProfilePattern(_ =>
                 _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
                     cfg.WithIsEnabled(true)
-                        .WithInitialFundingStrategyKey(key))));
+                        .WithMidYearStrategyKey(key))));
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
             DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
 
             GivenTheProfilePattern(request, profilePattern);
-            AndTheReProfilingStrategy(key ?? "ReProfileRemainingFundingForPeriod");
+            AndTheReProfilingStrategy(key);
             AndTheProfiling(request, profilePattern, profileResponse);
             AndTheReProfilingStrategyResponse(profileResponse, request, profilePattern, NewReProfileStrategyResult(_ => 
                 _.WithDistributionPeriods(distributionPeriods1)

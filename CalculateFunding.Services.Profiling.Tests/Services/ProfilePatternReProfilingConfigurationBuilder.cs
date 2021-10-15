@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Profiling.Tests.Services
         private string _increase;
         private string _decrease;
         private string _same;
-        private string _initialFunding;
+        private string _midYearStrategyKey;
 
         public ProfilePatternReProfilingConfigurationBuilder WithIsEnabled(bool isEnabled)
         {
@@ -18,9 +18,9 @@ namespace CalculateFunding.Services.Profiling.Tests.Services
             return this;
         }
         
-        public ProfilePatternReProfilingConfigurationBuilder WithInitialFundingStrategyKey(string initialFunding)
+        public ProfilePatternReProfilingConfigurationBuilder WithMidYearStrategyKey(string midYearStrategyKey)
         {
-            _initialFunding = initialFunding;
+            _midYearStrategyKey = midYearStrategyKey;
 
             return this;
         }
@@ -54,7 +54,9 @@ namespace CalculateFunding.Services.Profiling.Tests.Services
                 SameAmountStrategyKey = _same,
                 DecreasedAmountStrategyKey = _decrease,
                 IncreasedAmountStrategyKey = _increase,
-                InitialFundingStrategyKey = _initialFunding
+                InitialFundingStrategyKey = _midYearStrategyKey,
+                InitialFundingStrategyWithCatchupKey = _midYearStrategyKey,
+                InitialClosureFundingStrategyKey = _midYearStrategyKey
             };
         }
     }
