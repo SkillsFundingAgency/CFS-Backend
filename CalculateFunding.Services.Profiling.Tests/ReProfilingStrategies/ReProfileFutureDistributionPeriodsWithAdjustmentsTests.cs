@@ -174,6 +174,78 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 MidYearType.Closure
             };
+            // Example 27
+            //  1619
+            //      Genuine mid year new opener - Three payment profile - 1 default payment month in the past
+            yield return new object[]
+            {
+                5,
+                NewDecimals(0, 13958.64M, 0, 0, 0, 0, 0, 0, 13958.64M, 13959.05M, 0, 0),
+                NewDecimals(0, 13958.64M, 0, 0, 0, 0, 0, 0, 13958.64M, 13959.05M, 0, 0),
+                41876.33M,
+                41876.33M,
+                NewDecimals(0, 0, 0, 0, 0, 13958.64M, 0, 0, 13958.64M, 13959.05M, 0, 0),
+                0M,
+                MidYearType.Opener
+            };
+            // Example 38
+            //  1619
+            //      Apparent / pop-up mid year new opener - Variable profile - some default payment months in the past, 
+            //      others still in the future
+            yield return new object[]
+            {
+                6,
+                NewDecimals(4531.14M, 3480.73M, 3524.97M, 2743.29M, 2064.84M, 2064.84M, 1917.35M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
+                NewDecimals(4531.14M, 3480.73M, 3524.97M, 2743.29M, 2064.84M, 2064.84M, 1917.35M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
+                36872.12M,
+                36872.12M,
+                NewDecimals(0, 0, 0, 0, 0, 0, 20427.16M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
+                0M,
+                MidYearType.OpenerCatchup
+            };
+            // Example 50
+            //  1619
+            //      Mid year closer - Two payment profile - 1 default payment month in the past, 1 default payment month in the future
+            yield return new object[]
+            {
+                5,
+                NewDecimals(0, 0, 0, 16129.22M, 0, 0, 0, 11522.45M, 0, 0, 0, 0),
+                NewDecimals(0, 0, 0, 16129.22M, 0, 0, 0, 11522.45M, 0, 0, 0, 0),
+                13825.83M,
+                27651.67M,
+                NewDecimals(0, 0, 0, 16129.22M, 0, -2303.39M, 0, 0, 0, 0, 0, 0),
+                0M,
+                MidYearType.Closure
+            };
+            // Example 53
+            //  1619
+            //      Mid year closer - Variable profile - all default payment months in the future
+            yield return new object[]
+            {
+                2,
+                NewDecimals(0, 0, 0, 2942.69M, 2942.65M, 2942.65M, 2942.65M, 2942.65M, 2942.65M, 2942.65M, 2942.65M, 2942.71M),
+                NewDecimals(0, 0, 0, 2942.69M, 2942.65M, 2942.65M, 2942.65M, 2942.65M, 2942.65M, 2942.65M, 2942.65M, 2942.71M),
+                6620.99M,
+                26483.99M,
+                NewDecimals(0, 0, 6620.99M, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                0M,
+                MidYearType.Closure
+            };
+            // Example 84 
+            //  1619
+            //      Mid year allocation decrease for provider - Variable profile - some default payment months in the past, 
+            //      others still in the future
+            yield return new object[]
+            {
+                6,
+                NewDecimals(0, 0, 0, 2494.90M, 2494.87M, 2494.87M, 2494.87M, 2494.90M, 2494.87M, 2494.87M, 2494.87M, 2494.87M),
+                NewDecimals(0, 0, 0, 2942.69M, 2942.65M, 2942.65M, 2942.65M, 2942.69M, 2942.65M, 2942.65M, 2942.65M, 2942.71M),
+                22453.89M,
+                26483.99M,
+                NewDecimals(0, 0, 0, 2942.69M, 2942.65M, 2942.65M, 1151.52M, 2494.90M, 2494.87M, 2494.87M, 2494.87M, 2494.87M),
+                0M,
+                null
+            };
         }
     }
 }

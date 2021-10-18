@@ -61,12 +61,15 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(0, 0, 800, 0, 0, 800, 0, 0, 0, 800),
                 NewDecimals(0, 0, 0, 0, 0, 1200, 0, 0, 0, 1200),
             };
+            // Example 32
+            //  1619
+            //      Mid year SSF / College to Academy converter - Three payment profile - 1 default payment month in the past
             yield return new object[]
             {
-                3,
-                NewDecimals(0, 0, -1000, 0, 0, -1000, 0, 0, 0, -1000),
-                NewDecimals(0, 0, -800, 0, 0, -800, 0, 0, 0, -800),
-                NewDecimals(0, 0, 0, 0, 0, -1200, 0, 0, 0, -1200),
+                4,
+                NewDecimals(0, 13958.64M, 0, 0, 0, 0, 0, 0, 13958.64M, 13959.05M, 0, 0),
+                NewDecimals(0, 9305.90M, 0, 0, 0, 0, 0, 0, 9305.90M, 9305.89M, 0, 0),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 13958.85M, 13958.84M, 0, 0),
             };
         }
     }
