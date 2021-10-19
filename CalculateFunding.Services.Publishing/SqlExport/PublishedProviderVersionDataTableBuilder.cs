@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Linq;
 using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
@@ -19,7 +20,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 NewDataColumn<string>("Status", 32),
                 NewDataColumn<DateTime>("LastUpdated"),
                 NewDataColumn<string>("LastUpdatedBy", 256),
-                NewDataColumn<bool>("IsIndicative", defaultValue: false)
+                NewDataColumn<bool>("IsIndicative", defaultValue: false),
+                NewDataColumn<string>("ProviderVariationReasons", 1024)
             };
 
         protected override void AddDataRowToDataTable(PublishedProviderVersion dto)
@@ -33,7 +35,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 dto.Status.ToString(),
                 dto.Date.UtcDateTime,
                 dto.Author.Name,
-                dto.IsIndicative);
+                dto.IsIndicative,
+                string.Join(";", dto.VariationReasons.Select(s => s)));
 
         protected override void EnsureTableNameIsSet(PublishedProviderVersion dto)
             => TableName = $"[dbo].[{dto.FundingStreamId}_{dto.FundingPeriodId}_Funding]";

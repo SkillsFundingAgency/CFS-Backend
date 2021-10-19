@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.SqlExport;
@@ -23,6 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 .WithFundingPeriodId(FundingPeriodId)
                 .WithTotalFunding(NewRandomUnsignedNumber())
                 .WithAuthor(NewAuthor(auth => auth.WithName(NewRandomStringWithMaxLength(32))))
+                .WithVariationReasons(new List<VariationReason> { VariationReason.AuthorityFieldUpdated, VariationReason.CalculationValuesUpdated })
                 .WithProvider(NewProvider(prov => 
                     prov.WithStatus(NewRandomStringWithMaxLength(32)))));
             PublishedProviderVersion rowTwo = NewPublishedProviderVersion(_ => _.WithFundingStreamId(FundingStreamId)
@@ -30,12 +33,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 .WithFundingPeriodId(FundingPeriodId)
                 .WithTotalFunding(NewRandomUnsignedNumber())
                 .WithAuthor(NewAuthor(auth => auth.WithName(NewRandomStringWithMaxLength(32))))
+                .WithVariationReasons(new List<VariationReason> { VariationReason.CompaniesHouseNumberFieldUpdated, VariationReason.CountryCodeFieldUpdated })
                 .WithProvider(NewProvider(prov => 
                     prov.WithStatus(NewRandomStringWithMaxLength(32)))));
 
             WhenTheRowsAreAdded(rowOne, rowTwo);
 
-            ThenTheDataTableHasColumnsMatching( NewDataColumn<string>("PublishedProviderId", 128),
+            ThenTheDataTableHasColumnsMatching(NewDataColumn<string>("PublishedProviderId", 128),
                 NewDataColumn<decimal>("TotalFunding"),
                 NewDataColumn<string>("ProviderId", 32),
                 NewDataColumn<string>("FundingStreamId", 32),
@@ -44,12 +48,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 NewDataColumn<string>("MinorVersion", 32),
                 NewDataColumn<string>("Status", 32),
                 NewDataColumn<DateTime>("LastUpdated"),
-                NewDataColumn<string>("LastUpdatedBy", 256));
+                NewDataColumn<string>("LastUpdatedBy", 256),
+                NewDataColumn<bool>("IsIndicative"),
+                NewDataColumn<string>("ProviderVariationReasons", 1024, allowNull: true));
             
             AndTheDataTableHasRowsMatching(NewRow(rowOne.PublishedProviderId, rowOne.TotalFunding, rowOne.ProviderId, rowOne.FundingStreamId,
-                    rowOne.FundingPeriodId, rowOne.MajorVersion, rowOne.MinorVersion, rowOne.Status, rowOne.Date.Date, rowOne.Author.Name),
+                    rowOne.FundingPeriodId, rowOne.MajorVersion, rowOne.MinorVersion, rowOne.Status, rowOne.Date.UtcDateTime, rowOne.Author.Name, false, GetVariationReasonAsSemiColonSeparatedString(rowOne.VariationReasons)),
                 NewRow(rowTwo.PublishedProviderId, rowTwo.TotalFunding, rowTwo.ProviderId, rowTwo.FundingStreamId,
-                    rowTwo.FundingPeriodId, rowTwo.MajorVersion, rowTwo.MinorVersion, rowTwo.Status, rowTwo.Date.Date, rowTwo.Author.Name));
+                    rowTwo.FundingPeriodId, rowTwo.MajorVersion, rowTwo.MinorVersion, rowTwo.Status, rowTwo.Date.UtcDateTime, rowTwo.Author.Name, false, GetVariationReasonAsSemiColonSeparatedString(rowTwo.VariationReasons)));
             AndTheTableNameIs($"[dbo].[{FundingStreamId}_{FundingPeriodId}_Funding]");
         }
 
@@ -60,6 +66,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             setUp?.Invoke(referenceBuilder);
             
             return referenceBuilder.Build();
+        }
+
+        private string GetVariationReasonAsSemiColonSeparatedString(IEnumerable<VariationReason> variationReasons)
+        {
+            return string.Join(";", variationReasons.Select(s => s));
         }
     }
 }

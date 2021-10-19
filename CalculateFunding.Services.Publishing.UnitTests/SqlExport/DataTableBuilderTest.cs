@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
     {
         protected TBuilder DataTableBuilder;
         protected DataTable ExpectedDataTable;
-        
+
         protected string FundingStreamId;
         protected string FundingPeriodId;
 
@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         public void DataTableBuilderTestSetUp()
         {
             ExpectedDataTable = new DataTable();
-            
+
             FundingStreamId = NewRandomStringWithMaxLength(32);
             FundingPeriodId = NewRandomStringWithMaxLength(32);
         }
@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             FundingCalculationBuilder fundingCalculationBuilder = new FundingCalculationBuilder();
 
             setUp?.Invoke(fundingCalculationBuilder);
-            
+
             return fundingCalculationBuilder.Build();
         }
 
@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             ProviderBuilder providerBuilder = new ProviderBuilder();
 
             setUp?.Invoke(providerBuilder);
-            
+
             return providerBuilder.Build();
         }
 
@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             PublishedProviderVersionBuilder publishedProviderVersionBuilder = new PublishedProviderVersionBuilder();
 
             setUp?.Invoke(publishedProviderVersionBuilder);
-            
+
             return publishedProviderVersionBuilder.Build();
         }
 
@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
 
             setUp?.Invoke(fundingLineBuilder);
-            
+
             return fundingLineBuilder.Build();
         }
 
@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             DistributionPeriodBuilder distributionPeriodBuilder = new DistributionPeriodBuilder();
 
             setUp?.Invoke(distributionPeriodBuilder);
-            
+
             return distributionPeriodBuilder.Build();
         }
 
@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             ProfilePeriodBuilder profilePeriodBuilder = new ProfilePeriodBuilder();
 
             setUp?.Invoke(profilePeriodBuilder);
-            
+
             return profilePeriodBuilder.Build();
         }
 
@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             {
                 column.MaxLength = maxLength.GetValueOrDefault();
             }
-            
+
             return column;
         }
 
@@ -113,6 +113,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             {
                 ExpectedDataTable.Rows.Add(row);
             }
+
+            int rowNumber = 0;
+            foreach (DataRow row in DataTableBuilder.DataTable.Rows)
+            {
+                int colNumber = 0;
+                foreach (object item in row.ItemArray)
+                {
+                    if (!(item is DBNull))
+                    {
+                        ExpectedDataTable.Rows[rowNumber][colNumber]
+                            .Should()
+                            .BeEquivalentTo(item);
+                    }
+
+                    colNumber++;
+                }
+                rowNumber++;
+            }
         }
 
         protected void AndTheTableNameIs(string tableName)
@@ -122,13 +140,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 .Be(tableName);
 
         protected static int NewRandomYear() => NewRandomDateTime().Year;
-        
+
         protected static string NewRandomString() => new RandomString();
-        
+
         protected static string NewRandomStringWithMaxLength(int maxLength)
         {
             string randomString = NewRandomString();
-            
+
             return randomString.Substring(0, Math.Min(maxLength, randomString.Length));
         }
 
@@ -136,10 +154,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
         private static DateTime NewRandomDateTime() => new RandomDateTime();
 
-        protected static uint NewRandomUnsignedNumber() => (uint) NewRandomNumber();
+        protected static uint NewRandomUnsignedNumber() => (uint)NewRandomNumber();
 
         protected static int NewRandomNumber() => new RandomNumberBetween(1, int.MaxValue);
-        
+
         protected static bool NewRandomFlag() => new RandomBoolean();
 
         protected static object[] NewRow(params object[] values) => values;

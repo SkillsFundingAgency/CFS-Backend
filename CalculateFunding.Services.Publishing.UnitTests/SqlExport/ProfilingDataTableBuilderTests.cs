@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 NewDataColumn<string>($"{profilePeriodTwoPrefix}_Value",  allowNull: true));
             AndTheDataTableHasRowsMatching(NewRow(rowOne.PublishedProviderId, periodOne, ProfilePeriodType.CalendarMonth.ToString(), year, occurrenceOne, distributionPeriodId, valueOne,
                 periodTwo, ProfilePeriodType.CalendarMonth.ToString(), year, occurrenceTwo, distributionPeriodId, valueTwo ),
-                NewRow(rowOne.PublishedProviderId, periodOne, ProfilePeriodType.CalendarMonth.ToString(), year, occurrenceOne, distributionPeriodId, valueThree,
+                NewRow(rowTwo.PublishedProviderId, periodOne, ProfilePeriodType.CalendarMonth.ToString(), year, occurrenceOne, distributionPeriodId, valueThree,
                     periodTwo, ProfilePeriodType.CalendarMonth.ToString(), year, occurrenceTwo, distributionPeriodId, valueFour ));
             AndTheTableNameIs($"[dbo].[{FundingStreamId}_{FundingPeriodId}_Profiles_{_fundingLineCode}]");
         }

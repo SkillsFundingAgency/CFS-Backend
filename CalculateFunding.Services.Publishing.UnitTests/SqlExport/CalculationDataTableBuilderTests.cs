@@ -27,15 +27,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         [TestInitialize]
         public void SetUp()
         {
-            _templateCalculationIdOne = NewRandomUnsignedNumber();
+            _templateCalculationIdOne = 1;
             _calculationNameOne = NewRandomString();
-            _templateCalculationIdTwo = NewRandomUnsignedNumber();
+            _templateCalculationIdTwo = 2;
             _calculationNameTwo = NewRandomString();
-            _templateCalculationIdThree = NewRandomUnsignedNumber();
+            _templateCalculationIdThree = 3;
             _calculationNameThree = NewRandomString();
-            _templateCalculationIdFour = NewRandomUnsignedNumber();
+            _templateCalculationIdFour = 4;
             _calculationNameFour = NewRandomString();
-            _templateCalculationIdFive = NewRandomUnsignedNumber();
+            _templateCalculationIdFive = 5;
             _calculationNameFive = NewRandomString();
 
             _templateCalculations = AsArray(NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdOne)
@@ -111,8 +111,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 NewDataColumn<decimal>($"Calc_{_templateCalculationIdThree}_{_calculationNameThree}", allowNull: true),
                 NewDataColumn<decimal>($"Calc_{_templateCalculationIdFour}_{_calculationNameFour}", allowNull: true),
                 NewDataColumn<decimal>($"Calc_{_templateCalculationIdFive}_{_calculationNameFive}", allowNull: true));
-            AndTheDataTableHasRowsMatching(NewRow(rowOne.PublishedProviderId, valueOne, valueTwo, valueThree),
-                NewRow(rowTwo.PublishedProviderId, valueThree, valueFour, valueFive));
+            AndTheDataTableHasRowsMatching(NewRow(rowOne.PublishedProviderId, valueOne, valueTwo, valueThree, valueFour, valueFive),
+                NewRow(rowTwo.PublishedProviderId, valueSix, valueSeven, valueEight, valueNine, valueTen));
             AndTheTableNameIs($"[dbo].[{FundingStreamId}_{FundingPeriodId}_Calculations]");
         }
 
