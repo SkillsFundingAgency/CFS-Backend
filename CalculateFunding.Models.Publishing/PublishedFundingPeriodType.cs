@@ -62,6 +62,11 @@ namespace CalculateFunding.Models.Publishing
         /// <summary>
         /// Academies and Schools Academic Year
         /// </summary>
-        AS
+        AS,
+
+        /// <summary>
+        /// Independent Learning Providers
+        /// </summary>
+        IL
     }
 }
