@@ -22,5 +22,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public bool HasErrors { get; set; }
         public string[] Errors { get; set; }
         public DateTimeOffset? OpenedDate { get; set; }
+        public int? MajorVersion { get; set; }
+        public int? MinorVersion { get; set; }
     }
 }

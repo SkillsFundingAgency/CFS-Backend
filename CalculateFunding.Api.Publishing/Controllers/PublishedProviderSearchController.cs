@@ -36,10 +36,8 @@ namespace CalculateFunding.Api.Publishing.Controllers
         [Route("api/publishedprovider/publishedprovider-search")]
         [HttpPost]
         [ProducesResponseType(200, Type = typeof(PublishedSearchResults))]
-        public async Task<IActionResult> SearchPublishedProvider([FromBody] SearchModel searchModel)
-        {
-            return await _publishedSearchService.SearchPublishedProviders(searchModel);
-        }
+        public async Task<IActionResult> SearchPublishedProvider([FromBody] SearchModel searchModel) =>
+            await _publishedSearchService.SearchPublishedProviders(searchModel);
 
         /// <summary>
         /// Search for published providers, but only return published provider ids
@@ -49,10 +47,8 @@ namespace CalculateFunding.Api.Publishing.Controllers
         [Route("api/publishedprovider/publishedprovider-id-search")]
         [HttpPost]
         [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
-        public async Task<IActionResult> SearchPublishedProviderIds([FromBody] PublishedProviderIdSearchModel searchModel)
-        {
-            return await _publishedSearchService.SearchPublishedProviderIds(searchModel);
-        }
+        public async Task<IActionResult> SearchPublishedProviderIds([FromBody] PublishedProviderIdSearchModel searchModel) =>
+            await _publishedSearchService.SearchPublishedProviderIds(searchModel);
 
         /// <summary>
         /// Reindex published providers in search index
@@ -60,12 +56,10 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <returns></returns>
         [HttpGet("api/publishedprovider/reindex")]
         [ProducesResponseType(204)]
-        public async Task<ActionResult<Job>> ReIndex()
-        {
-            return await _publishedProviderVersionService.ReIndex(
+        public async Task<ActionResult<Job>> ReIndex() =>
+            await _publishedProviderVersionService.ReIndex(
                 Request.GetUser(),
                 Request.GetCorrelationId());
-        }
 
         /// <summary>
         /// Search for a local authority in published provider results
@@ -76,9 +70,10 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <returns></returns>
         [HttpGet("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/localauthorities")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
-        public async Task<IActionResult> SearchPublishedProviderLocalAuthorities([FromQuery] string searchText, [FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
-        {
-            return await _publishedSearchService.SearchPublishedProviderLocalAuthorities(searchText, fundingStreamId, fundingPeriodId);
-        }
+        public async Task<IActionResult> SearchPublishedProviderLocalAuthorities(
+            [FromQuery] string searchText, 
+            [FromRoute] string fundingStreamId, 
+            [FromRoute] string fundingPeriodId) =>
+            await _publishedSearchService.SearchPublishedProviderLocalAuthorities(searchText, fundingStreamId, fundingPeriodId);
     }
 }

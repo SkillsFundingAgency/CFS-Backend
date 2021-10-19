@@ -145,8 +145,8 @@ Scenario Outline: Successful approve of funding
 		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Approved |
 		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                   | ProviderType | ProviderSubType | LocalAuthority | FundingStatus | ProviderName            | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN    | Errors | Indicative                  |
-		| 1619-AS-2021-1000002 | Acade        | 11ACA           | West Sussex    | Approved      | Midhurst Rother College | 1000002 | 566380.82    | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 118907 | 135760 |        | Hide indicative allocations |
+		| ID                   | ProviderType | ProviderSubType | LocalAuthority | FundingStatus | ProviderName            | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN    | Errors | Indicative                  | MajorVersion	| MinorVersion	|
+		| 1619-AS-2021-1000002 | Acade        | 11ACA           | West Sussex    | Approved      | Midhurst Rother College | 1000002 | 566380.82    | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 118907 | 135760 |        | Hide indicative allocations | 2			| 0				|
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId  |

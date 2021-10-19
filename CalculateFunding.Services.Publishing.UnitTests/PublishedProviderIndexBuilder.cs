@@ -21,7 +21,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 UKPRN = NewRandomString(),
                 UPIN = NewRandomString(),
                 URN = NewRandomString(),
-                Errors = new[] { NewRandomString() }
+                Errors = new[] { NewRandomString() },
+                MajorVersion = NewRandomNumberBetween(1, 10),
+                MinorVersion = NewRandomNumberBetween(1, 10)
             };
         }
     }

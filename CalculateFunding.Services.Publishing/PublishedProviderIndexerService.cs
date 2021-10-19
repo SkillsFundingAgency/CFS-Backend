@@ -179,7 +179,9 @@ namespace CalculateFunding.Services.Publishing
                         .Where(_ => !string.IsNullOrEmpty(_))
                         .Distinct()
                         .ToArraySafe()
-                    : Array.Empty<string>()
+                    : Array.Empty<string>(),
+                MajorVersion = publishedProviderVersion.MajorVersion,
+                MinorVersion = publishedProviderVersion.MinorVersion
             };
         }
 

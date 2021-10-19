@@ -1048,9 +1048,9 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json | specification-id | specForPublishing |
 		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0.json | specification-id | specForPublishing |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                   | ProviderType | ProviderSubType | LocalAuthority    | FundingStatus | ProviderName | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | Errors | Indicative                  |
-		| 1619-AS-2021-1000000 | Acade        | 11ACA           | Local Authority 1 | Released      | Academy 1    | 1000000 | 566380.82    | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations |
-		| 1619-AS-2021-1000002 | Acade        | FSAP            | Local Authority 1 | Released      | Academy 2    | 1000002 | 566380.82    | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations |
+		| ID                   | ProviderType | ProviderSubType | LocalAuthority    | FundingStatus | ProviderName | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | Errors | Indicative                  | MajorVersion	| MinorVersion	|
+		| 1619-AS-2021-1000000 | Acade        | 11ACA           | Local Authority 1 | Released      | Academy 1    | 1000000 | 566380.82    | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations | 1				| 0				|
+		| 1619-AS-2021-1000002 | Acade        | FSAP            | Local Authority 1 | Released      | Academy 2    | 1000002 | 566380.82    | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations | 1				| 0				|
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |

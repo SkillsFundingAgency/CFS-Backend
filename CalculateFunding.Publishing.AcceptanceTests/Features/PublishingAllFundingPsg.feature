@@ -730,12 +730,12 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-1000201-1_0.json | specification-id | specForPublishing |
 		| <FundingStreamId>-<FundingPeriodId>-1000202-1_0.json | specification-id | specForPublishing |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                  | ProviderType          | ProviderSubType               | LocalAuthority    | FundingStatus | ProviderName            | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | Errors | Indicative |
-		| PSG-AY-1920-1000102 | Academies             | Academy special sponsor led   | Local Authority 1 | Released      | Academy 2               | 1000102 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations |
-		| PSG-AY-1920-1000201 | Special schools       | Non-maintained special school | Local Authority 1 | Released      | Non-Maintained School 1 | 1000201 | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations |
-		| PSG-AY-1920-1000101 | Academies             | Academy special sponsor led   | Local Authority 1 | Released      | Academy 1               | 1000101 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations |
-		| PSG-AY-1920-1000002 | LA maintained schools | Community school              | Local Authority 1 | Released      | Maintained School 2     | 1000002 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations |
-		| PSG-AY-1920-1000202 | Special schools       | Non-maintained special school | Local Authority 1 | Released      | Non-Maintained School 1 | 1000202 | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations |
+		| ID                  | ProviderType          | ProviderSubType               | LocalAuthority    | FundingStatus | ProviderName            | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | Errors | Indicative | MajorVersion	| MinorVersion	|
+		| PSG-AY-1920-1000102 | Academies             | Academy special sponsor led   | Local Authority 1 | Released      | Academy 2               | 1000102 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations | 1	| 0				|
+		| PSG-AY-1920-1000201 | Special schools       | Non-maintained special school | Local Authority 1 | Released      | Non-Maintained School 1 | 1000201 | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations | 1	| 0				|
+		| PSG-AY-1920-1000101 | Academies             | Academy special sponsor led   | Local Authority 1 | Released      | Academy 1               | 1000101 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations | 1	| 0				|
+		| PSG-AY-1920-1000002 | LA maintained schools | Community school              | Local Authority 1 | Released      | Maintained School 2     | 1000002 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations | 1	| 0				|
+		| PSG-AY-1920-1000202 | Special schools       | Non-maintained special school | Local Authority 1 | Released      | Non-Maintained School 1 | 1000202 | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations | 1	| 0				|
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |

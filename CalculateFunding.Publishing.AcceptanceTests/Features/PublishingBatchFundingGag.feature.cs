@@ -4990,7 +4990,9 @@ this.ScenarioInitialize(scenarioInfo);
                             "FundingStreamId",
                             "FundingPeriodId",
                             "Errors",
-                            "Indicative"});
+                            "Indicative",
+                            "MajorVersion",
+                            "MinorVersion"});
                 table673.AddRow(new string[] {
                             "GAG-AC-2021-1000000",
                             "Academies",
@@ -5004,7 +5006,9 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId),
                             "",
-                            "Hide indicative allocations"});
+                            "Hide indicative allocations",
+                            "1",
+                            "0"});
 #line 1213
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table673, "And ");

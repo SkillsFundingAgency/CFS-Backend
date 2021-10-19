@@ -84,5 +84,13 @@ namespace CalculateFunding.Models.Publishing
         [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("isIndicative")]
         public bool IsIndicative { get; set; }
+
+        [JsonProperty("majorVersion")]
+        [IsRetrievable(true)]
+        public int? MajorVersion { get; set; }
+
+        [JsonProperty("minorVersion")]
+        [IsRetrievable(true)]
+        public int? MinorVersion { get; set; }
     }
 }

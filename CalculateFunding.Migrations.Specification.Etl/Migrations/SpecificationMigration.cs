@@ -652,6 +652,8 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                         SpecificationId = provider.content.current.specificationId,
                                         FundingStreamId = provider.content.current.fundingStreamId,
                                         FundingPeriodId = provider.content.current.fundingPeriodId,
+                                        MajorVersion = provider.content.current.majorVersion,
+                                        MinorVersion = provider.content.current.minorVersion,
                                     };
                                 });
 

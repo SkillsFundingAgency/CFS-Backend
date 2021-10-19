@@ -3956,7 +3956,9 @@ this.ScenarioInitialize(scenarioInfo);
                             "UPIN",
                             "URN",
                             "Errors",
-                            "Indicative"});
+                            "Indicative",
+                            "MajorVersion",
+                            "MinorVersion"});
                 table211.AddRow(new string[] {
                             "DSG-FY-2021-1000002",
                             "LA maintained schools",
@@ -3972,7 +3974,9 @@ this.ScenarioInitialize(scenarioInfo);
                             "123456",
                             "1234567",
                             "",
-                            "Hide indicative allocations"});
+                            "Hide indicative allocations",
+                            "0",
+                            "1"});
 #line 1102
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table211, "And ");

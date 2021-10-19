@@ -562,7 +562,9 @@ this.ScenarioInitialize(scenarioInfo);
                             "UPIN",
                             "URN",
                             "Errors",
-                            "Indicative"});
+                            "Indicative",
+                            "MajorVersion",
+                            "MinorVersion"});
                 table19.AddRow(new string[] {
                             "1619-AS-2021-1000002",
                             "Acade",
@@ -578,7 +580,9 @@ this.ScenarioInitialize(scenarioInfo);
                             "118907",
                             "135760",
                             "",
-                            "Hide indicative allocations"});
+                            "Hide indicative allocations",
+                            "2",
+                            "0"});
 #line 147
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table19, "And ");

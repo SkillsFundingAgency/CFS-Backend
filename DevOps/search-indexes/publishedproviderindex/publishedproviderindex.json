@@ -243,7 +243,33 @@
 			"analyzer": null,
 			"searchAnalyzer": null,
 			"indexAnalyzer": null
-		}
+		},
+		{
+		  "name": "majorVersion",
+		  "type": "Edm.Int32",
+		  "key": false,
+		  "facetable": false,
+		  "filterable": false,
+		  "retrievable": true,
+		  "searchable": false,
+		  "sortable": false,
+		  "analyzer": null,
+		  "searchAnalyzer": null,
+		  "indexAnalyzer": null
+	  },
+	  {
+		"name": "minorVersion",
+		"type": "Edm.Int32",
+		"key": false,
+		"facetable": false,
+		"filterable": false,
+		"retrievable": true,
+		"searchable": false,
+		"sortable": false,
+		"analyzer": null,
+		"searchAnalyzer": null,
+		"indexAnalyzer": null
+	}
 	],
 	"scoringProfiles": [],
 	"suggesters": [],

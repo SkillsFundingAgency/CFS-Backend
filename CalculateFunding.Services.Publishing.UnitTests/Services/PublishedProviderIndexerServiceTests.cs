@@ -9,10 +9,8 @@ using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using Microsoft.Azure.Cosmos.Core.Networking;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -181,7 +179,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                    publishedProviderIndex.Errors.Any() == publishedProviderVersion.HasErrors &&
                    (!hasErrors || publishedProviderIndex.Errors.First() == "summary error message") &&
                    publishedProviderIndex.DateOpened == provider.DateOpened &&
-                   publishedProviderIndex.MonthYearOpened == expectedMonthYearOpened;
+                   publishedProviderIndex.MonthYearOpened == expectedMonthYearOpened &&
+                   publishedProviderIndex.MajorVersion == publishedProviderVersion.MajorVersion &&
+                   publishedProviderIndex.MinorVersion == publishedProviderVersion.MinorVersion;
         }
 
         private Provider GetProvider(int index)

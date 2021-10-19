@@ -1533,8 +1533,8 @@ Scenario Outline: Successful approve of funding
 		| publishedprovider-1000202-<FundingPeriodId>-<FundingStreamId> | Updated|
 		| publishedprovider-1000203-<FundingPeriodId>-<FundingStreamId> | Updated|
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                  | ProviderType				| ProviderSubType | LocalAuthority	 | FundingStatus | ProviderName			   | UKPRN		| FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |UPIN		| URN		| Errors | Indicative |
-		| PSG-AY-1920-1000201 | Special schools				| Non-maintained special school | Local Authority 1  | Approved      | Non-Maintained School 1 | 1000201    | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |123456		| 1234567	| | Hide indicative allocations | 
+		| ID                  | ProviderType				| ProviderSubType | LocalAuthority	 | FundingStatus | ProviderName			   | UKPRN		| FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |UPIN		| URN		| Errors | Indicative | MajorVersion	| MinorVersion	|
+		| PSG-AY-1920-1000201 | Special schools				| Non-maintained special school | Local Authority 1  | Approved      | Non-Maintained School 1 | 1000201    | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |123456		| 1234567	| | Hide indicative allocations | 0 | 1	|
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName     | TemplateVersion | ProviderVersionId |
 		| PSG             | AY-1920         | Academic Year 2019-20 | 1.0             | psg-providers-1.0 |
