@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                         .WithTemplateCalculationId(_.PriorState.Calculations.FirstOrDefault().TemplateCalculationId)
                         .WithValue(NewRandomString()))});
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .ErrorMessages
@@ -41,9 +41,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             AndTheVariationReasonsWereRecordedOnTheVariationContext(VariationReason.CalculationValuesUpdated);
         }
 
-        private async Task WhenTheVariationsAreDetermined()
+        private async Task WhenTheVariationsAreProcessed()
         {
-            await _variationStrategy.DetermineVariations(VariationContext, null);
+            await _variationStrategy.Process(VariationContext, null);
         }
     }
 }

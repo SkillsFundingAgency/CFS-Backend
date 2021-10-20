@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext(_ => _.PriorState.Provider.Status = Closed);
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
             
             VariationContext
                 .QueuedChanges
@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Closed);
             
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
             
             VariationContext
                 .QueuedChanges
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.AllPublishedProvidersRefreshStates = new Dictionary<string, PublishedProvider>();
             });
             
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
             
             VariationContext
                 .QueuedChanges
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.UpdatedProvider.Status = NewRandomString();
             });
             
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             ThenTheVariationChangeWasQueued<AdjustDsgProfilesForUnderOverPaymentChange>();
             AndTheVariationChangeWasQueued<ReAdjustFundingValuesForProfileValuesChange>();  
@@ -90,15 +90,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.PriorState.TotalFunding = 10000M;
             });
             
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             ThenTheVariationChangeWasQueued<AdjustDsgProfilesForUnderOverPaymentChange>();
             AndTheVariationChangeWasQueued<ReAdjustFundingValuesForProfileValuesChange>();
         }
 
-        private async Task WhenTheVariationsAreDetermined()
+        private async Task WhenTheVariationsAreProcessed()
         {
-            await _variationStrategy.DetermineVariations(VariationContext, null);
+            await _variationStrategy.Process(VariationContext, null);
         }
     }
 }

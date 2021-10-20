@@ -6,7 +6,7 @@ using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public abstract class SuccessorVariationStrategy : Variation
+    public abstract class SuccessorVariationStrategy : VariationStrategy
     {
         private readonly IProviderService _providerService;
 

@@ -21,7 +21,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             IEnumerable<ProfileVariationPointer> variationPointers,
             string snapshotId,
             string specificationProviderVersionId,
-            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData);
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
+            IEnumerable<string> variances);
         
         Task<bool> ApplyVariations(IRefreshStateService refreshStateService, 
             string specificaitonId,

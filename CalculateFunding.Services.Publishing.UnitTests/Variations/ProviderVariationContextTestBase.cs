@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                         .WithTotalFunding(totalFunding)
                         .WithFundingCalculations(NewFundingCalculation(fc => fc.WithTemplateCalculationId(templateCalculationId).WithValue(valueOne)))))
                     ))
-                .WithCurrentState(NewProvider(_ => _.WithStatus(Variation.Closed)))
+                .WithCurrentState(NewProvider(_ => _.WithStatus(VariationStrategy.Closed)))
                 .WithUpdatedTotalFunding(totalFunding)
                 .WithAllPublishedProviderSnapShots(new Dictionary<string, PublishedProviderSnapShots>());
 

@@ -12,58 +12,63 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
     public class ClosureWithSuccessorVariationStrategy : SuccessorVariationStrategy, IVariationStrategy
     {
+        private string _successorId;
+
         public ClosureWithSuccessorVariationStrategy(IProviderService providerService) 
             : base(providerService)
         {
         }
         
-        public string Name => "ClosureWithSuccessor";
+        public override string Name => "ClosureWithSuccessor";
 
-        public async Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        protected override Task<bool> Determine(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
             
             Provider updatedProvider = providerVariationContext.UpdatedProvider;
 
-            string successorId = updatedProvider.GetSuccessors().SingleOrDefault();
+            _successorId = updatedProvider.GetSuccessors().SingleOrDefault();
 
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
             
             if (priorState == null ||
                 priorState.Provider.Status == Closed || 
                 updatedProvider.Status != Closed ||
-                successorId.IsNullOrWhitespace())
+                _successorId.IsNullOrWhitespace())
             {
-                return false;
+                return Task.FromResult(false);
             }
             
-            if (providerVariationContext.UpdatedTotalFunding != priorState.TotalFunding)
+            return Task.FromResult(true);
+        }
+
+        protected override async Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
+            if (providerVariationContext.UpdatedTotalFunding != providerVariationContext.PriorState.TotalFunding)
             {
                 providerVariationContext.RecordErrors($"Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding for provider with id:{providerVariationContext.ProviderId}");
 
                 return false;
             }
 
-            PublishedProvider successorProvider = await GetOrCreateSuccessorProvider(providerVariationContext, successorId);
+            PublishedProvider successor = await GetOrCreateSuccessorProvider(providerVariationContext, _successorId);
 
-            if (successorProvider == null)
+            if (successor == null)
             {
-                providerVariationContext.RecordErrors($"Unable to run Closure with Successor variation as could not locate or create a successor provider with id:{successorId}");
+                providerVariationContext.RecordErrors($"Unable to run Closure with Successor variation as could not locate or create a successor provider with id:{_successorId}");
 
                 return false;
             }
 
-            string providerId = providerVariationContext.ProviderId;
-            
-            if (successorProvider.HasPredecessor(providerId))
+            if (successor.HasPredecessor(providerVariationContext.ProviderId))
             {
                 return false;
             }
 
-            providerVariationContext.Successor = successorProvider;
-            
-            successorProvider.AddPredecessor(providerId);
-            
+            providerVariationContext.Successor = successor;
+
+            successor.AddPredecessor(providerVariationContext.ProviderId);
+
             providerVariationContext.QueueVariationChange(new TransferRemainingProfilesToSuccessorChange(providerVariationContext));
             providerVariationContext.QueueVariationChange(new ReAdjustSuccessorFundingValuesForProfileValueChange(providerVariationContext));
             providerVariationContext.QueueVariationChange(new ZeroRemainingProfilesChange(providerVariationContext));

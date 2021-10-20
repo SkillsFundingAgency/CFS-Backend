@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class IndicativeToLiveVariationStrategy : Variation, IVariationStrategy
+    public class IndicativeToLiveVariationStrategy : VariationStrategy, IVariationStrategy
     {
-        public string Name => "IndicativeToLive";
+        public override string Name => "IndicativeToLive";
 
-        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        protected override Task<bool> Determine(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
@@ -27,7 +27,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             {
                 return Task.FromResult(false);
             }
+            
+            return Task.FromResult(true);
+        }
 
+        protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
             providerVariationContext.AddVariationReasons(VariationReason.IndicativeToLive);
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
 

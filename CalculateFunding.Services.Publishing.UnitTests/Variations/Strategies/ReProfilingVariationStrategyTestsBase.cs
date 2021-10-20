@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .WithDistributionPeriods(NewDistributionPeriod(dp =>
                     dp.WithProfilePeriods(NewProfilePeriod())))));
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .QueuedChanges

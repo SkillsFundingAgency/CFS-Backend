@@ -59,7 +59,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string newTemplateVersion = NewRandomString();
             _publishedProviderVersion.TemplateVersion = newTemplateVersion;
 
-            bool result = WhenThePublishedProviderIsUpdated();
+            (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
 
             result
                 .Should()
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _publishedProviderVersion.IsIndicative = true;
 
-            bool result = WhenThePublishedProviderIsUpdated();
+            (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
 
             result
                 .Should()
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _publishedProviderVersionForMapping.Provider.ProviderVersionId = "1";
 
-            bool result = WhenThePublishedProviderIsUpdated();
+            (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
 
             result
                 .Should()
@@ -130,9 +130,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 propertyName = "Successors";
             }
 
-            bool result = WhenThePublishedProviderIsUpdated();
+            (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
 
-            IEnumerable<string> variances = new[] { $"Provider: {propertyName}: {initialPropertyValue} != {newPropertyValue}" };
+            IEnumerable<string> variancesReturned = new[] { $"Provider: {propertyName}: {initialPropertyValue} != {newPropertyValue}" };
+
+            variances
+                .Should()
+                .BeEquivalentTo(variancesReturned);
 
             result
                 .Should()
@@ -140,7 +144,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                  .Received(1)
-                 .Information($"changes for published provider version : {_publishedProviderVersion.Id} : {variances.AsJson()}");
+                 .Information($"changes for published provider version : {_publishedProviderVersion.Id} : {variancesReturned.AsJson()}");
         }
 
         private static IEnumerable<object[]> GetProviderChanges()
@@ -172,7 +176,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _generatedProviderResult.FundingLines.First().Name = "New Name";
 
-            bool result = WhenThePublishedProviderIsUpdated();
+            (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
 
             //NB - test title says should return false but assertion is returns true
 
@@ -190,7 +194,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _generatedProviderResult.Calculations.First().Value = 56;
 
-            bool result = WhenThePublishedProviderIsUpdated();
+            (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
 
             //NB - test title says should return false but assertion is returns true
 
@@ -208,7 +212,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _generatedProviderResult.Calculations.First().Value = null;
 
-            bool result = WhenThePublishedProviderIsUpdated();
+            (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
 
             result
                 .Should()
@@ -224,7 +228,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _generatedProviderResult.ReferenceData.First().Value = 56;
 
-            bool result = WhenThePublishedProviderIsUpdated();
+            (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
 
             //NB - test title says should return false but assertion is returns true
 
@@ -237,7 +241,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                  .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"ReferenceData:{_generatedProviderResult.ReferenceData.First().TemplateReferenceId}\"]");
         }
 
-        private bool WhenThePublishedProviderIsUpdated()
+        private (bool, IEnumerable<string>)  WhenThePublishedProviderIsUpdated()
         {
             return _publishedProviderDataPopulator.UpdatePublishedProvider(_publishedProviderVersion,
                 _generatedProviderResult,

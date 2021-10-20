@@ -9,11 +9,11 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class MidYearClosureReProfilingVariationStrategy : Variation, IVariationStrategy
+    public class MidYearClosureReProfilingVariationStrategy : VariationStrategy, IVariationStrategy
     {
-        public string Name => "MidYearClosureReProfiling";
+        public override string Name => "MidYearClosureReProfiling";
 
-        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext,
+        protected override Task<bool> Determine(ProviderVariationContext providerVariationContext,
             IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
@@ -28,9 +28,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.FromResult(false);
             }
 
-            providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext));
-
-            // Stop subsequent strategies                    
             return Task.FromResult(true);
         }
 
@@ -55,5 +52,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         }
 
         private static bool VariationPointersNotSet(ProviderVariationContext providerVariationContext) => !(providerVariationContext.VariationPointers?.Any()).GetValueOrDefault();
+
+        protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
+            providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext));
+
+            // Stop subsequent strategies                    
+            return Task.FromResult(true);
+        }
     }
 }

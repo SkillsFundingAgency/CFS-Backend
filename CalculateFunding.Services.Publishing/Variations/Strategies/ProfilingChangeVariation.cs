@@ -10,7 +10,7 @@ using CalculateFunding.Services.Publishing.Profiling;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public abstract class ProfilingChangeVariation : Variation
+    public abstract class ProfilingChangeVariation : VariationStrategy
     {
         protected virtual bool HasNoProfilingChanges(PublishedProviderVersion priorState,
             PublishedProviderVersion refreshState,

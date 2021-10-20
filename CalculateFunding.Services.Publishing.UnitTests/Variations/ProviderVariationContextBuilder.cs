@@ -75,8 +75,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 UpdatedProvider = _currentState,
                 PublishedProvider = _publishedProvider,
                 UpdatedTotalFunding = _updatedTotalFunding,
-                AllPublishedProviderSnapShots= _allPublishedProviderSnapshots,
-                VariationReasons = _variationReasons ?? new List<VariationReason>()
+                AllPublishedProviderSnapShots = _allPublishedProviderSnapshots,
+                VariationReasons = _variationReasons ?? new List<VariationReason>(),
+                ApplicableVariations = new List<string>()
             };
 
             if (_errors?.Any() == true)

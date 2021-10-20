@@ -22,6 +22,11 @@ namespace CalculateFunding.Services.Publishing.Models
             get; set;
         }
 
+        public IDictionary<string, ProviderVariationContext> VariationContexts
+        {
+            get; set;
+        }
+
         public string SpecificationId
         {
             get; set;

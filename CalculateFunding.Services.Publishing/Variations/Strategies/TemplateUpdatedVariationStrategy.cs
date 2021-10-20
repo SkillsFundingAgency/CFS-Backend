@@ -8,14 +8,12 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class TemplateUpdatedVariationStrategy : Variation, IVariationStrategy
+    public class TemplateUpdatedVariationStrategy : VariationStrategy, IVariationStrategy
     {
-        public string Name => "TemplateUpdated";
+        public override string Name => "TemplateUpdated";
 
-        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        protected override Task<bool> Determine(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
-            Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
-
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
             PublishedProviderVersion updatedState = providerVariationContext.ReleasedState;
 
@@ -26,6 +24,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.FromResult(false);
             }
 
+            return Task.FromResult(true);
+        }
+
+        protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
             providerVariationContext.AddVariationReasons(VariationReason.TemplateUpdated);
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
 

@@ -10,14 +10,12 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class ClosureVariationStrategy : Variation, IVariationStrategy
+    public class ClosureVariationStrategy : VariationStrategy 
     {
-        public string Name => "Closure";
+        public override string Name => "Closure";
 
-        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        protected override Task<bool> Determine(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
-            Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
-
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
 
             if (priorState == null ||
@@ -35,7 +33,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.FromResult(false);
             }
 
+            return Task.FromResult(true);
+        }
 
+        protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
             providerVariationContext.QueueVariationChange(new ZeroRemainingProfilesChange(providerVariationContext));
             providerVariationContext.QueueVariationChange(new ZeroInitialPaymentProfilesChange(providerVariationContext));
             providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext));

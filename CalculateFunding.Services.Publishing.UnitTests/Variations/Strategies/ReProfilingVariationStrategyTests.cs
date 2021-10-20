@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .WithDistributionPeriods(NewDistributionPeriod(dp =>
                     dp.WithProfilePeriods(NewProfilePeriod())))));
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .QueuedChanges
@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             GivenTheOtherwiseValidVariationContext(_ =>
             {
                 _.AllPublishedProviderSnapShots.Clear();
-                _.UpdatedProvider.Status = Variation.Opened;
+                _.UpdatedProvider.Status = Publishing.Variations.Strategies.VariationStrategy.Opened;
             });
             AndTheRefreshStateFundingLines(NewFundingLine(),
                 NewFundingLine(_ => _.WithFundingLineCode(FundingLineCode)
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .WithFundingLineId(FundingLineCode)
                 .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             ThenTheVariationChangeWasQueued<MidYearReProfileVariationChange>();
             AndTheAffectedFundingLinesWereTracked(FundingLineCode);
@@ -90,7 +90,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             string month = NewRandomMonth();
             string newFundingLineCode = NewRandomString();
 
-            GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Variation.Opened);
+            base.GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Publishing.Variations.Strategies.VariationStrategy.Opened);
 
             // use an existing funding line code but which wasn't previously funded
             if (!generateNewFundingLine)
@@ -117,7 +117,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .WithFundingLineId(newFundingLineCode)
                 .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             ThenTheVariationChangeWasQueued<MidYearReProfileVariationChange>();
             AndTheAffectedFundingLinesWereTracked(newFundingLineCode);
@@ -149,7 +149,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .WithDistributionPeriods(NewDistributionPeriod(dp =>
                     dp.WithProfilePeriods(NewProfilePeriod())))));
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .QueuedChanges
@@ -168,7 +168,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             string month = NewRandomMonth();
             string newFundingLineCode = NewRandomString();
 
-            GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Variation.Closed);
+            base.GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Publishing.Variations.Strategies.VariationStrategy.Closed);
 
             AndTheReleaseStateFundingLines(NewFundingLine(_ => _.WithFundingLineCode(newFundingLineCode)
                     .WithFundingLineType(FundingLineType.Payment)
@@ -188,7 +188,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .WithFundingLineId(newFundingLineCode)
                 .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             ThenTheVariationChangeWasQueued<MidYearReProfileVariationChange>();
             AndTheAffectedFundingLinesWereTracked(newFundingLineCode);
@@ -243,7 +243,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .WithFundingLineId(FundingLineCode)
                 .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
 
             VariationContext
@@ -295,7 +295,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .WithFundingLineId(FundingLineCode)
                 .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             ThenTheVariationChangeWasQueued<ReProfileVariationChange>();
             AndTheAffectedFundingLinesWereTracked(FundingLineCode);

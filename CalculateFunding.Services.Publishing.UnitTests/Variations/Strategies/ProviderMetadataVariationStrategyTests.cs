@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
             expectedVariationReasons ??= Array.Empty<VariationReason>();
             
-            await _metadataVariationStrategy.DetermineVariations(variationContext, null);
+            await _metadataVariationStrategy.Process(variationContext, null);
 
             variationContext
                 .VariationReasons

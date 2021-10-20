@@ -13,6 +13,7 @@ namespace CalculateFunding.Models.Publishing
         ProviderNotFunded,
         PostPaymentOutOfScopeProvider,
         ProfilingConsistencyCheckFailure,
-        MultipleSuccessors
+        MultipleSuccessors,
+        NoApplicableVariation
     }
 }

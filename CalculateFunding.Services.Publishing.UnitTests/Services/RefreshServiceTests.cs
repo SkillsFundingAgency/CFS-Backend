@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private TemplateCalculation[] _calculationTemplateIds;
         private IEnumerable<PublishedProvider> _publishedProviders;
         private Mock<ISpecificationsApiClient> _specificationsApiClient;
-        private IVariationStrategyServiceLocator _variationStrategyServiceLocator;
+        private VariationStrategyServiceLocator _variationStrategyServiceLocator;
         private IPublishedProviderErrorDetection _detection;
         private IDetectProviderVariations _detectProviderVariation;
         private IApplyProviderVariations _applyProviderVariation;
@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private Mock<ICalculationsService> _calculationsService;
         private IRefreshStateService _refreshStateService;
         private Mock<IFundingStreamPaymentDatesRepository> _fundingStreamPaymentDatesRepository;
-
+        
         [TestInitialize]
         public void Setup()
         {
@@ -333,6 +333,45 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     It.IsAny<bool>()), Times.Once);
 
             AndTheCustomProfilesWereReApplied();
+        }
+
+        [TestMethod]
+        public async Task RefreshResults_WhenPublishedProviderVariesButNoApplicableVariationDetected_ErrorLogged()
+        {
+            string providerId = string.Empty;
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndScopedProviders((_) =>
+            {
+                _.Last().Status = "Proposed to open";
+                providerId = _.Last().ProviderId;
+            });
+            AndScopedProviderCalculationResults();
+            AndTemplateMapping();
+            AndPublishedProviders();
+            AndNewMissingPublishedProviders();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
+            GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object));
+            AndFundingConfiguration("NoApplicableVariationErrorDetector");
+            AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
+
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            _publishedProviderStatusUpdateService
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1
+                        && _.Single().Current.ProviderId == providerId
+                        && _.Single().Current.Errors.Single().Type.Equals(PublishedProviderErrorType.NoApplicableVariation)),
+                    It.IsAny<Reference>(),
+                    PublishedProviderStatus.Updated,
+                    JobId,
+                    CorrelationId,
+                    It.IsAny<bool>()), Times.Once);
+
+            _publishedProviderIndexerService
+                .Verify(_ => _.IndexPublishedProviders(
+                    It.Is<IEnumerable<PublishedProviderVersion>>(_ => _.Single().ProviderId == providerId)), Times.Once);
         }
 
         [TestMethod]
@@ -858,7 +897,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void GivenFundingConfiguration(params IVariationStrategy[] variations)
         {
-            _fundingConfiguration = new FundingConfiguration { Variations = variations.Select(_ => new FundingVariation { Name = _.Name }) };
+            _fundingConfiguration ??= new FundingConfiguration();
+            _fundingConfiguration.Variations= variations.Select(_ => new FundingVariation { Name = _.Name });
             _policiesService
                 .Setup(_ => _.GetFundingConfiguration(FundingStreamId, _specificationSummary.FundingPeriod.Id))
                 .ReturnsAsync(_fundingConfiguration);
@@ -866,7 +906,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndFundingConfiguration(params string[] errorDetectors)
         {
-            _fundingConfiguration = new FundingConfiguration { ErrorDetectors = errorDetectors };
+            _fundingConfiguration ??= new FundingConfiguration();
+            _fundingConfiguration.ErrorDetectors = errorDetectors;
+            _policiesService
+                .Setup(_ => _.GetFundingConfiguration(FundingStreamId, _specificationSummary.FundingPeriod.Id))
+                .ReturnsAsync(_fundingConfiguration);
+        }
+
+        private void AndFundingConfigurationIndicativeStatuses(params string[] indicativeStatuses)
+        {
+            _fundingConfiguration ??= new FundingConfiguration();
+            _fundingConfiguration.IndicativeOpenerProviderStatus = indicativeStatuses;
             _policiesService
                 .Setup(_ => _.GetFundingConfiguration(FundingStreamId, _specificationSummary.FundingPeriod.Id))
                 .ReturnsAsync(_fundingConfiguration);

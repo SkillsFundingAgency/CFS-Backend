@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
             VariationContext.Successor = new PublishedProvider { Current = VariationContext.RefreshState.DeepCopy() };
 
-            VariationContext.UpdatedProvider.Status = Variation.Closed;
+            VariationContext.UpdatedProvider.Status = VariationStrategy.Closed;
         }
 
         [TestMethod]
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext();
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .ErrorMessages
@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             string successorId = NewRandomString();
             GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Successor = successorId);
             
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
             
             VariationContext
                 .ErrorMessages

@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.AllPublishedProvidersRefreshStates = new Dictionary<string, PublishedProvider>();
             });
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .VariationReasons
@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             GivenTheOtherwiseValidVariationContext();
             AndThereIsNoPreviouslyReleasedVersion();
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .QueuedChanges
@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.ReleasedState.TemplateVersion = "2.0";
             });
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .VariationReasons
@@ -84,9 +84,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
               .BeOfType<MetaDataVariationsChange>();
         }
 
-        private async Task WhenTheVariationsAreDetermined()
+        private async Task WhenTheVariationsAreProcessed()
         {
-            await _templateUpdatedVariationStrategy.DetermineVariations(VariationContext, null);
+            await _templateUpdatedVariationStrategy.Process(VariationContext, null);
         }
 
         private void AndThereIsNoPreviouslyReleasedVersion()

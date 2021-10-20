@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,6 +56,10 @@ namespace CalculateFunding.Services.Publishing
         private readonly IRefreshStateService _refreshStateService;
         private readonly IMapper _mapper;
         private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
+        private static readonly string[] AdjustProfilingStrategies = { "Closure",
+            "ClosureWithSuccessor",
+            "DsgTotalAllocationChange"
+        };
 
         public RefreshService(IPublishedFundingDataService publishedFundingDataService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -345,7 +350,8 @@ namespace CalculateFunding.Services.Publishing
                 CurrentPublishedFunding = (await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingDataService.GetCurrentPublishedFunding(specification.Id, GroupingReason.Payment)))
                     .Where(x => x.Current.GroupingReason == CalculateFunding.Models.Publishing.GroupingReason.Payment),
                 OrganisationGroupResultsData = organisationGroupResultsData,
-                FundingConfiguration = fundingConfiguration
+                FundingConfiguration = fundingConfiguration,
+                VariationContexts = new ConcurrentDictionary<string, ProviderVariationContext>()
             };
 
             _logger.Information("Starting to process providers for variations and exclusions");
@@ -380,6 +386,7 @@ namespace CalculateFunding.Services.Publishing
                 generatedPublishedProviderData.TryGetValue(publishedProvider.Key, out GeneratedProviderResult generatedProviderResult);
 
                 bool publishedProviderUpdated = false;
+                IEnumerable<string> variances = ArraySegment<string>.Empty;
 
                 if (providerExists)
                 {
@@ -409,7 +416,7 @@ namespace CalculateFunding.Services.Publishing
                         _fundingLineValueOverride.OverridePreviousFundingLineValues(publishedProvider.Value, generatedProviderResult);
                     }
 
-                    publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
+                    (publishedProviderUpdated, variances) = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
                         generatedProviderResult,
                         scopedProviders[providerId],
                         specification.TemplateIds[fundingStream.Id],
@@ -419,6 +426,7 @@ namespace CalculateFunding.Services.Publishing
                     if (publishedProviderVersion.SetIsIndicative(indicativeStatus))
                     {
                         publishedProviderUpdated = true;
+                        variances = variances.Concat(new[] { "Indicative flag set" });
                     }
 
                     _logger.Verbose($"Published provider '{publishedProvider.Key}' updated: '{publishedProviderUpdated}'");
@@ -443,8 +451,11 @@ namespace CalculateFunding.Services.Publishing
                         variationPointers,
                         fundingStream.Id,
                         specification.ProviderVersionId,
-                        organisationGroupResultsData);
-                    
+                        organisationGroupResultsData,
+                        variances);
+
+                    publishedProvidersContext.VariationContexts.Add(providerId, context);
+
                     if (context != null && context.HasNewProvidersToAdd)
                     {
                         _refreshStateService.AddRange(context.NewProvidersToAdd.ToDictionary(_ => _.Current.ProviderId));
@@ -487,6 +498,46 @@ namespace CalculateFunding.Services.Publishing
             //apply any post variation error detection that we also need to run
             foreach (PublishedProvider publishedProvider in _refreshStateService.UpdatedProviders)
             {
+                // if the published provider has been released, variation pointers have been set
+                // and there is a variation context which hasn't executed any strategies which adjust profiles on all funding lines 
+                // then we need to make sure we don't overwrite existing funding line profiles automatically
+                if (publishedProvider.Released != null && 
+                    variationPointers.AnyWithNullCheck() && 
+                    publishedProvidersContext.VariationContexts.ContainsKey(publishedProvider.Current.ProviderId) &&
+                    !publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].ApplicableVariations.AnyWithNullCheck(_ => AdjustProfilingStrategies.Contains(_)))
+                {
+                    ProviderVariationContext providerVariationContext = publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId];
+                    publishedProvider.Current.FundingLines = publishedProvider.Current.FundingLines.Select(_ =>
+                    {
+                        // persist changes if the current funding line has been changed through variation strategy
+                        // or there is no variation pointer set for the current funding line
+                        if ((providerVariationContext.AffectedFundingLineCodes != null && 
+                            providerVariationContext.AffectedFundingLineCodes.Contains(_.FundingLineCode)) ||
+                            providerVariationContext.CurrentState.FundingLineHasCustomProfile(_.FundingLineCode) ||
+                            !variationPointers.AnyWithNullCheck(vp => vp.FundingLineId == _.FundingLineCode))
+                        {
+                            return _;
+                        }
+                        else
+                        {
+                            // if a funding line is not changed through re-profiling then we need to make sure we don't override the existing profiling
+                            return new CalculateFunding.Models.Publishing.FundingLine
+                            {
+                                FundingLineCode = _.FundingLineCode,
+                                Name = _.Name,
+                                TemplateLineId = _.TemplateLineId,
+                                DistributionPeriods = providerVariationContext
+                                                        .CurrentState
+                                                        .FundingLines
+                                                        .First(fl => 
+                                                            fl.FundingLineCode == _.FundingLineCode).DistributionPeriods,
+                                Type = _.Type,
+                                Value = _.Value
+                            };
+                        }
+                    }).ToList();
+                }
+
                 await _detection.ApplyRefreshPostVariationsErrorDetection(publishedProvider, publishedProvidersContext);
             }
 
@@ -530,14 +581,12 @@ namespace CalculateFunding.Services.Publishing
             {
                 bool isNewProvider = newProviders.ContainsKey(publishedProvider.Key);
 
-                PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
-
-                if (!generatedPublishedProviderData.ContainsKey(publishedProviderVersion.ProviderId))
+                if (!generatedPublishedProviderData.ContainsKey(publishedProvider.Key))
                 {
                     continue;
                 }
 
-                batchProfilingContext.AddProviderProfilingRequestData(publishedProviderVersion,
+                batchProfilingContext.AddProviderProfilingRequestData(publishedProvider.Value.Current,
                     generatedPublishedProviderData,
                     isNewProvider);
             }

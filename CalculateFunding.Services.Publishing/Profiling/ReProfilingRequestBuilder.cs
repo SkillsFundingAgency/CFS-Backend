@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
             if (midYear)
             {
                 // We need a way to determine new openers which opened prior to the release
-                if (publishedProviderVersion.Provider.Status != Variation.Closed)
+                if (publishedProviderVersion.Provider.Status != VariationStrategy.Closed)
                 {
                     DateTimeOffset? openedDate = publishedProviderVersion.Provider.DateOpened;
                     bool catchup = openedDate == null ? false : openedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && openedDate.Value.Year <= firstPeriod.Year;

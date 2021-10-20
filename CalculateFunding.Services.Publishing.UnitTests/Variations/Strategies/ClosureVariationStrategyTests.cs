@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Successor = NewRandomString());
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .ErrorMessages
@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext();
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             ThenTheVariationChangeWasQueued<ZeroRemainingProfilesChange>();
             ThenTheVariationChangeWasQueued<ZeroInitialPaymentProfilesChange>();
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext(_ => _.UpdatedTotalFunding += 1M);
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .ErrorMessages

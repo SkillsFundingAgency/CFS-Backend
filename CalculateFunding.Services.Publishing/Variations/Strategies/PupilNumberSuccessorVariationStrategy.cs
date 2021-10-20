@@ -12,47 +12,50 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
     public class PupilNumberSuccessorVariationStrategy : SuccessorVariationStrategy, IVariationStrategy
     {
+        private string _successorId;
+
         public PupilNumberSuccessorVariationStrategy(IProviderService providerService) 
             : base(providerService)
         {
         }
 
-        public string Name => "PupilNumberSuccessor";
+        public override string Name => "PupilNumberSuccessor";
 
-        public async Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        protected override Task<bool> Determine(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
-            Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
-            
             Provider updatedProvider = providerVariationContext.UpdatedProvider;
 
-            string successorId = updatedProvider.GetSuccessors().SingleOrDefault();
-
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
-            
+
+            _successorId = updatedProvider.GetSuccessors().SingleOrDefault();
+
             if (priorState == null ||
-                priorState.Provider.Status == Closed || 
+                priorState.Provider.Status == Closed ||
                 updatedProvider.Status != Closed ||
-                successorId.IsNullOrWhitespace())
+                _successorId.IsNullOrWhitespace())
             {
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
+        }
+
+        protected override async Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
+            PublishedProvider successor = await GetOrCreateSuccessorProvider(providerVariationContext, _successorId);
+
+            if (successor == null)
+            {
+                providerVariationContext.RecordErrors(
+                    $"Unable to run Pupil Number Successor variation as could not locate or create a successor provider with id:{_successorId}");
+
                 return false;
             }
 
-            PublishedProvider successorProvider = await GetOrCreateSuccessorProvider(providerVariationContext, successorId);
+            providerVariationContext.Successor = successor;
 
-            if (successorProvider == null)
-            {
-                providerVariationContext.RecordErrors(    
-                    $"Unable to run Pupil Number Successor variation as could not locate or create a successor provider with id:{successorId}");
+            successor.AddPredecessor(providerVariationContext.ProviderId);
 
-                return false;
-            }
-
-            string providerId = providerVariationContext.ProviderId;
-
-            providerVariationContext.Successor = successorProvider;
-            
-            successorProvider.AddPredecessor(providerId);
-            
             providerVariationContext.QueueVariationChange(new MovePupilNumbersToSuccessorChange(providerVariationContext));
 
             return false;

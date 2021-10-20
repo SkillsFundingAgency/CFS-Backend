@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     /// Detects changes in provider metadata between the current saved and the current state of the provider.
     /// Add a variation reason for the relevant field if it has changed.
     /// </summary>
-    public class ProviderMetadataVariationStrategy : Variation, IVariationStrategy
+    public class ProviderMetadataVariationStrategy : VariationStrategy, IVariationStrategy
     {
         private class VariationCheck
         {
@@ -85,9 +85,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         private static readonly VariationCheckWithSchemaVersions[] VariationChecks;
 
-        public string Name => "ProviderMetadata";
+        public override string Name => "ProviderMetadata";
 
-        public async Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        protected override async Task<bool> Determine(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             if (providerVariationContext.PriorState == null || providerVariationContext.UpdatedProvider == null || providerVariationContext.ReleasedState == null)
             {
@@ -110,10 +110,17 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if (providerVariationContext.VariationReasons.AnyWithNullCheck())
             {
-                providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
+                return true;
             }
 
             return false;
+        }
+
+        protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
+            providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
+
+            return Task.FromResult(false);
         }
     }
 }

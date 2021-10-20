@@ -239,7 +239,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderStatusUpdateSettings, IPublishedProviderStatusUpdateSettings>();
 
             IVariationStrategy[] variationStrategies = typeof(IVariationStrategy).Assembly.GetTypes()
-                .Where(_ => _.Implements(typeof(IVariationStrategy)))
+                .Where(_ => !_.IsAbstract && _.Implements(typeof(IVariationStrategy)))
                 .Select(_ => (IVariationStrategy)_objectContainer.Resolve(_))
                 .ToArray();
             

@@ -26,6 +26,10 @@ namespace CalculateFunding.Services.Publishing.Models
             OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
         }
 
+        public IList<string> ApplicableVariations;
+
+        public IEnumerable<string> Variances;
+
         public string ProviderId => RefreshState?.ProviderId;
 
         /// <summary>
@@ -69,6 +73,12 @@ namespace CalculateFunding.Services.Publishing.Models
         /// this is the currently released version 
         /// </summary>
         public PublishedProviderVersion PriorState => GetPublishedProviderOriginalSnapShot(ProviderId)?.Released;
+
+        /// <summary>
+        /// The publisher provider version to use as the comparison for previous state
+        /// this is the current version 
+        /// </summary>
+        public PublishedProviderVersion CurrentState => GetPublishedProviderOriginalSnapShot(ProviderId)?.Current;
 
         public PublishedProvider AddMissingProvider(PublishedProvider missingProvider)
         {

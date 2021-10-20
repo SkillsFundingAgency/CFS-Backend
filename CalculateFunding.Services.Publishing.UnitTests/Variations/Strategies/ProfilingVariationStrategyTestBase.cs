@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.AllPublishedProvidersRefreshStates = new Dictionary<string, PublishedProvider>();
             });
             
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
             
             VariationContext
                 .QueuedChanges
@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext(_ => _.PriorState.Provider.Status = Closed);
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .QueuedChanges
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Closed);
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .QueuedChanges
@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             AndTheRefreshStateFundingLines(NewFundingLine(_ => _.WithDistributionPeriods(NewDistributionPeriod(dp =>
                 dp.WithProfilePeriods(NewProfilePeriod())))));
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .QueuedChanges
@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext();
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .QueuedChanges
@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             GivenTheOtherwiseValidVariationContext();
             AndThereIsNoPreviouslyReleasedVersion();
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .QueuedChanges
@@ -128,9 +128,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .BeEmpty();
         }
 
-        protected async Task WhenTheVariationsAreDetermined()
+        protected async Task WhenTheVariationsAreProcessed()
         {
-            await VariationStrategy.DetermineVariations(VariationContext, null);
+            await VariationStrategy.Process(VariationContext, null);
         }
 
         protected override void GivenTheOtherwiseValidVariationContext(Action<ProviderVariationContext> changes = null)

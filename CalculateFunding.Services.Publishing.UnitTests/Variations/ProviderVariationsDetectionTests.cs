@@ -49,10 +49,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             decimal updatedTotalFunding = new RandomNumberBetween(0, 1000);
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates = new Dictionary<string, PublishedProvider>();
-            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>(); 
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
+            IEnumerable<string> variances = ArraySegment<string>.Empty;
             string providerVersionId = NewRandomString();
 
-            _variationStrategy.DetermineVariations(Arg.Is<ProviderVariationContext>(ctx => ctx.ProviderVersionId == providerVersionId), Arg.Any<IEnumerable<string>>())
+            _variationStrategy.Process(Arg.Is<ProviderVariationContext>(ctx => ctx.ProviderVersionId == providerVersionId), Arg.Any<IEnumerable<string>>())
                 .Returns(false);
 
             ProviderVariationContext providerVariationContext = await _factory.CreateRequiredVariationChanges(existingPublishedProvider,
@@ -63,7 +64,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 allPublishedProviderRefreshStates,
                 variationPointers,
                 providerVersionId,
-                organisationGroupResultsData);
+                organisationGroupResultsData,
+                variances);
 
             providerVariationContext
                 .UpdatedTotalFunding
@@ -90,7 +92,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 foreach (FundingVariation fundingVariation in fundingVariations.OrderBy(_ => _.Order))
                 {
                     _variationStrategyServiceLocator.GetService(fundingVariation.Name);
-                    _variationStrategy.DetermineVariations(Arg.Is<ProviderVariationContext>(
+                    _variationStrategy.Process(Arg.Is<ProviderVariationContext>(
                         ctx => ctx.UpdatedTotalFunding == updatedTotalFunding &&
                                ReferenceEquals(ctx.ReleasedState, existingPublishedProvider.Released) &&
                                ctx.ProviderId == existingPublishedProvider.Current.ProviderId &&
@@ -114,6 +116,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates = new Dictionary<string, PublishedProvider>();
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
+            IEnumerable<string> variances = ArraySegment<string>.Empty;
             string providerVersionId = NewRandomString();
 
             string variationOne = NewRandomString();
@@ -134,7 +137,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 .GetService(variationOne)
                 .Returns(variationStrategyOne);
 
-            variationStrategyOne.DetermineVariations(Arg.Is<ProviderVariationContext>(ctx => ctx.ProviderVersionId == providerVersionId), Arg.Is<IEnumerable<string>>(f => f.Any(x => x == fundingLineCodeOne)))
+            variationStrategyOne.Process(Arg.Is<ProviderVariationContext>(ctx => ctx.ProviderVersionId == providerVersionId), Arg.Is<IEnumerable<string>>(f => f.Any(x => x == fundingLineCodeOne)))
                 .Returns(variationStrategyResultOne);
 
             ProviderVariationContext providerVariationContext = await _factory.CreateRequiredVariationChanges(existingPublishedProvider,
@@ -145,7 +148,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 allPublishedProviderRefreshStates,
                 variationPointers,
                 providerVersionId,
-                organisationGroupResultsData);
+                organisationGroupResultsData,
+                variances);
 
             providerVariationContext
                 .UpdatedTotalFunding
@@ -172,7 +176,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 foreach (FundingVariation fundingVariation in fundingVariations.Where(x => x.Order == 1))
                 {
                     _variationStrategyServiceLocator.GetService(fundingVariation.Name);
-                    variationStrategyOne.DetermineVariations(Arg.Is<ProviderVariationContext>(
+                    variationStrategyOne.Process(Arg.Is<ProviderVariationContext>(
                         ctx => ctx.UpdatedTotalFunding == updatedTotalFunding &&
                                ReferenceEquals(ctx.ReleasedState, existingPublishedProvider.Released) &&
                                ctx.ProviderId == existingPublishedProvider.Current.ProviderId &&

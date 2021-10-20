@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.AllPublishedProvidersRefreshStates = new Dictionary<string, PublishedProvider>();
             });
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .VariationReasons
@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             GivenTheOtherwiseValidVariationContext();
             AndThereIsNoPreviouslyReleasedVersion();
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .QueuedChanges
@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             AndSchemaVersion(fundingStreamId, fundingPeriodId, priorTemplateVersion, priorSchemeVersion);
             AndSchemaVersion(fundingStreamId, fundingPeriodId, updatedTemplateVersion, updatedSchemVersion);
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .VariationReasons
@@ -104,9 +104,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .Returns(new Common.TemplateMetadata.Models.TemplateMetadataContents { SchemaVersion = schemeVersion });
         }
 
-        private async Task WhenTheVariationsAreDetermined()
+        private async Task WhenTheVariationsAreProcessed()
         {
-            await _fundingSchemaUpdatedVariationStrategy.DetermineVariations(VariationContext, null);
+            await _fundingSchemaUpdatedVariationStrategy.Process(VariationContext, null);
         }
 
         private void AndThereIsNoPreviouslyReleasedVersion()

@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
         private async Task<bool> WhenTheVariationsAreDetermined()
         {
-            return await _variationStrategy.DetermineVariations(VariationContext, null);
+            return await _variationStrategy.Process(VariationContext, null);
         }
 
         private static OrganisationGroupResult NewOrganisationGroupResult(Action<OrganisationGroupResultBuilder> setUp = null)

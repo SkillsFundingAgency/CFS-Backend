@@ -270,7 +270,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
 
             PublishedProviderVersion publishedProviderVersion = NewPublisherProviderVersion(pvp => 
-                    pvp.WithProvider(NewProvider(_ => _.WithStatus(opener ? Variation.Opened : Variation.Closed)))
+                    pvp.WithProvider(NewProvider(_ => _.WithStatus(opener ? VariationStrategy.Opened : VariationStrategy.Closed)))
                         .WithFundingLines(NewFundingLine(),
                         NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCode)
                             .WithDistributionPeriods(NewDistributionPeriod(dp =>

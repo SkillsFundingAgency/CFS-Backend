@@ -10,9 +10,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
     public class ProfilingUpdatedVariationStrategy : ProfilingChangeVariation, IVariationStrategy
     {
-        public string Name => "ProfilingUpdated";
+        public override string Name => "ProfilingUpdated";
 
-        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        protected override Task<bool> Determine(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
@@ -27,6 +27,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.FromResult(false);
             }
 
+            
+            return Task.FromResult(true);
+        }
+
+        protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
             providerVariationContext.AddVariationReasons(VariationReason.ProfilingUpdated);
 
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));

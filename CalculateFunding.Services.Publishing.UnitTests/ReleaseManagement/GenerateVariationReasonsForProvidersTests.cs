@@ -187,7 +187,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             IEnumerable<ProfileVariationPointer> variationPointers,
             string providerVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
-            ProviderVariationContext providerVariationContext)
+            ProviderVariationContext providerVariationContext,
+            IEnumerable<string> variances = null)
         {
             _detectProviderVariations
                 .Setup(_ => _.CreateRequiredVariationChanges(
@@ -199,7 +200,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     It.Is<Dictionary<string, PublishedProvider>>(d => d.SequenceEqual(allPublishedProviderRefreshStates)),
                     variationPointers,
                     providerVersionId,
-                    organisationGroupResultsData))
+                    organisationGroupResultsData,
+                    variances))
                 .ReturnsAsync(providerVariationContext);
         }
 

@@ -12,9 +12,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
     public class ReProfilingVariationStrategy : ProfilingChangeVariation, IVariationStrategy
     {
-        public string Name => "ReProfiling";
+        public override string Name => "ReProfiling";
 
-        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext,
+        protected override Task<bool> Determine(ProviderVariationContext providerVariationContext,
             IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
@@ -32,9 +32,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.FromResult(false);
             }
 
-            providerVariationContext.QueueVariationChange(new ReProfileVariationChange(providerVariationContext));
-
-            return Task.FromResult(false);
+            return Task.FromResult(true);
         }
 
         protected override bool ExtraFundingLinePredicate(PublishedProviderVersion refreshState,
@@ -46,6 +44,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             ProviderVariationContext providerVariationContext) =>
             base.HasNoProfilingChanges(priorState, refreshState, providerVariationContext) &&
             HasNoCarryOverChanges(priorState, refreshState, providerVariationContext);
+
+        protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
+            providerVariationContext.QueueVariationChange(new ReProfileVariationChange(providerVariationContext));
+
+            return Task.FromResult(false);
+        }
 
         private bool HasNoCarryOverChanges(PublishedProviderVersion priorState,
             PublishedProviderVersion refreshState,

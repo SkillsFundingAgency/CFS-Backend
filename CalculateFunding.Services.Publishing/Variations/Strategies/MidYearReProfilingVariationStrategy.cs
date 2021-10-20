@@ -9,11 +9,11 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class MidYearReProfilingVariationStrategy : Variation, IVariationStrategy
+    public class MidYearReProfilingVariationStrategy : VariationStrategy, IVariationStrategy
     {
-        public string Name => "MidYearReProfiling";
+        public override string Name => "MidYearReProfiling";
 
-        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext,
+        protected override Task<bool> Determine(ProviderVariationContext providerVariationContext,
             IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
@@ -28,9 +28,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             {
                 return Task.FromResult(false);
             }
-
-            providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext));
-
+            
             return Task.FromResult(true);
         }
 
@@ -82,5 +80,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             => publishedProviderVersion.FundingLines?.Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue).Select(_ => _.FundingLineCode).ToHashSet() ?? new HashSet<string>();
 
         private static bool VariationPointersNotSet(ProviderVariationContext providerVariationContext) => !(providerVariationContext.VariationPointers?.Any()).GetValueOrDefault();
+
+        protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
+            providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext));
+            
+            return Task.FromResult(true);
+        }
     }
 }

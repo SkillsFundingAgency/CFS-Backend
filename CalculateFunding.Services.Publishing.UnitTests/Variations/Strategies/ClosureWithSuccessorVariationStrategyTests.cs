@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.AllPublishedProvidersRefreshStates = new Dictionary<string, PublishedProvider>();
             });
             
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
             
             VariationContext
                 .QueuedChanges
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.UpdatedProvider.Successor = NewRandomString();
             });
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .ErrorMessages
@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             AndTheAllRefreshStateProvider(NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => 
                 ppv.WithProviderId(successorId)))));
             
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             ThenTheVariationChangeWasQueued<TransferRemainingProfilesToSuccessorChange>();
             AndTheVariationChangeWasQueued<ReAdjustSuccessorFundingValuesForProfileValueChange>();
@@ -86,7 +86,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 ppv.WithProviderId(successorId)
                     .WithPredecessors(VariationContext.ProviderId)))));
             
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
             
             VariationContext
                 .ErrorMessages

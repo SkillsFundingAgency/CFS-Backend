@@ -33,7 +33,8 @@ namespace CalculateFunding.Services.Publishing.Variations
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates,
             IEnumerable<ProfileVariationPointer> variationPointers,
             string providerVersionId,
-            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData)
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
+            IEnumerable<string> variances)
         {
             Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
             Guard.ArgumentNotNull(updatedTotalFunding, nameof(updatedTotalFunding));
@@ -41,8 +42,8 @@ namespace CalculateFunding.Services.Publishing.Variations
             Guard.ArgumentNotNull(variations, nameof(variations));
             Guard.ArgumentNotNull(allPublishedProviderRefreshStates, nameof(allPublishedProviderRefreshStates));
             Guard.ArgumentNotNull(allPublishedProviderSnapShots, nameof(allPublishedProviderSnapShots));
-            
-            ProviderVariationContext providerVariationContext = new ProviderVariationContext (_policiesService)
+
+            ProviderVariationContext providerVariationContext = new ProviderVariationContext(_policiesService)
             {
                 PublishedProvider = existingPublishedProvider,
                 UpdatedProvider = provider,
@@ -51,14 +52,16 @@ namespace CalculateFunding.Services.Publishing.Variations
                 AllPublishedProvidersRefreshStates = allPublishedProviderRefreshStates,
                 ProviderVersionId = providerVersionId,
                 VariationPointers = variationPointers,
-                OrganisationGroupResultsData = organisationGroupResultsData
+                OrganisationGroupResultsData = organisationGroupResultsData,
+                ApplicableVariations = new List<string>(),
+                Variances = variances
             };
 
             foreach (FundingVariation configuredVariation in variations.OrderBy(_ => _.Order))
             {
                 IVariationStrategy variationStrategy = _variationStrategyServiceLocator.GetService(configuredVariation.Name);
                 
-                bool stopSubsequentStrategies = await variationStrategy.DetermineVariations(providerVariationContext, configuredVariation.FundingLineCodes);
+                bool stopSubsequentStrategies = await variationStrategy.Process(providerVariationContext, configuredVariation.FundingLineCodes);
 
                 if (stopSubsequentStrategies)
                 {

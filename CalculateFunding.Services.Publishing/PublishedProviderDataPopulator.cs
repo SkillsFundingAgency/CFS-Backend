@@ -1,5 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
@@ -35,7 +38,7 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="templateVersion">The template version used for the specification and provider</param>
         /// <param name="isNewProvider">flag indicating whether this a new provider</param>
         /// <returns>True when the PublishedProviderVersion has been updated, false if not</returns>
-        public bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion,
+        public (bool changed, IEnumerable<string> variances) UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion,
             GeneratedProviderResult generatedProviderResult,
             Provider provider,
             string templateVersion,
@@ -52,6 +55,7 @@ namespace CalculateFunding.Services.Publishing
 
             // if this is a new provider then it will always need to be updated
             bool equal = !isNewProvider;
+            IEnumerable<string> variances = ArraySegment<string>.Empty;
 
             PublishedProviderVersion providerVersionGenerated = new PublishedProviderVersion
             {
@@ -73,6 +77,7 @@ namespace CalculateFunding.Services.Publishing
 
                 if (!equal)
                 {
+                    variances = publishedProviderVersionComparer.Variances;
                     _logger.Information($"changes for published provider version : {publishedProviderVersion.Id} : {publishedProviderVersionComparer.Variances.AsJson()}");
                 }
             }
@@ -92,7 +97,7 @@ namespace CalculateFunding.Services.Publishing
 
             publishedProviderVersion.Provider = mappedProvider;
 
-            return !equal;
+            return (!equal, variances);
         }
     }
 }

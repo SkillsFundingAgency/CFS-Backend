@@ -10,17 +10,22 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class DistributionProfileStrategy : Variation, IVariationStrategy
+    public class DistributionProfileStrategy : VariationStrategy, IVariationStrategy
     {
-        public string Name => "DistributionProfile";
+        public override string Name => "DistributionProfile";
 
-        public Task<bool> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        protected override Task<bool> Determine(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             if (providerVariationContext.ReleasedState == null)
             {
                 return Task.FromResult(false);
             }
 
+            return Task.FromResult(true);
+        }
+
+        protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
+        {
             string keyForOrganisationGroups = ProviderVariationContext.OrganisationGroupsKey(providerVariationContext.ReleasedState.FundingStreamId, providerVariationContext.ReleasedState.FundingPeriodId);
             bool stopSubsequentStrategies = false;
 

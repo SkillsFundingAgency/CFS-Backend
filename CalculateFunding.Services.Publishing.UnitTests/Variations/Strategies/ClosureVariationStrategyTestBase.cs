@@ -13,9 +13,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         [TestMethod]
         public async Task FailsPreconditionCheckIfProviderPreviouslyClosed()
         {
-            GivenTheOtherwiseValidVariationContext(_ => _.PriorState.Provider.Status = Variation.Closed);
+            GivenTheOtherwiseValidVariationContext(_ => _.PriorState.Provider.Status = VariationStrategy.Closed);
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .ErrorMessages
@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = NewRandomString());
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .ErrorMessages
@@ -46,9 +46,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .BeEmpty();
         }
 
-        protected async Task WhenTheVariationsAreDetermined()
+        protected async Task WhenTheVariationsAreProcessed()
         {
-            await ClosureVariationStrategy.DetermineVariations(VariationContext, null);
+            await ClosureVariationStrategy.Process(VariationContext, null);
         }
     }
 }

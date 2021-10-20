@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.AllPublishedProvidersRefreshStates = new Dictionary<string, PublishedProvider>();
             });
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .VariationReasons
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.RefreshState.IsIndicative = false;
             });
 
-            await WhenTheVariationsAreDetermined();
+            await WhenTheVariationsAreProcessed();
 
             VariationContext
                 .VariationReasons
@@ -66,9 +66,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
               .BeOfType<MetaDataVariationsChange>();
         }
 
-        private async Task WhenTheVariationsAreDetermined()
+        private async Task WhenTheVariationsAreProcessed()
         {
-            await _indicativeToLiveVariationStrategy.DetermineVariations(VariationContext, null);
+            await _indicativeToLiveVariationStrategy.Process(VariationContext, null);
         }
     }
 }
