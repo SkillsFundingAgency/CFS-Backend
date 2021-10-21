@@ -27,11 +27,11 @@ namespace CalculateFunding.Services.Publishing.IoC
                 return new ReleaseManagementRepository(factory, sqlPolicyFactory, externalApiQueryBuilder);
             });
 
-            builder.AddScoped<IChannelOrganisationGroupChangeDetector, ChannelOrganisationGroupChangeDetector>();
-            builder.AddScoped<IChannelOrganisationGroupGeneratorService, ChannelOrganisationGroupGeneratorService>();
             builder.AddSingleton<IChannelsService, ChannelsService>();
             builder.AddSingleton<IValidator<ChannelRequest>, ChannelModelValidator>();
 
+            builder.AddScoped<IChannelOrganisationGroupChangeDetector, ChannelOrganisationGroupChangeDetector>();
+            builder.AddScoped<IChannelOrganisationGroupGeneratorService, ChannelOrganisationGroupGeneratorService>();
             builder.AddSingleton<IProvidersForChannelFilterService, ProvidersForChannelFilterService>();
             builder.AddScoped<IPublishedProvidersLoadContext, PublishedProvidersLoadContext>();
             builder.AddScoped<IReleaseApprovedProvidersService, ReleaseApprovedProvidersService>();
@@ -43,9 +43,9 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IReleaseProvidersToChannelsService, ReleaseProvidersToChannelsService>();
             builder.AddScoped<IGenerateVariationReasonsForChannelService, GenerateVariationReasonsForChannelService>();
             builder.AddScoped<IProviderVariationReasonsReleaseService, ProviderVariationReasonsReleaseService>();
-
             builder.AddScoped<IPublishedProviderChannelVersionService, PublishedProviderChannelVersionService>();
             builder.AddScoped<IPublishedProviderContentChannelPersistanceService, PublishedProviderContentChannelPersistanceService>();
+            builder.AddScoped<IFundingGroupService, FundingGroupService>();
 
             return builder;
         }
