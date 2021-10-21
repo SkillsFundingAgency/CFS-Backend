@@ -196,11 +196,13 @@ namespace CalculateFunding.Services.Datasets.Services
             _calcsRepository.Verify(_ => _.CreateObsoleteItem(It.Is<ObsoleteItem>(obsoleteItem => 
                     obsoleteItem.SpecificationId == _specificationId &&
                     obsoleteItem.IsReleasedData == true &&
+                    obsoleteItem.CodeReference == $"Datasets.{relationshipName}.{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{_fundingLineIds.First()}_{_fundingLineIds.First()}" &&
                     obsoleteItem.DatasetFieldId == _fundingLineIds.First().ToString())), Times.Once);
 
             _calcsRepository.Verify(_ => _.CreateObsoleteItem(It.Is<ObsoleteItem>(obsoleteItem =>
                     obsoleteItem.SpecificationId == _specificationId &&
                     obsoleteItem.IsReleasedData == true &&
+                    obsoleteItem.CodeReference == $"Datasets.{relationshipName}.{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{_calculationIds.First()}_{_calculationIds.First()}" &&
                     obsoleteItem.DatasetFieldId == _calculationIds.First().ToString())), Times.Once);
         }
 

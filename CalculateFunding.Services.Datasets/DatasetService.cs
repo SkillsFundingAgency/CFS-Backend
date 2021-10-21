@@ -1609,8 +1609,9 @@ namespace CalculateFunding.Services.Datasets
             {
                 publishedSpecificationItem.IsObsolete = true;
                 ObsoleteItem obsoleteItem = null;
+                string codeReference = $"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(relationshipName)}.{prefix}_{publishedSpecificationItem.TemplateId}_{publishedSpecificationItem.SourceCodeName}";
 
-                IEnumerable<GraphCalculation> calculations = await getGraphEntities($"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(relationshipName)}.{prefix}_{publishedSpecificationItem.TemplateId}_{publishedSpecificationItem.SourceCodeName}");
+                IEnumerable<GraphCalculation> calculations = await getGraphEntities(codeReference);
 
                 if (calculations.IsNullOrEmpty())
                 {
@@ -1629,7 +1630,8 @@ namespace CalculateFunding.Services.Datasets
                         DatasetDatatype = publishedSpecificationItem.FieldType.AsMatchingEnum<DatasetFieldType>(),
                         IsReleasedData = true,
                         Id = Guid.NewGuid().ToString(),
-                        ItemType = ObsoleteItemType.DatasetField
+                        ItemType = ObsoleteItemType.DatasetField,
+                        CodeReference = codeReference
                     });
                 }
                 else
