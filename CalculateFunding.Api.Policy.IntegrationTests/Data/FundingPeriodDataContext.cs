@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using CalculateFunding.Models.Policy;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using System;
 
 namespace CalculateFunding.Api.Policy.IntegrationTests.Data
 {
@@ -17,5 +20,13 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
                 NAME = documentData.Name,
                 NOW = now
             };
+
+        public FundingPeriod GetFundingPeriod(dynamic documentData, string now = null)
+        {
+            now ??= DateTime.UtcNow.ToString("O");
+            Common.Models.DocumentEntity<FundingPeriod> documentEntity = JsonConvert.DeserializeObject<Common.Models.DocumentEntity<FundingPeriod>>(GetFormattedDocument(documentData, now));
+
+            return documentEntity.Content;
+        }
     }
 }
