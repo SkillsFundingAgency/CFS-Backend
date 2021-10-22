@@ -61,8 +61,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 0M, 0M, 0M, 0M),
                 22000M,
                 36000M,
-                NewDecimals(3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 0, 0, 0, 0),
-                -2000M
+                NewDecimals(3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, -500.01M, -500.01M, -500.01M, -499.97M),
+                null
             };
             //Examples where it skips unpaid periods which have 0% in the profile pattern periods
             yield return new object[]

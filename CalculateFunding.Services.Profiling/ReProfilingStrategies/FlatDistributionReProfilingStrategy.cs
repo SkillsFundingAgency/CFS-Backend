@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
                 decimal adjustedProfileValue = profilePeriod.GetProfileValue() + remainingPeriodsProfileValue;
 
-                profilePeriod.SetProfiledValue(Math.Max(adjustedProfileValue, 0));
+                profilePeriod.SetProfiledValue(adjustedProfileValue);
             }
 
             IProfilePeriod finalProfilePeriod = orderedRefreshProfilePeriods.Last();

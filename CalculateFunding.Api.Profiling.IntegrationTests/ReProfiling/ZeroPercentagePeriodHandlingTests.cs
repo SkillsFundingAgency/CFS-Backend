@@ -128,8 +128,8 @@ namespace CalculateFunding.Api.Profiling.IntegrationTests.ReProfiling
                 36000M,
                 22000M,
                 8,
-                NewDecimals(3000M, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 0, 0, 0, 0),
-                -2000M
+                NewDecimals(3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, -500.0M, -500.0M, -500.0M, -500.0M),
+                null
             };
             yield return new object[]
             {
