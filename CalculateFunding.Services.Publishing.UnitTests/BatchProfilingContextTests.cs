@@ -676,13 +676,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string fundingLineCodeOne = NewRandomString();
 
             FundingLine paymentFundingLineOne = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
+                .WithName("PaymentFundingLineOne")
                 .WithFundingLineCode(fundingLineCodeOne)
                 .WithValue(10));
             FundingLine paymentFundingLineTwo = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
+                .WithName("PaymentFundingLineTwo")
                 .WithValue(10));
             FundingLine paymentFundingLineThree = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
+                .WithName("PaymentFundingLineThree")
                 .WithValue(null));
             FundingLine paymentFundingLineFour = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
+                .WithName("PaymentFundingLineFour")
                 .WithValue(0));
 
             ProfilePatternKey fundingLinePatternKey = NewProfilePatternKey(ppk =>
@@ -763,7 +767,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithFundingLinesToProfile(paymentFundingLineOne, expectedFundingLine))
             };
 
-            /*yield return new object[]
+            yield return new object[]
             {
                 publishedProviderVersion,
                 true,
@@ -771,7 +775,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithFundingLinesToProfile(paymentFundingLineOne, paymentFundingLineTwo)
                     .WithProviderSubType(providerSubType)
                     .WithProviderType(providerType))
-            };*/
+            };
         }
 
         private static Provider NewProvider(Action<ProviderBuilder> setUp = null)
@@ -891,7 +895,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         publishedProviderVersion.ProviderId, new GeneratedProviderResult
                         {
                             FundingLines = publishedProviderVersion.FundingLines.DeepCopy().Select(_ => {
-                                _.Value??=10;
+                                _.Value ??= 10;
                                 return _;
                             })
                         }

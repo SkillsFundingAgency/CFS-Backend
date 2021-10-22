@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing
                              (providerVersion
                                     .FundingLines
                                     .Any(_ => _.Type == FundingLineType.Payment &&
-                                            !_.Value.HasValue &&
+                                            (_.Value.HasValue ? _.Value == 0 : true) &&
                                             _.FundingLineCode == fl.FundingLineCode) ||
                                 providerVersion.FundingLines
                                     .All(_ => _.FundingLineCode != fl.FundingLineCode))).Select(_ => _.FundingLineCode).ToHashSet();
