@@ -1,0 +1,30 @@
+﻿# **--------------------------------Release Plan--------------------------------**
+Source Phase: {{result.SourcePhase}}
+Destination Phase: {{result.DestinationPhase}}
+
+All workitems within this Release:
+{% if result.WorkItemsToRelease.size > 0 %}
+| Id			| Type			| Title			| State			|
+| -----------	| -----------	| -----------	| -----------	|{% endif %}
+{% for WorkItem in result.WorkItemsToRelease %}| {{WorkItem.Id}}      | {{WorkItem.Type}}      | [{{WorkItem.Title}}]({{WorkItem.URL}}) |  {{WorkItem.State}}      |
+{% else %}
+This release does not have any linked workitems.
+{% endfor %}
+
+{% for SourceRelease in result.SourceReleases %}
+* [{{SourceRelease.ReleaseDefinition.Name}}]({{SourceRelease.ReleaseDefinition.Url}}) - [{{SourceRelease.Release.Name}}]({{SourceRelease.Release.Url}})
+Linked Work Items:
+
+{% if SourceRelease.LinkedWorkItems.size > 0 %}
+| Id			| Type			| Title			| State			|
+| -----------	| -----------	| -----------	| -----------	|{% endif %}
+{% for WorkItem in SourceRelease.LinkedWorkItems %}| {{WorkItem.Id}}      | {{WorkItem.Type}}      | [{{WorkItem.Title}}]({{WorkItem.URL}}) |  {{WorkItem.State}}      |
+{% else %}
+This release definition does not have any linked workitems for this release.
+{% endfor %}
+{% endfor %}
+
+# **--------------------------------Rollback plan--------------------------------**
+{% for DestinationRelease in result.DestinationReleases %}
+* [{{DestinationRelease.ReleaseDefinition.Name}}]({{SourceRelease.ReleaseDefinition.Url}}) - [{{DestinationRelease.Release.Name}}]({{DestinationRelease.Release.Url}})
+{% endfor %}

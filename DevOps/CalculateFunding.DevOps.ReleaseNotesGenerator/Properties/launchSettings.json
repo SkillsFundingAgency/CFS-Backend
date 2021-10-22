@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CalculateFunding.DevOps.ReleaseNotesGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "--pat \"PLACE_PAT_TOKEN_HERE\""
+    }
+  }
+}
