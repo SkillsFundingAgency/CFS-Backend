@@ -1169,13 +1169,25 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 {
                     Released = new PublishedProviderVersion
                     {
-                        FundingStreamId = _.fundingStreamId,
-                        FundingPeriodId = _.fundingPeriodId,
-                        ProviderId = _.providerId,
-                        Provider = new Provider { ProviderId = _.providerId, Name = _.providerName },
-                        MajorVersion = _.majorVersion,
-                        MinorVersion = _.minorVersion,
-                        TotalFunding = _.totalFunding,
+                        FundingStreamId = (string)_.fundingStreamId,
+                        FundingPeriodId = (string)_.fundingPeriodId,
+                        ProviderId = (string)_.providerId,
+                        Provider = new Provider
+                        { 
+                            ProviderId = (string)_.providerId, 
+                            Name = (string)_.providerName,
+                            UKPRN = (string)_.ukprn,
+                            URN = (string)_.urn,
+                            UPIN = (string)_.upin,
+                            LACode = (string)_.laCode,
+                            Status = (string)_.status,
+                            Successor = (string)_.successor
+                        },
+                        MajorVersion = (int)_.majorVersion,
+                        MinorVersion = (int)_.minorVersion,
+                        TotalFunding = (decimal?)_.totalFunding,
+                        Predecessors = _.predecessors?.ToObject<string[]>(),
+                        VariationReasons = _.variationReasons?.ToObject<VariationReason[]>()
                     }
                 });
         }
