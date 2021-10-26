@@ -1,0 +1,56 @@
+name: $(Rev:r)
+
+pool:
+  vmImage: windows-2019
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    - providers
+  paths:
+    include:
+    - DevOps/CalculateFunding.DevOps.ReleaseNotesGenerator
+
+variables:
+- name: BuildConfiguration
+  value: release
+- name: BuildPlatform
+  value: 'any cpu'
+- name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+  value: '1'
+- name: 'projectFolder'
+  value: 'DevOps/CalculateFunding.DevOps.ReleaseNotesGenerator'
+- name: vstsFeed
+  value: 'ecf37bc0-472b-47bf-91e3-6774809fd194' 
+- group: 'Dotnet Core SDK Version'
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersion)'
+  inputs:
+    version: '$(DotnetCoreSdkVersion)'
+    
+- task: DotNetCoreCLI@2
+  displayName: Restore
+  inputs:
+    command: restore
+    projects: '$(projectFolder)/*.csproj'
+    vstsFeed: '$(vstsFeed)'
+
+- task: DotNetCoreCLI@2
+  displayName: Publish
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: |
+     $(projectFolder)\*.csproj
+    arguments: '--configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory) /p:AssemblyVersion=$(Build.BuildNumber)'
+    zipAfterPublish: false
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
