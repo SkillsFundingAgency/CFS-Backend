@@ -13,15 +13,17 @@ namespace CalculateFunding.DevOps.ReleaseNotesGenerator
 
         private static readonly IConfigurationRoot Configuration = new ConfigurationBuilder()
             .AddJsonFile("appSettings.json")
+            .AddApplicationInsightsSettings()
             .Build();
 
-        public static IServiceProvider BuildServiceProvider()
+        public static IServiceProvider BuildServiceProvider(ConsoleOptions consoleOptions)
         {
             IServiceCollection serviceCollection = new ServiceCollection();
 
             serviceCollection.AddApplicationInsightsTelemetryClient(
                 Configuration,
-                ServiceName);
+                ServiceName,
+                instrumentationKey: consoleOptions.AppInsightsInstrumentationKey);
             serviceCollection.AddLogging(serviceName: ServiceName);
 
             serviceCollection.Configure<ReleaseDefinitionOptions>(Configuration.GetSection(typeof(ReleaseDefinitionOptions).Name));

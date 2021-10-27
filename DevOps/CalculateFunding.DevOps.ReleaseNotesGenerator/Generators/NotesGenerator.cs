@@ -288,12 +288,18 @@ namespace CalculateFunding.DevOps.ReleaseNotesGenerator.Generators
         {
             string[] environmentNames
                     = _releaseDefinitionOptions.ReleaseDefinitionStages.SingleOrDefault(_ => _.FriendlyName == releasePhaseName).EnvironmentNames;
-            var environmentId = releaseDefinition.Environments.FirstOrDefault(_ => environmentNames.Contains(_.Name)).Id;
+
+            ReleaseDefinitionEnvironment environment = releaseDefinition.Environments.FirstOrDefault(_ => environmentNames.Select(_ => _.ToLowerInvariant()).Contains(_.Name.ToLowerInvariant()));
+
+            if(environment == null)
+            {
+                return null;
+            }
 
             var sourceReleases = await releaseHttpClient.GetReleasesAsync(
                 projectName,
                 definitionId: releaseDefinition.Id,
-                definitionEnvironmentId: environmentId,
+                definitionEnvironmentId: environment.Id,
                 environmentStatusFilter: EnvironmentStatus.Succeeded.GetHashCode(),
                 top: 1,
                 queryOrder: ReleaseQueryOrder.Descending);

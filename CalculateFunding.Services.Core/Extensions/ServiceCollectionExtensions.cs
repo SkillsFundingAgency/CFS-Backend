@@ -130,15 +130,31 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddApplicationInsightsTelemetryClient(this IServiceCollection builder, IConfiguration config, string serviceName, TelemetryChannelType channelType = TelemetryChannelType.Default)
+        public static IServiceCollection AddApplicationInsightsTelemetryClient(
+            this IServiceCollection builder, 
+            IConfiguration config, 
+            string serviceName, 
+            TelemetryChannelType channelType = TelemetryChannelType.Default,
+            string instrumentationKey = null,
+            string appInsightsTelemetryChannelUrl = null)
         {
-            Guard.ArgumentNotNull(config, nameof(config));
+            string appInsightsKey;
 
-            ApplicationInsightsOptions appInsightsOptions = new ApplicationInsightsOptions();
+            if (string.IsNullOrWhiteSpace(instrumentationKey))
+            {
+                Guard.ArgumentNotNull(config, nameof(config));
 
-            config.Bind("ApplicationInsightsOptions", appInsightsOptions);
+                ApplicationInsightsOptions appInsightsOptions = new ApplicationInsightsOptions();
 
-            string appInsightsKey = appInsightsOptions.InstrumentationKey;
+                config.Bind("ApplicationInsightsOptions", appInsightsOptions);
+
+                appInsightsKey = appInsightsOptions.InstrumentationKey;
+                appInsightsTelemetryChannelUrl = appInsightsOptions.Url;
+            }
+            else
+            {
+                appInsightsKey = instrumentationKey;
+            }
 
             if (string.IsNullOrWhiteSpace(appInsightsKey))
             {
@@ -149,7 +165,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
             if (channelType == TelemetryChannelType.Sync)
             {
-                builder.AddSingleton(typeof(ITelemetryChannel), new SyncTelemetryChannel(appInsightsOptions.Url));
+                builder.AddSingleton(typeof(ITelemetryChannel), new SyncTelemetryChannel(appInsightsTelemetryChannelUrl));
             }
 
             //builder.AddApplicationInsightsTelemetry(config);

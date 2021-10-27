@@ -65,5 +65,11 @@ namespace CalculateFunding.DevOps.ReleaseNotesGenerator.Options
             HelpText = "Set the new Wiki page path",
             Default = "/CFS Wiki/Release Notes Generator/sample-release-page")]
         public string WikiPath { get; set; }
+
+        [Option(
+            "app-insights-instrumentation-key",
+            Required = false,
+            HelpText = "Set the App Insights Instrumentation Key")]
+        public string AppInsightsInstrumentationKey { get; set; }
     }
 }

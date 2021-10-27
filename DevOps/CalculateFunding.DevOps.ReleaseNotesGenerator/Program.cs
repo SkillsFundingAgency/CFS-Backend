@@ -15,23 +15,19 @@ namespace CalculateFunding.DevOps.ReleaseNotesGenerator
                     RunGenerateReleaseNotes,
                     errs => Task.FromResult(1));
 
-        private static async Task RunGenerateReleaseNotes(ConsoleOptions options)
+        private static async Task RunGenerateReleaseNotes(ConsoleOptions consoleOptions)
         {
             Console.WriteLine("Starting GenerateReleaseNotes ...");
 
-            Guard.ArgumentNotNull(options, "You must supply \"migrate\" settings to generate release notes with work items between two environments");
+            Guard.ArgumentNotNull(consoleOptions, "You must supply \"migrate\" settings to generate release notes with work items between two environments");
 
-            IServiceProvider serviceProvider = BootStrapper.BuildServiceProvider();
+            IServiceProvider serviceProvider = BootStrapper.BuildServiceProvider(consoleOptions);
             INotesGenerator notesGenerator = 
                 (INotesGenerator)serviceProvider.GetService(typeof(INotesGenerator));
 
-            await notesGenerator.Generate(options);
+            await notesGenerator.Generate(consoleOptions);
 
             Console.WriteLine("Completed GenerateReleaseNotes.");
-
-            Console.WriteLine();
-            Console.WriteLine("Please press any key to stop this console application.");
-            Console.ReadKey();
         }
     }
 }
