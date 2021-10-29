@@ -15,14 +15,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     {
         private readonly IReleaseManagementRepository _releaseManagementRepository;
         private readonly ILogger _logger;
+        private readonly IReleaseToChannelSqlMappingContext _releaseToChannelSqlMappingContext;
 
-        public FundingGroupService(IReleaseManagementRepository releaseManagementRepository, ILogger logger)
+        public FundingGroupService(IReleaseManagementRepository releaseManagementRepository, IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext, ILogger logger)
         {
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _releaseManagementRepository = releaseManagementRepository;
             _logger = logger;
+            _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
         }
 
         public async Task<IEnumerable<FundingGroup>> CreateFundingGroups(string specificationId, int channelId, IEnumerable<OrganisationGroupResult> organisationGroupResults)
@@ -62,6 +64,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
                 FundingGroup fundingGroup = await _releaseManagementRepository.CreateFundingGroup(fundingGroupToBeCreated);
                 results.Add(fundingGroup);
+                _releaseToChannelSqlMappingContext.FundingGroups.Add(organisationGroupResult, fundingGroup.FundingGroupId);
             }
 
             return results;

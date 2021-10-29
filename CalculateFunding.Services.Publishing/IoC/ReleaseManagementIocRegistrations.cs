@@ -46,6 +46,8 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IPublishedProviderChannelVersionService, PublishedProviderChannelVersionService>();
             builder.AddScoped<IPublishedProviderContentChannelPersistanceService, PublishedProviderContentChannelPersistanceService>();
             builder.AddScoped<IFundingGroupService, FundingGroupService>();
+            builder.AddScoped<IFundingGroupDataGenerator, FundingGroupDataGenerator>();
+            builder.AddScoped<IPublishedProviderLoaderForFundingGroupData, PublishedProviderLoaderForFundingGroupData>();
 
             return builder;
         }

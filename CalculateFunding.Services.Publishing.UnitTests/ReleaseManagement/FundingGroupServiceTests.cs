@@ -22,6 +22,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private RandomString _specificationId;
         private RandomNumberBetween _channelId;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
+        private Mock<IReleaseToChannelSqlMappingContext> _context;
         private Mock<ILogger> _logger;
         private FundingGroup _fundingGroupOne;
         private FundingGroup _fundingGroupTwo;
@@ -35,6 +36,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _channelId = new RandomNumberBetween(1, 10);
             _logger = new Mock<ILogger>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
+            _releaseManagementRepository.Setup(r => r.CreateFundingGroup(It.IsAny<FundingGroup>())).ReturnsAsync(new FundingGroup());
+            _context = new Mock<IReleaseToChannelSqlMappingContext>();
+            _context.SetupGet(s => s.FundingGroups)
+                .Returns(new Dictionary<OrganisationGroupResult, int>());
             _fundingGroupOne = new FundingGroup { OrganisationGroupIdentifierValue = Identifier1 };
             _fundingGroupTwo = new FundingGroup { OrganisationGroupIdentifierValue = Identifier2 };
             _results = new List<OrganisationGroupResult>
@@ -42,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 new OrganisationGroupResult { Name = "Name1", GroupReason = OrganisationGroupingReason.Payment, GroupTypeClassification = OrganisationGroupTypeClassification.GeographicalBoundary, GroupTypeCode = OrganisationGroupTypeCode.AcademyTrust, GroupTypeIdentifier = OrganisationGroupTypeIdentifier.AcademyTrustCode, IdentifierValue = Identifier1, SearchableName = "Name1" },
                 new OrganisationGroupResult { Name = "Name2", GroupReason = OrganisationGroupingReason.Information, GroupTypeClassification = OrganisationGroupTypeClassification.GeographicalBoundary, GroupTypeCode = OrganisationGroupTypeCode.AcademyTrust, GroupTypeIdentifier = OrganisationGroupTypeIdentifier.AcademyTrustCode, IdentifierValue = Identifier2, SearchableName = "Name2" }
             };
-            _service = new FundingGroupService(_releaseManagementRepository.Object, _logger.Object);
+            _service = new FundingGroupService(_releaseManagementRepository.Object, _context.Object, _logger.Object);
         }
 
         [TestMethod]

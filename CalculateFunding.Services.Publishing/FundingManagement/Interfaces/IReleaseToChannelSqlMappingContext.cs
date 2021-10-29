@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+﻿using CalculateFunding.Generators.OrganisationGroup.Models;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
@@ -21,5 +22,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Dictionary<string, ReleasedProviderVersionChannel> ReleasedProviderVersionChannels { get; }
 
         Specification Specification { get; set; }
+
+        Dictionary<OrganisationGroupResult, int> FundingGroups { get; set; }
     }
 }
