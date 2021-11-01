@@ -75,5 +75,10 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
 
         [JsonProperty("releaseChannels")]
         public IEnumerable<FundingConfigurationChannel> ReleaseChannels { get; set; }
+
+        [JsonProperty("releaseActionGroups")]
+        public IEnumerable<ReleaseActionGroup> ReleaseActionGroups { get; set; }
+
+
     }
 }

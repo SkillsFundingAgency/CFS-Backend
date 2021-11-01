@@ -20,7 +20,8 @@
     "indicativeOpenerProviderStatus": [],
     "allowedPublishedFundingStreamsIdsToReference": <ALLOWEDPUBLISHEDFUNDINGSTREAMIDSTOREFERENCE>,
     "releaseManagementVariations": <RELEASEMANAGEMENTVARIATIONS>,
-    "releaseChannels": <RELEASECHANNELS>
+    "releaseChannels": <RELEASECHANNELS>,
+    "releaseActionGroups":  <RELEASEACTIONGROUPS>
   },
   "createdAt": "<NOW>",
   "updatedAt": "<NOW>",

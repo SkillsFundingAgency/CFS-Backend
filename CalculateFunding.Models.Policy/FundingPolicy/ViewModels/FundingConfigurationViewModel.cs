@@ -71,5 +71,7 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         public IEnumerable<string> AllowedPublishedFundingStreamsIdsToReference { get; set; }
 
         public IEnumerable<FundingConfigurationChannel> ReleaseChannels { get; set; }
+
+        public IEnumerable<ReleaseActionGroup> ReleaseActionGroups { get; set; }
     }
 }

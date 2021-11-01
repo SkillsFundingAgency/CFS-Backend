@@ -13,6 +13,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
         private IEnumerable<string> _allowedPublishedFundingStreamsIdsToReference;
         private IEnumerable<FundingVariation> _releaseManagementVariationTypes;
         private IEnumerable<FundingConfigurationChannel> _releaseChannels;
+        private IEnumerable<ReleaseActionGroup> _releaseActionGroups;
 
         public FundingConfigurationParametersBuilder WithFundingStreamId(string fundingStreamId)
         {
@@ -52,6 +53,13 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
             return this;
         }
 
+        public FundingConfigurationParametersBuilder WithReleaseActionGroups(
+            params ReleaseActionGroup[] releaseActionGroups)
+        {
+            _releaseActionGroups = releaseActionGroups;
+            return this;
+        }
+
         public FundingConfigurationParameters Build()
             => new FundingConfigurationParameters()
             {
@@ -60,7 +68,8 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
                 DefaultTemplateVersion = _defaultTemplateVersion ?? NewRandomString(),
                 AllowedPublishedFundingStreamsIdsToReference = _allowedPublishedFundingStreamsIdsToReference ?? Array.Empty<string>(),
                 ReleaseManagementVariations = _releaseManagementVariationTypes ?? Array.Empty<FundingVariation>(),
-                ReleaseChannels = _releaseChannels ?? Array.Empty<FundingConfigurationChannel>()
+                ReleaseChannels = _releaseChannels ?? Array.Empty<FundingConfigurationChannel>(),
+                ReleaseActionGroups = _releaseActionGroups ?? Array.Empty<ReleaseActionGroup>()
             };
     }
 }

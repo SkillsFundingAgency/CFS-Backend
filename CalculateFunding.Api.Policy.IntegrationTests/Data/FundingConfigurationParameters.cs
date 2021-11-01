@@ -12,5 +12,6 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
         public IEnumerable<string> AllowedPublishedFundingStreamsIdsToReference { get; set; }
         public IEnumerable<FundingVariation> ReleaseManagementVariations { get; set; }
         public IEnumerable<FundingConfigurationChannel> ReleaseChannels { get; set; }
+        public IEnumerable<ReleaseActionGroup> ReleaseActionGroups { get; set; }
     }
 }

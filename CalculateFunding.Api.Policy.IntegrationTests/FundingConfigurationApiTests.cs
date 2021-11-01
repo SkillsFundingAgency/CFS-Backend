@@ -80,6 +80,12 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
             string providerSubTypeTwo = NewRandomString();
             string providerTypeTwo = NewRandomString();
 
+            string releaseActionGroupId = NewRandomString();
+            string releaseActionGroupName = NewRandomString();
+            int releaseActionGroupSortOrder = NewRandomInteger();
+            string releaseActionGroupDescription = NewRandomString();
+            string releaseActionGroupChannel = "Statement";
+
 
             FundingStreamParameters fundingStreamParameters = NewFundingStreamPatameters(_ =>
                                                                 _.WithId(fundingStreamId)
@@ -114,7 +120,14 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
                                 .WithProviderTypeMatch(
                                     NewProviderTypeMatch(p => p
                                         .WithProviderSubtype(providerSubTypeOne)
-                                        .WithProviderType(providerTypeOne))))));
+                                        .WithProviderType(providerTypeOne)))))
+                         .WithReleaseActionGroups(
+                             NewReleaseActionGroup(g => g
+                                .WithId(releaseActionGroupId)
+                                .WithName(releaseActionGroupName)
+                                .WithSortOrder(releaseActionGroupSortOrder)
+                                .WithDescription(releaseActionGroupDescription)
+                                .WithReleaseChannelCodes(new[] { releaseActionGroupChannel }))));
 
             FundingStreamParameters allowedFundingStreamParameters = NewFundingStreamPatameters(_ =>
                                                                 _.WithId(allowedPublishedFundingStreamId)
@@ -165,13 +178,21 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
                                         .WithProviderSubtype(providerSubTypeOne)
                                         .WithProviderType(providerTypeOne))));
 
+            ReleaseActionGroup releaseActionGroup = NewReleaseActionGroup(g => g
+                                .WithId(releaseActionGroupId)
+                                .WithName(releaseActionGroupName)
+                                .WithSortOrder(releaseActionGroupSortOrder)
+                                .WithDescription(releaseActionGroupDescription)
+                                .WithReleaseChannelCodes(new[] { releaseActionGroupChannel }));
+
             FundingConfigurationUpdateViewModel fundingConfigurationUpdateViewModel = NewFundingConfigurationUpdateViewModel(_ =>
                                 _.WithDefaultTemplateVersion(defaultTemplateVersion)
                                 .WithApprovalMode(ApprovalMode.All)
                                 .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.Manual)
                                 .WithAllowedPublishedFundingStreamsIdsToReference(allowedPublishedFundingStreamId)
                                 .WithReleaseManagementVariations(fundingVariationTwo)
-                                .WithReleaseChannels(fundingConfigurationChannelTwo));
+                                .WithReleaseChannels(fundingConfigurationChannelTwo)
+                                .WithReleaseActionGroups(releaseActionGroup));
 
             response = await WhenTheFundingConfigurationUpdated(fundingStreamId, fundingPeriodId, fundingConfigurationUpdateViewModel);
 
@@ -210,6 +231,12 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
                 .AsJson()
                 .Should()
                 .Be(new[] { fundingConfigurationChannelTwo }.AsJson());
+
+            fundingConfiguration
+                .ReleaseActionGroups
+                .AsJson()
+                .Should()
+                .Be(new[] { releaseActionGroup }.AsJson());
         }
 
         private Task<ApiResponse<FundingConfiguration>> WhenTheFundingConfigurationUpdated(
@@ -297,6 +324,13 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
         {
             ProviderTypeMatchBuilder builder = new ProviderTypeMatchBuilder();
             setUp?.Invoke(builder);
+            return builder.Build();
+        }
+
+        private ReleaseActionGroup NewReleaseActionGroup(Action<ReleaseActionGroupBuilder> setup = null)
+        {
+            ReleaseActionGroupBuilder builder = new ReleaseActionGroupBuilder();
+            setup?.Invoke(builder);
             return builder.Build();
         }
     }

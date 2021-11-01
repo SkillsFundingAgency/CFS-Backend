@@ -23,6 +23,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
                 NOW = now,
                 RELEASEMANAGEMENTVARIATIONS = ((FundingVariation[])documentData.ReleaseManagementVariations).AsJson(),
                 RELEASECHANNELS = ((FundingConfigurationChannel[])documentData.ReleaseChannels).AsJson(),
+                RELEASEACTIONGROUPS = ((ReleaseActionGroup[])documentData.ReleaseActionGroups).AsJson()
             };
     }
 }

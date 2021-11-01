@@ -14,6 +14,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
         private IEnumerable<string> _allowedPublishedFundingStreamsIdsToReference;
         private IEnumerable<FundingVariation> _releaseManagementVariations;
         private IEnumerable<FundingConfigurationChannel> _releaseChannels;
+        private IEnumerable<ReleaseActionGroup> _releaseActionGroups;
 
 
         public FundingConfigurationUpdateViewModelBuilder WithApprovalMode(ApprovalMode approvalMode)
@@ -55,6 +56,12 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
             return this;
         }
 
+        public FundingConfigurationUpdateViewModelBuilder WithReleaseActionGroups(params ReleaseActionGroup[] releaseActionGroups)
+        {
+            _releaseActionGroups = releaseActionGroups;
+            return this;
+        }
+
         public FundingConfigurationUpdateViewModel Build()
         {
             return new FundingConfigurationUpdateViewModel
@@ -65,7 +72,8 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
                 UpdateCoreProviderVersion = _updateCoreProviderVersion.GetValueOrDefault(NewRandomEnum(UpdateCoreProviderVersion.Manual)),
                 AllowedPublishedFundingStreamsIdsToReference = _allowedPublishedFundingStreamsIdsToReference,
                 ReleaseManagementVariations = _releaseManagementVariations,
-                ReleaseChannels = _releaseChannels
+                ReleaseChannels = _releaseChannels,
+                ReleaseActionGroups = _releaseActionGroups
             };
         }
     }
