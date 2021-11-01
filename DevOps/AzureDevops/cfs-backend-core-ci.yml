@@ -7,7 +7,7 @@ variables:
    value: true
 
 pool:
-  vmImage: vs2017-win2016
+  vmImage: windows-2019
 
 resources:
   repositories:
