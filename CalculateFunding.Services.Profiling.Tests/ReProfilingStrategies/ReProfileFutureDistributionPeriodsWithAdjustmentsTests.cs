@@ -155,24 +155,26 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             {
                 2,
                 NewDecimals(1033.95M, 1033.95M, 1033.95M, 1033.95M, 1033.95M),
-                NewDecimals(1000, 1000, 1000, 1000, 1000),
+                NewDecimals(0, 0, 0, 0, 0),
                 5169.76M,
-                5000M,
+                0M,
                 NewDecimals(0, 0, 3101.86M, 1033.95M, 1033.95M),
                 0M,
                 MidYearType.OpenerCatchup
             };
-            // Example 11 - test for mid year closure
+            // Example 11
+            // 1619
+            //      Genuine mid year new opener - Two payment profile - default payment months both in the future
             yield return new object[]
             {
-                5,
-                NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
-                NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
-                5100M,
-                12000M,
-                NewDecimals(1000, 1000, 1000, 1000, 1000, 100, 0, 0, 0, 0, 0, 0),
+                2,
+                NewDecimals(0, 0, 0, 21962.80M, 0, 0, 0, 15689.87M, 0, 0, 0, 0),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                37652.67M,
                 0M,
-                MidYearType.Closure
+                NewDecimals(0, 0, 0, 21962.80M, 0, 0, 0, 15689.87M, 0, 0, 0, 0),
+                0M,
+                MidYearType.Opener
             };
             // Example 27
             //  1619
@@ -181,10 +183,24 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             {
                 5,
                 NewDecimals(0, 13958.64M, 0, 0, 0, 0, 0, 0, 13958.64M, 13959.05M, 0, 0),
-                NewDecimals(0, 13958.64M, 0, 0, 0, 0, 0, 0, 13958.64M, 13959.05M, 0, 0),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                 41876.33M,
-                41876.33M,
+                0M,
                 NewDecimals(0, 0, 0, 0, 0, 13958.64M, 0, 0, 13958.64M, 13959.05M, 0, 0),
+                0M,
+                MidYearType.Opener
+            };
+            // Example 29
+            //  1619
+            //      Genuine mid year new opener - Three payment profile - 2 default payment months in the past
+            yield return new object[]
+            {
+                8,
+                NewDecimals(0, 13958.64M, 0, 0, 0, 0, 0, 0, 13958.64M, 13959.05M, 0, 0),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                41876.33M,
+                0M,
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 27917.28M, 13959.05M, 0, 0),
                 0M,
                 MidYearType.Opener
             };
@@ -195,13 +211,27 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             yield return new object[]
             {
                 6,
-                NewDecimals(4531.14M, 3480.73M, 3524.97M, 2743.29M, 2064.84M, 2064.84M, 1917.35M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
-                NewDecimals(4531.14M, 3480.73M, 3524.97M, 2743.29M, 2064.84M, 2064.84M, 1917.35M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
+                NewDecimals(4631.14M, 3480.73M, 3524.97M, 2743.29M, 2064.84M, 2064.84M, 1917.35M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                 36872.12M,
-                36872.12M,
+                0M,
                 NewDecimals(0, 0, 0, 0, 0, 0, 20427.16M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
                 0M,
                 MidYearType.OpenerCatchup
+            };
+            // Example 39
+            //  1619
+            //      Genuine mid year new opener - Three payment profile - 2 default payment months in the past
+            yield return new object[]
+            {
+                6,
+                NewDecimals(4631.14M, 3480.73M, 3524.97M, 2743.29M, 2064.84M, 2064.84M, 1917.35M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                36872.12M,
+                0M,
+                NewDecimals(0, 0, 0, 0, 0, 0, 20427.16M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
+                0M,
+                MidYearType.Opener
             };
             // Example 50
             //  1619
@@ -230,6 +260,50 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(0, 0, 6620.99M, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                 0M,
                 MidYearType.Closure
+            };
+            // Example 66
+            //  1619
+            //      Existing provider with new eligibility for a funding line - Single payment profile - default payment month in the past
+            yield return new object[]
+            {
+                5,
+                NewDecimals(0, 0, 0, 34288M, 0, 0, 0, 0, 0, 0, 0, 0),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                34288M,
+                0M,
+                NewDecimals(0, 0, 0, 0, 0, 34288M, 0, 0, 0, 0, 0, 0),
+                0M,
+                MidYearType.Opener
+            };
+            // Example 71
+            //  1619
+            //      Existing provider with new eligibility for a funding line - Variable profile - some default payment months in the past,
+            //      others still in the future - eligibility for funding deemed to apply from the start of the funding year
+            yield return new object[]
+            {
+                4,
+                NewDecimals(6621M, 0, 6621M, 0, 0, 6621M, 0, 0, 6620.99M, 0, 0, 0),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                26483.99M,
+                0M,
+                NewDecimals(0, 0, 0, 0, 13242M, 6621M, 0, 0, 6620.99M, 0, 0, 0),
+                0M,
+                MidYearType.Opener
+            };
+            // Example 72
+            //  1619
+            //      Existing provider with new eligibility for a funding line - Variable profile - some default payment months in the past,
+            //      others still in the future - eligibility for funding deemed to apply from the point that provider became eligible
+            yield return new object[]
+            {
+                4,
+                NewDecimals(3862.25M, 0, 3862.25M, 0, 0, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                15448.99M,
+                0M,
+                NewDecimals(0, 0, 0, 0, 7724.50M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
+                0M,
+                MidYearType.Opener
             };
             // Example 84 
             //  1619
