@@ -320,6 +320,38 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 null
             };
+            // Example 96 
+            //  1619
+            //      Existing provider is subject to de-merger. The existing provider remains open but a new provider is formed out of it leading to an allocation reduction
+            //      – Single payment profile
+            //      - default payment month in the past
+            yield return new object[]
+            {
+                6,
+                NewDecimals(0, 0, 0, 29876.37M, 0, 0, 0, 0, 0, 0, 0, 0),
+                NewDecimals(0, 0, 0, 34288M, 0, 0, 0, 0, 0, 0, 0, 0),
+                29876.37M,
+                34288M,
+                NewDecimals(0, 0, 0, 34288M, 0, 0, -4411.63M, 0, 0, 0, 0, 0),
+                0M,
+                null
+            };
+            // Example 99 
+            //  1619
+            //      Existing provider is subject to merger. The existing provider remains open and is expanded as a result of the consumption of one or more other providers
+            //      – Single payment profile
+            //      - default payment month in the past
+            yield return new object[]
+            {
+                5,
+                NewDecimals(0, 0, 0, 37867.25M, 0, 0, 0, 0, 0, 0, 0, 0),
+                NewDecimals(0, 0, 0, 34288M, 0, 0, 0, 0, 0, 0, 0, 0),
+                37867.25M,
+                34288M,
+                NewDecimals(0, 0, 0, 34288M, 0, 3579.25M, 0, 0, 0, 0, 0, 0),
+                0M,
+                null
+            };
         }
     }
 }
