@@ -50,6 +50,7 @@ using FundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
 using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
 using Relationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 using Calculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -4167,7 +4168,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            SpecModel.SpecificationSummary targetSpecification = new SpecModel.SpecificationSummary
+            SpecificationSummary targetSpecification = new SpecModel.SpecificationSummary
             {
                 Id = targetSpecificationId,
                 FundingStreams = new[] { new Reference(fundingStreamId, fundingStreamId) },
@@ -4183,12 +4184,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 FundingPeriodId = fundingPeriodId,
                 FundingLines = new[]
                 {
-                    new PublishedSpecificationItem() { TemplateId = fundingLineIdOne, Name = fundingLineOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne)}
+                    new PublishedSpecificationItem { TemplateId = fundingLineIdOne, Name = fundingLineOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne)}
                 },
                 Calculations = new[]
                 {
-                    new PublishedSpecificationItem() { TemplateId = calculationTemplateIdOne, Name = calculationOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne), FieldType = FieldType.NullableOfDecimal},
-                    new PublishedSpecificationItem() { TemplateId = calculationTemplateIdTwo, Name = calculationTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationTwo), FieldType = FieldType.String}
+                    new PublishedSpecificationItem { TemplateId = calculationTemplateIdOne, Name = calculationOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne), FieldType = FieldType.NullableOfDecimal},
+                    new PublishedSpecificationItem { TemplateId = calculationTemplateIdTwo, Name = calculationTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationTwo), FieldType = FieldType.String}
                 }
             };
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -4236,10 +4237,8 @@ namespace CalculateFunding.Services.Datasets.Services
                         new Relationship
                         {
                             Type = FundingLineCalculationRelationship.FromIdField.ToLowerInvariant(),
-                            One = new Calculation
-                            {
-                                SpecificationId = targetSpecificationId
-                            }
+                            One = new Calculation { SpecificationId = targetSpecificationId },
+                            Two = new Calculation { SpecificationId = specificationId },
                         }
                     }
                 }
@@ -4282,7 +4281,9 @@ namespace CalculateFunding.Services.Datasets.Services
                     {
                         new Relationship
                         {
-                            Type = Models.Graph.CalculationRelationship.ToIdField.ToLowerInvariant()
+                            Type = Models.Graph.CalculationRelationship.ToIdField.ToLowerInvariant(),
+                            One = new Calculation{ SpecificationId = targetSpecificationId },
+                            Two = new Calculation{ SpecificationId = specificationId },
                         }
                     }
                 }

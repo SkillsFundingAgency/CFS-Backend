@@ -984,8 +984,10 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
+            string sourceSpecificationId = definitionSpecificationRelationship.Current.Specification?.Id;
             string targetSpecificationId = definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.SpecificationId;
             PublishedSpecificationConfiguration publishedSpecificationConfiguration = await CreatePublishedSpecificationConfiguration(
+                sourceSpecificationId,
                 targetSpecificationId,
                 definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration);
 
@@ -1070,7 +1072,9 @@ namespace CalculateFunding.Services.Datasets
             await _relationshipRepositoryPolicy.ExecuteAsync(() => _relationshipVersionRepository.SaveVersion(relationshipVersion));
         }
 
-        private async Task<PublishedSpecificationConfiguration> CreatePublishedSpecificationConfiguration(string targetSpecificationId,
+        private async Task<PublishedSpecificationConfiguration> CreatePublishedSpecificationConfiguration(
+            string sourceSpecificationId,
+            string targetSpecificationId,
             PublishedSpecificationConfiguration originalPublishedSpecificationConfiguration)
         {
             async Task<List<PublishedSpecificationItem>> GetFundingLines(TemplateMetadataDistinctContents metadata, string templateId)
@@ -1129,8 +1133,10 @@ namespace CalculateFunding.Services.Datasets
                 IEnumerable<Common.ApiClient.Graph.Models.Entity<FundingLine>> graphFundingLinesWithCalculationRelationship =
                     graphFundingLines.Where(_ =>
                         _.Relationships != null &&
-                        _.Relationships.Any(r => r.Type.ToLowerInvariant() == FundingLineCalculationRelationship.FromIdField.ToLowerInvariant()) &&
-                        _.Relationships.Any(r => ((object)r.One).AsJson().AsPoco<Calculation>()?.SpecificationId == targetSpecificationId));
+                        _.Relationships.Any(r => 
+                            r.Type.ToLowerInvariant() == FundingLineCalculationRelationship.FromIdField.ToLowerInvariant() &&
+                            ((object)r.One).AsJson().AsPoco<Calculation>()?.SpecificationId == targetSpecificationId &&
+                            ((object)r.Two).AsJson().AsPoco<Calculation>()?.SpecificationId == sourceSpecificationId));
 
                 IEnumerable<string> releasedDataSourceFundingLineTemplateIds = graphFundingLinesWithCalculationRelationship.Select(g => g.Node.FundingLineId.Split('_')[1]);
                 fundingLines.Where(fl => releasedDataSourceFundingLineTemplateIds.Contains(fl.TemplateId.ToString())).ForEach(c => c.IsUsedInCalculation = true);
@@ -1194,9 +1200,12 @@ namespace CalculateFunding.Services.Datasets
 
                 IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>> graphCalculations = calculationGraphApiResponse.Content;
                 IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>> graphCalculationsWithCalculationRelationship =
-                    graphCalculations.Where(_ => 
-                        _.Relationships != null && 
-                        _.Relationships.Any(r => r.Type == CalculationRelationship.ToIdField.ToLowerInvariant() || r.Type == CalculationRelationship.FromIdField.ToLowerInvariant()));
+                    graphCalculations.Where(_ =>
+                        _.Relationships != null &&
+                        _.Relationships.Any(r =>
+                            (r.Type == CalculationRelationship.ToIdField.ToLowerInvariant() || r.Type == CalculationRelationship.FromIdField.ToLowerInvariant()) &&
+                            ((object)r.One).AsJson().AsPoco<Calculation>()?.SpecificationId == targetSpecificationId &&
+                            ((object)r.Two).AsJson().AsPoco<Calculation>()?.SpecificationId == sourceSpecificationId));
 
                 IEnumerable<string> releasedDataSourceCalculationIds = graphCalculationsWithCalculationRelationship.Select(g => g.Node.CalculationId);
                 calculations.Where(c => releasedDataSourceCalculationIds.Contains(c.CalculationId)).ForEach(c => c.IsUsedInCalculation = true);
