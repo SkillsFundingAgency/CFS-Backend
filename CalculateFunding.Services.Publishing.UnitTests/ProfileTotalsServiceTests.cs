@@ -446,6 +446,247 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
+        public async Task ConstructsFundingLineProfileWhenValidInputProvidedNoOutstandingAmount()
+        {
+            string specificationId = NewRandomString();
+            string providerId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string distributionPeriodId1 = NewRandomString();
+            string distributionPeriodId2 = NewRandomString();
+            string providerName = NewRandomString();
+            string UKPRN = NewRandomString();
+            string templateVersion = NewRandomString();
+            string fundingLineName = NewRandomString();
+            string profilePatternKey = NewRandomString();
+            string profilePatternDisplayName = NewRandomString();
+            string profilePatternDescription = NewRandomString();
+            DateTime profileAuditDate = NewRandomDateTime();
+            string userId = NewRandomString();
+            Reference profileAuditUser = NewReference(u => u.WithId(userId));
+            DateTimeOffset fundingDatePatternJune = NewRandomDateTime();
+            DateTimeOffset fundingDatePatternJuly = NewRandomDateTime();
+
+            GivenTheLatestPublishedProviderVersionBySpecificationId(
+                specificationId,
+                fundingStreamId,
+                providerId,
+                NewPublishedProviderVersion(_ => _.WithFundingPeriodId(fundingPeriodId)
+                    .WithFundingStreamId(fundingStreamId)
+                    .WithProviderId(providerId)
+                    .WithProvider(NewProvider(p => p.WithName(providerName).WithUKPRN(UKPRN)))
+                    .WithTemplateVersion(templateVersion)
+                    .WithProfilePatternKeys(
+                        NewProfilePatternKeys(ppk => ppk
+                                .WithFundingLineCode(fundingLineCode)
+                                .WithKey(profilePatternKey))
+                            .ToArray())
+                    .WithCarryOvers(
+                        NewProfilingCarryOvers(pco => pco
+                                .WithFundingLineCode(fundingLineCode)
+                                .WithAmount(100))
+                            .ToArray())
+                    .WithProfilingAudits(
+                        NewProfilingAudits(pa => pa
+                            .WithFundingLineCode(fundingLineCode)
+                            .WithDate(profileAuditDate)
+                            .WithUser(profileAuditUser)).ToArray())
+                    .WithFundingLines(
+                        NewFundingLines(fl => fl
+                            .WithFundingLineType(FundingLineType.Payment)
+                            .WithFundingLineCode(fundingLineCode)
+                            .WithValue(1500)
+                            .WithDistributionPeriods(
+                                NewDistributionPeriod(dp => dp
+                                    .WithProfilePeriods(
+                                        NewProfilePeriod(pp => pp
+                                            .WithType(ProfilePeriodType.CalendarMonth)
+                                            .WithYear(2020)
+                                            .WithTypeValue("May")
+                                            .WithOccurence(1)
+                                            .WithDistributionPeriodId(distributionPeriodId1)
+                                            .WithAmount(500)))),
+                                NewDistributionPeriod(dp => dp
+                                    .WithProfilePeriods(
+                                        NewProfilePeriod(pp => pp
+                                            .WithType(ProfilePeriodType.CalendarMonth)
+                                            .WithYear(2020)
+                                            .WithTypeValue("June")
+                                            .WithOccurence(1)
+                                            .WithDistributionPeriodId(distributionPeriodId2)
+                                            .WithAmount(1000)))),
+                                NewDistributionPeriod(dp => dp
+                                    .WithProfilePeriods(
+                                        NewProfilePeriod(pp => pp
+                                            .WithType(ProfilePeriodType.CalendarMonth)
+                                            .WithYear(2020)
+                                            .WithTypeValue("July")
+                                            .WithOccurence(1)
+                                            .WithDistributionPeriodId(distributionPeriodId2)
+                                            .WithAmount(0)))))
+                        ).ToArray())));
+
+            GivenProfileVariationPointer(
+                specificationId,
+                NewProfileVariationPointers(pvp => pvp
+                    .WithFundingStreamId(fundingStreamId)
+                    .WithFundingLineId(fundingLineCode)
+                    .WithYear(2020)
+                    .WithTypeValue("July")).ToArray());
+
+            GivenFundingDate(
+                fundingStreamId,
+                fundingPeriodId,
+                fundingLineCode,
+                NewFundingDate(_ => _
+                    .WithPatterns(
+                        new[]
+                        {
+                            NewFundingDatePattern(fdp => fdp
+                                .WithOccurrence(1)
+                                .WithPeriodYear(2020)
+                                .WithPeriod("May")
+                                .WithPaymentDate(fundingDatePatternJune)),
+                            NewFundingDatePattern(fdp => fdp
+                                .WithOccurrence(1)
+                                .WithPeriodYear(2020)
+                                .WithPeriod("June")
+                                .WithPaymentDate(fundingDatePatternJuly))
+                        })));
+
+            GivenDistinctTemplateMetadataFundingLinesContents(
+                fundingStreamId,
+                fundingPeriodId,
+                templateVersion,
+                new TemplateMetadataDistinctFundingLinesContents
+                {
+                    FundingLines = new[]
+                    {
+                        new TemplateMetadataFundingLine
+                        {
+                            FundingLineCode = fundingLineCode,
+                            Name = fundingLineName
+                        }
+                    }
+                });
+
+            GivenGetProfilePatternsForFundingStreamAndFundingPeriod(
+                fundingStreamId,
+                fundingPeriodId,
+                new List<FundingStreamPeriodProfilePattern>
+                {
+                    new FundingStreamPeriodProfilePattern
+                    {
+                        FundingLineId = fundingLineCode,
+                        ProfilePatternKey = profilePatternKey,
+                        ProfilePatternDisplayName = profilePatternDisplayName,
+                        ProfilePatternDescription = profilePatternDescription
+                    }
+                }
+            );
+
+            ActionResult<FundingLineProfile> result = await WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+                specificationId,
+                providerId,
+                fundingStreamId,
+                fundingLineCode);
+
+            result
+                .Should()
+                .BeOfType<ActionResult<FundingLineProfile>>()
+                .And
+                .NotBeNull();
+
+            result
+                .Value
+                .Should()
+                .BeOfType<FundingLineProfile>()
+                .And
+                .NotBeNull();
+
+            FundingLineProfile actualFundingLineProfile =
+                result.Value as FundingLineProfile;
+
+            FundingLineProfile expectedFundingLineProfile = NewFundingLineProfile(_ => _
+                .WithAmountAlreadyPaid(1500)
+                .WithCarryOverAmount(100)
+                .WithLastUpdatedDate(profileAuditDate)
+                .WithLastUpdatedUser(profileAuditUser)
+                .WithProfilePatternKey(profilePatternKey)
+                .WithProfilePatternName(profilePatternDisplayName)
+                .WithProfilePatternDescription(profilePatternDescription)
+                .WithRemainingAmount(0)
+                .WithProfilePatternTotal(1500)
+                .WithProfileTotalAmount(1500)
+                .WithProfilePatternTotalWithCarryOver(1600)
+                .WithProviderName(providerName)
+                .WithProviderId(providerId)
+                .WithUKPRN(UKPRN)
+                .WithFundingLineName(fundingLineName)
+                .WithFundingLineAmount(1500)
+                .WithFundingLineCode(fundingLineCode)
+                .WithProfileTotals(new[]
+                {
+                    NewProfileTotal(pt => pt
+                        .WithYear(2020)
+                        .WithTypeValue("May")
+                        .WithPeriodType("CalendarMonth")
+                        .WithOccurrence(1)
+                        .WithValue(500)
+                        .WithIsPaid(true)
+                        .WithActualDate(fundingDatePatternJune)
+                        .WithDistributionPeriod(distributionPeriodId1)
+                        .WithInstallmentNumber(1)),
+                    NewProfileTotal(pt => pt
+                        .WithYear(2020)
+                        .WithTypeValue("June")
+                        .WithPeriodType("CalendarMonth")
+                        .WithOccurrence(1)
+                        .WithValue(1000)
+                        .WithIsPaid(true)
+                        .WithActualDate(fundingDatePatternJuly)
+                        .WithInstallmentNumber(2)
+                        .WithDistributionPeriod(distributionPeriodId2)),
+                    NewProfileTotal(pt => pt
+                        .WithYear(2020)
+                        .WithTypeValue("July")
+                        .WithPeriodType("CalendarMonth")
+                        .WithOccurrence(1)
+                        .WithValue(0)
+                        .WithIsPaid(false)
+                        .WithInstallmentNumber(3)
+                        .WithDistributionPeriod(distributionPeriodId2)
+                        .WithProfileRemainingPercentage(0))
+                }));
+
+            actualFundingLineProfile
+                .Should()
+                .BeEquivalentTo(expectedFundingLineProfile);
+
+            actualFundingLineProfile
+                .ProfileTotals
+                .FirstOrDefault()
+                .Should()
+                .BeEquivalentTo(expectedFundingLineProfile.ProfileTotals.FirstOrDefault());
+
+            actualFundingLineProfile
+                .ProfileTotals
+                .LastOrDefault()
+                .Should()
+                .BeEquivalentTo(expectedFundingLineProfile.ProfileTotals.LastOrDefault());
+
+            actualFundingLineProfile
+                .IsCustomProfile
+                .Should()
+                .BeFalse();
+
+            _publishedFunding.VerifyAll();
+            _specificationService.VerifyAll();
+            _policiesService.VerifyAll();
+        }
+
+        [TestMethod]
         public async Task LocatesPublishedProviderVersionThenGroupsItsProfileValuesAndSumsThem()
         {
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
