@@ -354,6 +354,12 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     Name = "IsIndicative",
                     Type = "[bit]",
                     AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name= "ProviderVariationReasons",
+                    Type = "[nvarchar](1024)",
+                    AllowNulls = false
                 }
             };
         }

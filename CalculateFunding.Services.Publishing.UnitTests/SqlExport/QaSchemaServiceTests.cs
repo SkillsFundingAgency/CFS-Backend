@@ -208,7 +208,79 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 }
             }.ToDictionary(_ => _.Name);
 
+            Dictionary<string, SqlColumnDefinition> fundingColumns = new List<SqlColumnDefinition>() {
+                new SqlColumnDefinition
+                {
+                    Name = "TotalFunding",
+                    Type = "[decimal](30, 18)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ProviderId",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "FundingStreamId",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "FundingPeriodId",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "MajorVersion",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "MinorVersion",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Status",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+
+                new SqlColumnDefinition
+                {
+                    Name = "LastUpdated",
+                    Type = "[datetime]",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LastUpdatedBy",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "IsIndicative",
+                    Type = "[bit]",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name= "ProviderVariationReasons",
+                    Type = "[nvarchar](1024)",
+                    AllowNulls = false
+                }
+            }.ToDictionary(_ => _.Name);
+
             ThenTheGenerateCreateTableSqlWasCalled($"{fundingStreamTablePrefix}_Providers", fundingStreamId, fundingPeriodId, providerColumns);
+
+            ThenTheGenerateCreateTableSqlWasCalled($"{fundingStreamTablePrefix}_Funding", fundingStreamId, fundingPeriodId, fundingColumns);
 
             ThenTheTotalNumberOfDDLScriptsExecutedWas(7);
         }
