@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
 
             if (VariationPointersNotSet(providerVariationContext) ||
-                priorState.Provider.Status == Closed ||
+                priorState?.Provider.Status == Closed ||
                 providerVariationContext.UpdatedProvider.Status != Closed ||
                 HasNoReleasedAllocations(providerVariationContext, priorState))
             {
