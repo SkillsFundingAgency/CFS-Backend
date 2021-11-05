@@ -1,10 +1,11 @@
-﻿using CalculateFunding.Api.External.V4.Interfaces;
+﻿using AutoMapper;
+using CalculateFunding.Api.External.V4.Interfaces;
+using CalculateFunding.Api.External.V4.MappingProfiles;
 using CalculateFunding.Api.External.V4.Services;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,7 @@ namespace CalculateFunding.Api.External.V4.IoC
             builder.AddSingleton<IExternalApiFeedWriter, ExternalApiFeedWriter>();
             builder.AddSingleton<IFundingFeedItemByIdService, FundingFeedItemByIdService>();
             builder.AddSingleton<IPublishedProviderRetrievalService, PublishedProviderRetrievalService>();
+            builder.AddSingleton<IFundingStreamService, FundingStreamService>();
             builder.AddSingleton<IProviderFundingVersionService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
@@ -103,6 +105,13 @@ namespace CalculateFunding.Api.External.V4.IoC
                     PoliciesApiClientPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
+
+            MapperConfiguration externalConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ExternalServiceMappingProfile>();
+            });
+
+            builder.AddSingleton(externalConfig.CreateMapper());
 
             return builder;
         }
