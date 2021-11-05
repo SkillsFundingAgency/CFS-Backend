@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             {
                 IEnumerable<OrganisationGroupResult> organisationGroups = providerVariationContext.OrganisationGroupResultsData[keyForOrganisationGroups];
 
-                if (organisationGroups.Any(x => x.GroupReason == OrganisationGroupingReason.Contracting))
+                if (organisationGroups.Any(x => x.GroupReason == OrganisationGroupingReason.Contracting && x.Providers.AnyWithNullCheck(_ => _.ProviderId == providerVariationContext.ProviderId)))
                 {
                     // Stop subsequent strategies                    
                     stopSubsequentStrategies = true;

@@ -40,21 +40,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+
+            PublishedProvider publishedProvider = NewPublishedProvider(p => p.WithReleased(
+                                    NewPublishedProviderVersion(ppv =>
+                                        ppv.WithFundingStreamId(fundingStreamId)
+                                        .WithFundingPeriodId(fundingPeriodId))));
+
             IEnumerable<OrganisationGroupResult> organisationGroupResults = new[]
             {
                 NewOrganisationGroupResult(_ => _.WithGroupReason(OrganisationGroupingReason.Information)),
-                NewOrganisationGroupResult(_ => _.WithGroupReason(OrganisationGroupingReason.Contracting))
+                NewOrganisationGroupResult(_ => _.WithGroupReason(OrganisationGroupingReason.Contracting)
+                    .WithProviders(new[] {new Common.ApiClient.Providers.Models.Provider{ ProviderId = publishedProvider.Current.ProviderId} }))
             };
 
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData
                 = new Dictionary<string, IEnumerable<OrganisationGroupResult>> { { $"{fundingStreamId}:{fundingPeriodId}", organisationGroupResults } };
 
+            
             GivenTheOtherwiseValidVariationContext(_ => 
             {
-                _.PublishedProvider = NewPublishedProvider(p => p.WithReleased(
-                                    NewPublishedProviderVersion(ppv => 
-                                        ppv.WithFundingStreamId(fundingStreamId)
-                                        .WithFundingPeriodId(fundingPeriodId))));
+                _.PublishedProvider = publishedProvider;
                 _.OrganisationGroupResultsData = organisationGroupResultsData;
             });
 
