@@ -223,9 +223,43 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return fundingGroupVersion;
         }
 
+        public async Task<FundingGroupVersion> CreateFundingGroupVersionUsingAmbientTransaction(FundingGroupVersion fundingGroupVersion)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                fundingGroupVersion.FundingGroupVersionId = await Insert(fundingGroupVersion, _transaction);
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
+
+            return fundingGroupVersion;
+        }
+
         public async Task<FundingGroupVersionVariationReason> CreateFundingGroupVariationReason(FundingGroupVersionVariationReason reason)
         {
             reason.FundingGroupVersionVariationReasonId = await Insert<FundingGroupVersionVariationReason>(reason);
+
+            return reason;
+        }
+
+        public async Task<FundingGroupVersionVariationReason> CreateFundingGroupVariationReasonUsingAmbientTransaction(FundingGroupVersionVariationReason reason)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                reason.FundingGroupVersionVariationReasonId = await Insert<FundingGroupVersionVariationReason>(reason);
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
 
             return reason;
         }
@@ -524,6 +558,24 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
 
             return providerVersion;
+        }
+
+        public async Task<FundingGroupProvider> CreateFundingGroupProviderUsingAmbientTransaction(FundingGroupProvider fundingGroupProvider)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                int id = await Insert(fundingGroupProvider, _transaction);
+                fundingGroupProvider.FundingGroupProviderId = id;
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
+
+            return fundingGroupProvider;
         }
     }
 }
