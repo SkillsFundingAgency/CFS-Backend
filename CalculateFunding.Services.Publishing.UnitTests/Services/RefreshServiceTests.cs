@@ -1165,7 +1165,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             foreach (PublishedProvider publishedProvider in _publishedProviders)
             {
-                _reApplyCustomProfiles.Verify(_ => _.ProcessPublishedProvider(publishedProvider.Current),
+                _reApplyCustomProfiles.Verify(_ => _.ProcessPublishedProvider(publishedProvider.Current, 
+                    It.Is<GeneratedProviderResult>(_ => _.FundingLines.All(fl => publishedProvider.Current.FundingLines.Any(cfl => cfl.FundingLineCode == fl.FundingLineCode)))),
                     Times.Once);
             }
         }

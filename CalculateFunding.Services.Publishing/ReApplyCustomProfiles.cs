@@ -9,18 +9,17 @@ namespace CalculateFunding.Services.Publishing
 {
     public class ReApplyCustomProfiles : IReApplyCustomProfiles
     {
-        public bool ProcessPublishedProvider(PublishedProviderVersion publishedProviderVersion)
+        public void ProcessPublishedProvider(PublishedProviderVersion publishedProviderVersion, GeneratedProviderResult generatedProviderResult)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
-
-            bool updatePublishedProvider = false;
+            Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
 
             if (!publishedProviderVersion.HasCustomProfiles)
             {
-                return updatePublishedProvider;
+                return;
             }
 
-            Dictionary<string, FundingLine> fundingLines = publishedProviderVersion.FundingLines?.Where(_ => _.Type == FundingLineType.Payment)?.ToDictionary(_ => _.FundingLineCode) 
+            Dictionary<string, FundingLine> fundingLines = generatedProviderResult.FundingLines?.Where(_ => _.Type == FundingLineType.Payment)?.ToDictionary(_ => _.FundingLineCode) 
                                                            ?? new Dictionary<string, FundingLine>();
 
             foreach (FundingLineProfileOverrides customProfile in publishedProviderVersion.CustomProfiles)
@@ -33,12 +32,10 @@ namespace CalculateFunding.Services.Publishing
                         $"Custom profile has no matching funding line for {fundingLineCode} on {publishedProviderVersion.Id}");
                 }
 
-                updatePublishedProvider = true;
-
                 fundingLine.DistributionPeriods = customProfile.DistributionPeriods.DeepCopy();
             }
 
-            return updatePublishedProvider;
+            return;
         }
     }
 }

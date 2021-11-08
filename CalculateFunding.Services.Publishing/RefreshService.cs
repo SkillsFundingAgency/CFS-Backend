@@ -416,6 +416,9 @@ namespace CalculateFunding.Services.Publishing
                         _fundingLineValueOverride.OverridePreviousFundingLineValues(publishedProvider.Value, generatedProviderResult);
                     }
 
+                    // apply custom profiles to generated result
+                    _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion, generatedProviderResult);
+
                     (publishedProviderUpdated, variances) = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
                         generatedProviderResult,
                         scopedProviders[providerId],
@@ -430,13 +433,6 @@ namespace CalculateFunding.Services.Publishing
                     }
 
                     _logger.Verbose($"Published provider '{publishedProvider.Key}' updated: '{publishedProviderUpdated}'");
-
-                    // reapply any custom profiles this provider has and internally check for errors
-                    if (_reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion))
-                    {
-                        publishedProviderUpdated = true;
-                        variances = variances.Concat(new[] { "Custom profile set" });
-                    }
                 }
 
                 // process published provider and detect errors

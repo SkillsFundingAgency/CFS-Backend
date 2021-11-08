@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public void GuardsAgainstNoPublishedProviderVersionBeingSupplied()
         {
-            Action invocation = () => WhenThePublishedProviderIsProcessed(null);
+            Action invocation = () => WhenThePublishedProviderIsProcessed(null, null);
 
             invocation
                 .Should()
@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _.WithCustomProfiles(NewFundingLineOverrides(fl =>
                     fl.WithFundingLineCode(missingFundingLineCode))));
 
-            Action invocation = () => WhenThePublishedProviderIsProcessed(publishedProviderVersion);
+            Action invocation = () => WhenThePublishedProviderIsProcessed(publishedProviderVersion, new GeneratedProviderResult());
 
             invocation
                 .Should()
@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithFundingLines(fundingLineForCustomProfile,
                     fundingLineWithProfiling));
 
-            WhenThePublishedProviderIsProcessed(publishedProviderVersion);
+            WhenThePublishedProviderIsProcessed(publishedProviderVersion, new GeneratedProviderResult { FundingLines = new[] { fundingLineForCustomProfile } });
 
             fundingLineForCustomProfile
                 .DistributionPeriods
@@ -97,9 +97,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return new RandomString();
         }
 
-        private void WhenThePublishedProviderIsProcessed(PublishedProviderVersion publishedProviderVersion)
+        private void WhenThePublishedProviderIsProcessed(PublishedProviderVersion publishedProviderVersion, GeneratedProviderResult generatedProviderResult)
         {
-            _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
+            _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion, generatedProviderResult);
         }
 
         private PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)

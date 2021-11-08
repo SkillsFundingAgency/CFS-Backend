@@ -17,12 +17,6 @@ namespace CalculateFunding.Services.Publishing.Comparers
 
             (bool equal, FundingLine fundingLine) hasFundingLineChanges = CompareEnumerable(x.FundingLines, y.FundingLines, (xfl, yfl) =>
             {
-                // only check differences for funding line if it doesn't have a custom profile set against this funding line
-                if (x.CustomProfiles.AnyWithNullCheck(_ => _.FundingLineCode == xfl.FundingLineCode))
-                {
-                    return true;
-                }
-
                 if (xfl.TemplateLineId == yfl.TemplateLineId && xfl.FundingLineCode == yfl.FundingLineCode && xfl.Name == yfl.Name && xfl.Type == yfl.Type && xfl.Value == yfl.Value)
                 {
                     (bool equal, DistributionPeriod distributionPeriod) hasDistributionPeriodChanges = CompareEnumerable(xfl.DistributionPeriods, yfl.DistributionPeriods, (xdp, ydp) =>
