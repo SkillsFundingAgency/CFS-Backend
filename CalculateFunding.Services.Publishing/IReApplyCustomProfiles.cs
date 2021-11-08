@@ -5,6 +5,6 @@ namespace CalculateFunding.Services.Publishing
 {
     public interface IReApplyCustomProfiles
     {
-        void ProcessPublishedProvider(PublishedProviderVersion publishedProviderVersion);
+        bool ProcessPublishedProvider(PublishedProviderVersion publishedProviderVersion);
     }
 }

@@ -336,6 +336,42 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task RefreshResults_WhenPublishedProviderVariesDueToCustomProfiles_NoErrorLogged()
+        {
+            string providerId = string.Empty;
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndScopedProviders((_) =>
+            {
+                _.Last().Status = "Proposed to open";
+                providerId = _.Last().ProviderId;
+            });
+            AndScopedProviderCalculationResults();
+            AndTemplateMapping();
+            _publishedProviders.Last().Current.CustomProfiles = new[] { new FundingLineProfileOverrides() };
+            AndPublishedProviders(_publishedProviders);
+            AndNewMissingPublishedProviders();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
+            GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object));
+            AndFundingConfiguration("NoApplicableVariationErrorDetector");
+            AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
+
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            _publishedProviderStatusUpdateService
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1
+                        && _.Single().Current.ProviderId == providerId
+                        && _.Single().Current.Errors.AnyWithNullCheck()),
+                    It.IsAny<Reference>(),
+                    PublishedProviderStatus.Updated,
+                    JobId,
+                    CorrelationId,
+                    It.IsAny<bool>()), Times.Never);
+        }
+
+        [TestMethod]
         public async Task RefreshResults_WhenPublishedProviderVariesButNoApplicableVariationDetected_ErrorLogged()
         {
             string providerId = string.Empty;

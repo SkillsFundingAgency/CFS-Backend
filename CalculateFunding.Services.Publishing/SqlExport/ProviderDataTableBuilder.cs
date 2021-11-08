@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 NewDataColumn<DateTime>("DateClosed", allowNull: true),
                 NewDataColumn<string>("LaCode", 32, allowNull: true),
                 NewDataColumn<string>("Status", 64, true),
-                NewDataColumn<string>("Successor", 32, true),
+                NewDataColumn<string>("Successor", 128, true),
                 NewDataColumn<string>("TrustCode", 32, allowNull: true),
                 NewDataColumn<string>("TrustName", 128, allowNull: true),
                 NewDataColumn<string>("PaymentOrganisationIdentifier", 32, true),

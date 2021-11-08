@@ -9,13 +9,15 @@ namespace CalculateFunding.Services.Publishing
 {
     public class ReApplyCustomProfiles : IReApplyCustomProfiles
     {
-        public void ProcessPublishedProvider(PublishedProviderVersion publishedProviderVersion)
+        public bool ProcessPublishedProvider(PublishedProviderVersion publishedProviderVersion)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
 
+            bool updatePublishedProvider = false;
+
             if (!publishedProviderVersion.HasCustomProfiles)
             {
-                return;
+                return updatePublishedProvider;
             }
 
             Dictionary<string, FundingLine> fundingLines = publishedProviderVersion.FundingLines?.Where(_ => _.Type == FundingLineType.Payment)?.ToDictionary(_ => _.FundingLineCode) 
@@ -31,8 +33,12 @@ namespace CalculateFunding.Services.Publishing
                         $"Custom profile has no matching funding line for {fundingLineCode} on {publishedProviderVersion.Id}");
                 }
 
+                updatePublishedProvider = true;
+
                 fundingLine.DistributionPeriods = customProfile.DistributionPeriods.DeepCopy();
             }
+
+            return updatePublishedProvider;
         }
     }
 }

@@ -29,8 +29,11 @@ namespace CalculateFunding.Services.Publishing.Errors
         {
             ErrorCheck errorCheck = new ErrorCheck();
 
+            // only add no applicable variation if the provider doesn't have custom profiles because if it has
+            // custom profiles then it will always be updated
             if (publishedProvidersContext.VariationContexts.ContainsKey(publishedProvider.Current.ProviderId) && 
-                publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].ApplicableVariations.Count == 0)
+                publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].ApplicableVariations.Count == 0 &&
+                !publishedProvider.Current.HasCustomProfiles)
             {
                 string errorMessage = $"Provider {publishedProvider.Current.ProviderId} no applicable variation found for variances {publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].Variances.AsJson()}.";
                 errorCheck.AddError(new PublishedProviderError

@@ -431,8 +431,12 @@ namespace CalculateFunding.Services.Publishing
 
                     _logger.Verbose($"Published provider '{publishedProvider.Key}' updated: '{publishedProviderUpdated}'");
 
-                    //reapply any custom profiles this provider has and internally check for errors
-                    _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
+                    // reapply any custom profiles this provider has and internally check for errors
+                    if (_reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion))
+                    {
+                        publishedProviderUpdated = true;
+                        variances = variances.Concat(new[] { "Custom profile set" });
+                    }
                 }
 
                 // process published provider and detect errors

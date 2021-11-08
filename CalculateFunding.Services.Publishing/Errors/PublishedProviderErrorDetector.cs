@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 
@@ -39,12 +40,20 @@ namespace CalculateFunding.Services.Publishing.Errors
             {
                 updated = true;
 
-                // reset the current version to the version before the last refresh so nothing is over written until all errors are cleared
+                // reset the current to the version before the last refresh so nothing is overwritten until all errors are cleared
                 if (publishedProvidersContext != null && 
                     publishedProvidersContext.VariationContexts.AnyWithNullCheck() && 
                     publishedProvidersContext.VariationContexts.ContainsKey(publishedProvider.Current.ProviderId))
                 {
-                    publishedProvider.Current = publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].CurrentState;
+                    PublishedProviderVersion previousPublishedProvider = publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].CurrentState;
+                    
+                    // copy current state before any updates from current refresh
+                    publishedProvider.Current.FundingLines = previousPublishedProvider.FundingLines;
+                    publishedProvider.Current.Calculations = previousPublishedProvider.Calculations;
+                    publishedProvider.Current.ReferenceData = previousPublishedProvider.ReferenceData;
+                    publishedProvider.Current.TotalFunding = previousPublishedProvider.TotalFunding;
+                    publishedProvider.Current.TemplateVersion = previousPublishedProvider.TemplateVersion;
+                    publishedProvider.Current.Provider = previousPublishedProvider.Provider;
                 }
 
                 publishedProvider.Current.AddErrors(errorCheck.Errors);
