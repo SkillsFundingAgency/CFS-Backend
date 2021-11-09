@@ -3,7 +3,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Errors
@@ -30,10 +30,12 @@ namespace CalculateFunding.Services.Publishing.Errors
             ErrorCheck errorCheck = new ErrorCheck();
 
             // only add no applicable variation if the provider doesn't have custom profiles because if it has
-            // custom profiles then it will always be updated
+            // custom profiles then it will always be updated also we only require a variation strategy if the
+            // provider has previously been released
             if (publishedProvidersContext.VariationContexts.ContainsKey(publishedProvider.Current.ProviderId) && 
                 publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].ApplicableVariations.Count == 0 &&
-                !publishedProvider.Current.HasCustomProfiles)
+                !publishedProvider.Current.HasCustomProfiles && 
+                publishedProvider.Released != null)
             {
                 string errorMessage = $"Provider {publishedProvider.Current.ProviderId} no applicable variation found for variances {publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].Variances.AsJson()}.";
                 errorCheck.AddError(new PublishedProviderError
