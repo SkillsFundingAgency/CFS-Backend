@@ -135,10 +135,8 @@ namespace CalculateFunding.Api.External
                 app.UseHsts();
             }
 
-            if (Configuration.IsSwaggerEnabled())
-            {
-                app.ConfigureSwagger(provider: provider);
-            }
+            // Always use swagger for the external API, as downstreams read the documentation
+            app.ConfigureSwagger(provider: provider);
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/docs"),
