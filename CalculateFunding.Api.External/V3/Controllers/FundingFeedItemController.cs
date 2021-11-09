@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CalculateFunding.Api.External.V3.Controllers
 {
     [Authorize(Roles = Constants.ExecuteApiRole)]
+    [ApiController]
     [ApiVersion("3.0")]
     [Route("api/v{version:apiVersion}/funding")]
     public class FundingFeedItemController : ControllerBase

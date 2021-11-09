@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace CalculateFunding.Api.External.V4.Controllers
 {
     [Authorize(Roles = Constants.ExecuteApiRole)]
+    [ApiController]
     [ApiVersion("4.0")]
     [Route("api/v{version:apiVersion}/funding-streams")]
     public class FundingStreamController : ControllerBase
@@ -20,7 +21,7 @@ namespace CalculateFunding.Api.External.V4.Controllers
             _fundingStreamService = fundingStreamService;
         }
 
-        [HttpGet()]
+        [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<FundingStream>))]
         public async Task<IActionResult> GetFundingStreams()
         {

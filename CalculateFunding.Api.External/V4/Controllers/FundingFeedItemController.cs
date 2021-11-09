@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace CalculateFunding.Api.External.V4.Controllers
 {
     [Authorize(Roles = Constants.ExecuteApiRole)]
+    [ApiController]
     [ApiVersion("4.0")]
     [Route("api/v{version:apiVersion}/{channel}/funding")]
     public class FundingFeedItemControllerV4 : ControllerBase

@@ -111,7 +111,7 @@ namespace CalculateFunding.Api.External
                 {
                     o.ReportApiVersions = true;
                     o.AssumeDefaultVersionWhenUnspecified = true;
-                    o.DefaultApiVersion = new ApiVersion(1, 0);
+                    o.DefaultApiVersion = ApiVersion.Default;
                 });
 
             RegisterComponents(services);
