@@ -31,9 +31,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             {
                 FundingCalculation refreshFundingCalculation = refreshState.Calculations.SingleOrDefault(_ => _.TemplateCalculationId == priorFundingCalculation.TemplateCalculationId);
 
-                if(refreshFundingCalculation != null)
+                if (refreshFundingCalculation != null)
                 {
-                    if(priorFundingCalculation.Value != refreshFundingCalculation.Value)
+                    if (priorFundingCalculation.Value != refreshFundingCalculation.Value)
                     {
                         calculationValuesUpdated = true;
                     }

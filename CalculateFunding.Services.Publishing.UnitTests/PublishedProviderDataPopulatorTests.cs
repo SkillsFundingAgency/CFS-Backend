@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public void UpdatePublishedProvider_GivenIsIndicativeChange_ReturnsTrue()
+        public void UpdatePublishedProvider_GivenIsIndicativeChange_ReturnsFalse()
         {
             _publishedProviderVersion.IsIndicative = true;
 
@@ -79,11 +79,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             result
                 .Should()
-                .BeTrue();
-
-            _logger
-                .Received(1)
-                .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"IsIndicative: {true} != {false}\"]");
+                .BeFalse();
         }
 
         [TestMethod]
