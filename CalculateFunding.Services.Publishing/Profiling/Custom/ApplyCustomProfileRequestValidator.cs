@@ -100,7 +100,6 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                 {
                     string fundingPeriodId = request.FundingPeriodId;
                     string fundingStreamId = request.FundingStreamId;
-                    string fundingLineCode = request.FundingLineCode;
 
                     if (fundingStreamId.IsNotNullOrWhitespace() &&
                         fundingPeriodId.IsNotNullOrWhitespace())

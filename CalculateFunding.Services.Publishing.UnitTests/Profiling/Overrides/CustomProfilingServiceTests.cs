@@ -16,6 +16,10 @@ using Moq;
 using Polly;
 using Serilog.Core;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Generators.OrganisationGroup.Models;
+using CalculateFunding.Generators.OrganisationGroup.Enums;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 {
@@ -27,6 +31,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         private Mock<IValidator<ApplyCustomProfileRequest>> _validator;
         private Mock<IPublishedFundingRepository> _publishedFunding;
         private Mock<IPublishedFundingCsvJobsService> _publishedFundingCsvJobsService;
+
+        private Mock<ISpecificationService> _specificationService;
+        private Mock<IOrganisationGroupService> _organisationGroupService;
+        private Mock<IPoliciesService> _policiesService;
+        private Mock<IProviderService> _providerService;
+
+
         private readonly string CorrelationId = "123";
 
         [TestInitialize]
@@ -36,6 +47,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             _validator = new Mock<IValidator<ApplyCustomProfileRequest>>();
             _publishedFunding = new Mock<IPublishedFundingRepository>();
             _publishedFundingCsvJobsService = new Mock<IPublishedFundingCsvJobsService>();
+            
+            _specificationService = new Mock<ISpecificationService>();
+            _organisationGroupService = new Mock<IOrganisationGroupService>();
+            _policiesService = new Mock<IPoliciesService>();
+            _providerService = new Mock<IProviderService>();
 
             _service = new CustomProfilingService(_publishedProviderVersionCreation.Object,
                 _validator.Object,
@@ -46,7 +62,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                     SpecificationsApiClient = Policy.NoOpAsync()
                 },
                 _publishedFundingCsvJobsService.Object,
-                Logger.None);
+                Logger.None,
+                _specificationService.Object,
+                _organisationGroupService.Object,
+                _policiesService.Object,
+                _providerService.Object
+                );
         }
 
         [TestMethod]
@@ -111,6 +132,276 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 .Should()
                 .Throw<InvalidOperationException>()
                 .WithMessage($"Profile amounts ({fundingLineTotal}) and carry over amount ({carryOver}) does not equal funding line total requested ({reProfileFundingLineTotal}) from strategy.");
+        }
+
+        [TestMethod]
+        public async Task ShouldNotExitsEarlyIfUpdatingPastProfilePeriodsForContractedProvider()
+        {
+            int? carryOver = 2;
+            PublishedProviderStatus currentStatus = PublishedProviderStatus.Draft;
+
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            int? providerSnapshotId = NewRandomNumber();
+
+            string fundingLineOne = NewRandomString();
+            ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithYear(2021).WithTypeValue("May"));
+            ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithYear(2022).WithTypeValue("April"));
+
+            ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
+                .WithFundingLineCode(fundingLineOne)
+                .WithProfilePeriods(profilePeriod1, profilePeriod2)
+                .WithCarryOver(carryOver));
+
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
+                NewPublishedProviderVersion(ppv =>
+                ppv
+                    .WithSpecificationId(specificationId)
+                    .WithPublishedProviderStatus(currentStatus)
+                    .WithCustomProfiles(
+                            new[] {
+                                    new FundingLineProfileOverrides {
+                                        FundingLineCode = fundingLineOne,
+                                        DistributionPeriods = new List<DistributionPeriod>()
+                                    }
+                                })
+                    .WithFundingLines(NewFundingLine(fl =>
+                        fl.WithFundingLineCode(fundingLineOne)
+                            .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2021")
+                                    .WithProfilePeriods(profilePeriod1)),
+                                    NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2022")
+                                    .WithProfilePeriods(profilePeriod2)))
+                            .WithValue(profilePeriod1.ProfiledValue + profilePeriod2.ProfiledValue + carryOver.GetValueOrDefault()))
+                        ))));
+
+            Reference author = NewAuthor();
+
+            GivenTheValidationResultForTheRequest(NewValidationResult(), request);
+            AndThePublishedProvider(request.PublishedProviderId, publishedProvider);
+
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _
+                .WithId(specificationId)
+                .WithFundingStreamIds(fundingStreamId)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithProviderVersionId(providerVersionId)
+                .WithProviderSnapshotId(providerSnapshotId));
+            AndGetSpecificationSummaryById(specificationId, specificationSummary);
+
+            Provider provider = NewProvider();
+            IDictionary<string, Provider> scopedProviders = new Dictionary<string, Provider>()
+            {
+                {string.Empty, provider }
+            };
+            AndGetScopedProvidersForSpecification(specificationId, providerVersionId, scopedProviders);
+
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration();
+            AndGetFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
+
+            OrganisationGroupResult organisationGroupResult = NewOrganisationGroupResult(_ => _.WithGroupReason(OrganisationGroupingReason.Contracting));
+
+            ProfileVariationPointer profileVariationPointer = NewProfileVariationPointer(_ => _.WithYear(2021).WithTypeValue("June"));
+            GetProfileVariationPointers(specificationId, new[] { profileVariationPointer });
+
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>
+            {
+                {string.Empty, new[]{ organisationGroupResult } }
+            };
+            AndGenerateOrganisationGroups(
+                scopedProviders.Values.FirstOrDefault(),
+                publishedProvider,
+                fundingConfiguration,
+                providerVersionId,
+                providerSnapshotId,
+                organisationGroupResultsData);
+
+            IActionResult result = await WhenTheCustomProfileIsApplied(request, author);
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+        }
+
+        [TestMethod]
+        public async Task ShouldNotExitsEarlyIfUpdatingFutureProfilePeriodsForNonContractedProvider()
+        {
+            int? carryOver = 2;
+            PublishedProviderStatus currentStatus = PublishedProviderStatus.Draft;
+
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            int? providerSnapshotId = NewRandomNumber();
+
+            string fundingLineOne = NewRandomString();
+            ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithYear(2022).WithTypeValue("May"));
+            ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithYear(2022).WithTypeValue("April"));
+
+            ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
+                .WithFundingLineCode(fundingLineOne)
+                .WithProfilePeriods(profilePeriod1, profilePeriod2)
+                .WithCarryOver(carryOver));
+
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
+                NewPublishedProviderVersion(ppv =>
+                ppv
+                    .WithSpecificationId(specificationId)
+                    .WithPublishedProviderStatus(currentStatus)
+                    .WithCustomProfiles(
+                            new[] {
+                                    new FundingLineProfileOverrides {
+                                        FundingLineCode = fundingLineOne,
+                                        DistributionPeriods = new List<DistributionPeriod>()
+                                    }
+                                })
+                    .WithFundingLines(NewFundingLine(fl =>
+                        fl.WithFundingLineCode(fundingLineOne)
+                            .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2021")
+                                    .WithProfilePeriods(profilePeriod1)),
+                                    NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2022")
+                                    .WithProfilePeriods(profilePeriod2)))
+                            .WithValue(profilePeriod1.ProfiledValue + profilePeriod2.ProfiledValue + carryOver.GetValueOrDefault()))
+                        ))));
+
+            Reference author = NewAuthor();
+
+            GivenTheValidationResultForTheRequest(NewValidationResult(), request);
+            AndThePublishedProvider(request.PublishedProviderId, publishedProvider);
+
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _
+                .WithId(specificationId)
+                .WithFundingStreamIds(fundingStreamId)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithProviderVersionId(providerVersionId)
+                .WithProviderSnapshotId(providerSnapshotId));
+            AndGetSpecificationSummaryById(specificationId, specificationSummary);
+
+            Provider provider = NewProvider();
+            IDictionary<string, Provider> scopedProviders = new Dictionary<string, Provider>()
+            {
+                {string.Empty, provider }
+            };
+            AndGetScopedProvidersForSpecification(specificationId, providerVersionId, scopedProviders);
+
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration();
+            AndGetFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
+
+            OrganisationGroupResult organisationGroupResult = NewOrganisationGroupResult(_ => _.WithGroupReason(OrganisationGroupingReason.Information));
+
+            ProfileVariationPointer profileVariationPointer = NewProfileVariationPointer(_ => _.WithYear(2021).WithTypeValue("June"));
+            GetProfileVariationPointers(specificationId, new[] { profileVariationPointer });
+
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>
+            {
+                {string.Empty, new[]{ organisationGroupResult } }
+            };
+            AndGenerateOrganisationGroups(
+                scopedProviders.Values.FirstOrDefault(),
+                publishedProvider,
+                fundingConfiguration,
+                providerVersionId,
+                providerSnapshotId,
+                organisationGroupResultsData);
+
+            IActionResult result = await WhenTheCustomProfileIsApplied(request, author);
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+        }
+
+        [TestMethod]
+        public async Task ExitsEarlyIfUpdatingPastProfilePeriodsForNonContractedProvider()
+        {
+            int? carryOver = 2;
+            PublishedProviderStatus currentStatus = PublishedProviderStatus.Draft;
+
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            int? providerSnapshotId = NewRandomNumber();
+
+            string fundingLineOne = NewRandomString();
+            ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithYear(2021).WithTypeValue("May"));
+            ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithYear(2022).WithTypeValue("April"));
+
+            ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
+                .WithFundingLineCode(fundingLineOne)
+                .WithProfilePeriods(profilePeriod1, profilePeriod2)
+                .WithCarryOver(carryOver));
+
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
+                NewPublishedProviderVersion(ppv =>
+                ppv
+                    .WithSpecificationId(specificationId)
+                    .WithPublishedProviderStatus(currentStatus)
+                    .WithCustomProfiles(
+                            new[] {
+                                    new FundingLineProfileOverrides {
+                                        FundingLineCode = fundingLineOne,
+                                        DistributionPeriods = new List<DistributionPeriod>()
+                                    }
+                                })
+                    .WithFundingLines(NewFundingLine(fl =>
+                        fl.WithFundingLineCode(fundingLineOne)
+                            .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2021")
+                                    .WithProfilePeriods(profilePeriod1)),
+                                    NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2022")
+                                    .WithProfilePeriods(profilePeriod2)))
+                            .WithValue(profilePeriod1.ProfiledValue + profilePeriod2.ProfiledValue + carryOver.GetValueOrDefault()))
+                        ))));
+
+            Reference author = NewAuthor();
+
+            GivenTheValidationResultForTheRequest(NewValidationResult(), request);
+            AndThePublishedProvider(request.PublishedProviderId, publishedProvider);
+
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _
+                .WithId(specificationId)
+                .WithFundingStreamIds(fundingStreamId)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithProviderVersionId(providerVersionId)
+                .WithProviderSnapshotId(providerSnapshotId));
+            AndGetSpecificationSummaryById(specificationId, specificationSummary);
+
+            Provider provider = NewProvider();
+            IDictionary<string, Provider> scopedProviders = new Dictionary<string, Provider>()
+            {
+                {string.Empty, provider }
+            };
+            AndGetScopedProvidersForSpecification(specificationId, providerVersionId, scopedProviders);
+
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration();
+            AndGetFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
+
+            OrganisationGroupResult organisationGroupResult = NewOrganisationGroupResult(_ => _.WithGroupReason(OrganisationGroupingReason.Information));
+
+            ProfileVariationPointer profileVariationPointer = NewProfileVariationPointer(_ => _.WithYear(2021).WithTypeValue("June"));
+            GetProfileVariationPointers(specificationId, new[] { profileVariationPointer });
+
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>
+            {
+                {string.Empty, new[]{ organisationGroupResult } }
+            };
+            AndGenerateOrganisationGroups(
+                scopedProviders.Values.FirstOrDefault(),
+                publishedProvider,
+                fundingConfiguration,
+                providerVersionId,
+                providerSnapshotId,
+                organisationGroupResultsData);
+
+            IActionResult result = await WhenTheCustomProfileIsApplied(request, author);
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
         }
 
         [TestMethod]
@@ -241,6 +532,62 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             return referenceBuilder.Build();
         }
 
+        private void AndGetSpecificationSummaryById(
+            string specificationId,
+            SpecificationSummary specificationSummary)
+        {
+            _specificationService
+                .Setup(_ => _.GetSpecificationSummaryById(specificationId))
+                .ReturnsAsync(specificationSummary);
+        }
+
+        private void AndGetScopedProvidersForSpecification(
+            string specificationId,
+            string providerVersionId,
+            IDictionary<string, Provider> scopedProviders)
+        {
+            _providerService
+                .Setup(_ => _.GetScopedProvidersForSpecification(specificationId, providerVersionId))
+                .ReturnsAsync(scopedProviders);
+        }
+
+        private void AndGenerateOrganisationGroups(
+            Provider provider,
+            PublishedProvider publishedProvider,
+            FundingConfiguration fundingConfiguration,
+            string providerVersionId,
+            int? providerSnapshotId,
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData)
+        {
+            _organisationGroupService
+                .Setup(_ => _.GenerateOrganisationGroups(
+                    It.Is<IEnumerable<Provider>>(_ => _.FirstOrDefault() == provider),
+                    It.Is<IEnumerable<PublishedProvider>>(_ => _.FirstOrDefault() == publishedProvider),
+                    fundingConfiguration,
+                    providerVersionId,
+                    providerSnapshotId))
+                .ReturnsAsync(organisationGroupResultsData);
+        }
+
+        private void GetProfileVariationPointers(
+            string specificationId,
+            IEnumerable<ProfileVariationPointer> profileVariationPointers)
+        {
+            _specificationService
+                .Setup(_ => _.GetProfileVariationPointers(specificationId))
+                .ReturnsAsync(profileVariationPointers);
+        }
+
+        private void AndGetFundingConfiguration(
+            string fundingStreamId,
+            string fundingPeriodId,
+            FundingConfiguration fundingConfiguration)
+        {
+            _policiesService
+                .Setup(_ => _.GetFundingConfiguration(fundingStreamId, fundingPeriodId))
+                .ReturnsAsync(fundingConfiguration);
+        }
+
         private void AndNoNewVersionWasCreated()
         {
             _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatus(It.IsAny<IEnumerable<PublishedProvider>>(),
@@ -277,5 +624,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
             return failureBuilder.Build();
         }
+
+
     }
 }

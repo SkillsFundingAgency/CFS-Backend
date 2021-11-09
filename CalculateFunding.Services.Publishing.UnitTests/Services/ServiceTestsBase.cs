@@ -3,13 +3,14 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Services.UnitTests;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.Azure.ServiceBus;
 using System;
 using CalculateFunding.Tests.Common.Builders;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
@@ -130,6 +131,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             setUp?.Invoke(publishedProviderFundingStructureItemBuilder);
 
             return publishedProviderFundingStructureItemBuilder.Build();
+        }
+
+        protected FundingConfiguration NewFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
+        {
+            FundingConfigurationBuilder fundingConfigurationBuilder = new FundingConfigurationBuilder();
+
+            setUp?.Invoke(fundingConfigurationBuilder);
+
+            return fundingConfigurationBuilder.Build();
+        }
+
+        protected OrganisationGroupResult NewOrganisationGroupResult(Action<OrganisationGroupResultBuilder> setUp = null)
+        {
+            OrganisationGroupResultBuilder organisationGroupResultBuilder = new OrganisationGroupResultBuilder();
+
+            setUp?.Invoke(organisationGroupResultBuilder);
+
+            return organisationGroupResultBuilder.Build();
         }
 
         protected string NewRandomString() => new RandomString();

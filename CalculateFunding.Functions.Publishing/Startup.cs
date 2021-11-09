@@ -290,6 +290,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IPublishedFundingService, PublishedFundingService>();
             builder.AddSingleton<IPoliciesService, PoliciesService>();
             builder.AddSingleton<IPublishedFundingVersionDataService, PublishedFundingVersionDataService>();
+            builder.AddSingleton<IOrganisationGroupService, OrganisationGroupService>();
 
             builder.AddScoped<IRefreshService, RefreshService>();
             builder.AddScoped<IVariationService, VariationService>();

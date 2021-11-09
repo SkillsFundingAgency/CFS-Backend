@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _providerVersionId;
         private PublishStatus _publishStatus;
         private string _name;
+        private int? _providerSnapshotId;
 
         public SpecificationSummaryBuilder WithNoId()
         {
@@ -84,6 +85,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public SpecificationSummaryBuilder WithProviderSnapshotId(int? providerSnapshotId)
+        {
+            _providerSnapshotId = providerSnapshotId;
+
+            return this;
+        }
+
         public SpecificationSummaryBuilder WithName(string name)
         {
             _name = name;
@@ -107,7 +115,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 }).ToArray(),
                 TemplateIds = _templateIds.ToDictionary(_ => _.fundingId, _ => _.version),
                 ProviderVersionId = _providerVersionId ?? NewRandomString(),
-                ApprovalStatus = _publishStatus
+                ApprovalStatus = _publishStatus,
+                ProviderSnapshotId = _providerSnapshotId ?? NewRandomNumberBetween(1, 1000)
             };
         }
     }

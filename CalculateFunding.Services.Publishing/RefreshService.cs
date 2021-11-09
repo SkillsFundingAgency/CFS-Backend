@@ -12,7 +12,6 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
@@ -54,8 +53,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderErrorDetection _detection;
         private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private readonly IRefreshStateService _refreshStateService;
-        private readonly IMapper _mapper;
-        private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
+        private readonly IOrganisationGroupService _organisationGroupService;
         private static readonly string[] AdjustProfilingStrategies = { "Closure",
             "ClosureWithSuccessor",
             "DsgTotalAllocationChange"
@@ -83,8 +81,7 @@ namespace CalculateFunding.Services.Publishing
             IBatchProfilingService batchProfilingService,
             IPublishedFundingCsvJobsService publishFundingCsvJobsService,
             IRefreshStateService refreshStateService,
-            IMapper mapper,
-            IOrganisationGroupGenerator organisationGroupGenerator) : base(jobManagement, logger)
+            IOrganisationGroupService organisationGroupService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
@@ -110,8 +107,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(batchProfilingService, nameof(batchProfilingService));
             Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
             Guard.ArgumentNotNull(refreshStateService, nameof(refreshStateService));
-            Guard.ArgumentNotNull(mapper, nameof(mapper));
-            Guard.ArgumentNotNull(organisationGroupGenerator, nameof(organisationGroupGenerator));
+            Guard.ArgumentNotNull(organisationGroupService, nameof(organisationGroupService));
 
             _publishedFundingDataService = publishedFundingDataService;
             _specificationService = specificationService;
@@ -137,8 +133,7 @@ namespace CalculateFunding.Services.Publishing
             _policiesService = policiesService;
             _publishFundingCsvJobsService = publishFundingCsvJobsService;
             _refreshStateService = refreshStateService;
-            _mapper = mapper;
-            _organisationGroupGenerator = organisationGroupGenerator;
+            _organisationGroupService = organisationGroupService;
         }
 
         public override async Task Process(Message message)
@@ -335,12 +330,13 @@ namespace CalculateFunding.Services.Publishing
 
             HashSet<string> indicativeStatus = new HashSet<string>(fundingConfiguration?.IndicativeOpenerProviderStatus ?? ArraySegment<string>.Empty);
 
-            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = await GenerateOrganisationGroups(
-                scopedProviders.Values,
-                publishedProvidersReadonlyDictionary.Values,
-                fundingConfiguration,
-                specification.ProviderVersionId,
-                specification.ProviderSnapshotId);
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = 
+                await _organisationGroupService.GenerateOrganisationGroups(
+                    scopedProviders.Values,
+                    publishedProvidersReadonlyDictionary.Values,
+                    fundingConfiguration,
+                    specification.ProviderVersionId,
+                    specification.ProviderSnapshotId);
 
             PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
             {
@@ -600,43 +596,6 @@ namespace CalculateFunding.Services.Publishing
             {
                 publishedProvider.Current.AddVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated);
             }
-        }
-
-        private async Task<Dictionary<string, IEnumerable<OrganisationGroupResult>>> GenerateOrganisationGroups(
-            IEnumerable<Provider> scopedProviders,
-            IEnumerable<PublishedProvider> publishedProviders,
-            FundingConfiguration fundingConfiguration, 
-            string providerVersionId,
-            int? providerSnapshotId = null)
-        {
-            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
-
-            IEnumerable<Common.ApiClient.Providers.Models.Provider> apiClientProviders = _mapper.Map<IEnumerable<Common.ApiClient.Providers.Models.Provider>>(scopedProviders);
-
-            foreach (PublishedProvider publishedProvider in publishedProviders)
-            {
-                IEnumerable<OrganisationGroupResult> organisationGroups;
-
-                string keyForOrganisationGroups = OrganisationGroupsKey(publishedProvider.Current.FundingStreamId, publishedProvider.Current.FundingPeriodId);
-
-                if (!organisationGroupResultsData.ContainsKey(keyForOrganisationGroups))
-                {
-                    organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(
-                        fundingConfiguration,
-                        apiClientProviders,
-                        providerVersionId,
-                        providerSnapshotId);
-
-                    organisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroups);
-                }
-            }
-
-            return organisationGroupResultsData;
-        }
-
-        static string OrganisationGroupsKey(string fundingStreamId, string fundingPeriodId)
-        {
-            return $"{fundingStreamId}:{fundingPeriodId}";
         }
     }
 }

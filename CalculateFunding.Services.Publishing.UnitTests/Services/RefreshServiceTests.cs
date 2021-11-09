@@ -88,7 +88,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private Mock<IJobsRunning> _jobsRunning;
         private Mock<ICalculationPrerequisiteCheckerService> _calculationApprovalCheckerService;
         private IMapper _mapper;
-        private Mock<IOrganisationGroupGenerator> _organisationGroupGenerator;
+        private Mock<IOrganisationGroupService> _organisationGroupService;
         private string _providerIdVaried;
         private const string SpecificationId = "SpecificationId";
         private const string FundingPeriodId = "AY-2020";
@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _calculationsService.Object,
                 _publishingResiliencePolicies,
                 _fundingStreamPaymentDatesRepository.Object));
-            _organisationGroupGenerator = new Mock<IOrganisationGroupGenerator>();
+            _organisationGroupService = new Mock<IOrganisationGroupService>();
             _transactionFactory = new TransactionFactory(_logger.Object, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = new Mock<IPublishedProviderVersionService>();
             _publishFundingCsvJobsService = new Mock<IPublishedFundingCsvJobsService>();
@@ -235,8 +235,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _batchProfilingService.Object,
                 _publishFundingCsvJobsService.Object,
                 _refreshStateService,
-                mapper,
-                _organisationGroupGenerator.Object);
+                _organisationGroupService.Object);
         }
 
         [TestMethod]

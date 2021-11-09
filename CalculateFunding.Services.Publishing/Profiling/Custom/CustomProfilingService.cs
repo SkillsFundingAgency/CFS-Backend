@@ -1,8 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Generators.OrganisationGroup.Enums;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -23,30 +28,52 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
         private readonly IValidator<ApplyCustomProfileRequest> _requestValidation;
         private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private readonly ILogger _logger;
+        private readonly ISpecificationService _specificationService;
+        private readonly IOrganisationGroupService _organisationGroupService;
+        private readonly IPoliciesService _policiesService;
+        private readonly IProviderService _providerService;
 
-        public CustomProfilingService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
+        public CustomProfilingService(
+            IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IValidator<ApplyCustomProfileRequest> requestValidation,
             IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies resiliencePolicies,
             IPublishedFundingCsvJobsService publishFundingCsvJobsService,
-            ILogger logger)
+            ILogger logger,
+            ISpecificationService specificationService,
+            IOrganisationGroupService organisationGroupService,
+            IPoliciesService policiesService,
+            IProviderService providerService)
         {
             Guard.ArgumentNotNull(requestValidation, nameof(requestValidation));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
+
             Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(specificationService, nameof(specificationService));
+            Guard.ArgumentNotNull(organisationGroupService, nameof(organisationGroupService));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            Guard.ArgumentNotNull(providerService, nameof(providerService));
 
             _publishedProviderVersionCreation = publishedProviderStatusUpdateService;
             _requestValidation = requestValidation;
             _publishedFundingRepository = publishedFundingRepository;
             _logger = logger;
+            _specificationService = specificationService;
             _publishedFundingResilience = resiliencePolicies.PublishedFundingRepository;
             _publishFundingCsvJobsService = publishFundingCsvJobsService;
+            _organisationGroupService = organisationGroupService;
+            _policiesService = policiesService;
+            _providerService = providerService;
         }
 
-        public async Task<IActionResult> ApplyCustomProfile(ApplyCustomProfileRequest request, Reference author, string correlationId)
+        public async Task<IActionResult> ApplyCustomProfile(
+            ApplyCustomProfileRequest request, 
+            Reference author, 
+            string correlationId)
         {
             Guard.ArgumentNotNull(request, nameof(request));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -70,6 +97,13 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                 _publishedFundingRepository.GetPublishedProviderById(publishedProviderId, publishedProviderId));
 
             PublishedProviderVersion currentProviderVersion = publishedProvider.Current;
+
+            IEnumerable<string> updateRestrictedErrorMessages = await RestrictPastPeriodCustomProfileUpdate(request, publishedProvider);
+            if (!updateRestrictedErrorMessages.IsNullOrEmpty())
+            {
+                return new BadRequestObjectResult(
+                    updateRestrictedErrorMessages.ToArray().ToModelStateDictionary());
+            }
 
             currentProviderVersion.VerifyProfileAmountsMatchFundingLineValue(fundingLineCode, request.ProfilePeriods, request.CarryOver);
 
@@ -117,6 +151,74 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                 author);
 
             return new NoContentResult();
+        }
+
+        private async Task<IEnumerable<string>> RestrictPastPeriodCustomProfileUpdate(
+            ApplyCustomProfileRequest request,
+            PublishedProvider publishedProvider)
+        {
+            string specificationId = publishedProvider.Current.SpecificationId;
+
+            SpecificationSummary specificationSummary =
+                await _specificationService.GetSpecificationSummaryById(specificationId);
+
+            IEnumerable<ProfileVariationPointer> profileVariationPointers
+                = await _specificationService.GetProfileVariationPointers(specificationId);
+
+            if (!profileVariationPointers.Any())
+            {
+                return Array.Empty<string>();
+            }
+
+            FundingConfiguration fundingConfiguration
+                = await _policiesService.GetFundingConfiguration(
+                    specificationSummary.FundingStreams.FirstOrDefault().Id,
+                    specificationSummary.FundingPeriod.Id);
+
+            IDictionary<string, Provider> scopedProviders
+                = await _providerService.GetScopedProvidersForSpecification(
+                    specificationSummary.Id, specificationSummary.ProviderVersionId);
+
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData =
+                await _organisationGroupService.GenerateOrganisationGroups(
+                        scopedProviders.Values,
+                        new[] { publishedProvider },
+                        fundingConfiguration,
+                        specificationSummary.ProviderVersionId,
+                        specificationSummary.ProviderSnapshotId);
+
+            IEnumerable<OrganisationGroupingReason> organisationGroupingReasons
+                = organisationGroupResultsData.Values.SelectMany(v => v.Select(_ => _.GroupReason)).Distinct();
+
+            if (organisationGroupingReasons.Any(_ => !IsContracted(_)))
+            {
+                ProfileVariationPointer latestProfileVariationPointer = profileVariationPointers
+                    .OrderByDescending(_ => _.Year)
+                    .ThenByDescending(_ => YearMonthOrderedProfilePeriods.MonthNumberFor(_.TypeValue))
+                    .FirstOrDefault();
+
+                ProfilePeriod earliestProfilePeriod = request.ProfilePeriods
+                    .OrderBy(_ => _.Year)
+                    .ThenBy(_ => YearMonthOrderedProfilePeriods.MonthNumberFor(_.TypeValue))
+                    .FirstOrDefault();
+
+                if (earliestProfilePeriod.Year < latestProfileVariationPointer.Year ||
+                    (earliestProfilePeriod.Year == latestProfileVariationPointer.Year
+                        && YearMonthOrderedProfilePeriods.MonthNumberFor(earliestProfilePeriod.TypeValue) < YearMonthOrderedProfilePeriods.MonthNumberFor(latestProfileVariationPointer.TypeValue)))
+                {
+                    return new string[] { 
+                        $"Updating past profile periods for non contracted providers are restricted for custom profiling." +
+                        $"Profile Variation Pointer: Year={latestProfileVariationPointer.Year} Month={latestProfileVariationPointer.TypeValue} " +
+                        $"Profile Period Request: Year={earliestProfilePeriod.Year} Month={earliestProfilePeriod.TypeValue}"};
+                }
+            }
+
+            return Array.Empty<string>();
+        }
+
+        private static bool IsContracted(OrganisationGroupingReason organisationGroupingReason)
+        {
+            return organisationGroupingReason == OrganisationGroupingReason.Contracting;
         }
     }
 }
