@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -111,7 +112,7 @@ namespace CalculateFunding.Services.Publishing
 
             PublishedProvider modifiedPublishedProvider = await CreateVersion(publishedProvider, author);
 
-            if(modifiedPublishedProvider == null)
+            if (modifiedPublishedProvider == null)
             {
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
@@ -120,9 +121,14 @@ namespace CalculateFunding.Services.Publishing
 
             newPublishedProviderVersion.SetProfilePatternKey(profilePatternKey, author);
 
+            // remove any custom profiles for funding line
+            newPublishedProviderVersion.CustomProfiles = newPublishedProviderVersion.CustomProfiles?.Where(_ => _.FundingLineCode != profilePatternKey.FundingLineCode);
+
             await ProfileFundingLineValues(newPublishedProviderVersion, profilePatternKey);
 
-            await _publishedProviderErrorDetection.ApplyAssignProfilePatternErrorDetection(publishedProvider);
+            PublishedProvidersContext context = new PublishedProvidersContext { FundingConfiguration = fundingConfiguration };
+
+            await _publishedProviderErrorDetection.ApplyAssignProfilePatternErrorDetection(publishedProvider, context);
 
             await SavePublishedProvider(publishedProvider, newPublishedProviderVersion);
 

@@ -340,6 +340,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithFundingStreamId(_fundingStreamId)
                     .WithFundingPeriodId(_fundingPeriodId)
                     .WithSpecificationId(specificationId)
+                    .WithCustomProfiles(new FundingLineProfileOverrides { FundingLineCode = profilePatternKey.FundingLineCode })
                     .WithProfilePatternKeys(
                         NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode)
                             .WithKey(existingProfilePatternKey)))
@@ -393,6 +394,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             ThenResultShouldBe(result, HttpStatusCode.OK);
             AndProfilePatternKeyWasUpdated(existingPublishedProviderVersion, profilePatternKey);
+            AndCustomProfileRemovedForPatternKey(existingPublishedProviderVersion, profilePatternKey);
 
             fundingLine.DistributionPeriods
                 .Count()
@@ -606,6 +608,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             ProfilePatternKey profilePatternKey)
         {
             Assert.AreEqual(publishedProviderVersion.ProfilePatternKeys.SingleOrDefault(_ => _.FundingLineCode == profilePatternKey.FundingLineCode), profilePatternKey);
+        }
+
+        private void AndCustomProfileRemovedForPatternKey(PublishedProviderVersion publishedProviderVersion,
+            ProfilePatternKey profilePatternKey)
+        {
+            Assert.IsTrue(publishedProviderVersion.CustomProfiles == null ? true : publishedProviderVersion.CustomProfiles.Where(_ => _.FundingLineCode == profilePatternKey.FundingLineCode).Count() == 0);
         }
 
         private void AndThePublishedProviderWasProcessed(PublishedProvider publishedProvider)
