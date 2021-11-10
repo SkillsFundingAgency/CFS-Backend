@@ -310,6 +310,7 @@ namespace CalculateFunding.Api.External
             MapperConfiguration externalConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<ExternalServiceMappingProfile>();
+                c.AddProfile<V4.MappingProfiles.ExternalServiceMappingProfile>();
             });
 
             builder.AddSingleton(externalConfig.CreateMapper());
