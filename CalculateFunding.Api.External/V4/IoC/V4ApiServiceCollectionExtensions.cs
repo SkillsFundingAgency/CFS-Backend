@@ -106,13 +106,6 @@ namespace CalculateFunding.Api.External.V4.IoC
                 };
             });
 
-            MapperConfiguration externalConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<ExternalServiceMappingProfile>();
-            });
-
-            builder.AddSingleton(externalConfig.CreateMapper());
-
             return builder;
         }
     }
