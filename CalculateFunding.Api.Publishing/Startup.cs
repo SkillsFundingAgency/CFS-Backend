@@ -473,6 +473,12 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IPublishedProviderErrorDetection, PublishedProviderErrorDetection>()
                 .AddSingleton<IErrorDetectionStrategyLocator, ErrorDetectionStrategyLocator>()
                 .AddSingleton<IDetectPublishedProviderErrors, FundingLineValueProfileMismatchErrorDetector>()
+                .AddSingleton<IDetectPublishedProviderErrors, TrustIdMismatchErrorDetector>()
+                .AddSingleton<IDetectPublishedProviderErrors, ProviderNotFundedErrorDetector>()
+                .AddSingleton<IDetectPublishedProviderErrors, PostPaymentOutOfScopeProviderErrorDetector>()
+                .AddSingleton<IDetectPublishedProviderErrors, ProfilingConsistencyCheckErrorDetector>()
+                .AddSingleton<IDetectPublishedProviderErrors, MultipleSuccessorErrorDetector>()
+                .AddSingleton<IDetectPublishedProviderErrors, NoApplicableVariationErrorDetector>()
                 .AddSingleton<IProfilingService, ProfilingService>()
                 .AddSingleton<IHealthChecker, ProfilingService>()
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
