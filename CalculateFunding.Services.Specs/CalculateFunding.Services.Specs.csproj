@@ -15,7 +15,7 @@
     <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="8.3.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="4.4.22" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="5.3.1" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.15.1" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.17.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="4.11.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="6.2.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="5.2.0" />

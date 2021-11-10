@@ -14,7 +14,7 @@
 	  <PackageReference Include="CacheCow.Server" Version="2.7.4" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="2.3.1" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="7.4.0" />
-	  <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.15.1" />
+	  <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.17.0" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="8.3.1" />
 	      <PackageReference Include="CalculateFunding.Common.ApiClient.FundingDataZone" Version="2.1.0" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="4.4.0" />
@@ -23,7 +23,7 @@
     <PackageReference Include="CalculateFunding.Common.Models" Version="2.3.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.5" />
     <PackageReference Include="CalculateFunding.Generators.Funding" Version="4.2.2" />
-    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="2.6.0" />
+    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="2.8.0" />
     <PackageReference Include="EPPlus.Core" Version="1.5.4" />
     <PackageReference Include="Microsoft.FeatureManagement" Version="2.2.0" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.2.2" />

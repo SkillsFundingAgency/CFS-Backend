@@ -94,5 +94,35 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         /// Local Authority - Maintained Schools
         /// </summary>
         LocalAuthorityMaintained,
+
+        /// <summary>
+        /// Mainstream
+        /// </summary>
+        Mainstream,
+
+        /// <summary>
+        /// Non-maintained Special Schools
+        /// </summary>
+        NonMaintainedSpecialSchools,
+
+        /// <summary>
+        /// Pupil Referral Unit
+        /// </summary>
+        PupilReferralUnit,
+
+        /// <summary>
+        /// Academy Alternative Provision
+        /// </summary>
+        AcademyAlternativeProvision,
+
+        /// <summary>
+        /// Special Academies
+        /// </summary>
+        SpecialAcademies,
+
+        /// <summary>
+        /// Alternative Provision
+        /// </summary>
+        AlternativeProvision
     }
 }
