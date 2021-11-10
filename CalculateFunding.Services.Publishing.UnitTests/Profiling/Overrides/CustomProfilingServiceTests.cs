@@ -1,25 +1,25 @@
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Generators.OrganisationGroup.Enums;
+using CalculateFunding.Generators.OrganisationGroup.Models;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Profiling.Custom;
+using CalculateFunding.Tests.Common.Builders;
+using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Polly;
+using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Profiling.Custom;
-using CalculateFunding.Tests.Common.Builders;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentValidation;
-using FluentValidation.Results;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
-using Polly;
-using Serilog.Core;
-using CalculateFunding.Services.Publishing.Models;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Generators.OrganisationGroup.Models;
-using CalculateFunding.Generators.OrganisationGroup.Enums;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 {
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             _validator = new Mock<IValidator<ApplyCustomProfileRequest>>();
             _publishedFunding = new Mock<IPublishedFundingRepository>();
             _publishedFundingCsvJobsService = new Mock<IPublishedFundingCsvJobsService>();
-            
+
             _specificationService = new Mock<ISpecificationService>();
             _organisationGroupService = new Mock<IOrganisationGroupService>();
             _policiesService = new Mock<IPoliciesService>();
@@ -405,6 +405,95 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         }
 
         [TestMethod]
+        public async Task ExitsEarlyIfUpdatingPastProfilePeriodsForNonContractedProviderAndNoVariationPointerSet()
+        {
+            int? carryOver = 2;
+            PublishedProviderStatus currentStatus = PublishedProviderStatus.Draft;
+
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            int? providerSnapshotId = NewRandomNumber();
+
+            string fundingLineOne = NewRandomString();
+            ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithYear(2021).WithTypeValue("May"));
+            ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithYear(2022).WithTypeValue("April"));
+
+            ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
+                .WithFundingLineCode(fundingLineOne)
+                .WithProfilePeriods(profilePeriod1, profilePeriod2)
+                .WithCarryOver(carryOver));
+
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
+                NewPublishedProviderVersion(ppv =>
+                ppv
+                    .WithSpecificationId(specificationId)
+                    .WithPublishedProviderStatus(currentStatus)
+                    .WithCustomProfiles(
+                            new[] {
+                                    new FundingLineProfileOverrides {
+                                        FundingLineCode = fundingLineOne,
+                                        DistributionPeriods = new List<DistributionPeriod>()
+                                    }
+                                })
+                    .WithFundingLines(NewFundingLine(fl =>
+                        fl.WithFundingLineCode(fundingLineOne)
+                            .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2021")
+                                    .WithProfilePeriods(profilePeriod1)),
+                                    NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2022")
+                                    .WithProfilePeriods(profilePeriod2)))
+                            .WithValue(profilePeriod1.ProfiledValue + profilePeriod2.ProfiledValue + carryOver.GetValueOrDefault()))
+                        ))));
+
+            Reference author = NewAuthor();
+
+            GivenTheValidationResultForTheRequest(NewValidationResult(), request);
+            AndThePublishedProvider(request.PublishedProviderId, publishedProvider);
+
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _
+                .WithId(specificationId)
+                .WithFundingStreamIds(fundingStreamId)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithProviderVersionId(providerVersionId)
+                .WithProviderSnapshotId(providerSnapshotId));
+            AndGetSpecificationSummaryById(specificationId, specificationSummary);
+
+            Provider provider = NewProvider();
+            IDictionary<string, Provider> scopedProviders = new Dictionary<string, Provider>()
+            {
+                {string.Empty, provider }
+            };
+            AndGetScopedProvidersForSpecification(specificationId, providerVersionId, scopedProviders);
+
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration();
+            AndGetFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
+
+            OrganisationGroupResult organisationGroupResult = NewOrganisationGroupResult(_ => _.WithGroupReason(OrganisationGroupingReason.Information));
+
+            GetProfileVariationPointers(specificationId, null);
+
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>
+            {
+                {string.Empty, new[]{ organisationGroupResult } }
+            };
+            AndGenerateOrganisationGroups(
+                scopedProviders.Values.FirstOrDefault(),
+                publishedProvider,
+                fundingConfiguration,
+                providerVersionId,
+                providerSnapshotId,
+                organisationGroupResultsData);
+
+            IActionResult result = await WhenTheCustomProfileIsApplied(request, author);
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+        }
+
+        [TestMethod]
         [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, null, true)]
         [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, 2, true)]
         [DataRow(PublishedProviderStatus.Updated, PublishedProviderStatus.Updated, null, true)]
@@ -432,13 +521,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
                 NewPublishedProviderVersion(ppv =>
                 ppv.WithPublishedProviderStatus(currentStatus)
-                    .WithCustomProfiles(withExistingCustomProfile ? 
-                            new[] { 
-                                    new FundingLineProfileOverrides { 
+                    .WithCustomProfiles(withExistingCustomProfile ?
+                            new[] {
+                                    new FundingLineProfileOverrides {
                                         FundingLineCode = fundingLineOne,
                                         DistributionPeriods = new List<DistributionPeriod>()
-                                    } 
-                                } : 
+                                    }
+                                } :
                             null)
                     .WithFundingLines(NewFundingLine(fl =>
                         fl.WithFundingLineCode(fundingLineOne)

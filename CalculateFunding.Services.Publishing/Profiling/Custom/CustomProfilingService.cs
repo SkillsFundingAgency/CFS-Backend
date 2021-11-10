@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
@@ -17,6 +13,10 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Polly;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Profiling.Custom
 {
@@ -71,8 +71,8 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
         }
 
         public async Task<IActionResult> ApplyCustomProfile(
-            ApplyCustomProfileRequest request, 
-            Reference author, 
+            ApplyCustomProfileRequest request,
+            Reference author,
             string correlationId)
         {
             Guard.ArgumentNotNull(request, nameof(request));
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             IEnumerable<ProfileVariationPointer> profileVariationPointers
                 = await _specificationService.GetProfileVariationPointers(specificationId);
 
-            if (!profileVariationPointers.Any())
+            if (!profileVariationPointers.AnyWithNullCheck())
             {
                 return Array.Empty<string>();
             }
@@ -206,7 +206,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                     (earliestProfilePeriod.Year == latestProfileVariationPointer.Year
                         && YearMonthOrderedProfilePeriods.MonthNumberFor(earliestProfilePeriod.TypeValue) < YearMonthOrderedProfilePeriods.MonthNumberFor(latestProfileVariationPointer.TypeValue)))
                 {
-                    return new string[] { 
+                    return new string[] {
                         $"Updating past profile periods for non contracted providers are restricted for custom profiling." +
                         $"Profile Variation Pointer: Year={latestProfileVariationPointer.Year} Month={latestProfileVariationPointer.TypeValue} " +
                         $"Profile Period Request: Year={earliestProfilePeriod.Year} Month={earliestProfilePeriod.TypeValue}"};
