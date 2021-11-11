@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
         {
-            providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new MidYearClosureReProfileVariationChange(providerVariationContext));
 
             // Stop subsequent strategies                    
             return Task.FromResult(true);

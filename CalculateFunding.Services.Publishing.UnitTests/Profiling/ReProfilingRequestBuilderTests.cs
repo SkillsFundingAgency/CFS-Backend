@@ -361,7 +361,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 profilePatternKey,
                 publishedProviderVersion,
                 configurationType,
-                fundingLineTotal, 
+                fundingLineTotal,
+                publishedProviderVersion?.Provider,
                 midYear);
 
         private void AndTheVariationPointers(string specificationId,
@@ -374,7 +375,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             yield return NewMissingArgumentsExamples(null,
                 NewRandomString(),
                 "publishedProviderVersion");
-            yield return NewMissingArgumentsExamples(NewPublisherProviderVersion(),
+            yield return NewMissingArgumentsExamples(NewPublisherProviderVersion(_ => _.WithProvider(NewProvider())),
                 null,
                 "fundingLineCode");
         }

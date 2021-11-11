@@ -7,16 +7,14 @@ using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
-    public class MidYearReProfileVariationChange : ReProfileVariationChange
+    public class MidYearClosureReProfileVariationChange : MidYearReProfileVariationChange
     {
-        public MidYearReProfileVariationChange(ProviderVariationContext variationContext) 
+        public MidYearClosureReProfileVariationChange(ProviderVariationContext variationContext) 
             : base(variationContext)
         {
         }
 
-        protected override IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLinesWithVariationPointerSet;
-        
-        protected override bool ShouldReprofile(FundingLine fundingLine) => !fundingLine.Value.HasValue || fundingLine.Value == 0;
+        protected override bool ShouldReprofile(FundingLine fundingLine) => !fundingLine.Value.HasValue;
 
         protected override Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
@@ -26,9 +24,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             FundingLine fundingLine) =>
             variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
-                refreshState,
+                priorState,
                 ProfileConfigurationType.RuleBased,
                 fundingLine.Value,
-                midYear: true);
+                refreshState.Provider,
+                true);
     }
 }

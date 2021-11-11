@@ -192,6 +192,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     VariationContext.PriorState,
                     ProfileConfigurationType.RuleBased,
                     fundingLine.Value,
+                    null,
                     false))
                 .ReturnsAsync(reProfileRequest);
 

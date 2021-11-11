@@ -347,6 +347,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     publishedProviderVersion,
                     request.ConfigurationType,
                     null,
+                    null,
                     false),
                 Times.Once);
 
@@ -357,6 +358,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     previewRequest.ProfilePatternKey,
                     publishedProviderVersion,
                     previewRequest.ConfigurationType,
+                    null,
                     null,
                     false))
                 .ReturnsAsync(reProfileRequest);

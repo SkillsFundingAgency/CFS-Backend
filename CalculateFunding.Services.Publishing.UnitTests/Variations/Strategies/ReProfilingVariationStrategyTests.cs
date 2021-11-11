@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
             await WhenTheVariationsAreProcessed();
 
-            ThenTheVariationChangeWasQueued<MidYearReProfileVariationChange>();
+            ThenTheVariationChangeWasQueued<MidYearClosureReProfileVariationChange>();
             AndTheAffectedFundingLinesWereTracked(newFundingLineCode);
         }
     }

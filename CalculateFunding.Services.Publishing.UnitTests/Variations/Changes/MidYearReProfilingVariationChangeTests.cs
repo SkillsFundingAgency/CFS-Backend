@@ -23,6 +23,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     RefreshState,
                     ProfileConfigurationType.RuleBased,
                     fundingLine.Value,
+                    null,
                     true))
                 .ReturnsAsync(reProfileRequest);
     }

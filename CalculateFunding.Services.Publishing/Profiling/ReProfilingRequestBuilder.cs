@@ -36,10 +36,13 @@ namespace CalculateFunding.Services.Publishing.Profiling
             PublishedProviderVersion publishedProviderVersion,
             ProfileConfigurationType configurationType,
             decimal? fundingLineTotal = null,
+            Provider currentProvider = null,
             bool midYear = false)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
+
+            currentProvider ??= publishedProviderVersion.Provider;
 
             ProfileVariationPointer profileVariationPointer = await GetProfileVariationPointerForFundingLine(publishedProviderVersion.SpecificationId,
                 fundingLineCode,
@@ -60,9 +63,9 @@ namespace CalculateFunding.Services.Publishing.Profiling
             if (midYear)
             {
                 // We need a way to determine new openers which opened prior to the release
-                if (publishedProviderVersion.Provider.Status != VariationStrategy.Closed)
+                if (currentProvider.Status != VariationStrategy.Closed)
                 {
-                    DateTimeOffset? openedDate = publishedProviderVersion.Provider.DateOpened;
+                    DateTimeOffset? openedDate = currentProvider.DateOpened;
                     bool catchup = openedDate == null ? false : openedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && openedDate.Value.Year <= firstPeriod.Year;
                     midYearType = catchup ? MidYearType.OpenerCatchup : MidYearType.Opener;
                 }
