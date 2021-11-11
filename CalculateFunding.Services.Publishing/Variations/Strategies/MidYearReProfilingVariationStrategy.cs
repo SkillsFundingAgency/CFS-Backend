@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             refreshState.PaymentFundingLinesWithValues.Where(_ => !priorFundingLineCodes.Contains(_.FundingLineCode));
 
         private HashSet<string> PaymentFundingLineWithValues(PublishedProviderVersion publishedProviderVersion)
-            => publishedProviderVersion.FundingLines?.Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue).Select(_ => _.FundingLineCode).ToHashSet() ?? new HashSet<string>();
+            => publishedProviderVersion.FundingLines?.Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue && _.DistributionPeriods != null).Select(_ => _.FundingLineCode).ToHashSet() ?? new HashSet<string>();
 
         private static bool VariationPointersNotSet(ProviderVariationContext providerVariationContext) => !(providerVariationContext.VariationPointers?.Any()).GetValueOrDefault();
 
