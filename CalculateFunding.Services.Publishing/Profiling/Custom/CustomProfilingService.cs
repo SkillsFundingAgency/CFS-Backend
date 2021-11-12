@@ -98,12 +98,12 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
             PublishedProviderVersion currentProviderVersion = publishedProvider.Current;
 
-            IEnumerable<string> updateRestrictedErrorMessages = await RestrictPastPeriodCustomProfileUpdate(request, publishedProvider);
-            if (!updateRestrictedErrorMessages.IsNullOrEmpty())
-            {
-                return new BadRequestObjectResult(
-                    updateRestrictedErrorMessages.ToArray().ToModelStateDictionary());
-            }
+            //IEnumerable<string> updateRestrictedErrorMessages = await RestrictPastPeriodCustomProfileUpdate(request, publishedProvider);
+            //if (!updateRestrictedErrorMessages.IsNullOrEmpty())
+            //{
+            //    return new BadRequestObjectResult(
+            //        updateRestrictedErrorMessages.ToArray().ToModelStateDictionary());
+            //}
 
             currentProviderVersion.VerifyProfileAmountsMatchFundingLineValue(fundingLineCode, request.ProfilePeriods, request.CarryOver);
 
