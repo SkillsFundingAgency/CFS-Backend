@@ -74,7 +74,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         private static IEnumerable<FundingLine> NewAllocations(PublishedProviderVersion refreshState,
             HashSet<string> priorFundingLineCodes) =>
-            refreshState.PaymentFundingLinesWithValues.Where(_ => !priorFundingLineCodes.Contains(_.FundingLineCode));
+            // this is an opener or newly funded variation strategy therefore
+            // only apply variation to funding lines which have a none 0 value for current refresh state
+            refreshState.PaymentFundingLinesWithValues.Where(_ => _.Value != 0 && !priorFundingLineCodes.Contains(_.FundingLineCode));
 
         private HashSet<string> PaymentFundingLineWithValues(PublishedProviderVersion publishedProviderVersion)
             => publishedProviderVersion.FundingLines?.Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue && _.DistributionPeriods != null).Select(_ => _.FundingLineCode).ToHashSet() ?? new HashSet<string>();

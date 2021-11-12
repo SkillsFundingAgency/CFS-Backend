@@ -38,6 +38,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             VariationContext.VariationPointers = variationPointers;
         }
 
+        protected void AndTheAffectedFundingLinesAreNotTracked(params string[] affectedFundingLines)
+            => VariationContext.AffectedFundingLineCodes?
+                .Should()
+                .NotContain(affectedFundingLines);
+
         protected void AndTheAffectedFundingLinesWereTracked(params string[] affectedFundingLines)
             => VariationContext.AffectedFundingLineCodes
                 .Should()

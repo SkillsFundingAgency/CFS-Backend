@@ -14,8 +14,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
         }
 
-        protected override bool ShouldReprofile(FundingLine fundingLine) => !fundingLine.Value.HasValue;
-
         protected override Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,

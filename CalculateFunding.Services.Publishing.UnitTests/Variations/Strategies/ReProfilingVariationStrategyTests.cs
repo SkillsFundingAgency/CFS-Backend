@@ -80,7 +80,54 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             ThenTheVariationChangeWasQueued<MidYearReProfileVariationChange>();
             AndTheAffectedFundingLinesWereTracked(FundingLineCode);
         }
-        
+
+        [TestMethod]
+        public async Task DoesntTrackFundingLinesAsAffectedFundingLineCodeWhenRefreshFundingLineValueIsZero()
+        {
+            int year = NewRandomNumber();
+            string month = NewRandomMonth();
+            string newFundingLineCode = NewRandomString();
+            string newFundingLineCodeNotFunded = NewRandomString();
+
+            base.GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Publishing.Variations.Strategies.VariationStrategy.Opened);
+
+            AndTheRefreshStateFundingLines(NewFundingLine(_ => _.WithFundingLineCode(newFundingLineCode)
+                        .WithFundingLineType(FundingLineType.Payment)
+                        .WithValue(NewRandomNumber())
+                        .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                            dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithYear(year)
+                                    .WithTypeValue(month)
+                                    .WithType(ProfilePeriodType.CalendarMonth)
+                                    .WithOccurence(0)),
+                                NewProfilePeriod(pp => pp.WithYear(year)
+                                    .WithTypeValue(month)
+                                    .WithType(ProfilePeriodType.CalendarMonth)
+                                    .WithOccurence(1)))))),
+                    NewFundingLine(_ => _.WithFundingLineCode(newFundingLineCodeNotFunded)
+                        .WithFundingLineType(FundingLineType.Payment)
+                        .WithValue(0)
+                        .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                            dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithYear(year)
+                                    .WithTypeValue(month)
+                                    .WithType(ProfilePeriodType.CalendarMonth)
+                                    .WithOccurence(0)),
+                                NewProfilePeriod(pp => pp.WithYear(year)
+                                    .WithTypeValue(month)
+                                    .WithType(ProfilePeriodType.CalendarMonth)
+                                    .WithOccurence(1)))))));
+            AndTheVariationPointers(NewVariationPointer(_ => _.WithYear(year)
+                .WithTypeValue(month)
+                .WithOccurence(1)
+                .WithFundingLineId(newFundingLineCode)
+                .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
+
+            await WhenTheVariationsAreProcessed();
+
+            ThenTheVariationChangeWasQueued<MidYearReProfileVariationChange>();
+
+            AndTheAffectedFundingLinesAreNotTracked(newFundingLineCodeNotFunded);
+        }
+
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
