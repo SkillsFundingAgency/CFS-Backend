@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Generators.OrganisationGroup.Models;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using System.Collections.Generic;
 
@@ -24,5 +25,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Specification Specification { get; set; }
 
         Dictionary<OrganisationGroupResult, int> FundingGroups { get; set; }
+        string JobId { get; set; }
+        Reference Author { get; set; }
+        string CorrelationId { get; set; }
     }
 }

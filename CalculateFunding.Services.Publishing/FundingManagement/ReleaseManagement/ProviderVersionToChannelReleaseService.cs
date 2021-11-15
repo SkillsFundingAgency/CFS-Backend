@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Common.Models;
-using CalculateFunding.Common.Utility;
+﻿using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using Serilog;
@@ -29,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         }
 
         public async Task ReleaseProviderVersionChannel(IEnumerable<ReleasedProvider> releasedProviders,
-            int channelId, DateTime statusChangedDate, Reference author)
+            int channelId, DateTime statusChangedDate)
         {
             foreach (ReleasedProvider releasedProvider in releasedProviders)
             {
@@ -46,8 +45,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                         ReleasedProviderVersionId = GetReleaseProviderVersionId(releasedProvider.ProviderId, channelId),
                         ChannelId = channelId,
                         StatusChangedDate = statusChangedDate,
-                        AuthorId = author.Id,
-                        AuthorName = author.Name
+                        AuthorId = _releaseToChannelSqlMappingContext.Author.Id,
+                        AuthorName = _releaseToChannelSqlMappingContext.Author.Name
                     });
 
                 _releaseToChannelSqlMappingContext.ReleasedProviderVersionChannels.Add(key, releasedProviderVersionChannel);

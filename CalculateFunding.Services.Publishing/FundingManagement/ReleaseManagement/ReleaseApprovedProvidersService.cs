@@ -15,21 +15,23 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     {
         private readonly IPublishService _publishService;
         private readonly IPublishedProvidersLoadContext _publishedProvidersLoadContext;
+        private readonly IReleaseToChannelSqlMappingContext _releaseToChannelSqlMappingContext;
 
         public ReleaseApprovedProvidersService(IPublishService publishService,
-            IPublishedProvidersLoadContext publishedProvidersLoadContext)
+            IPublishedProvidersLoadContext publishedProvidersLoadContext,
+            IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext)
         {
             Guard.ArgumentNotNull(publishService, nameof(publishService));
             Guard.ArgumentNotNull(publishedProvidersLoadContext, nameof(publishedProvidersLoadContext));
+            Guard.ArgumentNotNull(releaseToChannelSqlMappingContext, nameof(releaseToChannelSqlMappingContext));
 
             _publishService = publishService;
             _publishedProvidersLoadContext = publishedProvidersLoadContext;
+            _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
         }
 
-        public async Task<IEnumerable<string>> ReleaseProvidersInApprovedState(Reference author, string correlationId, SpecificationSummary specification)
+        public async Task<IEnumerable<string>> ReleaseProvidersInApprovedState(SpecificationSummary specification)
         {
-            Guard.ArgumentNotNull(author, nameof(author));
-            Guard.IsNullOrWhiteSpace(correlationId, correlationId);
             Guard.ArgumentNotNull(specification, nameof(specification));
 
             IEnumerable<PublishedProvider> providersToRelease = _publishedProvidersLoadContext
@@ -43,7 +45,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     PublishedProviderIds = providersToRelease.Select(_ => _.Current.ProviderId),
                 };
 
-                await _publishService.PublishProviderFundingResults(true, author, correlationId, specification, publishedProviderIdsRequest);
+                await _publishService.PublishProviderFundingResults(
+                    true, _releaseToChannelSqlMappingContext.Author, _releaseToChannelSqlMappingContext.CorrelationId, specification, publishedProviderIdsRequest);
             }
 
             return providersToRelease.Select(_ => _.Current.ProviderId);

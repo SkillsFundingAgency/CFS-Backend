@@ -3,6 +3,8 @@ using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
+using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Variations;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +38,8 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IPublishedProvidersLoadContext, PublishedProvidersLoadContext>();
             builder.AddScoped<IReleaseApprovedProvidersService, ReleaseApprovedProvidersService>();
             builder.AddScoped<IReleaseProvidersToChannelsService, ReleaseProvidersToChannelsService>();
+            builder.AddScoped<IChannelReleaseService, ChannelReleaseService>();
+            builder.AddScoped<IProviderVersionToChannelReleaseService, ProviderVersionToChannelReleaseService>();
             builder.AddScoped<IReleaseProviderPersistanceService, ReleaseProviderPersistanceService>();
             builder.AddScoped<IReleaseToChannelSqlMappingContext, ReleaseToChannelSqlMappingContext>();
             builder.AddScoped<IProviderVersionReleaseService, ProviderVersionReleaseService>();
@@ -50,6 +54,9 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IFundingGroupDataGenerator, FundingGroupDataGenerator>();
             builder.AddScoped<IPublishedProviderLoaderForFundingGroupData, PublishedProviderLoaderForFundingGroupData>();
             builder.AddScoped<IFundingGroupDataPersistenceService, FundingGroupDataPersistenceService>();
+
+            builder.AddTransient<IDetectProviderVariations, ProviderVariationsDetection>();
+            builder.AddTransient<IVariationStrategyServiceLocator, VariationStrategyServiceLocator>();
 
             return builder;
         }

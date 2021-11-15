@@ -38,6 +38,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<IJobManagement> _jobManagement;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private Mock<IReleaseManagementSpecificationService> _releaseManagementSpecificationService;
+        private Mock<IChannelReleaseService> _channelReleaseService;
+        private Mock<IReleaseToChannelSqlMappingContext> _releaseContext;
 
         [TestInitialize]
         public void SetUp()
@@ -53,6 +55,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _jobManagement = new Mock<IJobManagement>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _releaseManagementSpecificationService = new Mock<IReleaseManagementSpecificationService>();
+            _channelReleaseService = new Mock<IChannelReleaseService>();
+            _releaseContext = new Mock<IReleaseToChannelSqlMappingContext>();
 
             _releaseProvidersToChannelsService = new ReleaseProvidersToChannelsService(
                 _specificationService.Object,
@@ -64,7 +68,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _logger.Object,
                 _prerequisiteCheckerLocator.Object,
                 _releaseManagementRepository.Object,
-                _releaseManagementSpecificationService.Object
+                _releaseManagementSpecificationService.Object,
+                _channelReleaseService.Object,
+                _releaseContext.Object
                 );
         }
 
@@ -166,8 +172,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _channelsService.Setup(s => s.GetAndVerifyChannels(It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync(new List<KeyValuePair<string, Channel>>());
 
-            _releaseApprovedProvidersService.Setup(s => s.ReleaseProvidersInApprovedState(
-                It.IsAny<Reference>(), It.IsAny<string>(), It.IsAny<SpecificationSummary>()))
+            _releaseApprovedProvidersService.Setup(s => s.ReleaseProvidersInApprovedState(It.IsAny<SpecificationSummary>()))
                 .ReturnsAsync(new List<string>());
 
             Message message = new Message

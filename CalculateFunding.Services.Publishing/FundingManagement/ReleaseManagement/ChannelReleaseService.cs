@@ -1,6 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
@@ -14,7 +13,7 @@ using VariationReason = CalculateFunding.Models.Publishing.VariationReason;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
 {
-    public class ChannelReleaseService
+    public class ChannelReleaseService : IChannelReleaseService
     {
         private readonly IPublishedProvidersLoadContext _publishProvidersLoadContext;
         private readonly IProvidersForChannelFilterService _providersForChannelFilterService;
@@ -81,15 +80,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         /// <param name="fundingConfiguration">The funding configuration</param>
         /// <param name="specification">The specification</param>
         /// <param name="batchPublishedProviderIds">The batch of published provider ids to release</param>
-        /// <param name="author">The author of this release</param>
         /// <returns></returns>
         public async Task ReleaseProvidersForChannel(Channel channel, 
             FundingConfiguration fundingConfiguration, 
             SpecificationSummary specification, 
-            IEnumerable<string> batchPublishedProviderIds,
-            Reference author)
+            IEnumerable<string> batchPublishedProviderIds)
         {
             Guard.ArgumentNotNull(channel, nameof(channel));
+            Guard.ArgumentNotNull(fundingConfiguration, nameof(fundingConfiguration));
+            Guard.ArgumentNotNull(specification, nameof(specification));
+            Guard.ArgumentNotNull(batchPublishedProviderIds, nameof(batchPublishedProviderIds));
 
             IEnumerable<PublishedProvider> publishedProvidersBatch = await _publishProvidersLoadContext.GetOrLoadProviders(batchPublishedProviderIds);
 
@@ -135,8 +135,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             await _providerVersionToChannelReleaseService.ReleaseProviderVersionChannel(
                 releasedProviders,
                 channel.ChannelId,
-                DateTime.UtcNow,
-                author);
+                DateTime.UtcNow);
             
             IDictionary<string, IEnumerable<VariationReason>> variationReasonsForProviders = await _generateVariationReasonsForChannelService.GenerateVariationReasonsForProviders(
                 batchPublishedProviderIds,

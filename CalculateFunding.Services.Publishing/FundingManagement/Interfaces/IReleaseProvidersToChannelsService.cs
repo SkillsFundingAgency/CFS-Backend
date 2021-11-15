@@ -10,6 +10,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
     {
         Task<IActionResult> QueueReleaseProviderVersions(string specificationId, ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest, Reference author, string correlationId);
 
-        Task ReleaseProviderVersions(string specificationId, ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest, Reference author, string correlationId);
+        Task ReleaseProviderVersions(string specificationId, ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest);
     }
 }

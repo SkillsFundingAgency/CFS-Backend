@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Generators.OrganisationGroup.Models;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using System.Collections.Generic;
@@ -27,5 +28,20 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         public Specification Specification { get; set; }
 
         public Dictionary<OrganisationGroupResult, int> FundingGroups { get; set; }
+
+        /// <summary>
+        /// The job id of the release job
+        /// </summary>
+        public string JobId { get; set; }
+
+        /// <summary>
+        /// Correlation id for the release job
+        /// </summary>
+        public string CorrelationId { get; set; }
+
+        /// <summary>
+        /// The user that initiated the release job
+        /// </summary>
+        public Reference Author { get; set; }
     }
 }

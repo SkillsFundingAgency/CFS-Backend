@@ -37,6 +37,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _logger = new Mock<ILogger>();
             _author = new Reference("author", "author");
 
+            _releaseToChannelSqlMappingContext.SetupGet(_ => _.Author)
+                .Returns(_author);
+
             _service = new ProviderVersionToChannelReleaseService(
                 _releaseManagementRepository.Object, _releaseToChannelSqlMappingContext.Object, _logger.Object);
 
@@ -76,7 +79,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             GivenContext(null, _providerVersions);
 
-            await _service.ReleaseProviderVersionChannel(_releasedProviders, channelId, statusDateTime, _author);
+            await _service.ReleaseProviderVersionChannel(_releasedProviders, channelId, statusDateTime);
 
             _releaseManagementRepository.Verify(
                 r => r.CreateReleasedProviderVersionChannelsUsingAmbientTransaction(It.IsAny<ReleasedProviderVersionChannel>()), Times.Exactly(_releasedProviders.Count));
@@ -87,7 +90,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             GivenContext(_providerVersionChannels, _providerVersions);
 
-            await _service.ReleaseProviderVersionChannel(_releasedProviders, channelId, statusDateTime, _author);
+            await _service.ReleaseProviderVersionChannel(_releasedProviders, channelId, statusDateTime);
 
             _releaseManagementRepository.Verify(
                 r => r.CreateReleasedProviderVersionChannelsUsingAmbientTransaction(It.IsAny<ReleasedProviderVersionChannel>()), Times.Never);
@@ -98,7 +101,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             GivenContext(null, null);
 
-            Func<Task> result = async () => await _service.ReleaseProviderVersionChannel(_releasedProviders, channelId, statusDateTime, _author);
+            Func<Task> result = async () => await _service.ReleaseProviderVersionChannel(_releasedProviders, channelId, statusDateTime);
 
             result
                 .Should()

@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
         private IReleaseApprovedProvidersService _releaseApprovedProvidersService;
         private Mock<IPublishService> _publishService;
         private Mock<IPublishedProvidersLoadContext> _publishedProvidersLoadContext;
+        private Mock<IReleaseToChannelSqlMappingContext> _releaseContext;
         private SpecificationSummary _specification;
         private string _correlationId;
         private Reference _author; 
@@ -33,14 +34,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
         {
             _publishService = new Mock<IPublishService>();
             _publishedProvidersLoadContext = new Mock<IPublishedProvidersLoadContext>();
+            _releaseContext = new Mock<IReleaseToChannelSqlMappingContext>();
 
             _specification = NewSpecificationSummary();
             _correlationId = NewRandomString();
             _author = NewReference();
 
+            _releaseContext.SetupGet(_ => _.Author)
+                .Returns(_author);
+
+            _releaseContext.SetupGet(_ => _.CorrelationId)
+                .Returns(_correlationId);
+
             _releaseApprovedProvidersService = new ReleaseApprovedProvidersService(
                 _publishService.Object,
-                _publishedProvidersLoadContext.Object
+                _publishedProvidersLoadContext.Object,
+                _releaseContext.Object
             );
         }
 
@@ -65,8 +74,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
 
         private async Task<IEnumerable<string>> WhenReleaseProvidersInApprovedState()
         {
-            return await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(_author,
-                _correlationId,
+            return await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(
                 _specification);
         }
 

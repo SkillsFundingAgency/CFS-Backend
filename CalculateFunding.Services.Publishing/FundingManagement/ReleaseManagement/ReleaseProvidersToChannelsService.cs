@@ -33,6 +33,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
         private readonly IReleaseManagementRepository _releaseManagementRepository;
         private readonly IReleaseManagementSpecificationService _releaseManagementSpecificationService;
+        private readonly IChannelReleaseService _channelReleaseService;
+        private readonly IReleaseToChannelSqlMappingContext _releaseToChannelSqlMappingContext;
 
         public ReleaseProvidersToChannelsService(
             ISpecificationService specificationService,
@@ -44,7 +46,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             ILogger logger,
             IPrerequisiteCheckerLocator prerequisiteCheckerLocator,
             IReleaseManagementRepository releaseManagementRepository,
-            IReleaseManagementSpecificationService releaseManagementSpecificationService) : base(jobManagement, logger)
+            IReleaseManagementSpecificationService releaseManagementSpecificationService,
+            IChannelReleaseService channelReleaseService,
+            IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
@@ -54,6 +58,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(releaseManagementSpecificationService, nameof(releaseManagementSpecificationService));
+            Guard.ArgumentNotNull(channelReleaseService, nameof(channelReleaseService));
+            Guard.ArgumentNotNull(releaseToChannelSqlMappingContext, nameof(releaseToChannelSqlMappingContext));
 
             _specificationService = specificationService;
             _policiesService = policiesService;
@@ -64,6 +70,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
             _releaseManagementRepository = releaseManagementRepository;
             _releaseManagementSpecificationService = releaseManagementSpecificationService;
+            _channelReleaseService = channelReleaseService;
+            _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
         }
 
         public async Task<IActionResult> QueueReleaseProviderVersions(
@@ -106,22 +114,19 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             _releaseManagementRepository.InitialiseTransaction();
 
+            SetReleaseContext(message);
+
             string specificationId = message.GetUserProperty<string>("specification-id");
             ReleaseProvidersToChannelRequest model = message.GetPayloadAsInstanceOf<ReleaseProvidersToChannelRequest>();
 
-            Reference author = message.GetUserDetails();
-            string correlationId = message.GetCorrelationId();
-
-            await ReleaseProviderVersions(specificationId, model, author, correlationId);
+            await ReleaseProviderVersions(specificationId, model);
 
             _releaseManagementRepository.Commit();
         }
 
         public async Task ReleaseProviderVersions(
             string specificationId,
-            ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest,
-            Reference author,
-            string correlationId)
+            ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest)
         {
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
             if (specification == null)
@@ -161,9 +166,22 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             await LoadGivenProvidersFromFundingApprovals(releaseProvidersToChannelRequest);
 
-            IEnumerable<string> providerIdsReleased = await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(author, correlationId, specification);
+            IEnumerable<string> providerIdsReleased = await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(specification);
             
             await RefreshLoadContextWithProvidersApprovedNowReleased(providerIdsReleased);
+
+            foreach (KeyValuePair<string, SqlModels.Channel> channel in channels)
+            {
+                await _channelReleaseService.ReleaseProvidersForChannel(
+                    channel.Value, fundingConfiguration, specification, releaseProvidersToChannelRequest.ProviderIds);
+            }
+        }
+
+        private void SetReleaseContext(Message message)
+        {
+            _releaseToChannelSqlMappingContext.JobId = Job?.Id;
+            _releaseToChannelSqlMappingContext.Author = message.GetUserDetails();
+            _releaseToChannelSqlMappingContext.CorrelationId = message.GetCorrelationId();
         }
 
         private async Task RefreshLoadContextWithProvidersApprovedNowReleased(IEnumerable<string> providerIdsReleased)
