@@ -41,13 +41,17 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return true;
             }
 
+            bool doesNotHaveNewAllocations = true;
+
             // we only need to re-profile an opener if it has a none zero value
             foreach (FundingLine fundingLine in refreshState.PaymentFundingLinesWithValues.Where(_ => _.Value != 0))  
             {
-                providerVariationContext.AddAffectedFundingLineCode(Name, fundingLine.FundingLineCode);   
+                providerVariationContext.AddAffectedFundingLineCode(Name, fundingLine.FundingLineCode);
+                
+                doesNotHaveNewAllocations = false;
             }
 
-            return false;
+            return doesNotHaveNewAllocations;
         }
 
         private bool HasNoNewAllocations(ProviderVariationContext providerVariationContext,
