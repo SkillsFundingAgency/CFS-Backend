@@ -9,12 +9,15 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class MidYearReProfileVariationChange : ReProfileVariationChange
     {
-        public MidYearReProfileVariationChange(ProviderVariationContext variationContext) 
-            : base(variationContext)
+        private readonly string _strategy;
+
+        public MidYearReProfileVariationChange(ProviderVariationContext variationContext,
+            string strategy) : base(variationContext, strategy)
         {
+            _strategy = strategy;
         }
 
-        protected override IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLinesWithVariationPointerSet;
+        protected override IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLinesWithVariationPointerSet(_strategy);
         
         protected override Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
@@ -41,13 +42,25 @@ namespace CalculateFunding.Services.Publishing.Models
         
         public IEnumerable<ProfileVariationPointer> VariationPointers { get; set; }
 
-        public ICollection<string> AffectedFundingLineCodes { get; set; }
+        public IEnumerable<string> AffectedFundingLineCodes(string strategy) => 
+            _affectedFundingLines != null && _affectedFundingLines.ContainsKey(strategy) ? 
+            _affectedFundingLines[strategy] : 
+            null;
 
-        public void AddAffectedFundingLineCode(string fundingLineCode)
+        public IEnumerable<string> AllAffectedFundingLineCodes => _affectedFundingLines?.Values.SelectMany(_ => _);
+
+        private ConcurrentDictionary<string, List<string>> _affectedFundingLines;
+
+        public void AddAffectedFundingLineCode(string strategy, string fundingLineCode)
         {
-            AffectedFundingLineCodes ??= new List<string>();
-            
-            AffectedFundingLineCodes.Add(fundingLineCode);
+            _affectedFundingLines ??= new ConcurrentDictionary<string, List<string>>();
+
+            _affectedFundingLines.AddOrUpdate(strategy, 
+                new List<string> { fundingLineCode }, 
+                (k,v) => {
+                    v.Add(fundingLineCode);
+                    return v;
+                });
         }
         
         public ICollection<PublishedProvider> NewProvidersToAdd { get; } = new List<PublishedProvider>(); 
@@ -188,7 +201,7 @@ namespace CalculateFunding.Services.Publishing.Models
 
         public bool HasNewProvidersToAdd => NewProvidersToAdd.AnyWithNullCheck();
 
-        public IEnumerable<string> AffectedFundingLinesWithVariationPointerSet => AffectedFundingLineCodes?.Where(_ => (VariationPointers?.Any(vp => vp.FundingLineId == _)).GetValueOrDefault());
+        public IEnumerable<string> AffectedFundingLinesWithVariationPointerSet(string strategy) => AffectedFundingLineCodes(strategy)?.Where(_ => (VariationPointers?.Any(vp => vp.FundingLineId == _)).GetValueOrDefault());
 
         /// <summary>
         /// Provider version ID of the existing specificaton which will be used to search provider from core provider data

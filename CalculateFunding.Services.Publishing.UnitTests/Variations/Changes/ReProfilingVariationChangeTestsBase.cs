@@ -25,6 +25,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         private Mock<IReProfilingResponseMapper> _reProfilingResponseMapper;
         private Mock<IProfilingApiClient> _profilingApiClient;
 
+        protected abstract string Strategy { get; }
+
         [TestInitialize]
         public void ReProfilingVariationChangeTestsBaseSetUp()
         {
@@ -201,8 +203,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             => _reProfilingResponseMapper.Setup(_ => _.MapReProfileResponseIntoDistributionPeriods(reProfileResponse))
                 .Returns(distributionPeriods);
 
-        private void AndTheAffectedFundingLineCodes(params string[] fundingLineCodes)
-            => VariationContext.AffectedFundingLineCodes = fundingLineCodes.ToList();
+        protected virtual void AndTheAffectedFundingLineCodes(params string[] fundingLineCodes)
+            => fundingLineCodes.ForEach(_ => VariationContext.AddAffectedFundingLineCode(Strategy, _));
 
         private int NewRandomNumberBetween(int min,
             int max) => new RandomNumberBetween(min, max);

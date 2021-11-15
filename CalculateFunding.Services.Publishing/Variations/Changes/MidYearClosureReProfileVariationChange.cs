@@ -9,8 +9,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class MidYearClosureReProfileVariationChange : MidYearReProfileVariationChange
     {
-        public MidYearClosureReProfileVariationChange(ProviderVariationContext variationContext) 
-            : base(variationContext)
+        public MidYearClosureReProfileVariationChange(ProviderVariationContext variationContext,
+            string strategy) : base(variationContext, strategy)
         {
         }
 

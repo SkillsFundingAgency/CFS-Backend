@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             foreach (FundingLine fundingLine in refreshState.PaymentFundingLinesWithValues)  
             {
-                providerVariationContext.AddAffectedFundingLineCode(fundingLine.FundingLineCode);   
+                providerVariationContext.AddAffectedFundingLineCode(Name, fundingLine.FundingLineCode);   
             }
 
             return false;
@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             foreach (FundingLine latestFundingLine in NewAllocations(refreshState, priorFundingLineCodes))
             {
-                providerVariationContext.AddAffectedFundingLineCode(latestFundingLine.FundingLineCode);
+                providerVariationContext.AddAffectedFundingLineCode(Name, latestFundingLine.FundingLineCode);
 
                 doesNotHaveNewAllocations = false;
             }
@@ -85,7 +85,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
         {
-            providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext, Name));
             
             return Task.FromResult(true);
         }

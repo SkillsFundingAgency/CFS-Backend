@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 if (!priorProfiling.Select(AsLiteral)
                     .SequenceEqual(latestProfiling.Select(AsLiteral)))
                 {
-                    providerVariationContext.AddAffectedFundingLineCode(fundingLineCode);
+                    providerVariationContext.AddAffectedFundingLineCode(Name, fundingLineCode);
                     
                     hasNoProfilingChanges = false;
                 }

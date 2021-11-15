@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
         {
-            providerVariationContext.QueueVariationChange(new ReProfileVariationChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new ReProfileVariationChange(providerVariationContext, Name));
 
             return Task.FromResult(false);
         }
@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
                 if ((latestCustomProfile?.Amount).GetValueOrDefault() != carryOver.Amount)
                 {
-                    providerVariationContext.AddAffectedFundingLineCode(carryOver.FundingLineCode);
+                    providerVariationContext.AddAffectedFundingLineCode(Name, carryOver.FundingLineCode);
 
                     hasNoCarryOverChanges = false;
                 }

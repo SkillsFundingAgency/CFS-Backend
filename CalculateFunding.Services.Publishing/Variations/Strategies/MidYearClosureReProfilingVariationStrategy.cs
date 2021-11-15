@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             foreach (FundingLine latestFundingLine in priorState.PaymentFundingLinesWithValues)
             {
-                providerVariationContext.AddAffectedFundingLineCode(latestFundingLine.FundingLineCode);
+                providerVariationContext.AddAffectedFundingLineCode(Name, latestFundingLine.FundingLineCode);
 
                 hasNoReleasedAllocations = false;
             }
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
         {
-            providerVariationContext.QueueVariationChange(new MidYearClosureReProfileVariationChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new MidYearClosureReProfileVariationChange(providerVariationContext, Name));
 
             // Stop subsequent strategies                    
             return Task.FromResult(true);

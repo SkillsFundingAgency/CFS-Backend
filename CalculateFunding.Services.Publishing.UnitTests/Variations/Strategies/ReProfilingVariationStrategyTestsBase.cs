@@ -11,6 +11,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
     public abstract class ReProfilingVariationStrategyTestsBase : ProfilingVariationStrategyTestBase
     {
+        protected abstract string Strategy { get; }
+
         [TestMethod]
         public async Task FailsPreconditionCheckIfThereAreNoVariationPointers()
         {
@@ -39,12 +41,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         }
 
         protected void AndTheAffectedFundingLinesAreNotTracked(params string[] affectedFundingLines)
-            => VariationContext.AffectedFundingLineCodes?
+            => VariationContext.AffectedFundingLineCodes(Strategy)?
                 .Should()
                 .NotContain(affectedFundingLines);
 
         protected void AndTheAffectedFundingLinesWereTracked(params string[] affectedFundingLines)
-            => VariationContext.AffectedFundingLineCodes
+            => VariationContext.AffectedFundingLineCodes(Strategy)
                 .Should()
                 .BeEquivalentTo(affectedFundingLines);
 

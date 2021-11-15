@@ -507,8 +507,8 @@ namespace CalculateFunding.Services.Publishing
                     {
                         // persist changes if the current funding line has been changed through variation strategy
                         // or there is no variation pointer set for the current funding line
-                        if ((providerVariationContext.AffectedFundingLineCodes != null && 
-                            providerVariationContext.AffectedFundingLineCodes.Contains(_.FundingLineCode)) ||
+                        if ((providerVariationContext.AllAffectedFundingLineCodes != null && 
+                            providerVariationContext.AllAffectedFundingLineCodes.Contains(_.FundingLineCode)) ||
                             providerVariationContext.CurrentState.FundingLineHasCustomProfile(_.FundingLineCode) ||
                             !variationPointers.AnyWithNullCheck(vp => vp.FundingLineId == _.FundingLineCode))
                         {

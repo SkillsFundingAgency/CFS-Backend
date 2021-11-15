@@ -14,16 +14,19 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class ReProfileVariationChange : VariationChange
     {
-        public ReProfileVariationChange(ProviderVariationContext variationContext)
-            : base(variationContext)
+        private readonly string _strategy;
+
+        public ReProfileVariationChange(ProviderVariationContext variationContext,
+            string strategy) : base(variationContext)
         {
+            _strategy = strategy;
         }
 
-        protected virtual IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLineCodes;
+        protected virtual IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLineCodes(_strategy);
 
         protected override async Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
-            Guard.IsNotEmpty(VariationContext.AffectedFundingLineCodes, nameof(VariationContext.AffectedFundingLineCodes));
+            Guard.IsNotEmpty(VariationContext.AffectedFundingLineCodes(_strategy), nameof(VariationContext.AffectedFundingLineCodes));
 
             PublishedProviderVersion refreshState = RefreshState;
             PublishedProviderVersion priorState = VariationContext.PriorState;

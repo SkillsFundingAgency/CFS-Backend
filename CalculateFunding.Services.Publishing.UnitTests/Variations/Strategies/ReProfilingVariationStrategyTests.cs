@@ -11,6 +11,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
     [TestClass]
     public class MidYearReProfilingVariationStrategyTests : ReProfilingVariationStrategyTestsBase
     {
+        protected override string Strategy => "MidYearReProfiling";
+
         [TestInitialize]
         public void SetUp()
         {
@@ -174,6 +176,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
     [TestClass]
     public class MidYearClosureReProfilingVariationStrategyTests : ReProfilingVariationStrategyTestsBase
     {
+        protected override string Strategy => "MidYearClosureReProfiling";
+
         [TestInitialize]
         public void SetUp()
         {
@@ -245,6 +249,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
     [TestClass]
     public class ReProfilingVariationStrategyTests : ReProfilingVariationStrategyTestsBase
     {
+        protected override string Strategy => "ReProfiling";
+
         [TestInitialize]
         public void SetUp()
         {
