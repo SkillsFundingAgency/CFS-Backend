@@ -41,7 +41,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return true;
             }
 
-            foreach (FundingLine fundingLine in refreshState.PaymentFundingLinesWithValues)  
+            // we only need to re-profile an opener if it has a none zero value
+            foreach (FundingLine fundingLine in refreshState.PaymentFundingLinesWithValues.Where(_ => _.Value != 0))  
             {
                 providerVariationContext.AddAffectedFundingLineCode(Name, fundingLine.FundingLineCode);   
             }

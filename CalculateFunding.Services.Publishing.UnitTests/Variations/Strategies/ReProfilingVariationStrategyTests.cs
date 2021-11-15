@@ -84,7 +84,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         }
 
         [TestMethod]
-        public async Task DoesntTrackFundingLinesAsAffectedFundingLineCodeWhenRefreshFundingLineValueIsZero()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task DoesntTrackFundingLinesAsAffectedFundingLineCodeWhenRefreshFundingLineValueIsZero(bool hasPreviousReleasedProvider)
         {
             int year = NewRandomNumber();
             string month = NewRandomMonth();
@@ -92,6 +94,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             string newFundingLineCodeNotFunded = NewRandomString();
 
             base.GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Publishing.Variations.Strategies.VariationStrategy.Opened);
+
+            if (!hasPreviousReleasedProvider)
+            {
+                VariationContext.GetPublishedProviderOriginalSnapShot(VariationContext.ProviderId).Released = null;
+            }
 
             AndTheRefreshStateFundingLines(NewFundingLine(_ => _.WithFundingLineCode(newFundingLineCode)
                         .WithFundingLineType(FundingLineType.Payment)
