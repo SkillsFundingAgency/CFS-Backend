@@ -125,29 +125,56 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
 
             // Clone additional calculations
             IEnumerable<Calculation> sourceAdditionalCalculations = sourceCalculations.Where(_ => _.CalculationType == CalculationType.Additional);
+            
+            IEnumerable<Calculation> targetCalculations = await _sourceDataOperations.GetCalculationsForSpecification(cloneSpecificationSummary.Id);
+
             _logger.Information($"Starting to create clone {sourceAdditionalCalculations.Count()} additional calculations");
 
             int additionalCalculationIndex = 0;
 
             foreach (Calculation additionalCalculation in sourceAdditionalCalculations)
             {
-                CalculationCreateModel calculationCreateModel = new CalculationCreateModel
+                // Edge-case scenario
+                // Target Specification has an additional calcuation with the same name as template calculation one on the funding template.
+                // This case can not be replicated. Behaviour is to
+                // 1. Do not create that additional calculation
+                // 2. Update template calculation details with the source additional calculation
+                if (targetCalculations.Select(_ => _.Name).Contains(additionalCalculation.Name))
                 {
-                    SpecificationId = cloneSpecificationSummary.Id,
-                    Description = additionalCalculation.Description,
-                    Name = additionalCalculation.Name,
-                    SourceCode = additionalCalculation.SourceCode,
-                    ValueType = additionalCalculation.ValueType,
-                    Author = additionalCalculation.Author
-                };
+                    Calculation templateCalculation = targetCalculations.SingleOrDefault(_ => _.Name == additionalCalculation.Name);
 
-                await _targetDataOperations.CreateCalculation(
-                    cloneSpecificationSummary.Id,
-                    calculationCreateModel,
-                    skipCalcRun: true,
-                    skipQueueCodeContextCacheUpdate: true,
-                    overrideCreateModelAuthor: true);
+                    CalculationEditModel calculationEditModel = new CalculationEditModel
+                    {
+                        SpecificationId = cloneSpecificationSummary.Id,
+                        CalculationId = templateCalculation.Id,
+                        Name = additionalCalculation.Name,
+                        DataType = additionalCalculation.DataType,
+                        Description = additionalCalculation.Description,
+                        SourceCode = additionalCalculation.SourceCode,
+                        ValueType = additionalCalculation.ValueType
+                    };
 
+                    await _targetDataOperations.EditCalculationWithSkipInstruct(cloneSpecificationSummary.Id, templateCalculation.Id, calculationEditModel);
+                }
+                else
+                {
+                    CalculationCreateModel calculationCreateModel = new CalculationCreateModel
+                    {
+                        SpecificationId = cloneSpecificationSummary.Id,
+                        Description = additionalCalculation.Description,
+                        Name = additionalCalculation.Name,
+                        SourceCode = additionalCalculation.SourceCode,
+                        ValueType = additionalCalculation.ValueType,
+                        Author = additionalCalculation.Author
+                    };
+
+                    await _targetDataOperations.CreateCalculation(
+                        cloneSpecificationSummary.Id,
+                        calculationCreateModel,
+                        skipCalcRun: true,
+                        skipQueueCodeContextCacheUpdate: true,
+                        overrideCreateModelAuthor: true);
+                }
                 additionalCalculationIndex++;
 
                 if (additionalCalculationIndex % 10 == 0)
@@ -165,7 +192,7 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
             {
                 _logger.Information($"{templateCalculationsWithChange.Count()} Template Calculations with changes exists. Replicating changes on cloned spec.");
 
-                IEnumerable<Calculation> targetCalculations = await _targetDataOperations.GetCalculationsForSpecification(cloneSpecificationSummary.Id);
+                targetCalculations = await _targetDataOperations.GetCalculationsForSpecification(cloneSpecificationSummary.Id);
 
                 int templateCalculationWithChangeIndex = 0;
                 foreach (Calculation templateCalculationWithChange in templateCalculationsWithChange)
@@ -183,7 +210,18 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                         ValueType = templateCalculationWithChange.ValueType
                     };
 
-                    await _targetDataOperations.EditCalculationWithSkipInstruct(cloneSpecificationSummary.Id, targetCalculation.Id, calculationEditModel);
+                    try
+                    {
+                        await _targetDataOperations.EditCalculationWithSkipInstruct(cloneSpecificationSummary.Id, targetCalculation.Id, calculationEditModel);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, $"Edit SpecificationID={cloneSpecificationSummary.Id} TemplateCalculationID={targetCalculation.Id} failed with given exception message. " +
+                            $"SpecificationClone operation is not interrupted for this error. Please check detailed error message for exception and possible fix." +
+                            $"Possible scenarios are:" +
+                            $"1. Source calculation has reference to a 'Released Data' and Clone operation does not include cloning 'Released Data' datasets to target specification. Fix: Please update calculation source code manually");
+                    }
 
                     templateCalculationWithChangeIndex++;
                     if (templateCalculationWithChangeIndex % 10 == 0)
