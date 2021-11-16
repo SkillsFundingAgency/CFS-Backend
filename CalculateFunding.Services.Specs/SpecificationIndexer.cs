@@ -74,6 +74,11 @@ namespace CalculateFunding.Services.Specs
             await IndexSpecifications(specifications);
         }
 
+        public async Task Remove(IEnumerable<SpecificationIndex> specsToRemove)
+        {
+            await _specificationSearch.Remove(specsToRemove);
+        }
+
         private IEnumerable<SpecificationIndex> GetSearchIndices<TSource>(IEnumerable<TSource> sourceItems)
             => _mapper.Map<IEnumerable<SpecificationIndex>>(sourceItems);
 

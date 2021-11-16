@@ -12,5 +12,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task Index(IEnumerable<Specification> specifications);
         
         Task Index(IEnumerable<SpecificationSearchModel> specifications);
+        Task Remove(IEnumerable<SpecificationIndex> specsToRemove);
     }
 }

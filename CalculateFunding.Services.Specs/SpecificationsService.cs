@@ -16,7 +16,6 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Results;
-using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
@@ -77,6 +76,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<AssignSpecificationProviderVersionModel> _assignSpecificationProviderVersionModelValidator;
         private readonly IResultsApiClient _results;
         private readonly AsyncPolicy _resultsApiClientPolicy;
+        private readonly AsyncPolicy _specificationsSearchPolicy;
         private readonly IJobManagement _jobManagement;
         private readonly IDatasetsApiClient _datasets;
         private readonly AsyncPolicy _datasetsResilience;
@@ -125,6 +125,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(resiliencePolicies?.CalcsApiClient, nameof(resiliencePolicies.CalcsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsApiClient, nameof(resiliencePolicies.ResultsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsSearchRepository, nameof(resiliencePolicies.SpecificationsSearchRepository));
             Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
             Guard.ArgumentNotNull(queueEditSpecificationJobActions, nameof(queueEditSpecificationJobActions));
             Guard.ArgumentNotNull(queueDeleteSpecificationJobAction, nameof(queueDeleteSpecificationJobAction));
@@ -163,6 +164,7 @@ namespace CalculateFunding.Services.Specs
             _assignSpecificationProviderVersionModelValidator = assignSpecificationProviderVersionModelValidator;
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
             _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
+            _specificationsSearchPolicy = resiliencePolicies.SpecificationsSearchRepository;
             _jobManagement = jobManagement;
             _datasets = datasets;
             _datasetsResilience = resiliencePolicies.DatasetsApiClient;
@@ -1718,7 +1720,18 @@ WHERE   s.documentType = @DocumentType",
 
             DeletionType deletionType = deletionTypeProperty.ToDeletionType();
 
-            await _specificationsRepository.DeleteSpecifications(specificationId, deletionType);
+            try
+            {
+                await _specificationsRepository.DeleteSpecifications(specificationId, deletionType);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"An error occurred when attempting to delete specification {specificationId}: {ex.Message}");
+                throw;
+            }
+
+            SpecificationIndex specToRemove = await _specificationsSearchPolicy.ExecuteAsync(() => _searchRepository.SearchById(specificationId));
+            await _specificationIndexer.Remove(new List<SpecificationIndex> { specToRemove });
         }
 
         private async Task TrackJobFailed(string jobId, Exception exception)
