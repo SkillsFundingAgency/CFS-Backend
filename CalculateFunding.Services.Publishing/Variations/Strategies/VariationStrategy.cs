@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public const string Closed = "Closed";
         public const string Opened = "Open";
+        public const string AcademyConverter = "Academy Converter";
 
         public abstract string Name { get; }
 

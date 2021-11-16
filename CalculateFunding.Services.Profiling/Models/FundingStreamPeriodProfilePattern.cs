@@ -90,6 +90,9 @@ namespace CalculateFunding.Services.Profiling.Models
         public string GetReProfilingStrategyKeyForInitialClosureFunding()
             => ReProfilingConfiguration?.InitialClosureFundingStrategyKey;
 
+        public string GetReProfilingStrategyKeyForConverterFunding()
+            => ReProfilingConfiguration?.ConverterFundingStrategyKey;
+
         public string GetReProfilingStrategyKeyForFundingAmountChange(decimal change)
             => ReProfilingConfiguration?.GetReProfilingStrategyKeyForFundingAmountChange(change);
     }

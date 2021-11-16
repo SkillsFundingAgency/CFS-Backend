@@ -257,11 +257,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         }
 
         [TestMethod]
-        [DataRow(true, true)]
-        [DataRow(true, false)]
-        [DataRow(false, false)]
+        [DataRow(true, true, true)]
+        [DataRow(true, true, false)]
+        [DataRow(true, false, false)]
+        [DataRow(false, false, false)]
         public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers(bool midYear,
-            bool opener)
+            bool opener,
+            bool converter)
         {
             string providerId = NewRandomString();
             string fundingLineCode = NewRandomString();
@@ -270,7 +272,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
 
             PublishedProviderVersion publishedProviderVersion = NewPublisherProviderVersion(pvp => 
-                    pvp.WithProvider(NewProvider(_ => _.WithStatus(opener ? VariationStrategy.Opened : VariationStrategy.Closed)))
+                    pvp.WithProvider(NewProvider(_ => _.WithStatus(opener ? VariationStrategy.Opened : VariationStrategy.Closed)
+                        .WithReasonEstablishmentOpened(converter ? VariationStrategy.AcademyConverter : VariationStrategy.Opened)))
                         .WithFundingLines(NewFundingLine(),
                         NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCode)
                             .WithDistributionPeriods(NewDistributionPeriod(dp =>
@@ -318,7 +321,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     ExistingFundingLineTotal = 23 + 24 + 25 + 26,
                     FundingLineTotal = fundingLineTotal,
                     ProfilePatternKey = profilePattern,
-                    MidYearType = midYear ? (opener ? (MidYearType?)MidYearType.Opener : MidYearType.Closure) : null,
+                    MidYearType = midYear ? (opener ? (converter ? MidYearType.Converter : (MidYearType?)MidYearType.Opener) : MidYearType.Closure) : null,
                     VariationPointerIndex = 0,
                     ExistingPeriods = new []
                     {

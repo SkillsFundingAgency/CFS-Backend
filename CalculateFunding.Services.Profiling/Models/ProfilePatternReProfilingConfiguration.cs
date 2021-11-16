@@ -37,6 +37,9 @@ namespace CalculateFunding.Services.Profiling.Models
         [JsonProperty("initialClosureFundingStrategyKey")]
         public string InitialClosureFundingStrategyKey { get; set; }
 
+        [JsonProperty("converterFundingStrategyKey")]
+        public string ConverterFundingStrategyKey { get; set; }
+
         public string GetReProfilingStrategyKeyForFundingAmountChange(decimal change)
         {
             if (change == 0)

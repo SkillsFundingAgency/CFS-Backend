@@ -105,6 +105,7 @@ namespace CalculateFunding.Services.Profiling.Services
                 MidYearType.OpenerCatchup => profilePattern.GetReProfilingStrategyKeyForInitialFundingWithCatchup(),
                 MidYearType.Opener => profilePattern.GetReProfilingStrategyKeyForInitialFunding(),
                 MidYearType.Closure => profilePattern.GetReProfilingStrategyKeyForInitialClosureFunding(),
+                MidYearType.Converter => profilePattern.GetReProfilingStrategyKeyForConverterFunding(),
                 _ => throw new NotImplementedException()
             };
 

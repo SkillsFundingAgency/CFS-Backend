@@ -8,6 +8,7 @@ namespace CalculateFunding.Services.Profiling.Models
     {
         OpenerCatchup,
         Opener,
-        Closure
+        Closure,
+        Converter
     }
 }

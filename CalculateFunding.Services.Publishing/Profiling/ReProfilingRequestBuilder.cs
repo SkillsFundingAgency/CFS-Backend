@@ -65,9 +65,16 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 // We need a way to determine new openers which opened prior to the release
                 if (currentProvider.Status != VariationStrategy.Closed)
                 {
-                    DateTimeOffset? openedDate = currentProvider.DateOpened;
-                    bool catchup = openedDate == null ? false : openedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && openedDate.Value.Year <= firstPeriod.Year;
-                    midYearType = catchup ? MidYearType.OpenerCatchup : MidYearType.Opener;
+                    if (currentProvider.ReasonEstablishmentOpened == VariationStrategy.AcademyConverter)
+                    {
+                        midYearType = MidYearType.Converter;
+                    }
+                    else
+                    {
+                        DateTimeOffset? openedDate = currentProvider.DateOpened;
+                        bool catchup = openedDate == null ? false : openedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && openedDate.Value.Year <= firstPeriod.Year;
+                        midYearType = catchup ? MidYearType.OpenerCatchup : MidYearType.Opener;
+                    }
                 }
                 else
                 {
