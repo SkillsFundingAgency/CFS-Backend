@@ -168,13 +168,13 @@ Public Class Provider
     <Description(Description:="Provider sub type code")>
     Public Property ProviderSubTypeCode() As String
 
-    <Field(Id:="PreviousLACode", Name:="PreviousLACode")>
+    <Field(Id:="PreviousLaCode", Name:="PreviousLaCode")>
     <Description(Description:="Previous local authority code")>
-    Public Property PreviousLACode() As String
+    Public Property PreviousLaCode() As String
 
-    <Field(Id:="PreviousLAName", Name:="PreviousLAName")>
+    <Field(Id:="PreviousLaName", Name:="PreviousLaName")>
     <Description(Description:="Previous local authority name")>
-    Public Property PreviousLAName() As String
+    Public Property PreviousLaName() As String
 
     <Field(Id:="PreviousEstablishmentNumber", Name:="PreviousEstablishmentNumber")>
     <Description(Description:="Previous establishment number")>

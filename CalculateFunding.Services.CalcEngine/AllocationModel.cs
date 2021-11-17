@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
@@ -13,6 +9,10 @@ using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Activator = CalculateFunding.Services.Core.Helpers.Activator;
 
 namespace CalculateFunding.Services.CalcEngine
@@ -437,6 +437,13 @@ namespace CalculateFunding.Services.CalcEngine
                     case "ProviderSubType":
                         property.SetValue(data, providerSummary.ProviderSubType.EmptyIfNull());
                         break;
+                    case "ProviderTypeCode":
+                        property.SetValue(data, providerSummary.ProviderTypeCode.EmptyIfNull());
+                        break;
+
+                    case "ProviderSubTypeCode":
+                        property.SetValue(data, providerSummary.ProviderSubTypeCode.EmptyIfNull());
+                        break;
 
                     case "Name":
                         property.SetValue(data, providerSummary.Name.EmptyIfNull());
@@ -604,6 +611,18 @@ namespace CalculateFunding.Services.CalcEngine
 
                     case "HasPredecessor":
                         property.SetValue(data, providerSummary.Predecessors.AnyWithNullCheck());
+                        break;
+
+                    case "PreviousLaCode":
+                        property.SetValue(data, providerSummary.PreviousLaCode.EmptyIfNull());
+                        break;
+
+                    case "PreviousLaName":
+                        property.SetValue(data, providerSummary.PreviousLaName.EmptyIfNull());
+                        break;
+
+                    case "PreviousEstablishmentNumber":
+                        property.SetValue(data, providerSummary.PreviousEstablishmentNumber.EmptyIfNull());
                         break;
 
                     default:

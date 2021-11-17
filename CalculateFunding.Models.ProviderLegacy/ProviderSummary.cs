@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.ProviderLegacy
 {
@@ -169,11 +169,11 @@ namespace CalculateFunding.Models.ProviderLegacy
         [JsonProperty("providerSubTypeCode")]
         public string ProviderSubTypeCode { get; set; }
 
-        [JsonProperty("previousLAcode")]
-        public string PreviousLAcode { get; set; }
+        [JsonProperty("previousLaCode")]
+        public string PreviousLaCode { get; set; }
 
-        [JsonProperty("previousLAname")]
-        public string PreviousLAname { get; set; }
+        [JsonProperty("previousLaName")]
+        public string PreviousLaName { get; set; }
 
         [JsonProperty("previousEstablishmentNumber")]
         public string PreviousEstablishmentNumber { get; set; }
