@@ -1,15 +1,14 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Profiling.Models;
+﻿using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
-    public class MidYearClosureReProfileVariationChange : MidYearReProfileVariationChange
+    public class ConverterReProfileVariationChange : MidYearReProfileVariationChange
     {
-        public MidYearClosureReProfileVariationChange(ProviderVariationContext variationContext,
+        public ConverterReProfileVariationChange(ProviderVariationContext variationContext,
             string strategy) : base(variationContext, strategy)
         {
         }
@@ -22,9 +21,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             FundingLine fundingLine) =>
             variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
-                priorState,
+                refreshState,
                 ProfileConfigurationType.RuleBased,
                 fundingLine.Value,
-                MidYearType.Closure);
+                midYearType: MidYearType.Converter);
     }
 }

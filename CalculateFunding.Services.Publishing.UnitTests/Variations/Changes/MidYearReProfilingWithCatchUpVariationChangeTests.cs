@@ -10,11 +10,11 @@ using System.Linq;
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 {
     [TestClass]
-    public class MidYearReProfilingVariationChangeTests : ReProfilingVariationChangeTestsBase
+    public class MidYearReProfilingWithCatchUpVariationChangeTests : ReProfilingVariationChangeTestsBase
     {
         protected override string Strategy => "MidYearReProfiling";
 
-        protected DateTimeOffset OpenDate => ProfileDate.AddMonths(1);
+        protected DateTimeOffset OpenDate => ProfileDate.AddMonths(-1);
 
         [TestInitialize]
         public void SetUp()
@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     RefreshState,
                     ProfileConfigurationType.RuleBased,
                     fundingLine.Value,
-                    MidYearType.Opener))
+                    MidYearType.OpenerCatchup))
                 .ReturnsAsync(reProfileRequest);
         }
 

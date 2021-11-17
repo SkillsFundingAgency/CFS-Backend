@@ -71,7 +71,8 @@ namespace CalculateFunding.Services.Publishing
             string snapshotId,
             string specificationProviderVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
-            IEnumerable<string> variances)
+            IEnumerable<string> variances,
+            string fundingPeriodId)
         {
             Guard.ArgumentNotNull(updatedTotalFunding, nameof(updatedTotalFunding));
             Guard.ArgumentNotNull(allPublishedProviderRefreshStates, nameof(allPublishedProviderRefreshStates));
@@ -99,6 +100,7 @@ namespace CalculateFunding.Services.Publishing
                 variationPointers,
                 specificationProviderVersionId,
                 organisationGroupResultsData,
+                fundingPeriodId,
                 variances);
 
             if (variationContext.HasVariationChanges)

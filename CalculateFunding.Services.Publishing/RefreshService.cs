@@ -222,7 +222,8 @@ namespace CalculateFunding.Services.Publishing
                         Job.Id,
                         author,
                         correlationId,
-                        existingPublishedProvidersByFundingStream[fundingStream.Id]);
+                        existingPublishedProvidersByFundingStream[fundingStream.Id],
+                        specification.FundingPeriod);
 
                     _logger.Information($"Finished processing refresh funding for '{fundingStream.Id}'");
 
@@ -242,7 +243,8 @@ namespace CalculateFunding.Services.Publishing
             IDictionary<string, ProviderCalculationResult> allCalculationResults,
             string jobId, Reference author,
             string correlationId,
-            IEnumerable<PublishedProvider> existingPublishedProviders)
+            IEnumerable<PublishedProvider> existingPublishedProviders,
+            Reference fundingPeriod)
         {
             TemplateMetadataContents templateMetadataContents = await _policiesService.GetTemplateMetadataContents(fundingStream.Id, specification.FundingPeriod.Id, specification.TemplateIds[fundingStream.Id]);
 
@@ -448,7 +450,8 @@ namespace CalculateFunding.Services.Publishing
                         fundingStream.Id,
                         specification.ProviderVersionId,
                         organisationGroupResultsData,
-                        variances);
+                        variances,
+                        fundingPeriod.Id);
 
                     publishedProvidersContext.VariationContexts.Add(providerId, context);
 

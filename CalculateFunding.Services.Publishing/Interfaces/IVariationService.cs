@@ -22,7 +22,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string snapshotId,
             string specificationProviderVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
-            IEnumerable<string> variances);
+            IEnumerable<string> variances,
+            string fundingPeriodId);
         
         Task<bool> ApplyVariations(IRefreshStateService refreshStateService, 
             string specificaitonId,

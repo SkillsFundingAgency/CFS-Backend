@@ -356,6 +356,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object));
             AndFundingConfiguration("NoApplicableVariationErrorDetector");
             AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
+            AndTheFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -391,6 +392,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object));
             AndFundingConfiguration("NoApplicableVariationErrorDetector");
             AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
+            AndTheFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -529,6 +531,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
+            AndTheFundingPeriod();
 
             GivenFundingConfiguration(new ProviderMetadataVariationStrategy(), new ClosureWithSuccessorVariationStrategy(_providerService.Object));
 
@@ -1099,6 +1102,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _jobManagement.Setup(_ => _.RetrieveJobAndCheckCanBeProcessed(JobId))
                 .ReturnsAsync(jobViewModel);
+        }
+
+        private void AndTheFundingPeriod()
+        {
+            _policiesService
+                .Setup(_ => _.GetFundingPeriodByConfigurationId(_specificationSummary.FundingPeriod.Id))
+                .ReturnsAsync(new FundingPeriod());
         }
 
         private void AndProfilePatternsForFundingStreamAndFundingPeriod()

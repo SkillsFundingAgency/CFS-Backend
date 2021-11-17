@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             IEnumerable<ProfileVariationPointer> variationPointers,
             string providerVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
+            string fundingPeriodId,
             IEnumerable<string> variances = null);
     }
 }

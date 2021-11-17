@@ -257,13 +257,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         }
 
         [TestMethod]
-        [DataRow(true, true, true)]
-        [DataRow(true, true, false)]
-        [DataRow(true, false, false)]
-        [DataRow(false, false, false)]
-        public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers(bool midYear,
-            bool opener,
-            bool converter)
+        [DataRow(MidYearType.Converter)]
+        [DataRow(MidYearType.Opener)]
+        [DataRow(MidYearType.OpenerCatchup)]
+        [DataRow(MidYearType.Closure)]
+        public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers(MidYearType midYearType)
         {
             string providerId = NewRandomString();
             string fundingLineCode = NewRandomString();
@@ -272,8 +270,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
 
             PublishedProviderVersion publishedProviderVersion = NewPublisherProviderVersion(pvp => 
-                    pvp.WithProvider(NewProvider(_ => _.WithStatus(opener ? VariationStrategy.Opened : VariationStrategy.Closed)
-                        .WithReasonEstablishmentOpened(converter ? VariationStrategy.AcademyConverter : VariationStrategy.Opened)))
+                    pvp.WithProvider(NewProvider(_ => _.WithStatus(midYearType == MidYearType.Closure ? VariationStrategy.Closed : VariationStrategy.Opened)
+                        .WithReasonEstablishmentOpened(midYearType == MidYearType.Converter ? VariationStrategy.AcademyConverter : VariationStrategy.Opened)))
                         .WithFundingLines(NewFundingLine(),
                         NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCode)
                             .WithDistributionPeriods(NewDistributionPeriod(dp =>
@@ -308,7 +306,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 publishedProviderVersion,
                 profileConfigurationType,
                 fundingLineTotal,
-                midYear);
+                midYearType);
             
             reProfileRequest
                 .Should()
@@ -321,7 +319,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     ExistingFundingLineTotal = 23 + 24 + 25 + 26,
                     FundingLineTotal = fundingLineTotal,
                     ProfilePatternKey = profilePattern,
-                    MidYearType = midYear ? (opener ? (converter ? MidYearType.Converter : (MidYearType?)MidYearType.Opener) : MidYearType.Closure) : null,
+                    MidYearType = midYearType,
                     VariationPointerIndex = 0,
                     ExistingPeriods = new []
                     {
@@ -359,14 +357,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             PublishedProviderVersion publishedProviderVersion,
             ProfileConfigurationType configurationType,
             decimal? fundingLineTotal = null,
-            bool midYear = false)
+            MidYearType? midYearType = null)
             => await _requestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
                 publishedProviderVersion,
                 configurationType,
                 fundingLineTotal,
-                publishedProviderVersion?.Provider,
-                midYear);
+                midYearType);
 
         private void AndTheVariationPointers(string specificationId,
             params ProfileVariationPointer[] variationPointers)

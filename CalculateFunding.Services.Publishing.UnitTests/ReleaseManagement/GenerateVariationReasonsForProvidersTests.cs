@@ -147,7 +147,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 profileVariationPointers,
                 providerVersionId,
                 organisationGroupResults,
-                providerVariationContext);
+                providerVariationContext,
+                specificationSummary.FundingPeriod.Id);
 
             IDictionary<string, IEnumerable<VariationReason>> actual =
                 await _generateVariationReasonsForChannelService.GenerateVariationReasonsForProviders(
@@ -188,6 +189,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             string providerVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
             ProviderVariationContext providerVariationContext,
+            string fundingPeriodId,
             IEnumerable<string> variances = null)
         {
             _detectProviderVariations
@@ -201,6 +203,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     variationPointers,
                     providerVersionId,
                     organisationGroupResultsData,
+                    fundingPeriodId,
                     variances))
                 .ReturnsAsync(providerVariationContext);
         }

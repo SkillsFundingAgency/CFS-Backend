@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -26,6 +27,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         private Mock<IProfilingApiClient> _profilingApiClient;
 
         protected abstract string Strategy { get; }
+
+        protected DateTimeOffset ProfileDate => DateTime.Now;
 
         [TestInitialize]
         public void ReProfilingVariationChangeTestsBaseSetUp()
@@ -127,10 +130,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             DistributionPeriod[] distributionPeriodsThree = NewDistributionPeriods();
             DistributionPeriod[] distributionPeriodsFour = NewDistributionPeriods();
 
-            fundingLineOne.DistributionPeriods = NewDistributionPeriods(_ => _.WithDistributionPeriodId(distributionPeriodsOne.Single().DistributionPeriodId));
+            fundingLineOne.DistributionPeriods = NewDistributionPeriods(_ => _.WithProfilePeriods(NewProfilePeriod())
+            .WithDistributionPeriodId(distributionPeriodsOne.Single().DistributionPeriodId));
             fundingLineTwo.DistributionPeriods = distributionPeriodsTwo;
-            fundingLineThree.DistributionPeriods = NewDistributionPeriods(_ => _.WithDistributionPeriodId(distributionPeriodsThree.Single().DistributionPeriodId));
-            
+            fundingLineThree.DistributionPeriods = NewDistributionPeriods(_ => _.WithProfilePeriods(NewProfilePeriod())
+            .WithDistributionPeriodId(distributionPeriodsThree.Single().DistributionPeriodId));
+            fundingLineFour.DistributionPeriods = distributionPeriodsFour;
+
             GivenTheFundingLines(fundingLineOne, fundingLineTwo, fundingLineThree, fundingLineFour);
             GivenTheProfilePatternKeys(NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode)
                 .WithKey(profilePatternKey.Key)));
@@ -169,8 +175,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             DistributionPeriodBuilder distributionPeriodBuilder = new DistributionPeriodBuilder();
 
             setUp?.Invoke(distributionPeriodBuilder);
-            ProfilePeriod profilePeriodOne = NewProfilePeriod();
-            ProfilePeriod profilePeriodTwo = NewProfilePeriod();
+            ProfilePeriod profilePeriodOne = NewProfilePeriod(_ => _.WithYear(ProfileDate.Year).WithTypeValue(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(ProfileDate.Month)).WithOccurence(1));
+            ProfilePeriod profilePeriodTwo = NewProfilePeriod(_ => _.WithYear(ProfileDate.Year).WithTypeValue(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(ProfileDate.Month)).WithOccurence(2));
             distributionPeriodBuilder.WithProfilePeriods(profilePeriodOne,
                 profilePeriodTwo);
             distributionPeriodBuilder.WithValue(profilePeriodOne.ProfiledValue + profilePeriodTwo.ProfiledValue);
@@ -194,8 +200,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     VariationContext.PriorState,
                     ProfileConfigurationType.RuleBased,
                     fundingLine.Value,
-                    null,
-                    false))
+                    null))
                 .ReturnsAsync(reProfileRequest);
 
         private void AndTheReProfileResponseMapping(ReProfileResponse reProfileResponse,

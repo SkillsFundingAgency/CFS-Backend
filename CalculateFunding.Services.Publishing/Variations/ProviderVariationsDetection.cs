@@ -34,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.Variations
             IEnumerable<ProfileVariationPointer> variationPointers,
             string providerVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
+            string fundingPeriodId,
             IEnumerable<string> variances)
         {
             Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
@@ -42,6 +43,8 @@ namespace CalculateFunding.Services.Publishing.Variations
             Guard.ArgumentNotNull(variations, nameof(variations));
             Guard.ArgumentNotNull(allPublishedProviderRefreshStates, nameof(allPublishedProviderRefreshStates));
             Guard.ArgumentNotNull(allPublishedProviderSnapShots, nameof(allPublishedProviderSnapShots));
+
+            FundingPeriod fundingPeriod = await _policiesService.GetFundingPeriodByConfigurationId(fundingPeriodId);
 
             ProviderVariationContext providerVariationContext = new ProviderVariationContext(_policiesService)
             {
@@ -54,7 +57,9 @@ namespace CalculateFunding.Services.Publishing.Variations
                 VariationPointers = variationPointers,
                 OrganisationGroupResultsData = organisationGroupResultsData,
                 ApplicableVariations = new List<string>(),
-                Variances = variances
+                Variances = variances,
+                FundingPeriodStartDate = fundingPeriod.StartDate,
+                FundingPeriodEndDate = fundingPeriod.EndDate
             };
 
             foreach (FundingVariation configuredVariation in variations.OrderBy(_ => _.Order))

@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
         private static int MonthNumberFor(string monthName)
         {
             return DateTime.ParseExact(monthName, "MMMM", CultureInfo.InvariantCulture)
-                .Month * 100;
+                .Month;
         }
     }
 }

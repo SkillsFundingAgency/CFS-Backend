@@ -91,5 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         
         protected PublishedProviderVersion RefreshState => VariationContext.RefreshState;
+
+        protected PublishedProviderVersion PriorState => VariationContext.PriorState;
     }
 }

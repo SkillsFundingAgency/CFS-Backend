@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,7 +40,10 @@ namespace CalculateFunding.Services.Publishing.Models
         public Provider UpdatedProvider { get; set; }
 
         public decimal? UpdatedTotalFunding { get; set; }
-        
+
+        public DateTimeOffset FundingPeriodStartDate { get; set; }
+        public DateTimeOffset FundingPeriodEndDate { get; set; }
+
         public IEnumerable<ProfileVariationPointer> VariationPointers { get; set; }
 
         public IEnumerable<string> AffectedFundingLineCodes(string strategy) => 

@@ -36,13 +36,10 @@ namespace CalculateFunding.Services.Publishing.Profiling
             PublishedProviderVersion publishedProviderVersion,
             ProfileConfigurationType configurationType,
             decimal? fundingLineTotal = null,
-            Provider currentProvider = null,
-            bool midYear = false)
+            MidYearType? midYearType = null)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
-
-            currentProvider ??= publishedProviderVersion.Provider;
 
             ProfileVariationPointer profileVariationPointer = await GetProfileVariationPointerForFundingLine(publishedProviderVersion.SpecificationId,
                 fundingLineCode,
@@ -54,32 +51,6 @@ namespace CalculateFunding.Services.Publishing.Profiling
             if (orderedProfilePeriodsForFundingLine.IsNullOrEmpty())
             {
                 throw new ArgumentOutOfRangeException(nameof(publishedProviderVersion), $"Did not locate profile periods corresponding to funding line id {fundingLineCode} against published provider: {publishedProviderVersion.ProviderId}");
-            }
-
-            ProfilePeriod firstPeriod = orderedProfilePeriodsForFundingLine.First();
-
-            MidYearType? midYearType = null;
-
-            if (midYear)
-            {
-                // We need a way to determine new openers which opened prior to the release
-                if (currentProvider.Status != VariationStrategy.Closed)
-                {
-                    if (currentProvider.ReasonEstablishmentOpened == VariationStrategy.AcademyConverter)
-                    {
-                        midYearType = MidYearType.Converter;
-                    }
-                    else
-                    {
-                        DateTimeOffset? openedDate = currentProvider.DateOpened;
-                        bool catchup = openedDate == null ? false : openedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && openedDate.Value.Year <= firstPeriod.Year;
-                        midYearType = catchup ? MidYearType.OpenerCatchup : MidYearType.Opener;
-                    }
-                }
-                else
-                {
-                    midYearType = MidYearType.Closure;
-                }
             }
 
             int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine, publishedProviderVersion.ProviderId);

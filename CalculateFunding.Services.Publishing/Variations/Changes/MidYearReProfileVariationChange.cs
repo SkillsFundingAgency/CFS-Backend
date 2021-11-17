@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Profiling;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
@@ -30,6 +33,15 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 refreshState,
                 ProfileConfigurationType.RuleBased,
                 fundingLine.Value,
-                midYear: true);
+                midYearType: GetMidYearType(refreshState.Provider?.DateOpened, fundingLine));
+
+        private MidYearType GetMidYearType(DateTimeOffset? dateTimeOpened, FundingLine fundingLine)
+        {
+            ProfilePeriod firstPeriod =  new YearMonthOrderedProfilePeriods(fundingLine).ToArray().First();
+
+            DateTimeOffset? openedDate = dateTimeOpened;
+            bool catchup = openedDate == null ? false : openedDate.Value.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && openedDate.Value.Year <= firstPeriod.Year;
+            return catchup ? MidYearType.OpenerCatchup : MidYearType.Opener;
+        }
     }
 }
