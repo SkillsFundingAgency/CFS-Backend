@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
+﻿using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Providers;
@@ -14,6 +11,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Polly;
 using Serilog;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Providers
 {
@@ -433,7 +433,9 @@ namespace CalculateFunding.Services.Providers
                     PreviousLAName = m.Result.PreviousLAName,
                     PreviousEstablishmentNumber = m.Result.PreviousEstablishmentNumber,
                     Predecessors = m.Result.Predecessors,
-                    Successors = m.Result.Successors
+                    Successors = m.Result.Successors,
+                    FurtherEducationTypeCode = m.Result.FurtherEducationTypeCode,
+                    FurtherEducationTypeName = m.Result.FurtherEducationTypeName,
                 });
             }
         }

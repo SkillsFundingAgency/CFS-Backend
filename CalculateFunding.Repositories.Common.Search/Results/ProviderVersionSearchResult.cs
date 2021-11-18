@@ -129,6 +129,10 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 
         public string PreviousEstablishmentNumber { get; set; }
 
+        public string FurtherEducationTypeCode { get; set; }
+
+        public string FurtherEducationTypeName { get; set; }
+
         public IEnumerable<string> Predecessors { get; set; }
 
         public IEnumerable<string> Successors { get; set; }
