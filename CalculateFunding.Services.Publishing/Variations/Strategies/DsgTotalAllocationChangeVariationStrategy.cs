@@ -30,8 +30,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
         {
-            providerVariationContext.QueueVariationChange(new AdjustDsgProfilesForUnderOverPaymentChange(providerVariationContext));
-            providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new AdjustDsgProfilesForUnderOverPaymentChange(providerVariationContext, Name));
+            providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext, Name));
 
             return Task.FromResult(false);
         }

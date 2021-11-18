@@ -8,11 +8,15 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public abstract class VariationChange : IVariationChange
     {
-        protected VariationChange(ProviderVariationContext variationContext)
+        private readonly string _strategyName;
+
+        protected VariationChange(ProviderVariationContext variationContext, string strategyName)
         {
             Guard.ArgumentNotNull(variationContext, nameof(variationContext));
-            
+            Guard.IsNullOrWhiteSpace(strategyName, nameof(strategyName));
+
             VariationContext = variationContext;
+            _strategyName = strategyName;
         }
 
         public ProviderVariationContext VariationContext { get; }
@@ -22,6 +26,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         protected PublishedProviderVersion SuccessorRefreshState => VariationContext.Successor.Current;
 
         protected string ProviderId => VariationContext.ProviderId;
+
+        protected void AddAffectedFundingLine(string fundingLineCode)
+        {
+            VariationContext.AddAffectedFundingLineCode(_strategyName, fundingLineCode);
+        }
         
         public async Task Apply(IApplyProviderVariations variationsApplication)
         {

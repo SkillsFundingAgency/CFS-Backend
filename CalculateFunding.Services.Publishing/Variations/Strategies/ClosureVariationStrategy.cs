@@ -38,9 +38,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
         {
-            providerVariationContext.QueueVariationChange(new ZeroRemainingProfilesChange(providerVariationContext));
-            providerVariationContext.QueueVariationChange(new ZeroInitialPaymentProfilesChange(providerVariationContext));
-            providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new ZeroRemainingProfilesChange(providerVariationContext, Name));
+            providerVariationContext.QueueVariationChange(new ZeroInitialPaymentProfilesChange(providerVariationContext, Name));
+            providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext, Name));
 
             return Task.FromResult(false);
         }

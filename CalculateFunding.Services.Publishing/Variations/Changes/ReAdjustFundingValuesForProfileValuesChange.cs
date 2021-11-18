@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class ReAdjustFundingValuesForProfileValuesChange : VariationChange
     {
-        public ReAdjustFundingValuesForProfileValuesChange(ProviderVariationContext variationContext) : base(variationContext)
+        public ReAdjustFundingValuesForProfileValuesChange(ProviderVariationContext variationContext, string strategyName) : base(variationContext, strategyName)
         {
         }
 
@@ -31,6 +31,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
             foreach (FundingLine fundingLine in PaymentFundingLines)
             {
+                AddAffectedFundingLine(fundingLine.FundingLineCode);
                 fundingLine.Value = fundingLine.DistributionPeriods?.Sum(_ => _.Value);
             }   
         }

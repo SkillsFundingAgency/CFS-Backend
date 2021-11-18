@@ -69,10 +69,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             successor.AddPredecessor(providerVariationContext.ProviderId);
 
-            providerVariationContext.QueueVariationChange(new TransferRemainingProfilesToSuccessorChange(providerVariationContext));
-            providerVariationContext.QueueVariationChange(new ReAdjustSuccessorFundingValuesForProfileValueChange(providerVariationContext));
-            providerVariationContext.QueueVariationChange(new ZeroRemainingProfilesChange(providerVariationContext));
-            providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new TransferRemainingProfilesToSuccessorChange(providerVariationContext, Name));
+            providerVariationContext.QueueVariationChange(new ReAdjustSuccessorFundingValuesForProfileValueChange(providerVariationContext, Name));
+            providerVariationContext.QueueVariationChange(new ZeroRemainingProfilesChange(providerVariationContext, Name));
+            providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext, Name));
 
             return false;
         }

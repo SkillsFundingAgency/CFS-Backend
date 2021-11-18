@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         private readonly string _strategy;
 
         public ReProfileVariationChange(ProviderVariationContext variationContext,
-            string strategy) : base(variationContext)
+            string strategy) : base(variationContext, strategy)
         {
             _strategy = strategy;
         }

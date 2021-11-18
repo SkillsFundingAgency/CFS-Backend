@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         [TestInitialize]
         public void SetUp()
         {
-            Change = new TransferRemainingProfilesToSuccessorChange(VariationContext);
+            Change = new TransferRemainingProfilesToSuccessorChange(VariationContext, "ClosureWithSuccessor");
 
             VariationContext.Successor = new PublishedProvider { Current = VariationContext.RefreshState.DeepCopy() };
         }

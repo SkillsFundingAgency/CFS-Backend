@@ -71,6 +71,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 providerVersionId,
                 organisationGroupResultsData,
                 fundingPeriodId,
+                existingPublishedProvider.Current,
                 variances);
 
             providerVariationContext
@@ -160,6 +161,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 providerVersionId,
                 organisationGroupResultsData,
                 fundingPeriod,
+                existingPublishedProvider.Current,
                 variances);
 
             providerVariationContext

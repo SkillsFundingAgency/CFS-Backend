@@ -20,8 +20,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class MovePupilNumbersToSuccessorChange : VariationChange
     {
-        public MovePupilNumbersToSuccessorChange(ProviderVariationContext variationContext)
-            : base(variationContext)
+        public MovePupilNumbersToSuccessorChange(ProviderVariationContext variationContext, string strategyName)
+            : base(variationContext, strategyName)
         {
         }
 

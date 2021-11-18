@@ -8,8 +8,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class ZeroAllProfiles : VariationChange
     {
-        public ZeroAllProfiles(ProviderVariationContext variationContext)
-            : base(variationContext)
+        public ZeroAllProfiles(ProviderVariationContext variationContext, string strategyName)
+            : base(variationContext, strategyName)
         {
         }
 

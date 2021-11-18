@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         [TestInitialize]
         public void SetUp()
         {
-            Change = new ReAdjustFundingValuesForProfileValuesChange(VariationContext);
+            Change = new ReAdjustFundingValuesForProfileValuesChange(VariationContext, "Closure");
 
             TargetPublishedProviderVersion = VariationContext.RefreshState;
         }

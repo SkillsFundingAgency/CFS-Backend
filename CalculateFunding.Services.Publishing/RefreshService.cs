@@ -54,10 +54,6 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private readonly IRefreshStateService _refreshStateService;
         private readonly IOrganisationGroupService _organisationGroupService;
-        private static readonly string[] AdjustProfilingStrategies = { "Closure",
-            "ClosureWithSuccessor",
-            "DsgTotalAllocationChange"
-        };
 
         public RefreshService(IPublishedFundingDataService publishedFundingDataService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -358,6 +354,8 @@ namespace CalculateFunding.Services.Publishing
             {
                 PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
 
+                PublishedProviderVersion preRefreshProviderVersion = publishedProvider.Value.Current.DeepCopy();
+
                 // need to reset the variation reasons so we don't carry over variation reasons on a refresh
                 publishedProviderVersion.VariationReasons = Array.Empty<VariationReason>();
 
@@ -451,7 +449,8 @@ namespace CalculateFunding.Services.Publishing
                         specification.ProviderVersionId,
                         organisationGroupResultsData,
                         variances,
-                        fundingPeriod.Id);
+                        fundingPeriod.Id,
+                        preRefreshProviderVersion);
 
                     publishedProvidersContext.VariationContexts.Add(providerId, context);
 
@@ -500,10 +499,10 @@ namespace CalculateFunding.Services.Publishing
                 // if the published provider has been released, variation pointers have been set
                 // and there is a variation context which hasn't executed any strategies which adjust profiles on all funding lines 
                 // then we need to make sure we don't overwrite existing funding line profiles automatically
-                if (publishedProvider.Released != null && 
-                    variationPointers.AnyWithNullCheck() && 
+                if (publishedProvider.Released != null &&
+                    variationPointers.AnyWithNullCheck() &&
                     publishedProvidersContext.VariationContexts.ContainsKey(publishedProvider.Current.ProviderId) &&
-                    !publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].ApplicableVariations.AnyWithNullCheck(_ => AdjustProfilingStrategies.Contains(_)))
+                    !publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].ApplicableVariations.AnyWithNullCheck(_ => _ == "DistributionProfile"))
                 {
                     ProviderVariationContext providerVariationContext = publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId];
                     publishedProvider.Current.FundingLines = publishedProvider.Current.FundingLines.Select(_ =>
@@ -526,7 +525,7 @@ namespace CalculateFunding.Services.Publishing
                                 Name = _.Name,
                                 TemplateLineId = _.TemplateLineId,
                                 DistributionPeriods = providerVariationContext
-                                                        .CurrentState
+                                                        .PreRefreshState
                                                         .FundingLines
                                                         .First(fl => 
                                                             fl.FundingLineCode == _.FundingLineCode).DistributionPeriods,

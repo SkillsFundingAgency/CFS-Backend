@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         [TestInitialize]
         public void SetUp()
         {
-            Change = new AdjustDsgProfilesForUnderOverPaymentChange(VariationContext);    
+            Change = new AdjustDsgProfilesForUnderOverPaymentChange(VariationContext, "DsgTotalAllocationChange");    
 
             VariationContext.AllPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>
             {

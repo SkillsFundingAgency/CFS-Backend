@@ -40,22 +40,6 @@ namespace CalculateFunding.Services.Publishing.Errors
             {
                 updated = true;
 
-                // reset the current to the version before the last refresh so nothing is overwritten until all errors are cleared
-                if (publishedProvidersContext != null && 
-                    publishedProvidersContext.VariationContexts.AnyWithNullCheck() && 
-                    publishedProvidersContext.VariationContexts.ContainsKey(publishedProvider.Current.ProviderId))
-                {
-                    PublishedProviderVersion previousPublishedProvider = publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].CurrentState;
-                    
-                    // copy current state before any updates from current refresh
-                    publishedProvider.Current.FundingLines = previousPublishedProvider.FundingLines;
-                    publishedProvider.Current.Calculations = previousPublishedProvider.Calculations;
-                    publishedProvider.Current.ReferenceData = previousPublishedProvider.ReferenceData;
-                    publishedProvider.Current.TotalFunding = previousPublishedProvider.TotalFunding;
-                    publishedProvider.Current.TemplateVersion = previousPublishedProvider.TemplateVersion;
-                    publishedProvider.Current.Provider = previousPublishedProvider.Provider;
-                }
-
                 publishedProvider.Current.AddErrors(errorCheck.Errors);
             }
 

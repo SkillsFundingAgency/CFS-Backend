@@ -21,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string providerVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
             string fundingPeriodId,
+            PublishedProviderVersion preRefreshProviderVersion,
             IEnumerable<string> variances = null);
     }
 }

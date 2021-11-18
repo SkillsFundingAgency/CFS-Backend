@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         [TestInitialize]
         public void SetUp()
         {
-            Change = new ReAdjustSuccessorFundingValuesForProfileValueChange(VariationContext);
+            Change = new ReAdjustSuccessorFundingValuesForProfileValueChange(VariationContext, "ClosureWithSuccessor");
 
             VariationContext.Successor = new PublishedProvider { Current = VariationContext.RefreshState.DeepCopy() };
 

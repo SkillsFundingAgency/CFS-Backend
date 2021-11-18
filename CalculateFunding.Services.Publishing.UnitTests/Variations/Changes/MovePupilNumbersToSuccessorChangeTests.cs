@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             VariationsApplication.PoliciesApiClient
                 .Returns(_policies.Object);
 
-            Change = new MovePupilNumbersToSuccessorChange(VariationContext);
+            Change = new MovePupilNumbersToSuccessorChange(VariationContext, "PupilNumberSuccessor");
 
             VariationContext.Successor = new PublishedProvider { Current = VariationContext.RefreshState.DeepCopy() };
         }

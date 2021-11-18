@@ -106,7 +106,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                                 variationPointers,
                                 specification.ProviderVersionId,
                                 organisationGroupResults,
-                                specification.FundingPeriod.Id);
+                                specification.FundingPeriod.Id,
+                                currentState.Current);
 
                         providerVariationReasons = ProviderHasGeneratedVariationReasons(variationContext)
                             ? new HashSet<VariationReason>(variationContext.VariationReasons)

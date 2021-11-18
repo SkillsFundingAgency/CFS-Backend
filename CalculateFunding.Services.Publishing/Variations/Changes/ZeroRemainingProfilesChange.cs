@@ -9,8 +9,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class ZeroRemainingProfilesChange : ProfileVariationPointerChange
     {
-        public ZeroRemainingProfilesChange(ProviderVariationContext variationContext)
-            : base(variationContext , "zero remaining profiles")
+        public ZeroRemainingProfilesChange(ProviderVariationContext variationContext, string strategyName)
+            : base(variationContext , "zero remaining profiles", strategyName)
         {
         }
 

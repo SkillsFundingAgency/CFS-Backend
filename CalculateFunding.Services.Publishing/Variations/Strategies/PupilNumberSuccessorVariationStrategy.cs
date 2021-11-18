@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             successor.AddPredecessor(providerVariationContext.ProviderId);
 
-            providerVariationContext.QueueVariationChange(new MovePupilNumbersToSuccessorChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new MovePupilNumbersToSuccessorChange(providerVariationContext, Name));
 
             return false;
         }

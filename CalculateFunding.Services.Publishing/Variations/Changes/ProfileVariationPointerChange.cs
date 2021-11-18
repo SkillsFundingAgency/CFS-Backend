@@ -14,8 +14,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
     public abstract class ProfileVariationPointerChange : VariationChange
     {
         private readonly string _changeName;
-        protected ProfileVariationPointerChange(ProviderVariationContext variationContext, string changeName)
-            : base(variationContext)
+
+        protected ProfileVariationPointerChange(ProviderVariationContext variationContext, string changeName, string strategyName)
+            : base(variationContext, strategyName)
         {
             Guard.IsNullOrWhiteSpace(changeName, nameof(changeName));
 
@@ -32,6 +33,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 {
                     foreach (ProfileVariationPointer variationPointer in variationPointers)
                     {
+                        AddAffectedFundingLine(variationPointer.FundingLineId);
                         MakeAdjustmentsFromProfileVariationPointer(variationPointer);
                     }
                 }

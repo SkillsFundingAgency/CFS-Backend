@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         [TestInitialize]
         public void SetUp()
         {
-            Change = new MetaDataVariationsChange(VariationContext);
+            Change = new MetaDataVariationsChange(VariationContext, "ProviderMetadata");
         }
         
         [TestMethod]

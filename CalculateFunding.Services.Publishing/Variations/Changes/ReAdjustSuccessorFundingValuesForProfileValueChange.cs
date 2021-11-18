@@ -5,8 +5,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class ReAdjustSuccessorFundingValuesForProfileValueChange : ReAdjustFundingValuesForProfileValuesChange
     {
-        public ReAdjustSuccessorFundingValuesForProfileValueChange(ProviderVariationContext variationContext) 
-            : base(variationContext)
+        public ReAdjustSuccessorFundingValuesForProfileValueChange(ProviderVariationContext variationContext, string strategyName) 
+            : base(variationContext, strategyName)
         {
         }
 

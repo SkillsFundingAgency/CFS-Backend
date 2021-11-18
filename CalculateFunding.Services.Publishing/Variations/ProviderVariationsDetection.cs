@@ -35,6 +35,7 @@ namespace CalculateFunding.Services.Publishing.Variations
             string providerVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
             string fundingPeriodId,
+            PublishedProviderVersion preRefreshProviderVersion,
             IEnumerable<string> variances)
         {
             Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
@@ -59,7 +60,8 @@ namespace CalculateFunding.Services.Publishing.Variations
                 ApplicableVariations = new List<string>(),
                 Variances = variances,
                 FundingPeriodStartDate = fundingPeriod.StartDate,
-                FundingPeriodEndDate = fundingPeriod.EndDate
+                FundingPeriodEndDate = fundingPeriod.EndDate,
+                PreRefreshState = preRefreshProviderVersion
             };
 
             foreach (FundingVariation configuredVariation in variations.OrderBy(_ => _.Order))

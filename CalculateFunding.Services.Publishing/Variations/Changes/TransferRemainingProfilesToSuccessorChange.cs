@@ -9,8 +9,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class TransferRemainingProfilesToSuccessorChange : ProfileVariationPointerChange
     {
-        public TransferRemainingProfilesToSuccessorChange(ProviderVariationContext variationContext) 
-            : base(variationContext, "transfer remaining profiles")
+        public TransferRemainingProfilesToSuccessorChange(ProviderVariationContext variationContext, string strategyName) 
+            : base(variationContext, "transfer remaining profiles", strategyName)
         {
         }
         

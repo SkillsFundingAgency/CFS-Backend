@@ -97,6 +97,8 @@ namespace CalculateFunding.Services.Publishing.Models
         /// </summary>
         public PublishedProviderVersion CurrentState => GetPublishedProviderOriginalSnapShot(ProviderId)?.Current;
 
+        public PublishedProviderVersion PreRefreshState { get; set; }
+
         public PublishedProvider AddMissingProvider(PublishedProvider missingProvider)
         {
             if (missingProvider != null)

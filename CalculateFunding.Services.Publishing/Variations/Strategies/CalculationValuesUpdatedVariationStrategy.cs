@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         {
             providerVariationContext.AddVariationReasons(VariationReason.CalculationValuesUpdated);
 
-            providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext, Name));
 
             return Task.FromResult(false);
         }

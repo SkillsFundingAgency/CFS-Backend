@@ -16,8 +16,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
     {
         private const string ChangeName = "zero initial payment profiles";
 
-        public ZeroInitialPaymentProfilesChange(ProviderVariationContext variationContext)
-            : base(variationContext)
+        public ZeroInitialPaymentProfilesChange(ProviderVariationContext variationContext, string strategyName)
+            : base(variationContext, strategyName)
         {
         }
 
@@ -31,6 +31,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 {
                     foreach (FundingLine fl in RefreshState.FundingLines)
                     {
+                        AddAffectedFundingLine(fl.FundingLineCode);
+
                         if (fl.Value.HasValue)
                         {
                             fl.Value = 0;

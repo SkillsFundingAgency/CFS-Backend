@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
         {
             providerVariationContext.AddVariationReasons(VariationReason.TemplateUpdated);
-            providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext, Name));
 
             return Task.FromResult(false);
         }

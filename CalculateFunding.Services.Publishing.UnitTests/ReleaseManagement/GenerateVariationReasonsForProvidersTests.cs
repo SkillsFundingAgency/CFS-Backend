@@ -204,6 +204,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     providerVersionId,
                     organisationGroupResultsData,
                     fundingPeriodId,
+                    It.IsAny<PublishedProviderVersion>(),
                     variances))
                 .ReturnsAsync(providerVariationContext);
         }

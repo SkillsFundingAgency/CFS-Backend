@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         [TestInitialize]
         public void SetUp()
         {
-            Change = new ZeroInitialPaymentProfilesChange(VariationContext);
+            Change = new ZeroInitialPaymentProfilesChange(VariationContext, "Closure");
         }
 
         [TestMethod]

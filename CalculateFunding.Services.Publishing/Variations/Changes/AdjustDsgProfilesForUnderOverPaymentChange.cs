@@ -11,8 +11,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class AdjustDsgProfilesForUnderOverPaymentChange : ProfileVariationPointerChange
     {
-        public AdjustDsgProfilesForUnderOverPaymentChange(ProviderVariationContext variationContext) 
-            : base(variationContext, "adjust profiles for dsg total allocation")
+        public AdjustDsgProfilesForUnderOverPaymentChange(ProviderVariationContext variationContext, string strategyName) 
+            : base(variationContext, "adjust profiles for dsg total allocation", strategyName)
         {
         }
 

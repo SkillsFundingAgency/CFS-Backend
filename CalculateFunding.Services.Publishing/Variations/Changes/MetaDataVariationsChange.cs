@@ -7,8 +7,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class MetaDataVariationsChange : VariationChange
     {
-        public MetaDataVariationsChange(ProviderVariationContext variationContext)
-            : base(variationContext)
+        public MetaDataVariationsChange(ProviderVariationContext variationContext, string strategyName)
+            : base(variationContext, strategyName)
         {
         }
 
