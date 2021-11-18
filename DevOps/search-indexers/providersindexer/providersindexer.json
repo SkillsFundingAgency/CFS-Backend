@@ -2,7 +2,9 @@
   "name": "providersindexer",
   "dataSourceName": "providersdatasource",
   "targetIndexName": "providersindex",
-  "schedule": { "interval": "PT2H" },
+  "schedule": {
+    "interval": "PT2H"
+  },
   "fieldMappings": [
     {
       "sourceFieldName": "/providerVersionId_providerId",
@@ -232,11 +234,39 @@
       "sourceFieldName": "/paymentOrganisationName",
       "targetFieldName": "paymentOrganisationName"
     },
-	{
+    {
+      "sourceFieldName": "/providerTypeCode",
+      "targetFieldName": "providerTypeCode"
+    },
+    {
+      "sourceFieldName": "/providerSubTypeCode",
+      "targetFieldName": "providerSubTypeCode"
+    },
+    {
+      "sourceFieldName": "/previousLAName",
+      "targetFieldName": "previousLAName"
+    },
+    {
+      "sourceFieldName": "/previousLACode",
+      "targetFieldName": "previousLACode"
+    },
+    {
+      "sourceFieldName": "/previousEstablishmentNumber",
+      "targetFieldName": "previousEstablishmentNumber"
+    },
+    {
+      "sourceFieldName": "/furtherEducationTypeCode",
+      "targetFieldName": "furtherEducationTypeCode"
+    },
+    {
+      "sourceFieldName": "/furtherEducationTypeName",
+      "targetFieldName": "furtherEducationTypeName"
+    },
+    {
       "sourceFieldName": "/predecessors",
       "targetFieldName": "predecessors"
     },
-	{
+    {
       "sourceFieldName": "/successors",
       "targetFieldName": "successors"
     }
