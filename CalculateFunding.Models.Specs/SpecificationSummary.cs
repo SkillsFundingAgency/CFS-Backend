@@ -29,7 +29,10 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("isSelectedForFunding")]
         public bool IsSelectedForFunding { get; set; }
-        
+
+        [JsonProperty("forceUpdateOnNextRefresh")]
+        public bool? ForceUpdateOnNextRefresh { get; set; }
+
         [JsonProperty("lastEditedDate")]
         public DateTimeOffset? LastEditedDate { get; set; }
 
