@@ -83,6 +83,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         [TestMethod]
+        public void ClearForceUpdateOnReferesh__GivenNonSuccessResponse_ThrowsException()
+        {
+            //Arrange
+            string specificationId = new RandomString();
+
+            _specifications.ClearForceOnNextRefresh(Arg.Is(specificationId))
+                .Returns(HttpStatusCode.NotFound);
+
+            //Act
+            Func<Task> test = async () => await _service.ClearForceOnNextRefresh(specificationId);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to clear force on next refresh for specification with id '{specificationId}'.");
+        }
+
+        [TestMethod]
         public async Task GetProfileVariationPointers__GivenNotFoundResponse_ReturnsNull()
         {
             string specificationId = new RandomString();

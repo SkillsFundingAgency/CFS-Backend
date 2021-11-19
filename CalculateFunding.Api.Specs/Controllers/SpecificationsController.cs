@@ -278,6 +278,14 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.SetProfileVariationPointers(specificationId, specificationProfileVariationPointerModels);
         }
 
+        [Route("/api/specs/{specificationId}/clearforceonnextrefresh")]
+        [HttpPut]
+        [Produces(typeof(HttpStatusCode))]
+        public async Task<IActionResult> ClearForceUpdateOnNextRefresh([FromRoute] string specificationId)
+        {
+            return await _specService.ClearForceUpdateOnNextRefresh(specificationId);
+        }
+
         [Route("/api/specs/{specificationId}/mergeprofilevariationpointers")]
         [HttpPatch]
         [Produces(typeof(HttpStatusCode))]

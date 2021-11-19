@@ -59,6 +59,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> SetProfileVariationPointer(string specificationId, SpecificationProfileVariationPointerModel specificationProfileVariationPointerModel);
 
+        Task<IActionResult> ClearForceUpdateOnNextRefresh(string specificationId);
+
         Task<IActionResult> GetFundingStreamIdsForSelectedFundingSpecifications();
         Task<IActionResult> GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(string fundingStreamId);
         Task<IActionResult> SoftDeleteSpecificationById(string specificationId, Reference user, string correlationId);

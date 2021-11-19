@@ -273,6 +273,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task RefreshResults_WhenForceUpdateOnRefreshAnUpdatePublishStatusCompletesWithoutError_AllPublishedProvidersUpdated()
+        {
+            GivenJobCanBeProcessed();
+            AndSpecification(true);
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndScopedProviders();
+            AndScopedProviderCalculationResults();
+            AndTemplateMapping();
+            AndPublishedProviders();
+            AndNewMissingPublishedProviders();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
+            AndClearForceUpdateOnRefresh();
+
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            _publishedProviderStatusUpdateService
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == _scopedProviders.Count()),
+                    It.IsAny<Reference>(),
+                    PublishedProviderStatus.Updated,
+                    JobId,
+                    CorrelationId,
+                    It.IsAny<bool>()), Times.Once);
+
+            AndClearForceUpdateOnRefreshCalled();
+            AndTheCustomProfilesWereReApplied();
+            AndTheCsvGenerationJobsWereCreated(SpecificationId, FundingPeriodId);
+        }
+
+        [TestMethod]
         public async Task RefreshResults_WhenAnUpdatePublishStatusCompletesWithoutError_PublishedProviderUpdated()
         {
             GivenJobCanBeProcessed();
@@ -1111,6 +1141,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .ReturnsAsync(new FundingPeriod());
         }
 
+        private void AndClearForceUpdateOnRefresh()
+        {
+            _specificationsApiClient
+                .Setup(_ => _.ClearForceOnNextRefresh(_specificationSummary.Id))
+                .ReturnsAsync(HttpStatusCode.OK);
+        }
+
+        private void AndClearForceUpdateOnRefreshCalled()
+        {
+            _specificationsApiClient
+                .Verify(_ => _.ClearForceOnNextRefresh(_specificationSummary.Id), Times.Once);
+        }
+
         private void AndProfilePatternsForFundingStreamAndFundingPeriod()
         {
             IEnumerable<Common.ApiClient.Profiling.Models.FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns
@@ -1147,7 +1190,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     $"Received job with id: 'JobId' is already in a completed state with status {jobViewModel.CompletionStatus}", jobViewModel));
         }
 
-        private void AndSpecification()
+        private void AndSpecification(bool? forceUpdateOnNextRefresh = null)
         {
             _specificationSummary = NewSpecificationSummary(_ => _
                 .WithId(SpecificationId)
@@ -1155,6 +1198,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .WithFundingStreamIds(new[] { FundingStreamId })
                 .WithFundingPeriodId(FundingPeriodId)
                 .WithTemplateIds((FundingStreamId, "1.0"))
+                .WithForceUpdateOnNextRefresh(forceUpdateOnNextRefresh.GetValueOrDefault())
                 .WithProviderVersionId(providerVersionId));
 
             _specificationsApiClient.Setup(_ => _.GetSpecificationSummaryById(SpecificationId))

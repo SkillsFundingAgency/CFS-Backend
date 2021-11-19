@@ -235,5 +235,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<HttpStatusCode> ClearForceOnNextRefresh(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -588,6 +588,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     Arg.Any<string>(),
                     Arg.Any<bool>(),
                     withRunCalculationEngineAfterCoreProviderUpdate);
+
+            await _specificationsRepository
+                .Received(1)
+                .UpdateSpecification(Arg.Is<Specification>(_ => _.ForceUpdateOnNextRefresh == true));
         }
 
         [TestMethod]

@@ -859,6 +859,11 @@ namespace CalculateFunding.Services.Specs
 
             if (editModel.AssignedTemplateIds.AnyWithNullCheck() && editModel.AssignedTemplateIds.ContainsKey(fundingStreamId))
             {
+                if (previousSpecificationVersion.TemplateVersionHasChanged(fundingStreamId, editModel.AssignedTemplateIds[fundingStreamId]))
+                {
+                    specification.ForceUpdateOnNextRefresh = true;
+                }
+
                 specificationVersion.AddOrUpdateTemplateId(fundingStreamId, editModel.AssignedTemplateIds[fundingStreamId]);
             }
 
@@ -1572,6 +1577,15 @@ WHERE   s.documentType = @DocumentType",
                 return new PreconditionFailedResult(message);
             }
 
+            IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, new[] { JobConstants.DefinitionNames.RefreshFundingJob });
+
+            if (jobSummaries.Values.AnyWithNullCheck(_ => _ != null && _.RunningStatus == RunningStatus.InProgress))
+            {
+                string message = $"Refresh job currently running for specification {specificationId}";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
             SpecificationVersion currentSpecificationVersion = specification.Current;
             SpecificationVersion newSpecificationVersion = specification.Current.Clone() as SpecificationVersion;
 
@@ -1595,6 +1609,7 @@ WHERE   s.documentType = @DocumentType",
 
             newSpecificationVersion.Version++;
             newSpecificationVersion.ProfileVariationPointers = profileVariationPointers;
+            specification.ForceUpdateOnNextRefresh = true;
 
             HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
 
@@ -1608,6 +1623,25 @@ WHERE   s.documentType = @DocumentType",
 
             return new OkObjectResult(updateSpecificationResult);
         }
+
+        public async Task<IActionResult> ClearForceUpdateOnNextRefresh(string specificationId)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+            
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
+            specification.ForceUpdateOnNextRefresh = false;
+
+            return await UpdateSpecification(specification, specificationId);
+        }
+
 
         public async Task<IActionResult> SetProfileVariationPointer(string specificationId,
             SpecificationProfileVariationPointerModel specificationProfileVariationPointerModel)

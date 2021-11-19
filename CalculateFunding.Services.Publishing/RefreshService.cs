@@ -428,6 +428,12 @@ namespace CalculateFunding.Services.Publishing
                         variances = variances.Concat(new[] { "Indicative flag set" });
                     }
 
+                    // if this flag is set then variation pointers have been added or updated so we need to force an update so the variation strategies are executed
+                    if (specification.ForceUpdateOnNextRefresh.GetValueOrDefault())
+                    {
+                        publishedProviderUpdated = true;
+                    }
+
                     _logger.Verbose($"Published provider '{publishedProvider.Key}' updated: '{publishedProviderUpdated}'");
                 }
 
@@ -552,6 +558,12 @@ namespace CalculateFunding.Services.Publishing
                         });
 
                         await _refreshStateService.Persist(jobId, author, correlationId);
+
+                        // clear the force refresh flag so that we don't force update on all providers unless variation pointers are edited
+                        if (specification.ForceUpdateOnNextRefresh.GetValueOrDefault())
+                        {
+                            await _specificationService.ClearForceOnNextRefresh(specification.Id);
+                        }
 
                         transaction.Complete();
                     }

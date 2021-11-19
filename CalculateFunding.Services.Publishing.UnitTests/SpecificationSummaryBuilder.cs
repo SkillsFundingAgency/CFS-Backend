@@ -14,6 +14,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _fundingPeriodId;
         private bool _withNoFundingPeriod;
         private bool? _isSelectedForFunding;
+        private bool? _forceUpdateOnNextRefresh;
         private IEnumerable<string> _fundingStreamIds = Enumerable.Empty<string>();
         private bool _withNoId;
         private IEnumerable<(string fundingId, string version)> _templateIds = Enumerable.Empty<(string fundingId, string version)>();
@@ -39,6 +40,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public SpecificationSummaryBuilder WithIsSelectedForFunding(bool isSelectedForFunding)
         {
             _isSelectedForFunding = isSelectedForFunding;
+
+            return this;
+        }
+
+        public SpecificationSummaryBuilder WithForceUpdateOnNextRefresh(bool forceUpdateOnNextRefresh)
+        {
+            _forceUpdateOnNextRefresh = forceUpdateOnNextRefresh;
 
             return this;
         }
@@ -109,6 +117,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     ? null
                     : new Reference(_fundingPeriodId ?? NewRandomString(), NewRandomString()),
                 IsSelectedForFunding = _isSelectedForFunding.GetValueOrDefault(NewRandomFlag()),
+                ForceUpdateOnNextRefresh = _forceUpdateOnNextRefresh.GetValueOrDefault(NewRandomFlag()),
                 FundingStreams = _fundingStreamIds.Select(_ => new FundingStream
                 {
                     Id = _

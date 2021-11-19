@@ -60,5 +60,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(new PublishStatusResponseModel { PublishStatus = publishStatus });
         }
+
+        public Task ClearForceOnNextRefresh(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

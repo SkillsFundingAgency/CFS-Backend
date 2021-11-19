@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -212,7 +215,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .AndDoes(_ => clonedSpecificationVersion = _.ArgAt<SpecificationVersion>(0));
 
             specificationsRepository
-                .UpdateSpecification(Arg.Any<Specification>())
+                .UpdateSpecification(Arg.Is<Specification>(_ => _.ForceUpdateOnNextRefresh == true))
                 .Returns(HttpStatusCode.OK);
 
             SpecificationsService service = CreateService(
@@ -251,7 +254,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             if (merge)
             {
-                expectedProfileVariationPointers.ForEach(_ => { 
+                expectedProfileVariationPointers.ForEach(_ =>
+                {
                     _.Occurrence = 2;
                 });
             }
@@ -322,7 +326,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .AndDoes(_ => clonedSpecificationVersion = _.ArgAt<SpecificationVersion>(0));
 
             specificationsRepository
-                .UpdateSpecification(Arg.Any<Specification>())
+                .UpdateSpecification(Arg.Is<Specification>(_ => _.ForceUpdateOnNextRefresh == true))
                 .Returns(HttpStatusCode.OK);
 
             SpecificationsService service = CreateService(
@@ -370,6 +374,58 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     TypeValue = "TypeValue",
                     Year = 2019
                 }});
+        }
+
+        [TestMethod]
+        public async Task SetProfileVariationPointer_ValidParametersPassedRefreshJobInProgress_ReturnsOKAndSetsSetProfileVariationPointersOnSpec()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+            string specificationId = NewRandomString();
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            jobManagement
+                .GetLatestJobsForSpecification(Arg.Is(specificationId),
+                    Arg.Is<IEnumerable<string>>(_ => _.First() == JobConstants.DefinitionNames.RefreshFundingJob))
+                .Returns(new Dictionary<string, JobSummary> {{
+                        JobConstants.DefinitionNames.RefreshFundingJob,
+                        new JobSummary 
+                            { 
+                                JobDefinitionId = JobConstants.DefinitionNames.RefreshFundingJob, 
+                                RunningStatus = RunningStatus.InProgress
+                            }
+                    }});
+
+            Specification specification = new Specification { Id = specificationId };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            specificationsRepository
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            SpecificationsService service = CreateService(logs: logger, 
+                jobManagement: jobManagement, 
+                specificationsRepository: specificationsRepository);
+
+            // Act
+            IActionResult result = await service.SetProfileVariationPointers(specificationId, new[] { new SpecificationProfileVariationPointerModel() });
+
+            string expectedErrorMessage = $"Refresh job currently running for specification {specificationId}";
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(expectedErrorMessage);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is(expectedErrorMessage));
         }
     }
 }

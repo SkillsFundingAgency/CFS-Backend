@@ -68,6 +68,19 @@ namespace CalculateFunding.Services.Publishing.Specifications
             }
         }
 
+        public async Task ClearForceOnNextRefresh(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            
+            HttpStatusCode specificationForFundingResponse =
+                await _resiliencePolicy.ExecuteAsync(() => _specifications.ClearForceOnNextRefresh(specificationId));
+
+            if (!specificationForFundingResponse.IsSuccess())
+            {
+                throw new Exception($"Failed to clear force on next refresh for specification with id '{specificationId}'.");
+            }
+        }
+
         public async Task<IEnumerable<ApiProfileVariationPointer>> GetProfileVariationPointers(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));

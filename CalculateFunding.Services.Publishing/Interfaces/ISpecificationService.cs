@@ -13,6 +13,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task SelectSpecificationForFunding(string specificationId);
 
+        Task ClearForceOnNextRefresh(string specificationId);
+
         Task<IEnumerable<ProfileVariationPointer>> GetProfileVariationPointers(string specificationId);
 
         Task<PublishStatusResponseModel> EditSpecificationStatus(string specificationId, PublishStatus publishStatus);
