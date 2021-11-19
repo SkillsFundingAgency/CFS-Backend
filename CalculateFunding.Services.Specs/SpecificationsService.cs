@@ -13,6 +13,7 @@ using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Results;
@@ -861,7 +862,10 @@ namespace CalculateFunding.Services.Specs
             {
                 if (previousSpecificationVersion.TemplateVersionHasChanged(fundingStreamId, editModel.AssignedTemplateIds[fundingStreamId]))
                 {
-                    specification.ForceUpdateOnNextRefresh = true;
+                    if (await FundingLinesAddedOrRemovedBetweenTemplates(fundingStreamId, previousFundingPeriodId, editModel.AssignedTemplateIds[fundingStreamId], specification.Current.GetTemplateVersionId(fundingStreamId)))
+                    {
+                        specification.ForceUpdateOnNextRefresh = true;
+                    }
                 }
 
                 specificationVersion.AddOrUpdateTemplateId(fundingStreamId, editModel.AssignedTemplateIds[fundingStreamId]);
@@ -968,6 +972,50 @@ namespace CalculateFunding.Services.Specs
                 triggerCalculationEngineRunJob);
 
             return new OkObjectResult(specification);
+        }
+
+        private async Task<bool> FundingLinesAddedOrRemovedBetweenTemplates(string fundingStreamId, string fundingPeriodId, string currentTemplateId, string previousTemplateId)
+        {
+            ApiResponse<TemplateMetadataDistinctContents> currentTemplateResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetDistinctTemplateMetadataContents(fundingStreamId,
+                fundingPeriodId,
+                currentTemplateId));
+
+            if (currentTemplateResponse?.Content == null)
+            {
+                string message =
+                    $"Unable to find the template metadata for funding stream - {fundingStreamId}, funding period id - {fundingPeriodId}, template version - {currentTemplateId}.";
+
+                _logger.Error(message);
+
+                throw new Exception(message);
+            }
+
+            ApiResponse<TemplateMetadataDistinctContents> previousTemplateResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetDistinctTemplateMetadataContents(fundingStreamId,
+                fundingPeriodId,
+                previousTemplateId));
+
+            if (previousTemplateResponse?.Content == null)
+            {
+                string message =
+                    $"Unable to find the template metadata for funding stream - {fundingStreamId}, funding period id - {fundingPeriodId}, template version - {previousTemplateId}.";
+
+                _logger.Error(message);
+
+                throw new Exception(message);
+            }
+
+            IEnumerable<string> currentFundingLines = currentTemplateResponse
+                        .Content
+                        .FundingLines
+                        .Select(_ => _.FundingLineCode) ?? ArraySegment<string>.Empty;
+
+            IEnumerable<string> previousFundingLines = previousTemplateResponse
+                        .Content
+                        .FundingLines
+                        .Select(_ => _.FundingLineCode) ?? ArraySegment<string>.Empty;
+
+            return !Enumerable.SequenceEqual(currentFundingLines.OrderBy(_ => _),
+                    previousFundingLines.OrderBy(_ => _));
         }
 
         private async Task<bool> IsAnySpecificationJobRunning(string specificationId)

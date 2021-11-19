@@ -502,14 +502,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task EditSpecification_GivenChanges_QueueEditSpecificationJobActions()
+        public async Task EditSpecification_GivenChangesAndTemplateChangeButNoFundingLineChanges_QueueEditSpecificationJobActions()
         {
             //Arrange
             bool withRunCalculationEngineAfterCoreProviderUpdate = true;
 
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
-                FundingPeriodId = "fp10",
+                FundingPeriodId = "FP1",
                 Name = "new spec name",
                 ProviderVersionId = _specification.Current.ProviderVersionId,
                 AssignedTemplateIds = new Dictionary<string, string>()
@@ -546,11 +546,101 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _jobManagement.GetLatestJobsForSpecification(SpecificationId, Arg.Any<IEnumerable<string>>())
                 .Returns(latestJobs);
 
-            SpecificationsService service = CreateSpecificationsService(newSpecVersion);
-          
             string correlationId = NewRandomString();
 
             SpecificationVersion previousSpecificationVersion = _specification.Current;
+
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion, previousSpecificationVersion);
+
+            //Act
+            await service.EditSpecification(SpecificationId, specificationEditModel, user, correlationId);
+
+            await _specificationIndexer
+                .Received(1)
+                .Index(Arg.Is<Specification>(_ => ReferenceEquals(_.Current, newSpecVersion)));
+
+            await
+                _cacheProvider
+                    .Received(1)
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
+            await
+                _messengerService
+                    .Received(1)
+                    .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
+                                Arg.Is<SpecificationVersionComparisonModel>(
+                                    m => m.Id == SpecificationId &&
+                                    m.Current.Name == "new spec name" &&
+                                    m.Previous.Name == "Spec name"
+                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
+            await
+              _versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(newSpecVersion));
+
+            await _editSpecificationJobActions
+                .Received(1)
+                .Run(Arg.Is<SpecificationVersion>(
+                        m => !string.IsNullOrWhiteSpace(m.EntityId) &&
+                             m.Name == specificationEditModel.Name),
+                    Arg.Is<SpecificationVersion>(_ => _.AsJson(false) == previousSpecificationVersion.AsJson(false)),
+                    Arg.Is(specificationEditModel),
+                    Arg.Any<Reference>(),
+                    Arg.Any<string>(),
+                    Arg.Any<bool>(),
+                    withRunCalculationEngineAfterCoreProviderUpdate);
+        }
+
+
+        [TestMethod]
+        public async Task EditSpecification_GivenChangesAndTemplateChangeWithFundingLineChanges_QueueEditSpecificationJobActions()
+        {
+            //Arrange
+            bool withRunCalculationEngineAfterCoreProviderUpdate = true;
+
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "FP1",
+                Name = "new spec name",
+                ProviderVersionId = _specification.Current.ProviderVersionId,
+                AssignedTemplateIds = new Dictionary<string, string>()
+            };
+            Reference user = new Reference();
+
+            SpecificationVersion newSpecVersion = _specification.Current.DeepCopy(useCamelCase: false);
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs1" } };
+            newSpecVersion.FundingPeriod.Name = "p10";
+            newSpecVersion.Author = user;
+            newSpecVersion.Description = specificationEditModel.Description;
+            newSpecVersion.TemplateIds = new Dictionary<string, string> { { "fs1", "2.0" } };
+
+            specificationEditModel.AssignedTemplateIds.Add("fs1", "2.0");
+
+            AndGetFundingConfiguration(
+                _specification.Current.FundingStreams.FirstOrDefault().Id,
+                specificationEditModel.FundingPeriodId,
+                withRunCalculationEngineAfterCoreProviderUpdate: withRunCalculationEngineAfterCoreProviderUpdate);
+
+            Dictionary<string, JobSummary> latestJobs = new Dictionary<string, JobSummary>
+            {
+                {
+                    "",
+                    new JobSummary
+                    {
+                        RunningStatus = RunningStatus.Completed
+                    }
+                }
+            };
+
+            _jobManagement.GetLatestJobsForSpecification(SpecificationId, Arg.Any<IEnumerable<string>>())
+                .Returns(latestJobs);
+
+            string correlationId = NewRandomString();
+
+            SpecificationVersion previousSpecificationVersion = _specification.Current;
+
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion, previousSpecificationVersion, false);
 
             //Act
             await service.EditSpecification(SpecificationId, specificationEditModel, user, correlationId);
@@ -726,14 +816,35 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     withRunCalculationEngineAfterCoreProviderUpdate);
         }
 
-        private SpecificationsService CreateSpecificationsService(Models.Specs.SpecificationVersion newSpecVersion)
+        private SpecificationsService CreateSpecificationsService(Models.Specs.SpecificationVersion newSpecVersion,
+            Models.Specs.SpecificationVersion previousSpecVersion = null,
+            bool noFundingLineTemplateChanges = true)
         {
+            IEnumerable<PolicyModels.TemplateMetadataFundingLine> currentTemplateFundingLines = new[] {new PolicyModels.TemplateMetadataFundingLine()
+            {
+                FundingLineCode = NewRandomString()
+            } };
+
             _specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(_specification);
             _policiesApiClient
                 .GetFundingPeriodById(Arg.Is(_fundingPeriod.Id))
                 .Returns(_fundingPeriodResponse);
+            _policiesApiClient
+                .GetDistinctTemplateMetadataContents(Arg.Is(newSpecVersion.FundingStreams.First().Id),
+                    newSpecVersion.FundingPeriod.Id,
+                    Arg.Is(newSpecVersion.GetTemplateVersionId(newSpecVersion.FundingStreams.First().Id)))
+                .Returns(new ApiResponse<PolicyModels.TemplateMetadataDistinctContents>(HttpStatusCode.OK, NewTemplateMetadataDistinctContents(_ => _.WithFundingLines(
+                    currentTemplateFundingLines))));
+            if (previousSpecVersion != null)
+            {
+                _policiesApiClient
+                .GetDistinctTemplateMetadataContents(Arg.Is(previousSpecVersion.FundingStreams.First().Id),
+                    previousSpecVersion.FundingPeriod.Id,
+                    Arg.Is(previousSpecVersion.GetTemplateVersionId(previousSpecVersion.FundingStreams.First().Id)))
+                .Returns(new ApiResponse<PolicyModels.TemplateMetadataDistinctContents>(HttpStatusCode.OK, NewTemplateMetadataDistinctContents(_ => _.WithFundingLines(noFundingLineTemplateChanges ? currentTemplateFundingLines : null))));
+            }
             _specificationsRepository
                 .UpdateSpecification(Arg.Any<Specification>())
                 .Returns(HttpStatusCode.OK);

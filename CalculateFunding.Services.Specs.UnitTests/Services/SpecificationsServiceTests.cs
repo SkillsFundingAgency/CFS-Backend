@@ -356,6 +356,16 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 }
             };
         }
+
+        private TemplateMetadataDistinctContents NewTemplateMetadataDistinctContents(Action<TemplateMetadataDistinctContentsBuilder> setUp = null)
+        {
+            TemplateMetadataDistinctContentsBuilder contentsBuilder = new TemplateMetadataDistinctContentsBuilder();
+
+            setUp?.Invoke(contentsBuilder);
+
+            return contentsBuilder.Build();
+        }
+
         private FundingConfiguration NewFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
         {
             FundingConfigurationBuilder fundingConfigurationBuilder = new FundingConfigurationBuilder();
