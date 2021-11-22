@@ -108,6 +108,7 @@ namespace CalculateFunding.Api.Results
                 .AddCalculationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddScoped<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
+            builder.AddScoped<ICalculationResultQADatabasePopulationService, CalculationResultQADatabasePopulationService>();
             builder.AddScoped<IProducerConsumerFactory, ProducerConsumerFactory>();
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

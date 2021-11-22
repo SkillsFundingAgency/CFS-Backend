@@ -205,6 +205,12 @@
             
             public const string MergeSpecificationInformationForProviderPoisonedLocal = "merge-specification-information-poison";
 
+            public const string PopulateCalculationResultsQADatabase = "populate-calculation-results-qa-database";
+
+            public const string PopulateCalculationResultsQADatabasePoisoned = "populate-calculation-results-qa-database/$DeadLetterQueue";
+
+            public const string PopulateCalculationResultsQADatabasePoisonedLocal = "populate-calculation-results-qa-database-poison";
+
             public const string ProviderSnapshotDataLoad = "provider-snapshot-data-load";
 
             public const string ProviderSnapshotDataLoadPoisoned = "provider-snapshot-data-load/$DeadLetterQueue";

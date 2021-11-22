@@ -77,6 +77,8 @@ namespace CalculateFunding.Functions.Results
                 builder.AddScoped<OnCalculationResultsCsvGenerationTimer>();
                 builder.AddScoped<OnMergeSpecificationInformationForProviderWithResults>();
                 builder.AddScoped<OnMergeSpecificationInformationForProviderWithResultsFailure>();
+                builder.AddScoped<OnPopulateCalculationResultsQADatabase>();
+                builder.AddScoped<OnPopulateCalculationResultsQADatabaseFailure>();
                 builder.AddScoped<OnDeleteCalculationResults>();
                 builder.AddScoped<OnDeleteCalculationResultsFailure>();
                 builder.AddScoped<OnSearchIndexWriterEventTrigger>();
@@ -84,6 +86,7 @@ namespace CalculateFunding.Functions.Results
             }
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
             builder.AddSingleton<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
+            builder.AddSingleton<ICalculationResultQADatabasePopulationService, CalculationResultQADatabasePopulationService>();
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
 
             builder.AddSingleton<IConfiguration>(config);

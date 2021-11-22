@@ -12,6 +12,7 @@ using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
 using ProviderResultResponse = CalculateFunding.Models.Calcs.ProviderResultResponse;
 using ProviderWithResultsForSpecifications = CalculateFunding.Services.Results.Models.ProviderWithResultsForSpecifications;
 using SpecificationCalculationResultsMetadata = CalculateFunding.Models.Calcs.SpecificationCalculationResultsMetadata;
+using PopulateCalculationResultQADatabaseRequest = CalculateFunding.Services.Results.Models.PopulateCalculationResultQADatabaseRequest;
 
 namespace CalculateFunding.Api.Results.Controllers
 {
@@ -21,22 +22,26 @@ namespace CalculateFunding.Api.Results.Controllers
         private readonly IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
         private readonly IProviderCalculationResultsReIndexerService _providerCalculationResultsReIndexerService;
         private readonly ISpecificationsWithProviderResultsService _specificationsWithProviderResultsService;
+        private readonly ICalculationResultQADatabasePopulationService _calculationResultDatabasePopulationService;
 
         public ResultsController(
              IResultsService resultsService,
              IProviderCalculationResultsSearchService providerCalculationResultsSearchService,
              IProviderCalculationResultsReIndexerService providerCalculationResultsReIndexerService,
-             ISpecificationsWithProviderResultsService specificationsWithProviderResultsService)
+             ISpecificationsWithProviderResultsService specificationsWithProviderResultsService,
+             ICalculationResultQADatabasePopulationService calculationResultDatabasePopulationService)
         {
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
             Guard.ArgumentNotNull(providerCalculationResultsSearchService, nameof(providerCalculationResultsSearchService));
             Guard.ArgumentNotNull(providerCalculationResultsReIndexerService, nameof(providerCalculationResultsReIndexerService));
             Guard.ArgumentNotNull(specificationsWithProviderResultsService, nameof(specificationsWithProviderResultsService));
+            Guard.ArgumentNotNull(calculationResultDatabasePopulationService, nameof(calculationResultDatabasePopulationService));
 
             _resultsService = resultsService;
             _providerCalculationResultsSearchService = providerCalculationResultsSearchService;
             _providerCalculationResultsReIndexerService = providerCalculationResultsReIndexerService;
             _specificationsWithProviderResultsService = specificationsWithProviderResultsService;
+            _calculationResultDatabasePopulationService = calculationResultDatabasePopulationService;
         }
 
         [Route("api/results/get-provider-specs")]
@@ -181,6 +186,17 @@ namespace CalculateFunding.Api.Results.Controllers
         public async Task<IActionResult> GetSpecificationCalculationResultsMetadata([FromRoute]string specificationId)
         {
             return await _resultsService.GetSpecificationCalculationResultsMetadata(specificationId);
+        }
+
+        [HttpPut("api/results/calculation-results/populate-qa-database")]
+        [Produces(typeof(Common.ApiClient.Jobs.Models.Job))]
+        public async Task<IActionResult> QueueCalculationResultQADatabasePopulationJob(
+            [FromBody] PopulateCalculationResultQADatabaseRequest populateCalculationResultQADatabaseRequest)
+        {
+            return await _calculationResultDatabasePopulationService.QueueCalculationResultQADatabasePopulationJob(
+                populateCalculationResultQADatabaseRequest,
+                Request.GetUser(),
+                Request.GetCorrelationId());
         }
     }
 }

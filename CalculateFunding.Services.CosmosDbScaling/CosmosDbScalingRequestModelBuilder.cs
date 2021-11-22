@@ -20,6 +20,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     CosmosCollectionType.CalculationProviderResults, CosmosCollectionType.ProviderSourceDatasets
                 },
+                JobDefinitions.PopulateCalculationResultsQaDatabaseJob => new[]
+                {
+                    CosmosCollectionType.CalculationProviderResults
+                },
                 JobDefinitions.CreateInstructGenerateAggregationsAllocationJob => new[]
                 {
                     CosmosCollectionType.ProviderSourceDatasets

@@ -24,6 +24,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
         private static IResultsService _resultsService;
         private static IProviderCalculationResultsReIndexerService _providerCalculationResultsReIndexerService;
         private static ISpecificationsWithProviderResultsService _providerResultsService;
+        private static ICalculationResultQADatabasePopulationService _calculationResultQADatabasePopulationService;
         private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
@@ -37,6 +38,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
             _providerCalculationResultsReIndexerService = CreateProviderCalculationResultsReIndexerService();
             _userProfileProvider = CreateUserProfileProvider();
             _providerResultsService = Substitute.For<ISpecificationsWithProviderResultsService>();
+            _calculationResultQADatabasePopulationService = Substitute.For<ICalculationResultQADatabasePopulationService>();
         }
 
         [TestMethod]
@@ -106,6 +108,24 @@ namespace CalculateFunding.Functions.Results.SmokeTests
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.MergeSpecificationInformationForProvider,
                 async(Message smokeResponse) => await onReIndexCalculationResults.Run(smokeResponse));
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
+        [TestMethod]
+        public async Task OnPopulateCalculationResultsQADatabase_SmokeTestSucceeds()
+        {
+            OnPopulateCalculationResultsQADatabase onReIndexCalculationResults = new OnPopulateCalculationResultsQADatabase(_logger,
+                _calculationResultQADatabasePopulationService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PopulateCalculationResultsQADatabase,
+                async (Message smokeResponse) => await onReIndexCalculationResults.Run(smokeResponse));
 
             response
                 .Should()

@@ -63,7 +63,53 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
-        
+
+        [FunctionName(FunctionConstants.PopulateCalculationResultsQaDatabase)]
+        public static async Task RunOnPopulateCalculationResultsQADatabase([QueueTrigger(ServiceBusConstants.QueueNames.PopulateCalculationResultsQADatabase,
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            //the message helper was throwing newtonsoft exceptions so gone with this
+            QueueMessage<PopulateCalculationResultQADatabaseRequest> queueMessage = item.AsPoco<QueueMessage<PopulateCalculationResultQADatabaseRequest>>();
+
+            Message message = new Message(queueMessage.Data.AsJsonBytes());
+
+            foreach (KeyValuePair<string, string> property in queueMessage.UserProperties)
+            {
+                message.UserProperties.Add(property.Key, property.Value);
+            }
+
+            OnPopulateCalculationResultsQADatabase function = scope.ServiceProvider.GetService<OnPopulateCalculationResultsQADatabase>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(FunctionConstants.PopulateCalculationResultsQaDatabaseFailure)]
+        public static async Task RunOnPopulateCalculationResultsQADatabaseFailure([QueueTrigger(ServiceBusConstants.QueueNames.PopulateCalculationResultsQADatabasePoisonedLocal,
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            //the message helper was throwing newtonsoft exceptions so gone with this
+            QueueMessage<PopulateCalculationResultQADatabaseRequest> queueMessage = item.AsPoco<QueueMessage<PopulateCalculationResultQADatabaseRequest>>();
+
+            Message message = new Message(queueMessage.Data.AsJsonBytes());
+
+            foreach (KeyValuePair<string, string> property in queueMessage.UserProperties)
+            {
+                message.UserProperties.Add(property.Key, property.Value);
+            }
+
+            OnPopulateCalculationResultsQADatabaseFailure function = scope.ServiceProvider.GetService<OnPopulateCalculationResultsQADatabaseFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
         [FunctionName("on-reindex-calculation-results")]
         public static async Task RunReIndexCalculationResults([QueueTrigger(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex, Connection = "AzureConnectionString")] string item, ILogger log)
         {

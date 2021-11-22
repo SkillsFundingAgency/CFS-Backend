@@ -407,8 +407,6 @@ namespace CalculateFunding.Services.Results.UnitTests
 
         private static TItem[] AsArray<TItem>(params TItem[] items) => items;
 
-        private static TItem[][] AsPages<TItem>(params TItem[][] pages) => pages;
-
         private bool HasProviderIdInProperties(JobCreateModel jobCreateModel,
             string providerId)
             => jobCreateModel.Properties?.ContainsKey(ProviderId) == true &&

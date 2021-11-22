@@ -106,6 +106,8 @@
             public const string ReleaseManagementDataMigrationJob = nameof(ReleaseManagementDataMigrationJob);
 
             public const string ReleaseProvidersToChannelsJob = nameof(ReleaseProvidersToChannelsJob);
+
+            public const string PopulateCalculationResultsQaDatabaseJob = nameof(PopulateCalculationResultsQaDatabaseJob);
         }
 
         public static class NotificationChannels

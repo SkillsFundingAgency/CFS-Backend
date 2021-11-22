@@ -37,6 +37,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
         [TestMethod]
         [DataRow(JobConstants.DefinitionNames.CreateInstructAllocationJob,
             new[] { CosmosCollectionType.CalculationProviderResults, CosmosCollectionType.ProviderSourceDatasets })]
+        [DataRow(JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob,
+            new[] { CosmosCollectionType.CalculationProviderResults})]
         [DataRow(JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob,
             new[] { CosmosCollectionType.ProviderSourceDatasets })]
         [DataRow(JobConstants.DefinitionNames.MapDatasetJob,

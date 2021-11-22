@@ -61,5 +61,12 @@
         public const string ReleaseManagementDataMigration = "on-release-management-data-migration";
 
         public const string ReleaseManagementDataMigrationPoisoned = "on-release-management-data-migration-poisoned";
+
+        public const string PopulateCalculationResultsQaDatabase = "on-populate-calculation-results-qa-database";
+        
+        public const string PopulateCalculationResultsQaDatabaseFailure = "on-populate-calculation-results-qa-database-failure";
+
+        public const string PopulateCalculationResultsQaDatabasePoisoned = "on-populate-calculation-results-qa-database-poisoned";
+
     }
 }
