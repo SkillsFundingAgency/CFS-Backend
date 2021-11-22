@@ -144,7 +144,7 @@ namespace CalculateFunding.Functions.Datasets
                 new ProviderSourceDatasetRepository(CreateCosmosDbSettings(config, "providerdatasets")));
 
             builder
-                .AddSingleton<IDatasetService, DatasetService>();
+                .AddScoped<IDatasetService, DatasetService>();
 
             builder
                 .AddSingleton<IDatasetDataMergeService, DatasetDataMergeService>();

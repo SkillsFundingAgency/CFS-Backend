@@ -4,6 +4,7 @@ using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using static OfficeOpenXml.ExcelWorksheet;
 
@@ -27,9 +28,10 @@ namespace CalculateFunding.Services.DataImporter.Validators
                         return;
                     }
 
-                    if (EmptyHeaderColumn(firstWorkSheet))
+                    List<int> emptyColumns = EmptyHeaderColumn(firstWorkSheet);
+                    if (emptyColumns.Any())
                     {
-                        context.AddFailure("Excel file contains empty columns");
+                        context.AddFailure($"Excel file contains empty columns at positions {string.Join(',', emptyColumns)}");
                         return;
                     }
 
@@ -46,21 +48,22 @@ namespace CalculateFunding.Services.DataImporter.Validators
               });
         }
 
-        private static bool EmptyHeaderColumn(ExcelWorksheet worksheet)
+        private static List<int> EmptyHeaderColumn(ExcelWorksheet worksheet)
         {
             ExcelCellAddress start = worksheet.Dimension.Start;
             ExcelCellAddress end = worksheet.Dimension.End;
+            List<int> blankColumns = new List<int>();
 
             for (int col = start.Column; col <= end.Column; col++)
             {
                 ExcelRange val = worksheet.Cells[1, col];
                 if (val.GetValue<string>() == null)
                 {
-                    return true;
+                    blankColumns.Add(col);
                 }
             }
 
-            return false;
+            return blankColumns;
         }
     }
 }
