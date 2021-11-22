@@ -313,6 +313,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddTransient<IVariationStrategy, CalculationValuesUpdatedVariationStrategy>();
             builder.AddTransient<IVariationStrategy, DistributionProfileStrategy>();
             builder.AddTransient<IVariationStrategy, IndicativeToLiveVariationStrategy>();
+            builder.AddTransient<IVariationStrategy, ConverterReProfilingVariationStrategy>();
 
             builder.AddSingleton<IReProfilingResponseMapper, ReProfilingResponseMapper>();
             builder.AddScoped<IApproveService, ApproveService>();
