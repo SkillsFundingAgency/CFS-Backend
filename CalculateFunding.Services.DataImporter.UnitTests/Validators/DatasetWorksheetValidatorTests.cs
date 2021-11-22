@@ -103,7 +103,7 @@ namespace CalculateFunding.Services.DataImporter.UnitTests.Validators
                 .First()
                 .ErrorMessage
                 .Should()
-                .Be("Excel file contains empty columns");
+                .Be("Excel file contains empty columns at positions 4");
         }
 
         [TestMethod]

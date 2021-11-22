@@ -333,7 +333,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         }
 
         [TestMethod]
-        public async Task FailsPreconditionCheckIfItHasNoAllocations()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task FailsPreconditionCheckIfItHasNoAllocations(bool zeroAllocation)
         {
             GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = Closed);
 
@@ -344,7 +346,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
             AndTheReleaseStateFundingLines(NewFundingLine(_ => _.WithFundingLineCode(FundingLineCode)
                 .WithFundingLineType(FundingLineType.Payment)
-                .WithValue(null)
+                .WithValue(zeroAllocation ? 0 : (decimal?)null)
                 .WithDistributionPeriods(NewDistributionPeriod(dp =>
                     dp.WithProfilePeriods(NewProfilePeriod())))));
 

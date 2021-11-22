@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             bool hasNoReleasedAllocations = true;
 
-            foreach (FundingLine latestFundingLine in priorState.PaymentFundingLinesWithValues)
+            foreach (FundingLine latestFundingLine in priorState.PaymentFundingLinesWithValues.Where(_ => _.Value != 0))
             {
                 providerVariationContext.AddAffectedFundingLineCode(Name, latestFundingLine.FundingLineCode);
 
