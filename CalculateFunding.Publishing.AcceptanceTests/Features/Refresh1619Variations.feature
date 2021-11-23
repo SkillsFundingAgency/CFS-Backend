@@ -2,7 +2,7 @@
 	In order to refresh funding for 1619
 	As a funding approver
 	I want to refresh funding for all approved providers within a specification
-	And for variations with the allocations or provider data to be taken into account 
+	And for variations with the allocations or provider data to be taken into account
 
 Scenario Outline: IndicativeToLive Variation Reason
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
@@ -30,7 +30,7 @@ Scenario Outline: IndicativeToLive Variation Reason
 		| ProviderType | ProviderSubtype |
 		| Local        | 10LAU           |
 	And the funding configuration has the following indicative opener provider status
-		| Status     |
+		| Status           |
 		| Proposed to Open |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
@@ -102,8 +102,8 @@ Scenario Outline: IndicativeToLive Variation Reason
 		| N1618        | 16NPF           |
 		| Furth        | 22OTH           |
 	And the funding configuration has the following funding variations
-		| Name					| Order |
-		| IndicativeToLive		| 0     |
+		| Name             | Order |
+		| IndicativeToLive | 0     |
 	And the funding configuration is available in the policies repository
 	And the funding period exists in the policies service
 		| Field     | Value               |
@@ -119,6 +119,9 @@ Scenario Outline: IndicativeToLive Variation Reason
 		| Name                 | Test Specification for Publishing |
 		| IsSelectedForFunding | true                              |
 		| ProviderVersionId    | <ProviderVersionId>               |
+	And the following variation pointers exist
+		| FundingStreamId | FundingLineId | PeriodType    | TypeValue | Year | Occurrence |
+		| 1619            | 1619-001      | CalenderMonth | June      | 2021 | 1          |
 	And the specification has the funding period with id '<FundingPeriodId>' and name '<FundingPeriodName>'
 	And the specification has the following funding streams
 		| Name | Id                |
@@ -753,7 +756,7 @@ Scenario Outline: IndicativeToLive Variation Reason
 		| TrustStatus                   | Not Supported By A Trust      |
 		| UKPRN                         | 1000000                       |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| Status                        | Open              |
+		| Status                        | Open                          |
 		| ProviderType                  | Acade                         |
 		| ProviderSubType               | 11ACA                         |
 		| PaymentOrganisationIdentifier | 9000000                       |
@@ -773,9 +776,8 @@ Scenario Outline: IndicativeToLive Variation Reason
 		| ProviderType                  | Acade                         |
 		| ProviderSubType               | 11ACA                         |
 		| PaymentOrganisationIdentifier | 9000000                       |
-		| Indicative					| false							|
+		| Indicative                    | false                         |
 	And the provider with id '1000000' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
-
 	And calculation meta data exists for '<FundingStreamId>'
 		| CalculationType | CalculationId                        | Name                                                                                         | PublishStatus |
 		| Template        | 553a3ad7-a41a-4dc7-95e2-de31a59ce28d | Care Standards Eligible Students                                                             | Approved      |
@@ -1021,7 +1023,6 @@ Scenario Outline: IndicativeToLive Variation Reason
 		| Template        | e5105ca6-3ef2-443e-830a-b915cb8a42dd | High value courses for school and college leavers additional students                        | Approved      |
 		| Template        | c6ab4f61-cd95-4596-ac74-47ce66ff997b | High value courses for school and college leavers uplift funding                             | Approved      |
 		| Template        | bb72366d-e7ab-40f9-9fc6-f62ec41c9cc9 | LA Maintained Special School Bursary Funding                                                 | Approved      |
-
 	And the following distribution periods exist
 		| DistributionPeriodId | Value |
 		| AS-1920              | 1200  |
@@ -1039,7 +1040,7 @@ Scenario Outline: IndicativeToLive Variation Reason
 		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Updated |
 	And the provider variation reasons were recorded
 		| ProviderId | VariationReason  |
-		| 1000000    | IndicativeToLive   |
+		| 1000000    | IndicativeToLive |
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName               | TemplateVersion | ProviderVersionId  |

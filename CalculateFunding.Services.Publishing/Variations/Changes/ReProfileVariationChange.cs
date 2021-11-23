@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         protected override async Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
-            Guard.IsNotEmpty(VariationContext.AffectedFundingLineCodes(_strategy), nameof(VariationContext.AffectedFundingLineCodes));
+            Guard.IsNotEmpty(GetAffectedFundingLines, nameof(GetAffectedFundingLines));
 
             PublishedProviderVersion refreshState = RefreshState;
             PublishedProviderVersion priorState = VariationContext.PriorState;

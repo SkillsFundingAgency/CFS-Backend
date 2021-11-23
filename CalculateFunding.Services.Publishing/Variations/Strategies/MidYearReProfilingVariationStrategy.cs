@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,59 +24,64 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             PublishedProviderVersion refreshState = providerVariationContext.RefreshState;
 
             if (providerVariationContext.UpdatedProvider.Status == Closed ||
-                VariationPointersNotSet(providerVariationContext) ||
-                IsNotNewOpener(providerVariationContext, priorState, refreshState) && 
-                HasNoNewAllocations(providerVariationContext, priorState, refreshState))
+                VariationPointersNotSet(providerVariationContext))
             {
                 return Task.FromResult(false);
             }
-            
+
+            IEnumerable<string> newOpenerFundingLines = NewOpenerFundingLines(priorState, refreshState);
+            IEnumerable<string> fundingLinesWithNewAllocations = FundingLinesWithNewAllocations(priorState, refreshState);
+
+            if (newOpenerFundingLines.IsNullOrEmpty() &&
+                fundingLinesWithNewAllocations.IsNullOrEmpty())
+            {
+                return Task.FromResult(false);
+            }
+
+            Enumerable.Concat(newOpenerFundingLines ?? ArraySegment<string>.Empty,
+                fundingLinesWithNewAllocations ?? ArraySegment<string>.Empty)
+                .ForEach(_ => providerVariationContext.AddAffectedFundingLineCode(Name, _));
+
             return Task.FromResult(true);
         }
 
-        private bool IsNotNewOpener(ProviderVariationContext providerVariationContext,
-            PublishedProviderVersion priorState,
+        private IEnumerable<string> NewOpenerFundingLines(PublishedProviderVersion priorState,
             PublishedProviderVersion refreshState)
         {
             if (priorState != null)
             {
-                return true;
+                return null;
             }
 
-            bool doesNotHaveNewAllocations = true;
+            List<string> fundingLines = new List<string>();
 
             // we only need to re-profile an opener if it has a none zero value
             foreach (FundingLine fundingLine in refreshState.PaymentFundingLinesWithValues.Where(_ => _.Value != 0))  
             {
-                providerVariationContext.AddAffectedFundingLineCode(Name, fundingLine.FundingLineCode);
-                
-                doesNotHaveNewAllocations = false;
+                fundingLines.Add(fundingLine.FundingLineCode);
             }
 
-            return doesNotHaveNewAllocations;
+            return fundingLines;
         }
 
-        private bool HasNoNewAllocations(ProviderVariationContext providerVariationContext,
-            PublishedProviderVersion priorState,
+        private IEnumerable<string> FundingLinesWithNewAllocations(PublishedProviderVersion priorState,
             PublishedProviderVersion refreshState)
         {
             if (priorState == null)
             {
-                return true;
+                return null;
             }
             
             HashSet<string> priorFundingLineCodes = PaymentFundingLineWithValues(priorState);
 
-            bool doesNotHaveNewAllocations = true;
+            List<string> fundingLines = new List<string>();
 
             foreach (FundingLine latestFundingLine in NewAllocations(refreshState, priorFundingLineCodes))
             {
-                providerVariationContext.AddAffectedFundingLineCode(Name, latestFundingLine.FundingLineCode);
-
-                doesNotHaveNewAllocations = false;
+                fundingLines.Add(latestFundingLine.FundingLineCode);
             }
 
-            return doesNotHaveNewAllocations;
+            return fundingLines;
         }
 
         private static IEnumerable<FundingLine> NewAllocations(PublishedProviderVersion refreshState,

@@ -11,14 +11,14 @@ using System.Threading.Tasks;
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
     [TestClass]
-    public class IndicativeToLiveVariationStrategyTests : VariationStrategyTestBase
+    public class IndicativeToLiveVariationStrategyTests : ReProfilingVariationStrategyTestsBase
     {
-        private IndicativeToLiveVariationStrategy _indicativeToLiveVariationStrategy;
+        protected override string Strategy => "IndicativeToLive";
 
         [TestInitialize]
         public void SetUp()
         {
-            _indicativeToLiveVariationStrategy = new IndicativeToLiveVariationStrategy();
+            VariationStrategy = new IndicativeToLiveVariationStrategy();
         }
 
         [TestMethod]
@@ -32,43 +32,42 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
             await WhenTheVariationsAreProcessed();
 
-            VariationContext
-                .VariationReasons
-                .Should()
-                .BeEmpty();
+            ThenNoVariationChangesWereQueued();
         }
 
         [TestMethod]
         public async Task SetTheVariationReasonIfFundingSchemaVersionIsUpated()
         {
+            int year = NewRandomNumber();
+            string month = NewRandomMonth();
+            
             GivenTheOtherwiseValidVariationContext(_ =>
             {
-                _.PriorState.IsIndicative = true;
                 _.RefreshState.IsIndicative = false;
             });
 
+            VariationContext.PriorState.IsIndicative = true;
+
+            AndTheRefreshStateFundingLines(NewFundingLine(),
+                NewFundingLine(_ => _.WithFundingLineCode(FundingLineCode)
+                    .WithFundingLineType(FundingLineType.Payment)
+                    .WithValue(NewRandomNumber())
+                    .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                        dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithYear(year)
+                                .WithTypeValue(month)
+                                .WithType(ProfilePeriodType.CalendarMonth)
+                                .WithOccurence(0)),
+                            NewProfilePeriod(pp => pp.WithYear(year)
+                                .WithTypeValue(month)
+                                .WithType(ProfilePeriodType.CalendarMonth)
+                                .WithOccurence(1)))))));
+
             await WhenTheVariationsAreProcessed();
 
-            VariationContext
-                .VariationReasons
-                .Should()
-                .BeEquivalentTo(new[] { VariationReason.IndicativeToLive });
-
-            VariationContext
-               .QueuedChanges
-               .Should()
-               .NotBeEmpty();
-
-            VariationContext
-              .QueuedChanges
-              .First()
-              .Should()
-              .BeOfType<MetaDataVariationsChange>();
-        }
-
-        private async Task WhenTheVariationsAreProcessed()
-        {
-            await _indicativeToLiveVariationStrategy.Process(VariationContext, null);
+            ThenTheVariationChangeWasQueued<MetaDataVariationsChange>();
+            AndTheVariationChangeWasQueued<MidYearReProfileVariationChange>();
+            AndTheVariationReasonsWereRecordedOnTheVariationContext(VariationReason.IndicativeToLive);
+            AndTheAffectedFundingLinesWereTracked(FundingLineCode);
         }
     }
 }

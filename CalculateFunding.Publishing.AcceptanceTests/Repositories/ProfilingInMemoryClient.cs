@@ -95,8 +95,35 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult((true, string.Empty));
         }
 
-        public Task<ApiResponse<ReProfileResponse>> ReProfile(ReProfileRequest request) => throw new NotImplementedException();
-        
+        public async Task<ApiResponse<ReProfileResponse>> ReProfile(ReProfileRequest request)
+        {
+            ValidatedApiResponse<ProviderProfilingResponseModel> providerProfilingResponseModel = await GetProviderProfilePeriods(new ProviderProfilingRequestModel
+            {
+                FundingStreamId = request.FundingStreamId,
+                FundingPeriodId = request.FundingPeriodId,
+                FundingValue = request.FundingLineTotal,
+                ProviderType = null,
+                ProviderSubType = null,
+                FundingLineCode = request.FundingLineCode,
+                ProfilePatternKey = request.ProfilePatternKey
+            });
+
+            ApiResponse<ReProfileResponse> response = new ValidatedApiResponse<ReProfileResponse>(HttpStatusCode.OK,
+                new ReProfileResponse
+                {
+                    DeliveryProfilePeriods = providerProfilingResponseModel.Content.DeliveryProfilePeriods.Select(_ => new DeliveryProfilePeriod
+                    {
+                        DistributionPeriod = _.DistributionPeriod,
+                        Occurrence = _.Occurrence,
+                        ProfileValue = _.Value,
+                        TypeValue = _.Type,
+                        Year = _.Year
+                    }).ToArray(),
+                    DistributionPeriods = providerProfilingResponseModel.Content.DistributionPeriods.ToArray()
+                });
+
+            return response;
+        }
 
         public Task<ApiResponse<IEnumerable<ReProfilingStrategyResponse>>> GetAllReProfilingStrategies() => throw new NotImplementedException();
 

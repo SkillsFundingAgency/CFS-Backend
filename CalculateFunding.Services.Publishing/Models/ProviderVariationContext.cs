@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Publishing.Models
                     return v;
                 });
         }
-        
+
         public ICollection<PublishedProvider> NewProvidersToAdd { get; } = new List<PublishedProvider>(); 
 
         /// <summary>

@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .Which
                 .ParamName
                 .Should()
-                .Be("AffectedFundingLineCodes");
+                .Be("GetAffectedFundingLines");
         }
 
         [TestMethod]

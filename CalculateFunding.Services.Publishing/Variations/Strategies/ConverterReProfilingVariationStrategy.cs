@@ -26,36 +26,45 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if (priorState != null ||
                 providerVariationContext.UpdatedProvider.Status == Closed ||
-                VariationPointersNotSet(providerVariationContext) ||
-                IsNotNewConverterOpener(providerVariationContext, refreshState))
+                VariationPointersNotSet(providerVariationContext))
             {
                 return Task.FromResult(false);
             }
 
+            IEnumerable<string> inYearConverterFundingLines = InYearConverterFundingLines(providerVariationContext.FundingPeriodStartDate,
+                providerVariationContext.FundingPeriodEndDate,
+                refreshState);
+
+            if (inYearConverterFundingLines.IsNullOrEmpty())
+            {
+                return Task.FromResult(false);
+            }
+
+            inYearConverterFundingLines.ForEach(_ => providerVariationContext.AddAffectedFundingLineCode(Name, _));
+
             return Task.FromResult(true);
         }
 
-        private bool IsNotNewConverterOpener(ProviderVariationContext providerVariationContext,
+        private IEnumerable<string> InYearConverterFundingLines(DateTimeOffset fundingPeriodStartDate,
+            DateTimeOffset fundingPeriodEndDate,
             PublishedProviderVersion refreshState)
         {
-            bool doesNotHaveNewAllocations = true;
+            List<string> fundingLines = new List<string>();
 
             if (refreshState.Provider.ReasonEstablishmentOpened == AcademyConverter &&
                 refreshState.Provider.Predecessors.AnyWithNullCheck() &&
                 refreshState.Provider.DateOpened != null &&
-                refreshState.Provider.DateOpened.Value >= providerVariationContext.FundingPeriodStartDate &&
-                refreshState.Provider.DateOpened.Value <= providerVariationContext.FundingPeriodEndDate)
+                refreshState.Provider.DateOpened.Value >= fundingPeriodStartDate &&
+                refreshState.Provider.DateOpened.Value <= fundingPeriodEndDate)
             {
                 // we only need to re-profile an opener if it has a none zero value
                 foreach (FundingLine fundingLine in refreshState.PaymentFundingLinesWithValues.Where(_ => _.Value != 0))
                 {
-                    providerVariationContext.AddAffectedFundingLineCode(Name, fundingLine.FundingLineCode);
-
-                    doesNotHaveNewAllocations = false;
+                    fundingLines.Add(fundingLine.FundingLineCode);
                 }
             }
 
-            return doesNotHaveNewAllocations;
+            return fundingLines;
         }
 
         private static bool VariationPointersNotSet(ProviderVariationContext providerVariationContext) => providerVariationContext.VariationPointers.IsNullOrEmpty();

@@ -20,35 +20,36 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
 
+            IEnumerable<string> fundingLinesWithReleasedAllocations = FundingLinesWithReleasedAllocations(priorState);
+
             if (VariationPointersNotSet(providerVariationContext) ||
                 priorState?.Provider.Status == Closed ||
                 providerVariationContext.UpdatedProvider.Status != Closed ||
-                HasNoReleasedAllocations(providerVariationContext, priorState))
+                fundingLinesWithReleasedAllocations.IsNullOrEmpty())
             {
                 return Task.FromResult(false);
             }
 
+            fundingLinesWithReleasedAllocations.ForEach(_ => providerVariationContext.AddAffectedFundingLineCode(Name, _));
+
             return Task.FromResult(true);
         }
 
-        private bool HasNoReleasedAllocations(ProviderVariationContext providerVariationContext,
-            PublishedProviderVersion priorState)
+        private IEnumerable<string> FundingLinesWithReleasedAllocations(PublishedProviderVersion priorState)
         {
             if (priorState == null)
             {
-                return true;
+                return null;
             }
 
-            bool hasNoReleasedAllocations = true;
+            List<string> fundingLines = new List<string>(); ;
 
             foreach (FundingLine latestFundingLine in priorState.PaymentFundingLinesWithValues.Where(_ => _.Value != 0))
             {
-                providerVariationContext.AddAffectedFundingLineCode(Name, latestFundingLine.FundingLineCode);
-
-                hasNoReleasedAllocations = false;
+                fundingLines.Add(latestFundingLine.FundingLineCode);
             }
 
-            return hasNoReleasedAllocations;
+            return fundingLines;
         }
 
         private static bool VariationPointersNotSet(ProviderVariationContext providerVariationContext) => !(providerVariationContext.VariationPointers?.Any()).GetValueOrDefault();

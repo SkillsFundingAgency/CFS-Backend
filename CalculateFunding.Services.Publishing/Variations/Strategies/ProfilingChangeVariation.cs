@@ -12,17 +12,16 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
     public abstract class ProfilingChangeVariation : VariationStrategy
     {
-        protected virtual bool HasNoProfilingChanges(PublishedProviderVersion priorState,
-            PublishedProviderVersion refreshState,
-            ProviderVariationContext providerVariationContext)
+        protected virtual IEnumerable<string> FundingLinesWithProfilingChanges(PublishedProviderVersion priorState,
+            PublishedProviderVersion refreshState)
         {
+            List<string> fundingLines = new List<string>();
+
             IDictionary<string, FundingLine> latestFundingLines =
                 refreshState.FundingLines.Where(_ => _.Type == FundingLineType.Payment)
                     .ToDictionary(_ => _.FundingLineCode);
 
-            bool hasNoProfilingChanges = true;
-
-            foreach (FundingLine previousFundingLine in priorState.FundingLines.Where(_ => _.Type == FundingLineType.Payment && 
+            foreach (FundingLine previousFundingLine in priorState.FundingLines?.Where(_ => _.Type == FundingLineType.Payment && 
                                                                                            _.Value.HasValue &&
                                                                                            ExtraFundingLinePredicate(refreshState, _)))
             {
@@ -39,13 +38,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 if (!priorProfiling.Select(AsLiteral)
                     .SequenceEqual(latestProfiling.Select(AsLiteral)))
                 {
-                    providerVariationContext.AddAffectedFundingLineCode(Name, fundingLineCode);
-                    
-                    hasNoProfilingChanges = false;
+                    fundingLines.Add(fundingLineCode);
                 }
             }
 
-            return hasNoProfilingChanges;
+            return fundingLines;
         }
 
         protected virtual bool ExtraFundingLinePredicate(PublishedProviderVersion refreshState,

@@ -25,12 +25,20 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             if (priorState == null ||
                 providerVariationContext.ReleasedState == null ||
                 priorState.Provider.Status == Closed ||
-                providerVariationContext.UpdatedProvider.Status == Closed ||
-                HasNoProfilingChanges(priorState, refreshState, providerVariationContext) ||
+                providerVariationContext.UpdatedProvider.Status == Closed)
+            {
+                return Task.FromResult(false);
+            }
+
+            IEnumerable<string> fundingLinesWithProfilingChanges = FundingLinesWithProfilingChanges(priorState, refreshState);
+
+            if (fundingLinesWithProfilingChanges.IsNullOrEmpty() ||
                 HasNoPaidPeriods(providerVariationContext, priorState))
             {
                 return Task.FromResult(false);
             }
+
+            fundingLinesWithProfilingChanges.ForEach(_ => providerVariationContext.AddAffectedFundingLineCode(Name, _));
 
             return Task.FromResult(true);
         }
@@ -39,11 +47,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             FundingLine fundingLine)
             => !refreshState.FundingLineHasCustomProfile(fundingLine.FundingLineCode);
 
-        protected override bool HasNoProfilingChanges(PublishedProviderVersion priorState,
-            PublishedProviderVersion refreshState,
-            ProviderVariationContext providerVariationContext) =>
-            base.HasNoProfilingChanges(priorState, refreshState, providerVariationContext) &&
-            HasNoCarryOverChanges(priorState, refreshState, providerVariationContext);
+        protected override IEnumerable<string> FundingLinesWithProfilingChanges(PublishedProviderVersion priorState,
+            PublishedProviderVersion refreshState) =>
+            Enumerable.Concat(base.FundingLinesWithProfilingChanges(priorState, refreshState),
+            FundingLinesWithCarryOverChanges(priorState, refreshState));
 
         protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
         {
@@ -52,11 +59,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             return Task.FromResult(false);
         }
 
-        private bool HasNoCarryOverChanges(PublishedProviderVersion priorState,
-            PublishedProviderVersion refreshState,
-            ProviderVariationContext providerVariationContext)
+        private IEnumerable<string> FundingLinesWithCarryOverChanges(PublishedProviderVersion priorState,
+            PublishedProviderVersion refreshState)
         {
-            bool hasNoCarryOverChanges = true;
+            List<string> fundingLines = new List<string>();
 
             foreach (ProfilingCarryOver carryOver in priorState.CarryOvers ?? ArraySegment<ProfilingCarryOver>.Empty)
             {
@@ -64,13 +70,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
                 if ((latestCustomProfile?.Amount).GetValueOrDefault() != carryOver.Amount)
                 {
-                    providerVariationContext.AddAffectedFundingLineCode(Name, carryOver.FundingLineCode);
-
-                    hasNoCarryOverChanges = false;
+                    fundingLines.Add(carryOver.FundingLineCode);
                 }
             }
 
-            return hasNoCarryOverChanges;
+            return fundingLines;
         }
     }
 }

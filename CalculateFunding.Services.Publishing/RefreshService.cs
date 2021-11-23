@@ -502,11 +502,10 @@ namespace CalculateFunding.Services.Publishing
             //apply any post variation error detection that we also need to run
             foreach (PublishedProvider publishedProvider in _refreshStateService.UpdatedProviders)
             {
-                // if the published provider has been released, variation pointers have been set
-                // and there is a variation context which hasn't executed any strategies which adjust profiles on all funding lines 
+                // if variation pointers have been set and there is a variation context which
+                // hasn't executed any strategies which adjust profiles on all funding lines 
                 // then we need to make sure we don't overwrite existing funding line profiles automatically
-                if (publishedProvider.Released != null &&
-                    variationPointers.AnyWithNullCheck() &&
+                if (variationPointers.AnyWithNullCheck() &&
                     publishedProvidersContext.VariationContexts.ContainsKey(publishedProvider.Current.ProviderId) &&
                     !publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].ApplicableVariations.AnyWithNullCheck(_ => _ == "DistributionProfile"))
                 {
