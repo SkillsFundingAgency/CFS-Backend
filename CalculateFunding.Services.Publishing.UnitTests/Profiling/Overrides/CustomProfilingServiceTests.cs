@@ -314,9 +314,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 .BeOfType<NoContentResult>();
         }
 
-        [Ignore("Enable once logic is changed")]
         [TestMethod]
-        public async Task ExitsEarlyIfUpdatingPastProfilePeriodsForNonContractedProvider()
+        [DataRow(0, 0)]
+        [DataRow(0, 10)]
+        public async Task ShouldNotExitsEarlyIfUpdatingUnchangedPastProfilePeriodsForNonContractedProvider(int pastPeriodChangeOffset, int futurePeriodChangeOffset)
+        {
+            IActionResult result = await UpdateNonContractedProvider(pastPeriodChangeOffset, futurePeriodChangeOffset);
+
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+        }
+
+        [TestMethod]
+        [DataRow(10, 0)]
+        [DataRow(10, 10)]
+        public async Task ExitsEarlyIfUpdatingChangedPastProfilePeriodsForNonContractedProvider(int pastPeriodChangeOffset, int futurePeriodChangeOffset)
+        {
+            IActionResult result = await UpdateNonContractedProvider(pastPeriodChangeOffset, futurePeriodChangeOffset);
+
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+        }
+
+        private async Task<IActionResult> UpdateNonContractedProvider(decimal pastPeriodChangeOffset, decimal futurePeriodChangeOffset)
         {
             int? carryOver = 2;
             PublishedProviderStatus currentStatus = PublishedProviderStatus.Draft;
@@ -328,10 +350,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             int? providerSnapshotId = NewRandomNumber();
 
             string fundingLineOne = NewRandomString();
-            ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithYear(2021).WithTypeValue("May"));
-            ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithYear(2022).WithTypeValue("April"));
+            ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithYear(2021).WithTypeValue("May").WithOccurence(1));
+            ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithYear(2022).WithTypeValue("April").WithOccurence(1));
+
+            ProfilePeriod currentProfilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithYear(2021).WithTypeValue("May").WithOccurence(1).WithAmount(profilePeriod1.ProfiledValue + pastPeriodChangeOffset));
+            ProfilePeriod currentProfilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithYear(2022).WithTypeValue("April").WithOccurence(1).WithAmount(profilePeriod2.ProfiledValue + futurePeriodChangeOffset));
 
             ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
+                .WithFundingPeriodId("FY-2021")
                 .WithFundingLineCode(fundingLineOne)
                 .WithProfilePeriods(profilePeriod1, profilePeriod2)
                 .WithCarryOver(carryOver));
@@ -345,7 +371,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                             new[] {
                                     new FundingLineProfileOverrides {
                                         FundingLineCode = fundingLineOne,
-                                        DistributionPeriods = new List<DistributionPeriod>()
+                                        DistributionPeriods = new [] 
+                                            { 
+                                                NewDistributionPeriod(dp => 
+                                                    dp.WithDistributionPeriodId("FY-2021")
+                                                   .WithProfilePeriods(currentProfilePeriod1)),
+                                                NewDistributionPeriod(dp =>
+                                                    dp.WithDistributionPeriodId("FY-2022")
+                                                    .WithProfilePeriods(currentProfilePeriod2))
+                                            }
                                     }
                                 })
                     .WithFundingLines(NewFundingLine(fl =>
@@ -399,10 +433,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 providerSnapshotId,
                 organisationGroupResultsData);
 
-            IActionResult result = await WhenTheCustomProfileIsApplied(request, author);
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
+            return await WhenTheCustomProfileIsApplied(request, author);
         }
 
         [TestMethod]
@@ -714,7 +745,5 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
             return failureBuilder.Build();
         }
-
-
     }
 }

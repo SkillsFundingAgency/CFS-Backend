@@ -98,12 +98,12 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
             PublishedProviderVersion currentProviderVersion = publishedProvider.Current;
 
-            //IEnumerable<string> updateRestrictedErrorMessages = await RestrictPastPeriodCustomProfileUpdate(request, publishedProvider);
-            //if (!updateRestrictedErrorMessages.IsNullOrEmpty())
-            //{
-            //    return new BadRequestObjectResult(
-            //        updateRestrictedErrorMessages.ToArray().ToModelStateDictionary());
-            //}
+            IEnumerable<string> updateRestrictedErrorMessages = await RestrictPastPeriodCustomProfileUpdate(request, publishedProvider);
+            if (!updateRestrictedErrorMessages.IsNullOrEmpty())
+            {
+                return new BadRequestObjectResult(
+                    updateRestrictedErrorMessages.ToArray().ToModelStateDictionary());
+            }
 
             currentProviderVersion.VerifyProfileAmountsMatchFundingLineValue(fundingLineCode, request.ProfilePeriods, request.CarryOver);
 
@@ -192,24 +192,32 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
             if (organisationGroupingReasons.Any(_ => !IsContracted(_)))
             {
-                ProfileVariationPointer latestProfileVariationPointer = profileVariationPointers
+                IEnumerable<FundingLineProfileOverrides> currentProfile = publishedProvider.Current.CustomProfiles;
+
+                if(currentProfile != null && currentProfile.Any())
+                {
+                    ProfileVariationPointer latestProfileVariationPointer = profileVariationPointers
                     .OrderByDescending(_ => _.Year)
                     .ThenByDescending(_ => YearMonthOrderedProfilePeriods.MonthNumberFor(_.TypeValue))
                     .FirstOrDefault();
 
-                ProfilePeriod earliestProfilePeriod = request.ProfilePeriods
-                    .OrderBy(_ => _.Year)
-                    .ThenBy(_ => YearMonthOrderedProfilePeriods.MonthNumberFor(_.TypeValue))
-                    .FirstOrDefault();
+                    DistributionPeriod currentDistributionPeriod = currentProfile.Where(_ => _.FundingLineCode == request.FundingLineCode).FirstOrDefault()
+                                                                .DistributionPeriods.Where(_ => _.DistributionPeriodId == request.FundingPeriodId).FirstOrDefault();
 
-                if (earliestProfilePeriod.Year < latestProfileVariationPointer.Year ||
-                    (earliestProfilePeriod.Year == latestProfileVariationPointer.Year
-                        && YearMonthOrderedProfilePeriods.MonthNumberFor(earliestProfilePeriod.TypeValue) < YearMonthOrderedProfilePeriods.MonthNumberFor(latestProfileVariationPointer.TypeValue)))
-                {
-                    return new string[] {
-                        $"Updating past profile periods for non contracted providers are restricted for custom profiling." +
-                        $"Profile Variation Pointer: Year={latestProfileVariationPointer.Year} Month={latestProfileVariationPointer.TypeValue} " +
-                        $"Profile Period Request: Year={earliestProfilePeriod.Year} Month={earliestProfilePeriod.TypeValue}"};
+                    if(currentDistributionPeriod == null)
+                    {
+                        return Array.Empty<string>();
+                    }
+
+                    IEnumerable<ProfilePeriod> historicCurrentPeriods = currentDistributionPeriod.ProfilePeriods.Where(_ => _.Year < latestProfileVariationPointer.Year || (_.Year == latestProfileVariationPointer.Year
+                                && YearMonthOrderedProfilePeriods.MonthNumberFor(_.TypeValue) < YearMonthOrderedProfilePeriods.MonthNumberFor(latestProfileVariationPointer.TypeValue)));
+
+                    bool allHistoricMatched = historicCurrentPeriods.All(c => request.ProfilePeriods.Any(n => IsUnchangedPeriod(c, n)));
+
+                    if (!allHistoricMatched)
+                    {
+                        return new string[] { $"Updating past profile periods for non contracted providers is restricted for custom profiling." };
+                    }
                 }
             }
 
@@ -219,6 +227,11 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
         private static bool IsContracted(OrganisationGroupingReason organisationGroupingReason)
         {
             return organisationGroupingReason == OrganisationGroupingReason.Contracting;
+        }
+
+       private static bool IsUnchangedPeriod(ProfilePeriod current, ProfilePeriod submitted)
+        {
+            return current.Equals(submitted);
         }
     }
 }
