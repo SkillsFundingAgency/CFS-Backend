@@ -129,7 +129,7 @@ namespace CalculateFunding.Services.Specs
 
                 DatasetSpecificationRelationshipViewModel providerRelationship = response?.Content?.Where(_ => _.IsProviderData).FirstOrDefault();
 
-                if (providerRelationship != null)
+                if (providerRelationship != null && !providerRelationship.DatasetId.IsNullOrWhitespace())
                 {
                     ApiResponse<DatasetViewModel> datasetResponse =
                         await _datasetsPolicy.ExecuteAsync(() => _datasets.GetDatasetByDatasetId(providerRelationship.DatasetId));
