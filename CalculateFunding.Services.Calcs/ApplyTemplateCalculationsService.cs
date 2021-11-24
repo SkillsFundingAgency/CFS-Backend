@@ -120,12 +120,12 @@ namespace CalculateFunding.Services.Calcs
 
             SpecificationSummary specificationSummary = specificationApiResponse.Content;
 
-            FundingLine[] flattenedFundingLines = await GetFundingLines(fundingStreamId, specificationSummary.FundingPeriod.Id, templateVersion);
+            IEnumerable<FundingLine> flattenedFundingLines = await GetFundingLines(fundingStreamId, specificationSummary.FundingPeriod.Id, templateVersion);
             IEnumerable<(string previousName, string currentName)> fundingLineChanges = null;
 
             if (!string.IsNullOrWhiteSpace(previousTemplateVersion))
             {
-                FundingLine[] previousFlattenedFundingLines = await GetFundingLines(fundingStreamId, specificationSummary.FundingPeriod.Id, previousTemplateVersion);
+                IEnumerable<FundingLine> previousFlattenedFundingLines = await GetFundingLines(fundingStreamId, specificationSummary.FundingPeriod.Id, previousTemplateVersion);
                 Dictionary<uint, FundingLine> previousFlattenedFundingLinesDictionary = previousFlattenedFundingLines.ToDictionary(_ => _.TemplateLineId);
                 fundingLineChanges = flattenedFundingLines.Where(_ => previousFlattenedFundingLinesDictionary.ContainsKey(_.TemplateLineId) && _.Name != previousFlattenedFundingLinesDictionary[_.TemplateLineId].Name).Select(_ =>
                 {
@@ -179,7 +179,7 @@ namespace CalculateFunding.Services.Calcs
             await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
         }
 
-        private async Task<FundingLine[]> GetFundingLines(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        private async Task<IEnumerable<FundingLine>> GetFundingLines(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
             ApiResponse<TemplateMetadataContents> templateContentsResponse = await _policiesResiliencePolicy.ExecuteAsync(
                 () => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion));
@@ -192,7 +192,7 @@ namespace CalculateFunding.Services.Calcs
                     $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId}, funding period id {fundingPeriodId} and template version {templateVersion}");
             }
 
-            return templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
+            return templateMetadataContents.RootFundingLines?.Flatten(_ => _.FundingLines).DistinctBy(_ => _.TemplateLineId) ?? ArraySegment<FundingLine>.Empty;
         }
 
         private async Task EnsureAllExistingCalculationsModified(TemplateMappingItem[] mappingsWithCalculations,

@@ -192,6 +192,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         [TestMethod]
         public async Task CreatesCalculationsIfOnTemplateMappingButDontExistYet()
         {
+            uint flCode = NewRandomNumber();
             TemplateMappingItem mappingWithMissingCalculation1 = NewTemplateMappingItem();
             TemplateMappingItem mappingWithMissingCalculation2 = NewTemplateMappingItem();
             TemplateMappingItem mappingWithMissingCalculation3 = NewTemplateMappingItem();
@@ -206,7 +207,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 NewTemplateMappingItem(mi => mi.WithCalculationId(NewRandomString())),
                 mappingWithMissingCalculation4));
 
-            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(NewFundingLine(fl =>
+            FundingLine fl = NewFundingLine(fl =>
                 fl.WithCalculations(
                     NewTemplateMappingCalculation(c1 =>
                     {
@@ -219,7 +220,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                           .WithType(Common.TemplateMetadata.Enums.CalculationType.Enum)
                           .WithAllowedEnumTypeValues(new List<string>() { "Type1", "Type2", "Type3" })
                           .WithValueFormat(CalculationValueFormat.String))
-                    ))));
+                    )
+                .WithTemplateId(flCode));
+
+            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(fl, fl));
             TemplateCalculation templateCalculationOne = NewTemplateMappingCalculation(_ => _.WithName("template calculation 1"));
             TemplateCalculation templateCalculationTwo = NewTemplateMappingCalculation(_ => _.WithName("template calculation 2"));
             TemplateCalculation templateCalculationThree = NewTemplateMappingCalculation(_ => _.WithName("template calculation 3"));
@@ -229,11 +233,13 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             string newCalculationId2 = NewRandomString();
             string newCalculationId3 = NewRandomString();
             string newCalculationId4 = NewRandomString();
+            string previousTemplateVersion = NewRandomString();
 
-            GivenAValidMessage();
+            GivenAValidMessage(previousTemplateVersion);
             AndTheJobCanBeRun();
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
+            AndTheTemplateMetaDataContents(templateMetadataContents, previousTemplateVersion);
 
             CalculationValueType calculationValueTypeOne = templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>();
             CalculationValueType calculationValueTypeTwo = templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>();
@@ -649,9 +655,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .Returns(templateMapping);
         }
 
-        private void AndTheTemplateMetaDataContents(TemplateMetadataContents templateMetadataContents)
+        private void AndTheTemplateMetaDataContents(TemplateMetadataContents templateMetadataContents, string previousVersion = null)
         {
-            _policies.GetFundingTemplateContents(_fundingStreamId, _fundingPeriodId, _templateVersion)
+            _policies.GetFundingTemplateContents(_fundingStreamId, _fundingPeriodId, previousVersion ?? _templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, templateMetadataContents));
         }
 

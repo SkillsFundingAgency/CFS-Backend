@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Calcs.Services
     public abstract class TemplateMappingTestBase
     {
         protected string NewRandomString() => new RandomString();
+        protected uint NewRandomNumber() => (uint)new RandomNumberBetween(1, int.MaxValue);
 
         protected static Calculation NewCalculation(Action<CalculationBuilder> setUp = null)
         {
