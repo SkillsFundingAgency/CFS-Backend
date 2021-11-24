@@ -411,7 +411,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AndPublishProvidersForSpecification(specificationId, publishedProviders);
             AndSuccessfulUploadOfDatasetFile(datasetVersionResponse);
             AndAssignDatasetVersionToRelationship(datasetId, relationshipId, datasetVersionVersion);
-            GivenDatasetCreateAndPersistNewDataset(relationshipName, datasetVersionResponse);
+            GivenDatasetCreateAndPersistNewDataset(relationshipName, specificationId, datasetVersionResponse);
 
             // Act
             await _service.Process(message);
@@ -420,7 +420,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AssertRelationshipsRetrievedBySpecificationId(specificationId);
             AssertSpecificationSummaryRetrievedBySpecificationId(specificationId);
             AssertPublishedProvidersForSpecificationRetrievedForBatchProcessing(specificationId);
-            AssertCreateAndPersistNewDatasetHasBeenCalled(relationshipName);
+            AssertCreateAndPersistNewDatasetHasBeenCalled(relationshipName, specificationId);
             AssertDatasetFileUpload(datasetVersionResponse);
             AssertThatRelationshipUpdatedWithNewDatasetVersion(relationshipId, datasetId, datasetVersionVersion);
         }
@@ -458,9 +458,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                              It.Is<DatasetVersionUpdateModel>(x => x.DatasetId == datasetId && x.Filename == $"{relationshipName}.xlsx" && x.FundingStreamId == fundingStreamId)), Times.Once);
         }
 
-        private void AssertCreateAndPersistNewDatasetHasBeenCalled(string relationshipName)
+        private void AssertCreateAndPersistNewDatasetHasBeenCalled(string relationshipName, string specificationId)
         {
-            _datasetsApiClient.Verify(x => x.CreateAndPersistNewDataset(It.Is<CreateNewDatasetModel>(c => c.Name == $"{relationshipName}-dataset")), Times.Once);
+            _datasetsApiClient.Verify(x => x.CreateAndPersistNewDataset(It.Is<CreateNewDatasetModel>(c => c.Name == $"{relationshipName}-{specificationId}")), Times.Once);
         }
 
         private void AssertPublishedProvidersForSpecificationRetrievedForBatchProcessing(string specificationId)
@@ -544,9 +544,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                  .ReturnsAsync(new ValidatedApiResponse<NewDatasetVersionResponseModel>(HttpStatusCode.OK, datasetVersionResponse));
         }
 
-        private void GivenDatasetCreateAndPersistNewDataset(string relationshipName, NewDatasetVersionResponseModel response)
+        private void GivenDatasetCreateAndPersistNewDataset(string relationshipName, string specificationId, NewDatasetVersionResponseModel response)
         {
-            _datasetsApiClient.Setup(x => x.CreateAndPersistNewDataset(It.Is<CreateNewDatasetModel>(c => c.Name == $"{relationshipName}-dataset")))
+            _datasetsApiClient.Setup(x => x.CreateAndPersistNewDataset(It.Is<CreateNewDatasetModel>(c => c.Name == $"{relationshipName}-{specificationId}")))
                 .ReturnsAsync(new ValidatedApiResponse<NewDatasetVersionResponseModel>(HttpStatusCode.OK, response));
         }
 
