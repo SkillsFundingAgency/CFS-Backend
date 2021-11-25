@@ -9,6 +9,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IRefreshStateService
     {
+        IDictionary<string, PublishedProviderVersion> ExistingCurrentPublishedProviders { get; set; }
         IDictionary<string, PublishedProvider> NewProviders { get; }
         IEnumerable<PublishedProvider> UpdatedProviders { get; }
         bool IsNewProvider(PublishedProvider publishedProvider);

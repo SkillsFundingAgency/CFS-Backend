@@ -273,7 +273,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task RefreshResults_WhenForceUpdateOnRefreshAnUpdatePublishStatusCompletesWithoutError_AllPublishedProvidersUpdated()
+        public async Task RefreshResults_WhenForceUpdateOnRefreshAnUpdatePublishStatusCompletesWithoutError_NoPublishedProvidersUpdated()
         {
             GivenJobCanBeProcessed();
             AndSpecification(true);
@@ -295,11 +295,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     PublishedProviderStatus.Updated,
                     JobId,
                     CorrelationId,
-                    It.IsAny<bool>()), Times.Once);
+                    It.IsAny<bool>()), Times.Never);
 
             AndClearForceUpdateOnRefreshCalled();
-            AndTheCustomProfilesWereReApplied();
-            AndTheCsvGenerationJobsWereCreated(SpecificationId, FundingPeriodId);
         }
 
         [TestMethod]

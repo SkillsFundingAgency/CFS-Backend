@@ -262,8 +262,11 @@ namespace CalculateFunding.Services.Publishing
                 }
             }
 
-            // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
+            // store the readonly dictionary of published providers against the refresh state service so we only add 
+            // providers to be updated if there are differences to persist
+            _refreshStateService.ExistingCurrentPublishedProviders = publishedProviders.DeepCopy().ToDictionary(_ => _.Key, _ => _.Value.Current);
 
+            // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
             _refreshStateService.AddRange(_providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders));
             publishedProviders.AddOrUpdateRange(_refreshStateService.NewProviders);
 
@@ -320,7 +323,7 @@ namespace CalculateFunding.Services.Publishing
 
             //we need enumerate a readonly cut of this as we add to it in some variations now (for missing providers not in scope)
             Dictionary<string, PublishedProvider> publishedProvidersReadonlyDictionary = publishedProviders.ToDictionary(_ => _.Key, _ => _.Value);
-
+            
             _logger.Information($"Start getting funding configuration for funding stream '{fundingStream.Id}'");
             // set up the published providers context for error detection laterawait 
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
@@ -558,15 +561,9 @@ namespace CalculateFunding.Services.Publishing
 
                         await _refreshStateService.Persist(jobId, author, correlationId);
 
-                        // clear the force refresh flag so that we don't force update on all providers unless variation pointers are edited
-                        if (specification.ForceUpdateOnNextRefresh.GetValueOrDefault())
-                        {
-                            await _specificationService.ClearForceOnNextRefresh(specification.Id);
-                        }
-
                         transaction.Complete();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         await transaction.Compensate();
 
@@ -577,6 +574,12 @@ namespace CalculateFunding.Services.Publishing
                 _logger.Information("Creating generate Csv jobs");
 
                 await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh, specification.Id, specification.FundingPeriod.Id, specification.FundingStreams.Select(_ => _.Id), correlationId, author);
+            }
+
+            // clear the force refresh flag
+            if (specification.ForceUpdateOnNextRefresh.GetValueOrDefault())
+            {
+                await _specificationService.ClearForceOnNextRefresh(specification.Id);
             }
         }
 

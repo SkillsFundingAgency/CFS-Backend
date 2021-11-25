@@ -2,6 +2,7 @@
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.Comparers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
 using System;
@@ -18,6 +19,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
+        private readonly PublishedProviderVersionComparer _publishedProviderVersionComparer;
 
         private enum ActionType
         {
@@ -42,7 +44,10 @@ namespace CalculateFunding.Services.Publishing
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedProviderIndexerService = publishedProviderIndexerService;
             _publishedFundingDataService = publishedFundingDataService;
+            _publishedProviderVersionComparer = new PublishedProviderVersionComparer();
         }
+
+        public IDictionary<string, PublishedProviderVersion> ExistingCurrentPublishedProviders { get; set; }
 
         public void AddRange(IDictionary<string, PublishedProvider> publishedProviders)
         {
@@ -57,6 +62,11 @@ namespace CalculateFunding.Services.Publishing
 
         public int Count => _providers.Values.SelectMany(_ => _.Values).Count();
 
+        private bool HasNoChanges(PublishedProviderVersion newCurrent) =>
+            ExistingCurrentPublishedProviders.ContainsKey(newCurrent.ProviderId) &&
+                !ExistingCurrentPublishedProviders[newCurrent.ProviderId].HasErrors &&
+                _publishedProviderVersionComparer.Equals(newCurrent, ExistingCurrentPublishedProviders[newCurrent.ProviderId]);
+
         public void Add(PublishedProvider publishedProvider)
         {
             Add(ActionType.Add, publishedProvider);
@@ -64,6 +74,14 @@ namespace CalculateFunding.Services.Publishing
 
         public void Update(PublishedProvider publishedProvider)
         {
+            PublishedProviderVersion current = publishedProvider.Current;
+
+            // don't add the published provider to be updated if there are no changes or has errors
+            if (!current.HasErrors && HasNoChanges(current))
+            {
+                return;
+            }
+
             Add(ActionType.Update, publishedProvider);
         }
 
