@@ -32,6 +32,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                     continue;
                 }
 
+                if (previousFundingLine.Value == 0 && latestFundingLine.Value == 0)
+                {
+                    continue;
+                }
+
                 ProfilePeriod[] priorProfiling = new YearMonthOrderedProfilePeriods(previousFundingLine).ToArray();
                 ProfilePeriod[] latestProfiling = new YearMonthOrderedProfilePeriods(latestFundingLine).ToArray();
 
