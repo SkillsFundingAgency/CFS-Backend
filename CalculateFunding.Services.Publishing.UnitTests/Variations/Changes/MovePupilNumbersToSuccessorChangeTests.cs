@@ -61,22 +61,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         }
 
         [TestMethod]
-        public void GuardsAgainstMissingVariationsApplication()
-        {
-            VariationsApplication = null;
-
-            Func<Task> invocation = WhenTheChangeIsApplied;
-
-            invocation
-                .Should()
-                .Throw<ArgumentNullException>()
-                .Which
-                .ParamName
-                .Should()
-                .Be("variationsApplications");
-        }
-
-        [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
         public async Task CachesPupilNumberTemplateCalculationsIfNotCachedForContext(bool existingSuccessor)

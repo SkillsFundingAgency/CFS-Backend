@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -9,7 +10,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
     public abstract class VariationChange : IVariationChange
     {
         private readonly string _strategyName;
-
         protected VariationChange(ProviderVariationContext variationContext, string strategyName)
         {
             Guard.ArgumentNotNull(variationContext, nameof(variationContext));
@@ -34,8 +34,15 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         
         public async Task Apply(IApplyProviderVariations variationsApplication)
         {
-            await ApplyChanges(variationsApplication);
-            
+            try
+            {
+                await ApplyChanges(variationsApplication);
+            }
+            catch (Exception exception)
+            {
+                RecordErrors($"Unable to {_strategyName} for provider id {VariationContext.ProviderId}. {exception.Message}");
+            }
+
             variationsApplication.AddPublishedProviderToUpdate(VariationContext.PublishedProvider);
 
             // if there is a successor then we need to add it to existing providers to update

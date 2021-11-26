@@ -46,18 +46,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         }
 
         [TestMethod]
-        public void GuardsAgainstNoAffectedFundingLineCodesInContext()
+        public async Task GuardsAgainstNoAffectedFundingLineCodesInContext()
         {
-            Action invocation = () => WhenTheChangeIsApplied()
-                .GetAwaiter()
-                .GetResult();
+            await WhenTheChangeIsApplied();
 
-            invocation.Should()
-                .Throw<ArgumentNullException>()
-                .Which
-                .ParamName
+            ArgumentNullException argumentNullException = new ArgumentNullException("AffectedFundingLineCodes");
+
+            VariationContext.ErrorMessages
+                .AnyWithNullCheck()
                 .Should()
-                .Be("AffectedFundingLineCodes");
+                .Be(true);
+
+            VariationContext.ErrorMessages.First()
+                .Should()
+                .Be($"Unable to {Strategy} for provider id {VariationContext.ProviderId}. {argumentNullException.Message}");
         }
 
         [TestMethod]
@@ -92,13 +94,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             AndTheTheReProfileRequest(fundingLineOne, reProfileRequestOne, RefreshState.ProfilePatternKeys.Single(_ => _.FundingLineCode == fundingLineOne.FundingLineCode).Key);
             AndTheTheReProfileRequest(fundingLineThree, reProfileRequestThree);
 
-            Func<Task> invocation = async() => await WhenTheChangeIsApplied();
+            await WhenTheChangeIsApplied();
 
-            invocation
-                .Should()
-                .ThrowAsync<NonRetriableException>()
-                .Result
-                .WithMessage($"Could not re profile funding line {fundingLineOne.FundingLineCode} for provider {RefreshState.ProviderId} with request: {reProfileRequestOne?.AsJson()}");
+            VariationContext.ErrorMessages
+                    .AnyWithNullCheck()
+                    .Should()
+                    .Be(true);
+
+            VariationContext.ErrorMessages.First()
+                    .Should()
+                    .Be($"Unable to {Strategy} for provider id {VariationContext.ProviderId}. Could not re profile funding line {fundingLineOne.FundingLineCode} for provider {RefreshState.ProviderId} with request: {reProfileRequestOne?.AsJson()}");
         }
 
 

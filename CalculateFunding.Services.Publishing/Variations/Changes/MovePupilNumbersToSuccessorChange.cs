@@ -27,8 +27,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         protected override async Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
-            Guard.ArgumentNotNull(variationsApplications, nameof(variationsApplications));
-
             PublishedProviderVersion predecessor = RefreshState;
             string fundingStreamId = predecessor.FundingStreamId;
             string fundingPeriodId = predecessor.FundingPeriodId;
