@@ -606,6 +606,7 @@ namespace CalculateFunding.Api.Publishing
 
             builder.AddSingleton<IPublishedProviderFundingCountProcessor, PublishedProviderFundingCountProcessor>();
             builder.AddSingleton<IPublishedProviderFundingCsvDataProcessor, PublishedProviderFundingCsvDataProcessor>();
+            builder.AddSingleton<IPublishedProviderFundingSummaryProcessor, PublishedProviderFundingSummaryProcessor>();
 
             if (Configuration.IsSwaggerEnabled())
             {

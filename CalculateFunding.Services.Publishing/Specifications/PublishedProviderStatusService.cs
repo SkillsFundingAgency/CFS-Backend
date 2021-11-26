@@ -15,6 +15,9 @@ using System;
 using Microsoft.Azure.Storage.Blob;
 using System.IO;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using Serilog;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
@@ -23,6 +26,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private const string BlobContainerName = "publishingconfirmation";
 
         private readonly IPublishedProviderFundingCountProcessor _fundingCountProcessor;
+        private readonly IPublishedProviderFundingSummaryProcessor _publishedProviderFundingSummaryProcessor;
         private readonly ISpecificationIdServiceRequestValidator _validator;
         private readonly ISpecificationService _specificationService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
@@ -32,6 +36,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private readonly IPublishedProviderFundingCsvDataProcessor _fundingCsvDataProcessor;
         private readonly ICsvUtils _csvUtils;
         private readonly IBlobClient _blobClient;
+        private readonly IPoliciesService _policiesService;
+        private readonly ILogger _logger;
 
         public PublishedProviderStatusService(
             ISpecificationIdServiceRequestValidator validator,
@@ -41,7 +47,10 @@ namespace CalculateFunding.Services.Publishing.Specifications
             IPublishedProviderFundingCountProcessor fundingCountProcessor,
             IPublishedProviderFundingCsvDataProcessor fundingCsvDataProcessor,
             ICsvUtils csvUtils,
-            IBlobClient blobClient)
+            IBlobClient blobClient,
+            IPublishedProviderFundingSummaryProcessor publishedProviderFundingSummaryProcessor,
+            IPoliciesService policiesService,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(validator, nameof(validator));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
@@ -54,6 +63,9 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.ArgumentNotNull(fundingCsvDataProcessor, nameof(fundingCsvDataProcessor));
             Guard.ArgumentNotNull(csvUtils, nameof(csvUtils));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
+            Guard.ArgumentNotNull(publishedProviderFundingSummaryProcessor, nameof(publishedProviderFundingSummaryProcessor));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
             _validator = validator;
             _specificationService = specificationService;
@@ -65,6 +77,9 @@ namespace CalculateFunding.Services.Publishing.Specifications
             _fundingCsvDataProcessor = fundingCsvDataProcessor;
             _csvUtils = csvUtils;
             _blobClient = blobClient;
+            _publishedProviderFundingSummaryProcessor = publishedProviderFundingSummaryProcessor;
+            _policiesService = policiesService;
+            _logger = logger;
         }
 
         public async Task<IActionResult> GetProviderBatchCountForApproval(PublishedProviderIdsRequest providerIds,
@@ -84,6 +99,37 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 statuses);
 
             return new ObjectResult(fundingCount);
+        }
+
+        public async Task<IActionResult> GetApprovedPublishedProviderReleaseFundingSummary(ReleaseFundingPublishProvidersRequest request,
+            string specificationId)
+        {
+            SpecificationSummary specificationSummary =
+                await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationService.GetSpecificationSummaryById(specificationId));
+
+            FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(
+                specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id);
+
+            try
+            {
+                ReleaseFundingPublishedProvidersSummary fundingSummary =
+                    await _publishedProviderFundingSummaryProcessor.GetFundingSummaryForApprovedPublishedProvidersByChannel(
+                        request.PublishedProviderIds,
+                        specificationSummary,
+                        fundingConfiguration,
+                        request.ChannelCodes);
+
+                return new OkObjectResult(fundingSummary);
+            }
+            catch(KeyNotFoundException ex)
+            {
+                return new BadRequestObjectResult(ex.Message);
+            }
+            catch(Exception ex)
+            {
+                _logger.Error(ex, $"Error in GetPublishedProviderReleaseFundingSummary for specification {specificationId} with params {JsonConvert.SerializeObject(request)}: {ex.Message}");
+                return new InternalServerErrorResult("An error occurred while generating funding summary");
+            }
         }
         
         public async Task<IActionResult> GetProviderStatusCounts(string specificationId,

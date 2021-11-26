@@ -24,5 +24,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IActionResult> GetProviderDataForAllApprovalAsCsv(string specificationId);
 
         Task<IActionResult> GetProviderDataForAllReleaseAsCsv(string specificationId);
+
+        Task<IActionResult> GetApprovedPublishedProviderReleaseFundingSummary(ReleaseFundingPublishProvidersRequest request, string specificationId);
     }
 }

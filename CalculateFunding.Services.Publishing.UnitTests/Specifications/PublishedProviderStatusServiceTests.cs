@@ -18,6 +18,11 @@ using CalculateFunding.Services.Core.Interfaces;
 using Microsoft.Azure.Storage.Blob;
 using System.IO;
 using CalculateFunding.Common.Storage;
+using Serilog;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using NSubstitute.ExceptionExtensions;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
@@ -34,8 +39,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private IPublishedFundingRepository _publishedFundingRepository;
         private IPublishedProviderFundingCountProcessor _fundingCountProcessor;
         private IPublishedProviderFundingCsvDataProcessor _fundingCsvDataProcessor;
+        private IPublishedProviderFundingSummaryProcessor _publishedProviderFundingSummaryProcessor;
         private ICsvUtils _csvUtils;
         private IBlobClient _blobClient;
+        private IPoliciesService _policiesService;
+        private ILogger _logger;
         private string _specificationId;
 
         private IActionResult _actionResult;
@@ -53,11 +61,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(_validationResult);
 
             _specificationService = Substitute.For<ISpecificationService>();
+            _policiesService = Substitute.For<IPoliciesService>();
             _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
             _fundingCountProcessor = Substitute.For<IPublishedProviderFundingCountProcessor>();
             _fundingCsvDataProcessor = Substitute.For<IPublishedProviderFundingCsvDataProcessor>();
+            _publishedProviderFundingSummaryProcessor = Substitute.For<IPublishedProviderFundingSummaryProcessor>();
             _csvUtils = Substitute.For<ICsvUtils>();
             _blobClient = Substitute.For<IBlobClient>();
+            _logger = Substitute.For<ILogger>();
 
             _service = new PublishedProviderStatusService(_validator, _specificationService, _publishedFundingRepository, new ResiliencePolicies
             {
@@ -68,7 +79,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 _fundingCountProcessor,
                 _fundingCsvDataProcessor,
                 _csvUtils,
-                _blobClient);
+                _blobClient,
+                _publishedProviderFundingSummaryProcessor,
+                _policiesService,
+                _logger);
         }
 
         [TestMethod]
@@ -548,6 +562,87 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Be("No data found for given specification and published provider ids.");
         }
 
+        [TestMethod]
+        public async Task GetApprovedPublishedProviderReleaseFundingSummary_ShouldReturnOk()
+        {
+            IEnumerable<string> publishedProviderIds = new[] { NewRandomString(), NewRandomString() };
+            IEnumerable<string> channelCodes = new[] { NewRandomString(), NewRandomString() };
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Id = _specificationId,
+                FundingPeriod = new Reference { Id = NewRandomString() },
+                FundingStreams = new List<Reference> { new Reference { Id = NewRandomString() } }
+            };
+
+            GivenFundingSummaryData();
+            AndTheSpecificationSummaryIsRetrieved(specificationSummary);
+            AndTheFundingConfigurationIsRetrieved(new FundingConfiguration());
+
+            OkObjectResult result = await WhenReleaseSummaryExecuted(publishedProviderIds, channelCodes, specificationSummary.Id) as OkObjectResult;
+
+            result
+                .Should()
+                .NotBeNull();
+
+            result.Value
+                .Should()
+                .BeOfType<ReleaseFundingPublishedProvidersSummary>();
+        }
+
+        [TestMethod]
+        public async Task GetApprovedPublishedProviderReleaseFundingSummary_WhenChannelCodeNotFound_ShouldReturnBadRequest()
+        {
+            IEnumerable<string> publishedProviderIds = new[] { NewRandomString(), NewRandomString() };
+            IEnumerable<string> channelCodes = new[] { NewRandomString(), NewRandomString() };
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Id = _specificationId,
+                FundingPeriod = new Reference { Id = NewRandomString() },
+                FundingStreams = new List<Reference> { new Reference { Id = NewRandomString() } }
+            };
+
+            GivenFundingSummaryDataExceptionThrown(new KeyNotFoundException());
+            AndTheSpecificationSummaryIsRetrieved(specificationSummary);
+            AndTheFundingConfigurationIsRetrieved(new FundingConfiguration());
+
+            BadRequestObjectResult result = await WhenReleaseSummaryExecuted(publishedProviderIds, channelCodes, specificationSummary.Id) as BadRequestObjectResult;
+
+            result
+                .Should()
+                .NotBeNull();
+
+            result.Value
+                .Should()
+                .BeOfType<string>();
+        }
+
+        [TestMethod]
+        public async Task GetApprovedPublishedProviderReleaseFundingSummary_WhenExceptionThrown_ShouldReturnInternalServerError()
+        {
+            IEnumerable<string> publishedProviderIds = new[] { NewRandomString(), NewRandomString() };
+            IEnumerable<string> channelCodes = new[] { NewRandomString(), NewRandomString() };
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Id = _specificationId,
+                FundingPeriod = new Reference { Id = NewRandomString() },
+                FundingStreams = new List<Reference> { new Reference { Id = NewRandomString() } }
+            };
+
+            GivenFundingSummaryDataExceptionThrown(new Exception());
+            AndTheSpecificationSummaryIsRetrieved(specificationSummary);
+            AndTheFundingConfigurationIsRetrieved(new FundingConfiguration());
+
+            InternalServerErrorResult result = await WhenReleaseSummaryExecuted(publishedProviderIds, channelCodes, specificationSummary.Id) as InternalServerErrorResult;
+
+            result
+                .Should()
+                .NotBeNull();
+
+            result.Value
+                .Should()
+                .BeOfType<string>();
+        }
+
         public void GivenBlobUrl(string blobNamePrefix, string expectedUrl)
         {
             _blobClient.GetBlobSasUrl(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)), Arg.Any<DateTimeOffset>(), Arg.Is(SharedAccessBlobPermissions.Read), Arg.Is(BlobContainerName))
@@ -558,6 +653,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             _blobClient.GetBlockBlobReference(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)), Arg.Is(BlobContainerName))
                 .Returns(cloudBlob);
+        }
+
+        private void GivenFundingSummaryData()
+        {
+            _publishedProviderFundingSummaryProcessor.GetFundingSummaryForApprovedPublishedProvidersByChannel(
+                Arg.Any<IEnumerable<string>>(),
+                Arg.Any<SpecificationSummary>(),
+                Arg.Any<FundingConfiguration>(),
+                Arg.Any<IEnumerable<string>>())
+                .Returns(new ReleaseFundingPublishedProvidersSummary());
+
+        }
+
+        private void GivenFundingSummaryDataExceptionThrown(Exception exception)
+        {
+            _publishedProviderFundingSummaryProcessor.GetFundingSummaryForApprovedPublishedProvidersByChannel(
+                Arg.Any<IEnumerable<string>>(),
+                Arg.Any<SpecificationSummary>(),
+                Arg.Any<FundingConfiguration>(),
+                Arg.Any<IEnumerable<string>>())
+                .Throws(exception);
         }
 
         private void GivenTheFundingDataForCsv(IEnumerable<PublishedProviderFundingCsvData> fundingData,
@@ -595,6 +711,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             => await _service.GetProviderDataForBatchReleaseAsCsv(NewPublishedProviderIdsRequest(_ => _.WithProviders(publishedProviderIds.ToArray())),
                 specificationId);
 
+        private async Task<IActionResult> WhenReleaseSummaryExecuted(IEnumerable<string> publishedProviderIds,
+            IEnumerable<string> channelCodes, string specificationId)
+            => await _service.GetApprovedPublishedProviderReleaseFundingSummary(NewReleaseSummaryRequest(
+                _ => _.WithProviders(publishedProviderIds.ToArray()).WithChannelCodes(channelCodes.ToArray())), specificationId);
+
         private async Task<IActionResult> WhenTheGetProviderDataForAllReleaseAsCsvExecuted(string specificationId)
             => await _service.GetProviderDataForAllReleaseAsCsv(specificationId);
 
@@ -618,6 +739,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _specificationService
                 .GetSpecificationSummaryById(Arg.Is(_specificationId))
                 .Returns(_specificationSummary);
+        }
+
+        private void AndTheFundingConfigurationIsRetrieved(FundingConfiguration fundingConfiguration)
+        {
+            _policiesService
+                .GetFundingConfiguration(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(fundingConfiguration);
         }
 
         private PublishedProviderFundingStreamStatus NewPublishedProviderFundingStreamStatus(Action<PublishedProviderFundingStreamStatusBuilder> setUp = null)
@@ -645,6 +773,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             setUp?.Invoke(publishedProviderIdsRequestBuilder);
 
             return publishedProviderIdsRequestBuilder.Build();
+        }
+
+        private ReleaseFundingPublishProvidersRequest NewReleaseSummaryRequest(Action<PublishedProviderFundingSummaryRequestBuilder> setUp = null)
+        {
+            PublishedProviderFundingSummaryRequestBuilder publishedProviderFundingSummaryBuilder = new PublishedProviderFundingSummaryRequestBuilder();
+
+            setUp?.Invoke(publishedProviderFundingSummaryBuilder);
+
+            return publishedProviderFundingSummaryBuilder.Build();
         }
 
         private void GivenThePublishedProvidersForTheSpecificationId(bool? isIndicative,

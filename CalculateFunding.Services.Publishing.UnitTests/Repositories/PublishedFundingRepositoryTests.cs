@@ -708,6 +708,176 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         [TestMethod]
+        public void GetReleaseFundingPublishedProvidersGuardsAgainstMissingSpecificationId()
+        {
+            Func<Task<IEnumerable<PublishedProviderFundingSummary>>> invocation = () => WhenGetReleaseFundingPublishedProviders(AsArray(NewRandomString()),
+                null,
+                NewRandomStatus());
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("specificationId");
+        }
+
+        [TestMethod]
+        public void GetReleaseFundingPublishedProvidersGuardsAgainstTooManyPublishedProviderIds()
+        {
+            Func<Task<IEnumerable<PublishedProviderFundingSummary>>> invocation = () => WhenGetReleaseFundingPublishedProviders(new string[101],
+                NewRandomString(),
+                NewRandomStatus());
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>()
+                .Which
+                .Message
+                .Should()
+                .Be("You can only filter against 100 published provider ids at a time");
+        }
+
+        [TestMethod]
+        public void GetReleaseFundingPublishedProvidersGuardsAgainstMissingStatuses()
+        {
+            Func<Task<IEnumerable<PublishedProviderFundingSummary>>> invocation = () => WhenGetReleaseFundingPublishedProviders(AsArray(NewRandomString()),
+                NewRandomString(),
+                null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("statuses");
+        }
+
+        [TestMethod]
+        public void GetReleaseFundingPublishedProvidersGuardsAgainstMissingPublishedProviderIds()
+        {
+            Func<Task<IEnumerable<PublishedProviderFundingSummary>>> invocation = () => WhenGetReleaseFundingPublishedProviders(null,
+                NewRandomString(),
+                NewRandomStatus());
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("publishedProviderIds");
+        }
+
+        [TestMethod]
+        public async Task GetReleaseFundingPublishedProviders()
+        {
+            string publishedProviderId0 = NewRandomString();
+            string publishedProviderId1 = NewRandomString();
+            string publishedProviderId2 = NewRandomString();
+
+            string[] publishedProviderIds = AsArray(publishedProviderId0, publishedProviderId1, publishedProviderId2);
+
+            PublishedProviderStatus status0 = NewRandomStatus();
+            PublishedProviderStatus status1 = NewRandomStatus();
+
+            PublishedProviderStatus[] statuses = AsArray(status0, status1);
+            string specificationId = NewRandomString();
+
+            List<dynamic> results = new List<dynamic>() {
+                CreateReleaseFundingSummaryPublishedProviderFundingResult(specificationId, publishedProviderId0, false),
+                CreateReleaseFundingSummaryPublishedProviderFundingResult(specificationId, publishedProviderId1, false),
+                CreateReleaseFundingSummaryPublishedProviderFundingResult(specificationId, publishedProviderId2)
+            };
+
+            GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, publishedProviderIds, statuses), results);
+
+            IEnumerable<PublishedProviderFundingSummary> fundings = await WhenGetReleaseFundingPublishedProviders(publishedProviderIds, specificationId, statuses);
+
+            fundings
+                .Count()
+                .Should()
+                .Be(3);
+
+            Func<CosmosDbQuery, bool> QueryMatch(string s,
+                string[] strings,
+                PublishedProviderStatus[] publishedProviderStatuses) =>
+                _ => _.QueryText == @"
+                              SELECT 
+                                  c.content.current.specificationId,
+                                  c.content.current.totalFunding,
+                                  c.content.current.isIndicative,
+                                  c.content.current.majorVersion,
+                                  c.content.current.minorVersion,
+                                  c.content.current.provider.providerId,
+                                  c.content.current.provider.providerType,
+                                  c.content.current.provider.providerSubType
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND c.content.current.specificationId = @specificationId
+                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId)
+                              AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                              AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
+                              AND c.deleted = false" &&
+                     HasParameter(_, "@specificationId", s) &&
+                     HasArrayParameter(_, "@publishedProviderIds", publishedProviderIds) &&
+                     HasArrayParameter(_, "@statuses", statuses.Select(status => status.ToString()));
+        }
+
+        [TestMethod]
+        public async Task GetReleaseFundingPublishedProviders_NonBatchMode()
+        {
+            string publishedProviderId0 = NewRandomString();
+            string publishedProviderId1 = NewRandomString();
+            string publishedProviderId2 = NewRandomString();
+
+            PublishedProviderStatus status0 = NewRandomStatus();
+            PublishedProviderStatus status1 = NewRandomStatus();
+
+            PublishedProviderStatus[] statuses = AsArray(status0, status1);
+            string specificationId = NewRandomString();
+
+            List<dynamic> results = new List<dynamic>() {
+                CreateReleaseFundingSummaryPublishedProviderFundingResult(specificationId, publishedProviderId0, false),
+                CreateReleaseFundingSummaryPublishedProviderFundingResult(specificationId, publishedProviderId1, false),
+                CreateReleaseFundingSummaryPublishedProviderFundingResult(specificationId, publishedProviderId2)
+            };
+
+            GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, new string[0], statuses), results);
+
+            IEnumerable<PublishedProviderFundingSummary> fundings = await WhenGetReleaseFundingPublishedProviders(new string[0], specificationId, statuses);
+
+            fundings
+                .Count()
+                .Should()
+                .Be(3);
+
+            Func<CosmosDbQuery, bool> QueryMatch(string s,
+                string[] strings,
+                PublishedProviderStatus[] publishedProviderStatuses) =>
+                _ => _.QueryText == @"
+                              SELECT 
+                                  c.content.current.specificationId,
+                                  c.content.current.totalFunding,
+                                  c.content.current.isIndicative,
+                                  c.content.current.majorVersion,
+                                  c.content.current.minorVersion,
+                                  c.content.current.provider.providerId,
+                                  c.content.current.provider.providerType,
+                                  c.content.current.provider.providerSubType
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND c.content.current.specificationId = @specificationId
+                              AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                              AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
+                              AND c.deleted = false" &&
+                     HasParameter(_, "@specificationId", s) &&
+                     HasArrayParameter(_, "@statuses", statuses.Select(status => status.ToString()));
+        }
+
+        [TestMethod]
         public async Task GetPublishedProvidersFundingDataForCsvReport()
         {
             string publishedProviderId0 = NewRandomString();
@@ -833,6 +1003,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             params PublishedProviderStatus[] statuses)
             => await _repository.GetPublishedProvidersFunding(publishedProviderIds, specificationId, statuses);
 
+        private async Task<IEnumerable<PublishedProviderFundingSummary>> WhenGetReleaseFundingPublishedProviders(IEnumerable<string> publishedProviderIds,
+            string specificationId,
+            params PublishedProviderStatus[] statuses)
+            => await _repository.GetReleaseFundingPublishedProviders(publishedProviderIds, specificationId, statuses);
+
         private async Task<IEnumerable<PublishedProviderFundingCsvData>> WhenThePublishedProviderFundingDataForCsvReportIsQueried(IEnumerable<string> publishedProviderIds,
             string specificationId,
             params PublishedProviderStatus[] statuses)
@@ -910,6 +1085,29 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             result.providerType = providerType;
             result.providerSubType = providerSubType;
             result.laCode = laCode;
+            result.isIndicative = isIndicative;
+
+            return result;
+        }
+
+        private dynamic CreateReleaseFundingSummaryPublishedProviderFundingResult(string specificationId, string publishedProviderId, bool? isIndicative = null)
+        {
+            string providerId = NewRandomString();
+            string providerType = NewRandomString();
+            string providerSubType = NewRandomString();
+            decimal totalFunding = NewRandomNumber();
+            int majorVersion = NewRandomNumber();
+            int minorVersion = NewRandomNumber();
+
+
+            dynamic result = new ExpandoObject();
+            result.providerId = providerId;
+            result.specificationId = specificationId;
+            result.majorVersion = majorVersion;
+            result.minorVersion = minorVersion;
+            result.totalFunding = totalFunding;
+            result.providerType = providerType;
+            result.providerSubType = providerSubType;
             result.isIndicative = isIndicative;
 
             return result;

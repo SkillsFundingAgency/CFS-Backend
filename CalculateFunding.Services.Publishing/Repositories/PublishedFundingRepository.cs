@@ -1173,8 +1173,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                         FundingPeriodId = (string)_.fundingPeriodId,
                         ProviderId = (string)_.providerId,
                         Provider = new Provider
-                        { 
-                            ProviderId = (string)_.providerId, 
+                        {
+                            ProviderId = (string)_.providerId,
                             Name = (string)_.providerName,
                             UKPRN = (string)_.ukprn,
                             URN = (string)_.urn,
@@ -1302,6 +1302,101 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     ProviderSubType = (string)_.providerSubType
                 },
                 LaCode = (string)_.laCode
+            });
+        }
+
+        /// <summary>
+        ///     Get count and sum of total funding for all published provider ids with the supplied status
+        ///     When publishedProviderIds is empty use all providers in spec (non-batch mode)
+        ///     NB ensure that the ids count is not greater than 100 as this is max permitted per query for an IN
+        ///     clause in cosmos sql
+        /// </summary>
+        /// <param name="publishedProviderIds">the ids from the batch of published providers</param>
+        /// <param name="specificationId"></param>
+        /// <param name="statuses">the statuses to restrict to</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<PublishedProviderFundingSummary>> GetReleaseFundingPublishedProviders(IEnumerable<string> publishedProviderIds,
+            string specificationId,
+            params PublishedProviderStatus[] statuses)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(publishedProviderIds, nameof(publishedProviderIds));
+            Guard.Ensure(publishedProviderIds.Count() <= 100, "You can only filter against 100 published provider ids at a time");
+            Guard.IsNotEmpty(statuses, nameof(statuses));
+
+            bool nonBatchMode = publishedProviderIds.IsNullOrEmpty();
+
+            CosmosDbQuery query;
+
+            if (nonBatchMode)
+            {
+                query = new CosmosDbQuery
+                {
+                    QueryText = @"
+                              SELECT 
+                                  c.content.current.specificationId,
+                                  c.content.current.totalFunding,
+                                  c.content.current.isIndicative,
+                                  c.content.current.majorVersion,
+                                  c.content.current.minorVersion,
+                                  c.content.current.provider.providerId,
+                                  c.content.current.provider.providerType,
+                                  c.content.current.provider.providerSubType
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND c.content.current.specificationId = @specificationId
+                              AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                              AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
+                              AND c.deleted = false",
+                    Parameters = new[]
+                    {
+                        new CosmosDbQueryParameter("@specificationId", specificationId),
+                        new CosmosDbQueryParameter("@statuses", statuses?.Select(_ => _.ToString()).ToArray())
+                    }
+                };
+            }
+            else
+            {
+                query = new CosmosDbQuery
+                {
+                    QueryText = @"
+                              SELECT 
+                                  c.content.current.specificationId,
+                                  c.content.current.totalFunding,
+                                  c.content.current.isIndicative,
+                                  c.content.current.majorVersion,
+                                  c.content.current.minorVersion,
+                                  c.content.current.provider.providerId,
+                                  c.content.current.provider.providerType,
+                                  c.content.current.provider.providerSubType
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND c.content.current.specificationId = @specificationId
+                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId)
+                              AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                              AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
+                              AND c.deleted = false",
+                    Parameters = new[]
+                    {
+                        new CosmosDbQueryParameter("@specificationId", specificationId),
+                        new CosmosDbQueryParameter("@publishedProviderIds", publishedProviderIds.ToArray()),
+                        new CosmosDbQueryParameter("@statuses", statuses?.Select(_ => _.ToString()).ToArray())
+                    }
+                };
+            }
+
+            IEnumerable<dynamic> results = await _repository.DynamicQuery(query);
+
+            return results.Select(_ => new PublishedProviderFundingSummary
+            {
+                SpecificationId = (string)_.specificationId,
+                ProviderId = (string)_.providerId,
+                MajorVersion = (int)_.majorVersion,
+                MinorVersion = (int)_.minorVersion,
+                TotalFunding = (decimal?)_.totalFunding,
+                IsIndicative = (bool)(_.isIndicative ?? false),
+                ProviderType = (string)_.providerType,
+                ProviderSubType = (string)_.providerSubType
             });
         }
 
