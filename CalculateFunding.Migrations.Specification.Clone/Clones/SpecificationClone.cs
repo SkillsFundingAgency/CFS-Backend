@@ -22,20 +22,24 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
 
         private readonly ISourceApiClient _sourceDataOperations;
         private readonly ITargetApiClient _targetDataOperations;
+        private readonly IList<SpecificationMappingOption> _specificationMappingOptions;
 
         public SpecificationClone(
             ILogger logger,
             ISourceApiClient sourceDataOperations,
-            ITargetApiClient targetDataOperations)
+            ITargetApiClient targetDataOperations,
+            IList<SpecificationMappingOption> specificationMappingOptions)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(sourceDataOperations, nameof(sourceDataOperations));
             Guard.ArgumentNotNull(targetDataOperations, nameof(targetDataOperations));
+            Guard.ArgumentNotNull(specificationMappingOptions, nameof(specificationMappingOptions));
 
             _logger = logger;
 
             _sourceDataOperations = sourceDataOperations;
             _targetDataOperations = targetDataOperations;
+            _specificationMappingOptions = specificationMappingOptions;
         }
 
         public async Task Run(CloneOptions cloneOptions)
@@ -90,14 +94,11 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
             await ThenTheJobSucceeds(assignTemplateCalcJobSummary.JobId, $"Expected {nameof(JobConstants.DefinitionNames.AssignTemplateCalculationsJob)} to complete and succeed.");
             _logger.Information($"{nameof(JobConstants.DefinitionNames.AssignTemplateCalculationsJob)} job await finished at {DateTime.UtcNow}");
 
-            // Clone uploaded data datasets (including converter wizard setting)
-            // DefinitionSpecificationRelationship - where c.content.current.relationshipType == 'Uploaded'
-
             IEnumerable<DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModel = await _sourceDataOperations.GetRelationshipsBySpecificationId(specificationId);
             IEnumerable<DatasetSpecificationRelationshipViewModel> uploadedDatasetSpecificationRelationshipViewModels =
                 datasetSpecificationRelationshipViewModel.Where(_ => _.RelationshipType == DatasetRelationshipType.Uploaded);
 
-            _logger.Information($"{uploadedDatasetSpecificationRelationshipViewModels.Count()} uploaded dataset relationship exists. Starting to clone.");
+            _logger.Information($"{uploadedDatasetSpecificationRelationshipViewModels.Count()} uploaded data dataset relationship exists. Starting to clone.");
 
             foreach (DatasetSpecificationRelationshipViewModel uploadedDatasetSpecificationRelationshipViewModel in uploadedDatasetSpecificationRelationshipViewModels)
             {
@@ -115,7 +116,41 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                 await _targetDataOperations.CreateRelationship(createDefinitionSpecificationRelationshipModel);
             }
 
-            _logger.Information($"Dataset relationship upload operation completed.");
+            _logger.Information($"Uploaded Data Dataset relationship Create operation completed.");
+
+            if (cloneOptions.IncludeReleasedDataDateset.GetValueOrDefault())
+            {
+                IEnumerable<DatasetSpecificationRelationshipViewModel> releasedDatasetSpecificationRelationshipViewModels =
+                    datasetSpecificationRelationshipViewModel.Where(_ => _.RelationshipType == DatasetRelationshipType.ReleasedData);
+                _logger.Information($"{releasedDatasetSpecificationRelationshipViewModels.Count()} released data dataset relationship exists. Starting to clone.");
+
+                foreach (DatasetSpecificationRelationshipViewModel releasedDatasetSpecificationRelationshipViewModel in releasedDatasetSpecificationRelationshipViewModels)
+                {
+                    SpecificationMappingOption specificationMappingOption
+                        = _specificationMappingOptions.SingleOrDefault(_ => _.SourceSpecificationId == releasedDatasetSpecificationRelationshipViewModel.PublishedSpecificationConfiguration.SpecificationId);
+
+                    CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel = new CreateDefinitionSpecificationRelationshipModel
+                    {
+                        SpecificationId = cloneSpecificationSummary.Id,
+                        Name = releasedDatasetSpecificationRelationshipViewModel.Name,
+                        Description = releasedDatasetSpecificationRelationshipViewModel.RelationshipDescription,
+                        IsSetAsProviderData = releasedDatasetSpecificationRelationshipViewModel.IsProviderData,
+                        ConverterEnabled = releasedDatasetSpecificationRelationshipViewModel.ConverterEnabled,
+                        RelationshipType = releasedDatasetSpecificationRelationshipViewModel.RelationshipType,
+                        FundingLineIds = releasedDatasetSpecificationRelationshipViewModel.PublishedSpecificationConfiguration.FundingLines.Select(_ => _.TemplateId),
+                        CalculationIds = releasedDatasetSpecificationRelationshipViewModel.PublishedSpecificationConfiguration.Calculations.Select(_ => _.TemplateId),
+                        TargetSpecificationId = specificationMappingOption.targetSpecificationId
+                    };
+
+                    await _targetDataOperations.CreateRelationship(createDefinitionSpecificationRelationshipModel);
+                }
+
+                _logger.Information($"Released Data Dataset relationship upload operation completed.");
+            }
+            else
+            {
+                _logger.Information($"Skipping Released Data Dataset relationship creation operation.");
+            }
 
             _logger.Information($"Retrieving original specification calculations.");
 

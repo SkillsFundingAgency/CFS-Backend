@@ -12,5 +12,8 @@ namespace CalculateFunding.Migrations.Specification.Clone
 
         [Option("trg-funding-template-version", Required = false, HelpText = "Set the target funding template id. ie: 1.0", Default = "1.0")]
         public string TargetFundingTemplateVersion { get; set; }
+
+        [Option("include-released-data-dataset", Required = false, HelpText = "Flat to include or exclude cloning released data datasets. Requires SpecificationMappingOptions option to be set if included", Default = false)]
+        public bool? IncludeReleasedDataDateset { get; set; }
     }
 }

@@ -19,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 
@@ -52,7 +53,7 @@ namespace CalculateFunding.Migrations.Specification.Clone
             serviceCollection.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             serviceCollection.AddPolicySettings(Configuration);
-            
+
             serviceCollection.AddJobsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan, clientKey: SourceJobsClientKey, clientName: "source:jobsClient");
             serviceCollection.AddJobsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan, clientKey: TargetJobsClientKey, clientName: "target:jobsClient");
             serviceCollection.AddDatasetsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan, clientKey: SourceDatasetsClientKey, clientName: "source:datasetsClient");
@@ -64,6 +65,10 @@ namespace CalculateFunding.Migrations.Specification.Clone
             serviceCollection.AddSpecificationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan, clientKey: SourceSpecificationsClientKey, clientName: "source:specificationsClient");
             serviceCollection.AddSpecificationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan, clientKey: TargetSpecificationsClientKey, clientName: "target:specificationsClient");
 
+            IList<SpecificationMappingOption> specificationMappingOptions = new List<SpecificationMappingOption>();
+            Configuration.Bind("SpecificationMappingOptions", specificationMappingOptions);
+
+            serviceCollection.AddSingleton(specificationMappingOptions);
 
             serviceCollection.AddSingleton<IBatchCloneResiliencePolicies>(ctx =>
             {
