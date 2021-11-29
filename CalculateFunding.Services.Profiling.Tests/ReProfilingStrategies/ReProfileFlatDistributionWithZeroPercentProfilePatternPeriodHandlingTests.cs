@@ -23,10 +23,20 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             decimal totalAllocation,
             decimal previousTotalAllocation,
             decimal[] expectedAdjustedPeriodValues,
-            decimal? expectedRemainingOverPayment)
+            decimal? expectedRemainingOverPayment,
+            bool useVariationIndex)
         {
             GivenTheLatestProfiling(AsLatestProfiling(latestPeriodValues));
-            AndTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
+
+            if (useVariationIndex)
+            {
+                AndTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.ToArray()));
+                AndTheVariationPointerIndex(variationPointerIndex);
+            }
+            else
+            {
+                AndTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
+            }
             AndTheProfilePattern(NewFundingStreamPeriodProfilePattern(_ => _.WithProfilePattern(AsProfilePattern(profilePattern))));
             
             AndThePreviousFundingTotal(previousTotalAllocation);
@@ -51,7 +61,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 20500M,
                 24000M,
                 NewDecimals(2000, 2000, 2000, 2000, 2000, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1500.06M),
-                null
+                null,
+                false
             };
             yield return new object[]
             {
@@ -62,7 +73,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 22000M,
                 36000M,
                 NewDecimals(3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, -500.01M, -500.01M, -500.01M, -499.97M),
-                null
+                null,
+                false
             };
             //Examples where it skips unpaid periods which have 0% in the profile pattern periods
             yield return new object[]
@@ -74,7 +86,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 20500M,
                 24000M,
                 NewDecimals(2400, 4800, 2400, 4800, 2400, 0M, 2875M, 0M, 825M, 0M, 0M, 0M),
-                null
+                null,
+                false
             };
             yield return new object[]
             {
@@ -85,7 +98,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 24000M,
                 20500M,
                 NewDecimals(2050, 4100, 2050, 4100, 2050, 0M, 6025M, 0M, 3625M, 0M, 0M, 0M),
-                null
+                null,
+                false
             };
             yield return new object[]
             {
@@ -96,7 +110,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 20500M,
                 24000M,
                 NewDecimals(2000, 2000, 2000, 2000, 2000, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1500.06M, 0),
-                null
+                null,
+                true
             };
             //example showing that we move remainder from final period to final none zero period to account for profiling code being incorrect for none zero periods
             yield return new object[]
@@ -110,7 +125,20 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 24000M,
                 //the re profiling code locates the remainder in the final period as incorrect and moves it to the final none zero percent period
                 NewDecimals(2000, 2000, 2000, 2000, 2000, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1502.06M, 0),
-                null
+                null,
+                true
+            };
+            yield return new object[]
+            {
+                5,
+                NewDecimals(2000, 2000.01M, 1999.99M, 2000, 2000, 2000.01M, 1999.99M, 2000, 2000, 2000, 2000, 2000, 0),
+                NewDecimals(2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 0),
+                NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 0M),
+                24000M,
+                24000M,
+                NewDecimals(2000, 2000.01M, 1999.99M, 2000, 2000, 2000.01M, 1999.99M, 2000, 2000, 2000, 2000, 2000, 0),
+                null,
+                true
             };
         }
     }

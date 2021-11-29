@@ -83,6 +83,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             MoveRoundingRemainderToFinalNoneZeroPercentPeriod(orderedRefreshProfilePeriods, finalNonZeroProfilePeriodIndex);
             DistributeRemainingBalanceSkippingZeroPercentPeriods(variationPointerIndex,
                 orderedRefreshProfilePeriods,
+                orderedExistingProfilePeriods,
                 differenceToDistribute,
                 orderedProfilePatternPeriods,
                 finalNonZeroProfilePeriodIndex);
@@ -106,6 +107,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
         protected static void DistributeRemainingBalanceSkippingZeroPercentPeriods(int variationPointerIndex,
             IProfilePeriod[] orderedRefreshProfilePeriods,
+            IProfilePeriod[] orderedExistingProfilePeriods,
             decimal differenceToDistribute,
             ProfilePeriodPattern[] orderedProfilePatternPeriods,
             int finalNonZeroProfilePeriodIndex)
@@ -114,6 +116,32 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
             decimal remainingPeriodsProfileValue = Math.Round(differenceToDistribute / remainingPeriodsToPay, 2, MidpointRounding.AwayFromZero);
             decimal remainderForFinalPeriod = differenceToDistribute - remainingPeriodsToPay * remainingPeriodsProfileValue;
+
+            bool useExisting = false;
+
+            if (differenceToDistribute == 0)
+            {
+                for (int refreshProfilePeriodIndex = variationPointerIndex; refreshProfilePeriodIndex < orderedRefreshProfilePeriods.Length; refreshProfilePeriodIndex++)
+                {
+                    ProfilePeriodPattern profilePeriodPattern = orderedProfilePatternPeriods[refreshProfilePeriodIndex];
+
+                    if (profilePeriodPattern.PeriodPatternPercentage == 0M)
+                    {
+                        continue;
+                    }
+
+                    IProfilePeriod profilePeriod = orderedRefreshProfilePeriods[refreshProfilePeriodIndex];
+
+                    useExisting = UseExisting(profilePeriod.GetProfileValue() + remainingPeriodsProfileValue,
+                        orderedExistingProfilePeriods,
+                        refreshProfilePeriodIndex);
+
+                    if (!useExisting)
+                    {
+                        break;
+                    }
+                }
+            }
 
             for (int refreshProfilePeriodIndex = variationPointerIndex; refreshProfilePeriodIndex < orderedRefreshProfilePeriods.Length; refreshProfilePeriodIndex++)
             {
@@ -126,10 +154,15 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
                 IProfilePeriod profilePeriod = orderedRefreshProfilePeriods[refreshProfilePeriodIndex];
 
-                decimal adjustedProfileValue = profilePeriod.GetProfileValue() + remainingPeriodsProfileValue;
+                decimal adjustedProfileValue = useExisting ?
+                    orderedExistingProfilePeriods[refreshProfilePeriodIndex].GetProfileValue() :
+                    profilePeriod.GetProfileValue() + remainingPeriodsProfileValue;
 
-                profilePeriod.SetProfiledValue(Math.Max(adjustedProfileValue, 0));
+                profilePeriod.SetProfiledValue(adjustedProfileValue);
             }
+
+            
+            if (differenceToDistribute == 0) return;
 
             IProfilePeriod finalProfilePeriod = orderedRefreshProfilePeriods[finalNonZeroProfilePeriodIndex];
 
