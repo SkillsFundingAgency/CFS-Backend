@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 context.Request.MidYearType == MidYearType.Opener || 
                 context.Request.MidYearType == MidYearType.Converter)
             {
-                ZeroPaidProfilePeriodValues(variationPointerIndex, orderedRefreshProfilePeriods);
+                ZeroPaidProfilePeriodValues(variationPointerIndex, orderedRefreshProfilePeriods, orderedExistingProfilePeriods);
             }
             else
             {
@@ -93,28 +93,6 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 periodToAdjust.SetProfiledValue(profileValue);
             }
         }
-
-        protected static void ZeroPaidProfilePeriodValues(int variationPointerIndex,
-            IProfilePeriod[] orderedRefreshProfilePeriods)
-        {
-            for (int paidProfilePeriodIndex = 0; paidProfilePeriodIndex < variationPointerIndex; paidProfilePeriodIndex++)
-            {
-                IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[paidProfilePeriodIndex];
-
-                refreshProfilePeriod.SetProfiledValue(0);
-            }
-        }
-        protected static void ZeroRemainingPeriodValues(int variationPointerIndex,
-            IProfilePeriod[] orderedRefreshProfilePeriods)
-        {
-            for (int futureProfilePeriodIndex = variationPointerIndex; futureProfilePeriodIndex < orderedRefreshProfilePeriods.Length; futureProfilePeriodIndex++)
-            {
-                IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[futureProfilePeriodIndex];
-
-                refreshProfilePeriod.SetProfiledValue(0);
-            }
-        }
-
         private static void DistributeRemainingBalance(
             IProfilePeriod[] orderedRefreshProfilePeriods,
             int variationPointerIndex,

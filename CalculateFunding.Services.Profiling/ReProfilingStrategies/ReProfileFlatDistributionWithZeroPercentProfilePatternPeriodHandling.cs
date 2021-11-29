@@ -50,7 +50,17 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             int variationPointerIndex,
             ReProfileContext context)
         {
-            RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
+            if (context.Request.MidYearType == MidYearType.Opener || 
+                context.Request.MidYearType == MidYearType.OpenerCatchup ||
+                context.Request.MidYearType == MidYearType.Converter)
+            {
+                ZeroPaidProfilePeriodValues(variationPointerIndex, orderedRefreshProfilePeriods, orderedExistingProfilePeriods);
+            }
+            else
+            {
+                RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
+            }
+
             DistributeRemainingFundingLineValueEvenlySkippingZeroPercentPeriods(orderedExistingProfilePeriods,
                 variationPointerIndex,
                 reProfileRequest,

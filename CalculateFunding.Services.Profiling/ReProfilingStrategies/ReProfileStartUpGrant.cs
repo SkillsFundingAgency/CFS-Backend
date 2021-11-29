@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
             decimal[] grantPaymentDistribution = GetStartUpGrantDistribution(orderedRefreshProfilePeriods.Length, variationPointerIndex, context.Request.FundingLineTotal);
 
-            ZeroPaidProfilePeriods(variationPointerIndex, orderedRefreshProfilePeriods);
+            ZeroPaidProfilePeriodValues(variationPointerIndex, orderedRefreshProfilePeriods);
             DistributeGrantPayments(variationPointerIndex, orderedRefreshProfilePeriods, grantPaymentDistribution);
 
             return new ReProfileStrategyResult
@@ -33,15 +33,6 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 DeliveryProfilePeriods = context.ProfileResult.DeliveryProfilePeriods,
                 CarryOverAmount = 0
             };
-        }
-
-        private static void ZeroPaidProfilePeriods(int variationPointerIndex,
-            IProfilePeriod[] orderedRefreshProfilePeriods)
-        {
-            for (int paidProfilePeriodIndex = 0; paidProfilePeriodIndex < variationPointerIndex; paidProfilePeriodIndex++)
-            {
-                orderedRefreshProfilePeriods[paidProfilePeriodIndex].SetProfiledValue(0);
-            }
         }
 
         private static void DistributeGrantPayments(int variationPointerIndex,

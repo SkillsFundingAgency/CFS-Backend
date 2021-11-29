@@ -33,6 +33,34 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             return finalPaidProfilePeriod == null ? 0 : Array.IndexOf(orderedExistingProfilePeriods, finalPaidProfilePeriod) + 1;    
         }
 
+        protected static void ZeroPaidProfilePeriodValues(int variationPointerIndex,
+            IProfilePeriod[] orderedRefreshProfilePeriods,
+            IProfilePeriod[] orderedExistingProfilePeriods = null)
+        {
+            for (int paidProfilePeriodIndex = 0; paidProfilePeriodIndex < variationPointerIndex; paidProfilePeriodIndex++)
+            {
+                IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[paidProfilePeriodIndex];
+                refreshProfilePeriod.SetProfiledValue(0);
+
+                if (orderedExistingProfilePeriods != null)
+                {
+                    IProfilePeriod existingProfilePeriod = orderedExistingProfilePeriods[paidProfilePeriodIndex];
+                    existingProfilePeriod.SetProfiledValue(0);
+                }
+            }
+        }
+
+        protected static void ZeroRemainingPeriodValues(int variationPointerIndex,
+            IProfilePeriod[] orderedRefreshProfilePeriods)
+        {
+            for (int futureProfilePeriodIndex = variationPointerIndex; futureProfilePeriodIndex < orderedRefreshProfilePeriods.Length; futureProfilePeriodIndex++)
+            {
+                IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[futureProfilePeriodIndex];
+
+                refreshProfilePeriod.SetProfiledValue(0);
+            }
+        }
+
         protected static void RetainPaidProfilePeriodValues(int variationPointerIndex,
             IExistingProfilePeriod[] orderedExistingProfilePeriods,
             IProfilePeriod[] orderedRefreshProfilePeriods)

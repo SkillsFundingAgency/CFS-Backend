@@ -166,7 +166,6 @@ namespace CalculateFunding.Api.Profiling
             });
 
             builder.AddSingleton<IReProfilingStrategy, ReProfileDsgFundingLine>();
-            builder.AddSingleton<IReProfilingStrategy, ReProfileRemainingFundingForPeriod>();
             builder.AddSingleton<IReProfilingStrategy, ReProfileFlatDistributionForRemainingPeriods>();
             builder.AddSingleton<IReProfilingStrategy, ReProfileFutureDistributionPeriodsWithAdjustments>();
             builder.AddSingleton<IReProfilingStrategy, ReProfileStartUpGrant>();

@@ -49,6 +49,27 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             AndTheCarryOverShouldBe(expectedRemainingOverPayment);
         }
 
+        [TestMethod]
+        [DynamicData(nameof(RemainingFundingExamples), DynamicDataSourceType.Method)]
+        public void BundlesUnderAndOverPaymentsAcrossTheFundingLinePeriodsAndCarriesOverRemainingOverPayments(int variationPointerIndex,
+            decimal[] originalPeriodValues,
+            decimal[] newTheoreticalPeriodValues,
+            decimal[] profilePattern,
+            decimal[] expectedAdjustedPeriodValues)
+        {
+            Context.Request.MidYearType = Models.MidYearType.Opener;
+
+            GivenTheLatestProfiling(AsLatestProfiling(newTheoreticalPeriodValues));
+            AndTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
+            AndTheLatestFundingTotal(newTheoreticalPeriodValues.Sum());
+            AndTheProfilePattern(NewFundingStreamPeriodProfilePattern(_ => _.WithProfilePattern(AsProfilePattern(profilePattern))));
+
+            WhenTheFundingLineIsReProfiled();
+
+            AndTheFundingLinePeriodAmountsShouldBe(expectedAdjustedPeriodValues);
+            AndTheCarryOverShouldBe(0);
+        }
+
         private static IEnumerable<object[]> OverAndUnderPaymentExamples()
         {
             #region original_examples
@@ -229,7 +250,34 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 true
             };
             #endregion
+        }
 
+        private static IEnumerable<object[]> RemainingFundingExamples()
+        {
+            yield return new object[]
+            {
+                3,
+                NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
+                NewDecimals(1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100),
+                NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
+                NewDecimals(0, 0, 0, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.42M),
+            };
+            yield return new object[]
+            {
+                6,
+                NewDecimals(1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100),
+                NewDecimals(950, 950, 950, 950, 950, 950, 950, 950, 950, 950),
+                NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
+                NewDecimals(0, 0, 0, 0, 0, 0, 2375, 2375, 2375, 2375),
+            };
+            yield return new object[]
+            {
+                9,
+                NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
+                NewDecimals(800, 800, 800, 800, 800, 800, 800, 800, 800, 800),
+                NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 8000),
+            };
         }
     }
 }

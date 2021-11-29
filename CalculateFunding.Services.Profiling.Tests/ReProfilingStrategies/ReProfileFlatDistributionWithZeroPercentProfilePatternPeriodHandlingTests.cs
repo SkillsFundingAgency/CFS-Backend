@@ -13,7 +13,28 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
         {
             ReProfiling = new ReProfileFlatDistributionWithZeroPercentProfilePatternPeriodHandling();
         }
-        
+
+        [TestMethod]
+        [DynamicData(nameof(RemainingFundingExamples), DynamicDataSourceType.Method)]
+        public void BundlesUnderAndOverPaymentsAcrossTheFundingLinePeriodsAndCarriesOverRemainingOverPayments(int variationPointerIndex,
+            decimal[] originalPeriodValues,
+            decimal[] newTheoreticalPeriodValues,
+            decimal[] profilePattern,
+            decimal[] expectedAdjustedPeriodValues)
+        {
+            Context.Request.MidYearType = Models.MidYearType.Opener;
+
+            GivenTheLatestProfiling(AsLatestProfiling(newTheoreticalPeriodValues));
+            AndTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
+            AndTheLatestFundingTotal(newTheoreticalPeriodValues.Sum());
+            AndTheProfilePattern(NewFundingStreamPeriodProfilePattern(_ => _.WithProfilePattern(AsProfilePattern(profilePattern))));
+
+            WhenTheFundingLineIsReProfiled();
+
+            AndTheFundingLinePeriodAmountsShouldBe(expectedAdjustedPeriodValues);
+            AndTheCarryOverShouldBe(0);
+        }
+
         [TestMethod]
         [DynamicData(nameof(OverAndUnderPaymentExamples), DynamicDataSourceType.Method)]
         public void BundlesUnderAndOverPaymentsEvenlyAcrossTheRemainingFundingLinePeriodsAndCarriesOverRemainingOverPayments(int variationPointerIndex,
@@ -139,6 +160,53 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(2000, 2000.01M, 1999.99M, 2000, 2000, 2000.01M, 1999.99M, 2000, 2000, 2000, 2000, 2000, 0),
                 null,
                 true
+            };
+        }
+
+        private static IEnumerable<object[]> RemainingFundingExamples()
+        {
+            yield return new object[]
+            {
+                3,
+                NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
+                NewDecimals(1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100),
+                NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
+                NewDecimals(0, 0, 0, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.42M),
+            };
+            yield return new object[]
+            {
+                6,
+                NewDecimals(1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100),
+                NewDecimals(950, 950, 950, 950, 950, 950, 950, 950, 950, 950),
+                NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
+                NewDecimals(0, 0, 0, 0, 0, 0, 2375, 2375, 2375, 2375),
+            };
+            yield return new object[]
+            {
+                9,
+                NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
+                NewDecimals(800, 800, 800, 800, 800, 800, 800, 800, 800, 800),
+                NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 8000),
+            };
+            yield return new object[]
+            {
+                3,
+                NewDecimals(0, 0, 1000, 0, 0, 1000, 0, 0, 0, 1000),
+                NewDecimals(0, 0, 800, 0, 0, 800, 0, 0, 0, 800),
+                NewDecimals(0M, 0M, 1M, 0M, 0M, 1M, 0M, 0M, 0M, 1M),
+                NewDecimals(0, 0, 0, 0, 0, 1200, 0, 0, 0, 1200),
+            };
+            // Example 32
+            //  1619
+            //      Mid year SSF / College to Academy converter - Three payment profile - 1 default payment month in the past
+            yield return new object[]
+            {
+                4,
+                NewDecimals(0, 13958.64M, 0, 0, 0, 0, 0, 0, 13958.64M, 13959.05M, 0, 0),
+                NewDecimals(0, 9305.90M, 0, 0, 0, 0, 0, 0, 9305.90M, 9305.89M, 0, 0),
+                NewDecimals(0M, 1M, 0M, 0M, 0M, 0M, 0M, 0M, 1M, 1M, 0, 0),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 13958.85M, 13958.84M, 0, 0),
             };
         }
     }
