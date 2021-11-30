@@ -125,7 +125,8 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PopulateCalculationResultsQADatabase,
-                async (Message smokeResponse) => await onReIndexCalculationResults.Run(smokeResponse));
+                async (Message smokeResponse) => await onReIndexCalculationResults.Run(smokeResponse),
+                useSession:true);
 
             response
                 .Should()
