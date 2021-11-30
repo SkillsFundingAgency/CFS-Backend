@@ -2,6 +2,6 @@
 {
     public interface ITypeIdentifierGenerator
     {
-        string GenerateIdentifier(string value);
+        string GenerateIdentifier(string value, bool escapeLeadingNumber = true);
     }
 }

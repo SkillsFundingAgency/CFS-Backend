@@ -50,7 +50,6 @@ using FundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
 using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
 using Relationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 using Calculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
-using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -4163,8 +4162,10 @@ namespace CalculateFunding.Services.Datasets.Services
             string calculationOne = NewRandomString();
             string calculationTwo = NewRandomString();
             string templateId = NewRandomString();
-            string calculationIdOne = NewRandomString();
-            string calculationIdTwo = NewRandomString();
+            
+            string fundingLinePrefix = Models.Calcs.CodeGenerationDatasetTypeConstants.FundingLinePrefix;
+
+            string calculationPrefix = Models.Calcs.CodeGenerationDatasetTypeConstants.CalculationPrefix;
 
             ILogger logger = CreateLogger();
 
@@ -4188,14 +4189,14 @@ namespace CalculateFunding.Services.Datasets.Services
                 },
                 Calculations = new[]
                 {
-                    new PublishedSpecificationItem { TemplateId = calculationTemplateIdOne, Name = calculationOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne), FieldType = FieldType.NullableOfDecimal},
-                    new PublishedSpecificationItem { TemplateId = calculationTemplateIdTwo, Name = calculationTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationTwo), FieldType = FieldType.String}
+                    new PublishedSpecificationItem { TemplateId = calculationTemplateIdOne, Name = calculationOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne, false), FieldType = FieldType.NullableOfDecimal},
+                    new PublishedSpecificationItem { TemplateId = calculationTemplateIdTwo, Name = calculationTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationTwo, false), FieldType = FieldType.String}
                 }
             };
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
-                .GetSpecificationSummaryById(Arg.Is<string>(targetSpecificationId))
-                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, targetSpecification));
+                .GetSpecificationSummaryById(targetSpecificationId)
+                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, targetSpecification));
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(datasetDefinitionId))
@@ -4230,15 +4231,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 {
                     Node = new FundingLine
                     {
-                        FundingLineId = $"{fundingStreamId}_{fundingLineIdOne}"
+                        FundingLineId = $"{fundingLinePrefix}_{fundingLineIdOne}"
                     },
                     Relationships = new List<Relationship>
                     {
                         new Relationship
                         {
-                            Type = FundingLineCalculationRelationship.FromIdField.ToLowerInvariant(),
-                            One = new Calculation { SpecificationId = targetSpecificationId },
-                            Two = new Calculation { SpecificationId = specificationId },
+                            Type = FundingLineCalculationRelationship.FromIdField.ToLowerInvariant()
                         }
                     }
                 }
@@ -4248,26 +4247,11 @@ namespace CalculateFunding.Services.Datasets.Services
             graphApiClient
                 .GetAllEntitiesRelatedToFundingLines(Arg.Is<string[]>(_ => 
                     _.Count() == 2 && 
-                    _.FirstOrDefault() == $"{targetSpecificationId}-{fundingStreamId}_{fundingLineIdOne}" &&
-                    _.LastOrDefault() == $"{targetSpecificationId}-{fundingStreamId}_{fundingLineIdTwo}"))
+                    _.FirstOrDefault() == $"{specificationId}-{targetSpecificationId}-{fundingLinePrefix}_{fundingLineIdOne}" &&
+                    _.LastOrDefault() == $"{specificationId}-{targetSpecificationId}-{fundingLinePrefix}_{fundingLineIdTwo}"))
                 .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<FundingLine>>>(HttpStatusCode.OK, fundingLineEntities));
 
-            Models.Calcs.TemplateMapping templateMapping = new Models.Calcs.TemplateMapping
-            {
-                TemplateMappingItems = new List<Models.Calcs.TemplateMappingItem>
-                {
-                    new Models.Calcs.TemplateMappingItem
-                    {
-                        TemplateId = calculationTemplateIdOne,
-                        CalculationId = calculationIdOne
-                    },
-                    new Models.Calcs.TemplateMappingItem
-                    {
-                        TemplateId = calculationTemplateIdTwo,
-                        CalculationId = calculationIdTwo
-                    },
-                }
-            };
+           
 
             IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>> calculationEntities = new List<Common.ApiClient.Graph.Models.Entity<Calculation>>
             {
@@ -4275,15 +4259,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 {
                     Node = new Calculation
                     {
-                        CalculationId = calculationIdOne
+                        CalculationId = $"{targetSpecificationId}-{calculationPrefix}_{calculationTemplateIdOne}"
                     },
                     Relationships = new List<Relationship>
                     {
                         new Relationship
                         {
                             Type = Models.Graph.CalculationRelationship.ToIdField.ToLowerInvariant(),
-                            One = new Calculation{ SpecificationId = targetSpecificationId },
-                            Two = new Calculation{ SpecificationId = specificationId },
+                            One = new Calculation { SpecificationId = specificationId},
+                            Two = new Calculation { SpecificationId = specificationId}
                         }
                     }
                 }
@@ -4292,22 +4276,16 @@ namespace CalculateFunding.Services.Datasets.Services
             graphApiClient
                 .GetAllEntitiesRelatedToCalculations(Arg.Is<string[]>(_ =>
                     _.Count() == 2 &&
-                    _.FirstOrDefault() == calculationIdOne &&
-                    _.LastOrDefault() == calculationIdTwo))
+                    _.FirstOrDefault() == $"{targetSpecificationId}-{calculationPrefix}_{calculationTemplateIdOne}" &&
+                    _.LastOrDefault() == $"{targetSpecificationId}-{calculationPrefix}_{calculationTemplateIdTwo}"))
                 .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>>>(HttpStatusCode.OK, calculationEntities));
-
-            ICalcsRepository calcsRepository = CreateCalcsRepository();
-            calcsRepository
-                .GetTemplateMapping(Arg.Is(targetSpecificationId), Arg.Is(fundingStreamId))
-                .Returns(templateMapping);
 
             DefinitionSpecificationRelationshipService service = CreateService(
                 logger: logger, 
                 datasetRepository: datasetRepository,
                 specificationsApiClient: specificationsApiClient, 
                 policiesApiClient: policiesApiClient,
-                graphApiClient: graphApiClient,
-                calcsRepository: calcsRepository);
+                graphApiClient: graphApiClient);
 
             IActionResult result = await service.GetFundingLineCalculations(datasetDefinitionId);
 

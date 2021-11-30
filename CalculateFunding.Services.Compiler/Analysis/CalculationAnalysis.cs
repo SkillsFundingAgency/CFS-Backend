@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Compiler.Analysis
 
             string calculationPrefix = CodeGenerationDatasetTypeConstants.CalculationPrefix;
 
-            HashSet<string> calculationIdsBySourceCodeName = new HashSet<string>();
+            Dictionary<string, (string CalculationId, string SourceCodeName)> calculationIdsBySourceCodeName = new Dictionary<string, (string CalculationId, string SourceCodeName)>();
 
             foreach (DatasetRelationshipSummary datasetRelationshipSummary in datasetRelationshipSummaries)
             {
@@ -56,19 +56,26 @@ namespace CalculateFunding.Services.Compiler.Analysis
                 }
 
                 calculationIdsBySourceCodeName = datasetRelationshipSummary.PublishedSpecificationConfiguration.Calculations
-                    .Select(_ => $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.Name)}.{calculationPrefix}_{_.TemplateId}_{_.SourceCodeName}").ToHashSet();
+                    .ToDictionary(_ => $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.Name)}.{calculationPrefix}_{_.TemplateId}_{_.SourceCodeName}", _ => ($"{datasetRelationshipSummary.PublishedSpecificationConfiguration.SpecificationId}-{calculationPrefix}_{_.TemplateId}", _.SourceCodeName));
             }
 
             return sourceCalculations.SelectMany(_ =>
             {
-                IEnumerable<string> relatedCalculationNames = SourceCodeHelpers.GetReferencedReleasedDataCalculations(calculationIdsBySourceCodeName, _.Current.SourceCode);
+                IEnumerable<string> relatedCalculationNames = SourceCodeHelpers.GetReferencedReleasedDataCalculations(calculationIdsBySourceCodeName.Keys, _.Current.SourceCode);
 
-                return relatedCalculationNames.Select(rel => new CalculationRelationship
+                return relatedCalculationNames.Select(rel =>
                 {
-                    CalculationOneId = _.Id,
-                    CalculationTwoId = calculationIdsBySourceCodeName.TryGetValue(rel, out string twoId) ?
-                        twoId :
-                        throw new InvalidOperationException($"Could not locate a calculation id for sourceCodeName {rel}")
+                    if (!calculationIdsBySourceCodeName.TryGetValue(rel, out (string CalculationId, string SourceCodeName) twoCalculation))
+                    {
+                        throw new InvalidOperationException($"Could not locate a calculation id for sourceCodeName {rel}");
+                    }
+
+                    return new CalculationRelationship
+                    {
+                        CalculationOneId = _.Id,
+                        TargetCalculationName = twoCalculation.SourceCodeName,
+                        CalculationTwoId = twoCalculation.CalculationId
+                    };
                 });
             }).ToList();
         }
@@ -167,7 +174,7 @@ namespace CalculateFunding.Services.Compiler.Analysis
                     .ForEach(_ => fundingLineRelationshipSummaries.Add(new FundingLineReleasedDataRelationshipSummary
                     {
                         FundingLineReferenceSourceCode = $"Datasets.{GetSourceCodeName(datasetRelationshipSummary.Name)}.{fundingLinePrefix}_{_.TemplateId}_{_.SourceCodeName}",
-                        FundingLineTargetSpecificationId = datasetRelationshipSummary.PublishedSpecificationConfiguration.SpecificationId,
+                        FundingLineId = $"{datasetRelationshipSummary.PublishedSpecificationConfiguration.SpecificationId}-{fundingLinePrefix}_{_.TemplateId}",
                         FundingLineName = _.Name
                     }));
             }
@@ -182,8 +189,8 @@ namespace CalculateFunding.Services.Compiler.Analysis
                 {
                     CalculationOneId = _.Id,
                     FundingLine = new GraphFundingLine { 
-                        SpecificationId = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineTargetSpecificationId,
-                        FundingLineId = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineReferenceSourceCode,
+                        SpecificationId = _.SpecificationId,
+                        FundingLineId = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineId,
                         FundingLineName = fundingLineRelationshipSummaries.SingleOrDefault(s => s.FundingLineReferenceSourceCode == rel).FundingLineName
                     },
                     CalculationTwoId = null

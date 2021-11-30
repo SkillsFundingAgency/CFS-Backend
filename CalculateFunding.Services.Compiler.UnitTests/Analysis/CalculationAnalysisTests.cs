@@ -327,7 +327,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                 CalculationRelationships(
                     NewCalculationRelationship(_ => _
                         .WithCalculationOneId(calcFiveId)
-                        .WithCalculationTwoId($"Datasets.{datasetRelationshipName}.Calc_{templateCalculationOneId}_{calcFourName}"))),
+                        .WithCalculationTwoId($"{targetSpecificationId}-Calc_{templateCalculationOneId}"))),
                 CalulationEnumRelationships(NewCalculationEnumRelationship(_ => _.WithCalculation(new Models.Graph.Calculation{SpecificationId = calculation.SpecificationId,
                             CalculationId = calculation.Id,
                             FundingStream = calculation.FundingStreamId,

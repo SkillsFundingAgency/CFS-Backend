@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.Type
     {
         private static readonly IEnumerable<string> exemptValues = new[] { "Nullable(Of Decimal)", "Nullable(Of Integer)" };
 
-        public string GenerateIdentifier(string value)
+        public string GenerateIdentifier(string value, bool escapeLeadingNumber = true)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.Type
                 className = regex.Replace(className, string.Empty);
 
                 // Class name doesn't begin with a letter, insert an underscore
-                if (!char.IsLetter(className, 0))
+                if (escapeLeadingNumber && !char.IsLetter(className, 0))
                 {
                     className = className.Insert(0, "_");
                 }

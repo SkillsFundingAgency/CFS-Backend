@@ -15,6 +15,9 @@ namespace CalculateFunding.Models.Graph
         [JsonProperty("calculationtwoid")]
         public string CalculationTwoId { get; set; }
 
+        [JsonIgnore]
+        public string TargetCalculationName { get; set; }
+
         public override bool Equals(object obj)
         {
             return GetHashCode().Equals(obj?.GetHashCode());

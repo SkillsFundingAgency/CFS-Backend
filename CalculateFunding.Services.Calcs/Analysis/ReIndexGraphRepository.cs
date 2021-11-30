@@ -608,11 +608,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             Dictionary<string, Calculation> calcDictionary = calculations.ToDictionary(_ => _.CalculationId);
 
-            calculations = calculations.Concat(calculationRelationships.Where(_ =>
+            calculations = calculations.Concat(calculationRelationships.DistinctBy(_ => _.CalculationTwoId).Where(_ =>
                 !calcDictionary.ContainsKey(_.CalculationTwoId)).Select(_ =>
                     new Calculation { 
                         CalculationId = _.CalculationTwoId,
-                        CalculationName = _.CalculationTwoId,
+                        CalculationName = _.TargetCalculationName,
                         SpecificationId = specificationId,
                         CalculationType = Models.Graph.CalculationType.Template
                     }
