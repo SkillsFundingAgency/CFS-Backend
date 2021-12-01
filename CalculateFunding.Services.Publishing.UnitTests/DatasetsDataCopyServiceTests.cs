@@ -262,17 +262,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 new RelationshipDataSetExcelData(Ukprn1)
                 {
                     FundingLines = new Dictionary<string, decimal?> { { $"FL_{fundingLineTemplateId1}_{fundingLine1}", fundingLineValue1 }, { $"FL_{fundingLineTemplateId2}_{fundingLine2}", fundingLineValue2 } },
-                    Calculations = new Dictionary<string, decimal?>{ { $"Calc_{calculationTemplateId1}_{calculation1}", null }, { $"Calc_{calculationTemplateId2}_{calculation2}", calculationValue2 } }
+                    Calculations = new Dictionary<string, object>{ { $"Calc_{calculationTemplateId1}_{calculation1}", null }, { $"Calc_{calculationTemplateId2}_{calculation2}", calculationValue2 } }
                 },
                 new RelationshipDataSetExcelData(Ukprn2)
                 {
                     FundingLines = new Dictionary<string, decimal?> { { $"FL_{fundingLineTemplateId1}_{fundingLine1}", null }, { $"FL_{fundingLineTemplateId2}_{fundingLine2}", fundingLineValue2 } },
-                    Calculations = new Dictionary<string, decimal?>{ { $"Calc_{calculationTemplateId1}_{calculation1}", calculationValue1 }, { $"Calc_{calculationTemplateId2}_{calculation2}", null } }
+                    Calculations = new Dictionary<string, object>{ { $"Calc_{calculationTemplateId1}_{calculation1}", calculationValue1 }, { $"Calc_{calculationTemplateId2}_{calculation2}", null } }
                 },
                 new RelationshipDataSetExcelData(Ukprn3)
                 {
                     FundingLines = new Dictionary<string, decimal?> { { $"FL_{fundingLineTemplateId1}_{fundingLine1}", fundingLineValue1 }, { $"FL_{fundingLineTemplateId2}_{fundingLine2}", null } },
-                    Calculations = new Dictionary<string, decimal?>{ { $"Calc_{calculationTemplateId1}_{calculation1}", calculationValue1 }, { $"Calc_{calculationTemplateId2}_{calculation2}", calculationValue2 } }
+                    Calculations = new Dictionary<string, object>{ { $"Calc_{calculationTemplateId1}_{calculation1}", calculationValue1 }, { $"Calc_{calculationTemplateId2}_{calculation2}", calculationValue2 } }
                 }
             };
 
@@ -382,17 +382,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 new RelationshipDataSetExcelData(Ukprn1)
                 {
                     FundingLines = new Dictionary<string, decimal?> { { $"FL_{fundingLineTemplateId1}_{fundingLine1}", fundingLineValue1 }, { $"FL_{fundingLineTemplateId2}_{fundingLine2}", fundingLineValue2 } },
-                    Calculations = new Dictionary<string, decimal?>{ { $"Calc_{calculationTemplateId1}_{calculation1}", null }, { $"Calc_{calculationTemplateId2}_{calculation2}", calculationValue2 } }
+                    Calculations = new Dictionary<string, object>{ { $"Calc_{calculationTemplateId1}_{calculation1}", null }, { $"Calc_{calculationTemplateId2}_{calculation2}", calculationValue2 } }
                 },
                 new RelationshipDataSetExcelData(Ukprn2)
                 {
                     FundingLines = new Dictionary<string, decimal?> { { $"FL_{fundingLineTemplateId1}_{fundingLine1}", null }, { $"FL_{fundingLineTemplateId2}_{fundingLine2}", fundingLineValue2 } },
-                    Calculations = new Dictionary<string, decimal?>{ { $"Calc_{calculationTemplateId1}_{calculation1}", calculationValue1 }, { $"Calc_{calculationTemplateId2}_{calculation2}", null } }
+                    Calculations = new Dictionary<string, object>{ { $"Calc_{calculationTemplateId1}_{calculation1}", calculationValue1 }, { $"Calc_{calculationTemplateId2}_{calculation2}", null } }
                 },
                 new RelationshipDataSetExcelData(Ukprn3)
                 {
                     FundingLines = new Dictionary<string, decimal?> { { $"FL_{fundingLineTemplateId1}_{fundingLine1}", fundingLineValue1 }, { $"FL_{fundingLineTemplateId2}_{fundingLine2}", null } },
-                    Calculations = new Dictionary<string, decimal?>{ { $"Calc_{calculationTemplateId1}_{calculation1}", calculationValue1 }, { $"Calc_{calculationTemplateId2}_{calculation2}", calculationValue2 } }
+                    Calculations = new Dictionary<string, object>{ { $"Calc_{calculationTemplateId1}_{calculation1}", calculationValue1 }, { $"Calc_{calculationTemplateId2}_{calculation2}", calculationValue2 } }
                 }
             };
 
@@ -498,9 +498,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 else return false;
             }
 
-            foreach (KeyValuePair<string, decimal?> actualCalculation in actual.Calculations)
+            foreach (KeyValuePair<string, object> actualCalculation in actual.Calculations)
             {
-                if (expected.Calculations.TryGetValue(actualCalculation.Key, out decimal? expectedValue) && actualCalculation.Value == expectedValue) continue;
+                if (expected.Calculations.TryGetValue(actualCalculation.Key, out object expectedValue) && actualCalculation.Value == expectedValue) continue;
                 else return false;
             }
 

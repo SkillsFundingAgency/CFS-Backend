@@ -187,15 +187,7 @@ namespace CalculateFunding.Services.Publishing
                             foreach (PublishedSpecificationItem item in relationship.PublishedSpecificationConfiguration.Calculations)
                             {
                                 FundingCalculation calculation = publishedProviderVersion.Calculations.FirstOrDefault(f => f.TemplateCalculationId == item.TemplateId);
-                                if (decimal.TryParse(calculation?.Value?.ToString(), out decimal calculationValue))
-                                {
-                                    excelDataItem.Calculations.Add($"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{item.TemplateId}_{item.Name}", calculationValue);
-                                }
-                                else
-                                {
-                                    excelDataItem.Calculations.Add($"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{item.TemplateId}_{item.Name}", null);
-                                }
-
+                                excelDataItem.Calculations.Add($"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{item.TemplateId}_{item.Name}", calculation?.Value);
                             }
                         }
 

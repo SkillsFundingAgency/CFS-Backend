@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Datasets.Excel
                     workSheet.Cells[rowNum, headers.IndexOf(fundingLineItem.Key) + 1].Value = fundingLineItem.Value;
                 }
 
-                foreach (KeyValuePair<string, decimal?> calculationItem in item.Calculations)
+                foreach (KeyValuePair<string, object> calculationItem in item.Calculations)
                 {
                     workSheet.Cells[rowNum, headers.IndexOf(calculationItem.Key) + 1].Value = calculationItem.Value;
                 }

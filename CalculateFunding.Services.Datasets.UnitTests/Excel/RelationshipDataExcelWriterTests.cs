@@ -57,17 +57,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Excel
                 new RelationshipDataSetExcelData(Ukprn1) 
                 {
                     FundingLines = new Dictionary<string, decimal?> { {fundingLine1, fundingLineValue1 }, { fundingLine2, fundingLineValue2 } },
-                    Calculations = new Dictionary<string, decimal?>{ {calculation1, null }, {calculation2, calculationValue2 } }
+                    Calculations = new Dictionary<string, object>{ {calculation1, null }, {calculation2, calculationValue2 } }
                 },
                 new RelationshipDataSetExcelData(Ukprn2)
                 {
                     FundingLines = new Dictionary<string, decimal?> { { fundingLine1, null }, { fundingLine2, fundingLineValue2 } },
-                    Calculations = new Dictionary<string, decimal?>{ {calculation1, calculationValue1 }, {calculation2, null } }
+                    Calculations = new Dictionary<string, object>{ {calculation1, calculationValue1 }, {calculation2, null } }
                 },
                 new RelationshipDataSetExcelData(Ukprn3)
                 {
                     FundingLines = new Dictionary<string, decimal?> { {fundingLine1, fundingLineValue1 }, { fundingLine2, null } },
-                    Calculations = new Dictionary<string, decimal?>{ { calculation1, calculationValue1 }, { calculation2, calculationValue2 } }
+                    Calculations = new Dictionary<string, object>{ { calculation1, calculationValue1 }, { calculation2, calculationValue2 } }
                 }
             };
 
@@ -120,16 +120,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Excel
                 for (int j = 2; j <= columnCount; j++)
                 {
                     string columnHeader = headers[j-1];
-                    string rowValue = cells[i, j].Value?.ToString();
-
-                    KeyValuePair<string, decimal?> keyValue = new KeyValuePair<string, decimal?>(columnHeader, string.IsNullOrEmpty(rowValue) ? (decimal?)null : decimal.Parse(rowValue));
+                    object rowValue = cells[i, j].Value;
 
                     if (columnHeader.StartsWith("FL"))
                     {
+                        KeyValuePair<string, decimal?> keyValue = new KeyValuePair<string, decimal?>(columnHeader, rowValue!=null ? Convert.ToDecimal(rowValue) : (decimal?)null);
+
                         dataItem.FundingLines.Add(keyValue);
                     }
                     else
                     {
+                        KeyValuePair<string, object> keyValue = new KeyValuePair<string, object>(columnHeader, rowValue);
+
                         dataItem.Calculations.Add(keyValue);
                     }
                 }
