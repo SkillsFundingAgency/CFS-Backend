@@ -87,8 +87,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
 
             builder.AppendLine(datasetRelationship.DataGranularity == DataGranularity.SingleRowPerProvider
-                ? $"Public Property {_typeIdentifierGenerator.GenerateIdentifier(datasourceVariableName)}() As {_typeIdentifierGenerator.GenerateIdentifier($"{datasourceName}Dataset")}"
-                : $"Public Property {_typeIdentifierGenerator.GenerateIdentifier(datasourceVariableName)}() As System.Collections.Generic.List(Of {_typeIdentifierGenerator.GenerateIdentifier($"{datasourceName}Dataset")})");
+                ? $"Public Property {_typeIdentifierGenerator.EscapeReservedWord(_typeIdentifierGenerator.GenerateIdentifier(datasourceVariableName))}() As {_typeIdentifierGenerator.GenerateIdentifier($"{datasourceName}Dataset")}"
+                : $"Public Property {_typeIdentifierGenerator.EscapeReservedWord(_typeIdentifierGenerator.GenerateIdentifier(datasourceVariableName))}() As System.Collections.Generic.List(Of {_typeIdentifierGenerator.GenerateIdentifier($"{datasourceName}Dataset")})");
 
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()

@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine("<ObsoleteItem()>");
             }
             builder.AppendLine($"<Description(Description := \"{fieldDefinition.Description?.Replace("\"", "\"\"")}\")>");
-            builder.AppendLine($"Public Property {_typeIdentifierGenerator.GenerateIdentifier(fieldDefinition.Name)}() As {_typeIdentifierGenerator.GenerateIdentifier($"{propertyType}")}");
+            builder.AppendLine($"Public Property {_typeIdentifierGenerator.EscapeReservedWord(_typeIdentifierGenerator.GenerateIdentifier(fieldDefinition.Name))}() As {_typeIdentifierGenerator.GenerateIdentifier($"{propertyType}")}");
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
                 .FirstOrDefault();

@@ -146,7 +146,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 StringBuilder sourceCode = new StringBuilder();
 
-                sourceCode.AppendLine($"Public Enum {GetEnumVariableName(calculation.Name)}");
+                sourceCode.AppendLine($"Public Enum {_typeIdentifierGenerator.EscapeReservedWord(GetEnumVariableName(calculation.Name))}");
                 if (calculation.Current.AllowedEnumTypeValues.AnyWithNullCheck())
                 {
                     foreach (string value in calculation.Current.AllowedEnumTypeValues)
@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 // Add attribute for calculation description
                 if (currentCalculationVersion.Description.IsNotNullOrWhitespace()) sourceCode.AppendLine($"<Description(Description := \"{currentCalculationVersion.Description?.Replace("\"", "\"\"")}\")>");
 
-                sourceCode.AppendLine($"Public {currentCalculationVersion.SourceCodeName} As Func(Of {GetDataType(calculation.Current.DataType, calculation.Name)}) = Nothing");
+                sourceCode.AppendLine($"Public {_typeIdentifierGenerator.EscapeReservedWord(currentCalculationVersion.SourceCodeName)} As Func(Of {GetDataType(calculation.Current.DataType, calculation.Name)}) = Nothing");
 
                 sourceCode.AppendLine();
 
@@ -220,7 +220,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
                 sourceCode.AppendLine();
 
-                sourceCode.AppendLine($"{calculation.Current.SourceCodeName} = Function() As {GetDataType(calculation.Current.DataType, calculation.Name)}");
+                sourceCode.AppendLine($"{_typeIdentifierGenerator.EscapeReservedWord(calculation.Current.SourceCodeName)} = Function() As {GetDataType(calculation.Current.DataType, calculation.Name)}");
                 sourceCode.AppendLine("Dim existingCacheItem as String() = Nothing");
                 sourceCode.AppendLine($"If calculationContext.Dictionary.TryGetValue(\"{calculation.Id}\", existingCacheItem) Then");
                 sourceCode.AppendLine($"   Dim existingCalculationResult{GetVariableName(calculation.Current.DataType)} As {GetExistingCalculationResultDataType(calculation.Current.DataType)} = Nothing");

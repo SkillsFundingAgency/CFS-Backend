@@ -466,11 +466,11 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [DataTestMethod]
-        [DataRow(CalculationDataType.Decimal, "Return 10", "Decimal?")]
-        [DataRow(CalculationDataType.Boolean, "Return True", "Boolean?")]
-        [DataRow(CalculationDataType.String, "Return Nothing", "String")]
-        [DataRow(CalculationDataType.Enum, "Return Nothing", "Calc1Options?")]
-        public void CompileBuildProject_WhenBuildingCalculation_ThenCompilationUsesSourceCodeName(CalculationDataType calculationDataType, string sourceCode, string expectedType)
+        [DataRow(CalculationDataType.Decimal, "Return 10", "Decimal?", "Decimal?")]
+        [DataRow(CalculationDataType.Boolean, "Return True", "Boolean?", "Boolean?")]
+        [DataRow(CalculationDataType.String, "Return Nothing", "String", "String")]
+        [DataRow(CalculationDataType.Enum, "Return Nothing", "Calc1Options?", "Calc2Options?")]
+        public void CompileBuildProject_WhenBuildingCalculation_ThenCompilationUsesSourceCodeName(CalculationDataType calculationDataType, string sourceCode, string expectedType, string expectedType2)
         {
             // Arrange
             string specificationId = "test-spec1";
@@ -488,17 +488,31 @@ namespace CalculateFunding.Services.Calcs.Services
                         DataType = calculationDataType,
                         AllowedEnumTypeValues = calculationDataType == CalculationDataType.Enum ? new List<string>(){"T1", "T2", "T3"} : null
                     }
+                },
+                new Calculation
+                {
+                    Id = "calcId2",
+                    Current = new CalculationVersion
+                    {
+                        SourceCode = sourceCode,
+                        Name = "calc 2",
+                        SourceCodeName = "overrides",
+                        Description = "test calc",
+                        DataType = calculationDataType,
+                        AllowedEnumTypeValues = calculationDataType == CalculationDataType.Enum ? new List<string>(){"T1", "T2", "T3"} : null
+                    }
                 }
             };
 
             SourceCodeService sourceCodeService = CreateServiceWithRealCompiler();
 
             string datasetName = "DatasetName";
+            string datasetName1 = "Public";
 
             BuildProject buildProject = new BuildProject
             {
                 SpecificationId = specificationId,
-                DatasetRelationships = CreatDatasetRelationshipSummary(datasetName),
+                DatasetRelationships = CreatDatasetRelationshipSummary(datasetName, datasetName1),
                 Id = Guid.NewGuid().ToString(),
                 Name = specificationId,
                 FundingLines = new Dictionary<string, Funding>()
@@ -514,9 +528,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string datasetsSourceCode = build.SourceFiles.First(s => s.FileName == "Datasets/Datasets.vb").SourceCode;
             datasetsSourceCode.Should().Contain($"Public Property {datasetName}() As {datasetName}_definitionNameDataset");
+            datasetsSourceCode.Should().Contain($"Public Property [{datasetName1}]() As {datasetName1}_definitionNameDataset");
 
             string calcSourceCode = build.SourceFiles.First(s => s.FileName == "Calculations.vb").SourceCode;
             calcSourceCode.Should().Contain($"Public differentCalcName As Func(Of {expectedType}) = Nothing");
+            calcSourceCode.Should().Contain($"Public [overrides] As Func(Of {expectedType2}) = Nothing");
             calcSourceCode.Should().NotContain($"Public calc1 As Func(Of {expectedType}) = Nothing");
             calcSourceCode.Should().Contain($"differentCalcName()");
             calcSourceCode.Should().NotContain($"calc1()");
