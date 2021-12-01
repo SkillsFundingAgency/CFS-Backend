@@ -82,7 +82,11 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             IProfilePeriod[] orderedRefreshProfilePeriods,
             IExistingProfilePeriod[] orderedExistingProfilePeriods,
             ReProfileRequest reProfileRequest,
-            int variationPointerIndex)
+            int variationPointerIndex,
+            Action<IExistingProfilePeriod[],
+            int,
+            ReProfileRequest,
+            IProfilePeriod[]> DistributeRemaingBalance)
         {
             if (context.Request.MidYearType == MidYearType.Opener || 
                 context.Request.MidYearType == MidYearType.OpenerCatchup ||
@@ -95,7 +99,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
             }
 
-            DistributeRemainingFundingLineValueEvenly(orderedExistingProfilePeriods,
+            DistributeRemaingBalance(orderedExistingProfilePeriods,
                 variationPointerIndex,
                 reProfileRequest,
                 orderedRefreshProfilePeriods);

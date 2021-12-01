@@ -12,6 +12,8 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
         public string Description => "Distributes changes to funding evenly across all of the remaining profile periods skipping any 0% Profile Pattern Periods unless all are 0%";
 
+        private ProfilePeriodPattern[] _orderedProfilePatternPeriods;
+
         public ReProfileStrategyResult ReProfile(ReProfileContext context)
         {
             ReProfileRequest reProfileRequest = context.Request;
@@ -20,82 +22,48 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 .ToArray();
             IExistingProfilePeriod[] orderedExistingProfilePeriods = new YearMonthOrderedProfilePeriods<IExistingProfilePeriod>(reProfileRequest.ExistingPeriods)
                 .ToArray();
-            ProfilePeriodPattern[] orderedProfilePatternPeriods = new YearMonthOrderedProfilePatternPeriod(context.ProfilePattern.ProfilePattern)
+            _orderedProfilePatternPeriods = new YearMonthOrderedProfilePatternPeriod(context.ProfilePattern.ProfilePattern)
                 .ToArray();
 
             int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
-            bool shouldSkipZeroPercentPeriods = HasUnpaidNoneZeroProfilePeriods(orderedProfilePatternPeriods, variationPointerIndex);
-
+            bool shouldSkipZeroPercentPeriods = HasUnpaidNoneZeroProfilePeriods(_orderedProfilePatternPeriods, variationPointerIndex);
+            
             if (shouldSkipZeroPercentPeriods)
             {
-                return FlatDistributionSkippingZeroPercentPeriods(orderedRefreshProfilePeriods,
-                    orderedExistingProfilePeriods,
-                    orderedProfilePatternPeriods,
-                    reProfileRequest,
-                    variationPointerIndex,
-                    context);
+                return FlatDistribution(context,
+                orderedRefreshProfilePeriods,
+                orderedExistingProfilePeriods,
+                reProfileRequest,
+                variationPointerIndex,
+                DistributeRemainingFundingLineValueEvenlySkippingZeroPercentPeriods);
             }
 
             return FlatDistribution(context,
                 orderedRefreshProfilePeriods,
                 orderedExistingProfilePeriods,
                 reProfileRequest,
-                variationPointerIndex);
-        }
-
-        private static ReProfileStrategyResult FlatDistributionSkippingZeroPercentPeriods(IProfilePeriod[] orderedRefreshProfilePeriods,
-            IExistingProfilePeriod[] orderedExistingProfilePeriods,
-            ProfilePeriodPattern[] orderedProfilePatternPeriods,
-            ReProfileRequest reProfileRequest,
-            int variationPointerIndex,
-            ReProfileContext context)
-        {
-            if (context.Request.MidYearType == MidYearType.Opener || 
-                context.Request.MidYearType == MidYearType.OpenerCatchup ||
-                context.Request.MidYearType == MidYearType.Converter)
-            {
-                ZeroPaidProfilePeriodValues(variationPointerIndex, orderedRefreshProfilePeriods, orderedExistingProfilePeriods);
-            }
-            else
-            {
-                RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
-            }
-
-            DistributeRemainingFundingLineValueEvenlySkippingZeroPercentPeriods(orderedExistingProfilePeriods,
                 variationPointerIndex,
-                reProfileRequest,
-                orderedRefreshProfilePeriods,
-                orderedProfilePatternPeriods);
-
-            decimal carryOverAmount = CalculateCarryOverAmount(reProfileRequest, orderedRefreshProfilePeriods);
-
-            return new ReProfileStrategyResult
-            {
-                DistributionPeriods = MapIntoDistributionPeriods(context),
-                DeliveryProfilePeriods = context.ProfileResult.DeliveryProfilePeriods,
-                CarryOverAmount = carryOverAmount
-            };
+                DistributeRemainingFundingLineValueEvenly);
         }
 
-        protected static void DistributeRemainingFundingLineValueEvenlySkippingZeroPercentPeriods(IExistingProfilePeriod[] orderedExistingProfilePeriods,
+        protected void DistributeRemainingFundingLineValueEvenlySkippingZeroPercentPeriods(IExistingProfilePeriod[] orderedExistingProfilePeriods,
             int variationPointerIndex,
             ReProfileRequest reProfileRequest,
-            IProfilePeriod[] orderedRefreshProfilePeriods,
-            ProfilePeriodPattern[] orderedProfilePatternPeriods)
+            IProfilePeriod[] orderedRefreshProfilePeriods)
         {
             decimal previousFundingLineValuePaid = orderedExistingProfilePeriods.Take(variationPointerIndex).Sum(_ => _.GetProfileValue());
             decimal remainingFundingLineValueToPay = reProfileRequest.FundingLineTotal - previousFundingLineValuePaid;
             decimal remainingFundingLineProfiledToPay = orderedRefreshProfilePeriods.Skip(variationPointerIndex).Sum(_ => _.GetProfileValue());
             decimal differenceToDistribute = remainingFundingLineValueToPay - remainingFundingLineProfiledToPay;
 
-            int finalNonZeroProfilePeriodIndex = orderedProfilePatternPeriods.ToList().FindLastIndex(_ => _.PeriodPatternPercentage > 0);
+            int finalNonZeroProfilePeriodIndex = _orderedProfilePatternPeriods.ToList().FindLastIndex(_ => _.PeriodPatternPercentage > 0);
 
             MoveRoundingRemainderToFinalNoneZeroPercentPeriod(orderedRefreshProfilePeriods, finalNonZeroProfilePeriodIndex);
             DistributeRemainingBalanceSkippingZeroPercentPeriods(variationPointerIndex,
                 orderedRefreshProfilePeriods,
                 orderedExistingProfilePeriods,
                 differenceToDistribute,
-                orderedProfilePatternPeriods,
+                _orderedProfilePatternPeriods,
                 finalNonZeroProfilePeriodIndex);
         }
 

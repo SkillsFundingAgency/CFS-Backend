@@ -28,7 +28,8 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 orderedRefreshProfilePeriods,
                 orderedExistingProfilePeriods,
                 reProfileRequest,
-                variationPointerIndex);
+                variationPointerIndex,
+                DistributeRemainingFundingLineValueEvenly);
         }
     }
 }
