@@ -17,6 +17,7 @@ using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
@@ -970,6 +971,32 @@ namespace CalculateFunding.Services.Specs
                 correlationId, 
                 triggerProviderSnapshotDataLoadJob, 
                 triggerCalculationEngineRunJob);
+
+            if (previousSpecificationVersion.Name != specificationVersion.Name && specification.IsSelectedForFunding)
+            {
+                HttpStatusCode updateProviderSpecificationsResponse = await _results.QueueMergeSpecificationInformationJob(
+                        new MergeSpecificationInformationRequest
+                        {
+                            SpecificationInformation = new SpecificationInformation
+                            {
+                                Id = previousSpecificationVersion.SpecificationId,
+                                Name = specificationVersion.Name,
+                                FundingPeriodId = specificationVersion.FundingPeriod.Id,
+                                FundingStreamIds = specificationVersion.FundingStreams?.Select(_ => _.Id).ToArray()
+                            },
+                            ProviderIds = null // All providers
+                        }
+                    );
+
+                if (!updateProviderSpecificationsResponse.IsSuccess())
+                {
+                    string errorMessage = $"Unable to update ProviderWithResultsForSpecification records while editing specification '{specificationId}' with status code: {updateProviderSpecificationsResponse}";
+
+                    _logger.Information(errorMessage);
+
+                    throw new RetriableException(errorMessage);
+                }
+            }
 
             return new OkObjectResult(specification);
         }

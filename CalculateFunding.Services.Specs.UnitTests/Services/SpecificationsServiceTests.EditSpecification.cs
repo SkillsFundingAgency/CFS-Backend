@@ -7,6 +7,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers.Models;
+using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Messages;
@@ -916,6 +917,73 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
               _versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(newSpecVersion));
+        }
+
+        [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task EditSpecification_GivenChangesAndChosenForFundingStatus_UpdatesProviderWithResults_ReturnsOkObjectResult(bool isSelectedForFunding)
+        {
+            IActionResult result = await EditSpecification_GivenChangesAndChosenForFundingStatus_UpdatesProviderWithResults(isSelectedForFunding, HttpStatusCode.OK);
+
+            //Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public void EditSpecification_GivenChangesAndChosenForFundingStatus_UpdatesProviderWithResults_Fails()
+        {
+            Func<Task<IActionResult>> invocation = () => EditSpecification_GivenChangesAndChosenForFundingStatus_UpdatesProviderWithResults(true, HttpStatusCode.NotFound);
+
+            //Assert
+            invocation
+                .Should()
+                .ThrowAsync<RetriableException>();
+        }
+
+        private async Task<IActionResult> EditSpecification_GivenChangesAndChosenForFundingStatus_UpdatesProviderWithResults(bool isSelectedForFunding, HttpStatusCode responseFromQueueMergeSpecificationInformationJob)
+        {
+            string newSpecName = "new spec name";
+
+            //Arrange
+            Specification currentSpecification = CreateSpecification();
+            currentSpecification.IsSelectedForFunding = isSelectedForFunding;
+
+            _resultsApiClient.QueueMergeSpecificationInformationJob(Arg.Any<MergeSpecificationInformationRequest>())
+                .Returns(responseFromQueueMergeSpecificationInformationJob);
+
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = newSpecName,
+                ProviderVersionId = _specification.Current.ProviderVersionId
+            };
+            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            newSpecVersion.Name = specificationEditModel.Name.Trim();
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
+            _versionRepository
+                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
+                .Returns(newSpecVersion);
+            AndGetFundingConfiguration(
+                _specification.Current.FundingStreams.FirstOrDefault().Id,
+                specificationEditModel.FundingPeriodId);
+
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion);
+            _specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(currentSpecification);
+
+            //Act
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
+
+            //Assert
+            await
+            _resultsApiClient
+                .Received(isSelectedForFunding ? 1 : 0)
+                .QueueMergeSpecificationInformationJob(Arg.Any<MergeSpecificationInformationRequest>());
+
+            return result;
         }
 
         [TestMethod]

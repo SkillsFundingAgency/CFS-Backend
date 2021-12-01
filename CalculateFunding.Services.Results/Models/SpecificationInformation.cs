@@ -30,7 +30,10 @@ namespace CalculateFunding.Services.Results.Models
 
         public void MergeMutableInformation(SpecificationInformation specificationInformation)
         {
-            if (LastEditDate == specificationInformation.LastEditDate && FundingPeriodEnd == specificationInformation.FundingPeriodEnd && (FundingStreamIds ?? Enumerable.Empty<string>()).SequenceEqual(specificationInformation.FundingStreamIds ?? Enumerable.Empty<string>()))
+            if (LastEditDate == specificationInformation.LastEditDate
+                && FundingPeriodEnd == specificationInformation.FundingPeriodEnd
+                && (FundingStreamIds ?? Enumerable.Empty<string>()).SequenceEqual(specificationInformation.FundingStreamIds ?? Enumerable.Empty<string>())
+                && Name == specificationInformation.Name)
             {
                 return;
             }
@@ -41,6 +44,7 @@ namespace CalculateFunding.Services.Results.Models
             LastEditDate = specificationInformation.LastEditDate;
             FundingPeriodEnd = specificationInformation.FundingPeriodEnd;
             FundingStreamIds = specificationInformation.FundingStreamIds?.ToArray();
+            Name = specificationInformation.Name;
         }
     }
 }
