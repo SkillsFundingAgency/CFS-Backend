@@ -54,6 +54,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IFundingGroupDataGenerator, FundingGroupDataGenerator>();
             builder.AddScoped<IPublishedProviderLoaderForFundingGroupData, PublishedProviderLoaderForFundingGroupData>();
             builder.AddScoped<IFundingGroupDataPersistenceService, FundingGroupDataPersistenceService>();
+            builder.AddScoped<IPublishedProvidersSearchService, PublishedProvidersSearchService>();
 
             builder.AddTransient<IDetectProviderVariations, ProviderVariationsDetection>();
             builder.AddTransient<IVariationStrategyServiceLocator, VariationStrategyServiceLocator>();

@@ -1,9 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CalculateFunding.Repositories.Common.Search.Results
 {    
     public class PublishedSearchResult
     {
+        public PublishedSearchResult()
+        {
+            ReleaseChannels = Enumerable.Empty<ReleaseChannel>();
+        }
+
         public string Id { get; set; }
         public string ProviderType { get; set; }
         public string ProviderSubType { get; set; }
@@ -24,5 +31,6 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public DateTimeOffset? OpenedDate { get; set; }
         public int? MajorVersion { get; set; }
         public int? MinorVersion { get; set; }
+        public IEnumerable<ReleaseChannel> ReleaseChannels { get; set; }
     }
 }

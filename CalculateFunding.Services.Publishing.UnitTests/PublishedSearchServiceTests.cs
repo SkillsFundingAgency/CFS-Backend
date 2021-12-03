@@ -7,6 +7,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -24,6 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private SearchModel _searchModel;
         private ILogger _logger;
         private ISearchRepository<PublishedProviderIndex> _searchRepository;
+        private IPublishedProvidersSearchService _publishedProvidersSearchService;
 
         private PublishedSearchService _service;
 
@@ -33,8 +35,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _searchModel = null;
             _logger = Substitute.For<ILogger>();
             _searchRepository = Substitute.For<ISearchRepository<PublishedProviderIndex>>();
+            _publishedProvidersSearchService = Substitute.For<IPublishedProvidersSearchService>();
 
             _service = new PublishedSearchService(_searchRepository,
+                _publishedProvidersSearchService,
                 _logger);
         }
 
@@ -538,6 +542,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _searchRepository.Search(Arg.Is(search.SearchTerm), Arg.Any<SearchParameters>(), Arg.Any<bool>())
                 .Returns(results);
+
+            _publishedProvidersSearchService.GetPublishedProviderReleaseChannelsLookup(Arg.Any<IEnumerable<ReleaseChannelSearch>>())
+                .Returns(new Dictionary<string, IEnumerable<ReleaseChannel>>());
         }
 
         private void AndTheSearchResults(SearchModel search, SearchParameters searchParameters, SearchResults<PublishedProviderIndex> results)

@@ -615,18 +615,6 @@ namespace CalculateFunding.Api.Publishing
 
             builder.AddSingleton<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
             builder.AddSingleton<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
-            builder.AddSingleton<IReleaseManagementRepository, ReleaseManagementRepository>((svc) =>
-            {
-                ISqlSettings sqlSettings = new SqlSettings();
-
-                Configuration.Bind("releaseManagementSql", sqlSettings);
-                SqlConnectionFactory factory = new SqlConnectionFactory(sqlSettings);
-
-                SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
-
-                ExternalApiQueryBuilder externalApiQueryBuilder = new ExternalApiQueryBuilder();
-                return new ReleaseManagementRepository(factory, sqlPolicyFactory, externalApiQueryBuilder);
-            });
 
             builder.AddReleaseManagementServices(Configuration);
         }

@@ -67,8 +67,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
-        public FundingConfigurationBuilder WithReleaseChannels(
-    params FundingConfigurationChannel[] releaseChannels)
+        public FundingConfigurationBuilder WithReleaseChannels(params FundingConfigurationChannel[] releaseChannels)
         {
             _releaseChannels = releaseChannels;
             return this;

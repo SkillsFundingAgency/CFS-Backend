@@ -9,7 +9,7 @@ namespace CalculateFunding.Models.Publishing
     public class PublishedProviderIndex
     {
         [Key]
-        [IsSearchable, IsRetrievable(true),IsSortable]
+        [IsSearchable, IsRetrievable(true), IsSortable]
         [JsonProperty("id")]
         public string Id { get; set; }
 

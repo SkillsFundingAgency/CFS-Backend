@@ -8,6 +8,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
     public class FundingConfigurationChannelBuilder : TestEntityBuilder
     {
         private string _channelCode;
+        private bool _isVisible;
         private IEnumerable<string> _providerStatus;
         private IEnumerable<ProviderTypeMatch> _providerTypeMatch;
         private IEnumerable<OrganisationGroupingConfiguration> _organisationGroupings;
@@ -36,10 +37,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             return this;
         }
 
+        public FundingConfigurationChannelBuilder WithIsVisible(bool isVisible)
+        {
+            _isVisible = isVisible;
+            return this;
+        }
+
         public FundingConfigurationChannel Build()
             => new FundingConfigurationChannel()
             {
                 ChannelCode = _channelCode ?? NewRandomString(),
+                IsVisible = _isVisible,
                 ProviderStatus = _providerStatus ?? Array.Empty<string>(),
                 ProviderTypeMatch = _providerTypeMatch ?? Array.Empty<ProviderTypeMatch>(),
                 OrganisationGroupings = _organisationGroupings ?? Array.Empty<OrganisationGroupingConfiguration>()

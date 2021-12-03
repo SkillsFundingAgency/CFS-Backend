@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Filtering;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -39,13 +41,17 @@ namespace CalculateFunding.Services.Publishing
             "hasErrors",
         };
 
+        private readonly IPublishedProvidersSearchService _publishedProvidersSearchService;
         private readonly ILogger _logger;
 
-        public PublishedSearchService(ISearchRepository<PublishedProviderIndex> searchRepository, ILogger logger)
+        public PublishedSearchService(ISearchRepository<PublishedProviderIndex> searchRepository,
+            IPublishedProvidersSearchService publishedProvidersSearchService, ILogger logger)
             : base(searchRepository)
         {
+            Guard.ArgumentNotNull(publishedProvidersSearchService, nameof(publishedProvidersSearchService));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            
+
+            _publishedProvidersSearchService = publishedProvidersSearchService;
             _logger = logger;
         }
 
@@ -74,7 +80,7 @@ namespace CalculateFunding.Services.Publishing
                 .SingleOrDefault(x => x.Name == facetName)
                 ?.FacetValues
                 .Where(x => x.Name?.Split()
-                    .Any(s=> searchText == null || s.ToLowerInvariant().StartsWith(searchText.ToLowerInvariant())) == true)
+                    .Any(s => searchText == null || s.ToLowerInvariant().StartsWith(searchText.ToLowerInvariant())) == true)
                 .Select(x => x.Name);
 
             return new OkObjectResult(distinctFacetValues);
@@ -124,7 +130,7 @@ namespace CalculateFunding.Services.Publishing
                 {
                     return SearchRepository.Search(searchModel.SearchTerm, new SearchParameters
                     {
-                        Top = searchResultsBatchSize, 
+                        Top = searchResultsBatchSize,
                         IncludeTotalResultCount = true,
                         Select = selectFields,
                         OrderBy = orderByFields,
@@ -142,7 +148,7 @@ namespace CalculateFunding.Services.Publishing
                     List<Task> searchTasks = new List<Task>();
                     int count = searchResultsBatchSize;
 
-                    while(count < searchResults.TotalCount)
+                    while (count < searchResults.TotalCount)
                     {
                         SearchParameters searchParams = new SearchParameters
                         {
@@ -161,7 +167,7 @@ namespace CalculateFunding.Services.Publishing
                             {
                                 try
                                 {
-                                    SearchResults<PublishedProviderIndex> nextSearchResults =  
+                                    SearchResults<PublishedProviderIndex> nextSearchResults =
                                         await SearchRepository.Search(searchModel.SearchTerm, searchParams);
                                     nextSearchResults.Results.ForEach(_ => results.Add(_.Result.Id));
                                 }
@@ -224,6 +230,16 @@ namespace CalculateFunding.Services.Publishing
                     }
                     else
                     {
+                        Dictionary<string, IEnumerable<ReleaseChannel>> releaseChannelLookupByProviderId =
+                            await _publishedProvidersSearchService.GetPublishedProviderReleaseChannelsLookup(searchResult.Results?
+                                .Select(_ => new ReleaseChannelSearch
+                                {
+                                    ProviderId = _.Result.UKPRN,
+                                    SpecificationId = _.Result.SpecificationId,
+                                    FundingStreamId = _.Result.FundingStreamId,
+                                    FundingPeriodId = _.Result.FundingPeriodId
+                                }));
+
                         results.TotalCount = (int)(searchResult.TotalCount ?? 0);
                         results.Results = searchResult.Results?.Select(m => new PublishedSearchResult
                         {
@@ -246,7 +262,8 @@ namespace CalculateFunding.Services.Publishing
                             Errors = m.Result.Errors,
                             OpenedDate = m.Result.DateOpened,
                             MajorVersion = m.Result.MajorVersion,
-                            MinorVersion = m.Result.MinorVersion
+                            MinorVersion = m.Result.MinorVersion,
+                            ReleaseChannels = GetReleaseChannels(releaseChannelLookupByProviderId, m.Result.UKPRN)
                         });
                     }
                 }
@@ -259,6 +276,18 @@ namespace CalculateFunding.Services.Publishing
 
                 return new InternalServerErrorResult($"Failed to query search, with exception: {exception.Message}");
             }
+        }
+
+        private IEnumerable<ReleaseChannel> GetReleaseChannels(
+            Dictionary<string, IEnumerable<ReleaseChannel>> releaseChannelLookupByProviderId,
+            string providerId)
+        {
+            if (releaseChannelLookupByProviderId.ContainsKey(providerId))
+            {
+                return releaseChannelLookupByProviderId[providerId];
+            }
+
+            return Enumerable.Empty<ReleaseChannel>();
         }
 
         private static void AddFiltersForNotification(string fundingStreamId, string fundingPeriodId, FilterHelper filterHelper)
