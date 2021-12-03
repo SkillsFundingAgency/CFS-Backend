@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
+﻿using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
@@ -19,6 +13,12 @@ using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Serilog;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 
 namespace CalculateFunding.Services.Publishing
@@ -278,7 +278,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private IEnumerable<ReleaseChannel> GetReleaseChannels(
+        private static IEnumerable<ReleaseChannel> GetReleaseChannels(
             Dictionary<string, IEnumerable<ReleaseChannel>> releaseChannelLookupByProviderId,
             string providerId)
         {

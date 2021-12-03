@@ -46,33 +46,36 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             foreach (GroupedReleaseChannel grc in groupedReleaseChannels)
             {
                 IEnumerable<int> channelIds = await GetVisibleChannelIdsForFundingConfiguration(grc.FundingStreamId, grc.FundingPeriodId);
-                IEnumerable<ProviderVersionInChannel> versions = await _releaseManagementRepository.GetLatestPublishedProviderVersions(grc.SpecificationId, channelIds);
-                IEnumerable<IGrouping<string, ProviderVersionInChannel>> versionsGroupedByProviderId = versions.GroupBy(_ => _.ProviderId);
-                foreach (IGrouping<string, ProviderVersionInChannel> item in versionsGroupedByProviderId)
+                if (channelIds.Any())
                 {
-                    if (result.ContainsKey(item.Key))
+                    IEnumerable<ProviderVersionInChannel> versions = await _releaseManagementRepository.GetLatestPublishedProviderVersions(grc.SpecificationId, channelIds);
+                    IEnumerable<IGrouping<string, ProviderVersionInChannel>> versionsGroupedByProviderId = versions.GroupBy(_ => _.ProviderId);
+                    foreach (IGrouping<string, ProviderVersionInChannel> item in versionsGroupedByProviderId)
                     {
-                        IEnumerable<ReleaseChannel> newReleaseChannels = item.ToList().Select(_ => new ReleaseChannel
+                        if (result.ContainsKey(item.Key))
                         {
-                            ChannelCode = _.ChannelCode,
-                            ChannelName = _.ChannelName,
-                            MajorVersion = _.MajorVersion,
-                            MinorVersion = _.MinorVersion
-                        });
+                            IEnumerable<ReleaseChannel> newReleaseChannels = item.ToList().Select(_ => new ReleaseChannel
+                            {
+                                ChannelCode = _.ChannelCode,
+                                ChannelName = _.ChannelName,
+                                MajorVersion = _.MajorVersion,
+                                MinorVersion = _.MinorVersion
+                            });
 
-                        List<ReleaseChannel> existingReleaseChannels = result[item.Key].ToList();
-                        existingReleaseChannels.AddRange(newReleaseChannels);
-                        result[item.Key] = existingReleaseChannels.DistinctBy(_ => new { _.ChannelName, _.ChannelCode, _.MajorVersion, _.MinorVersion });
-                    }
-                    else
-                    {
-                        result[item.Key] = item.ToList().Select(_ => new ReleaseChannel
+                            List<ReleaseChannel> existingReleaseChannels = result[item.Key].ToList();
+                            existingReleaseChannels.AddRange(newReleaseChannels);
+                            result[item.Key] = existingReleaseChannels.DistinctBy(_ => new { _.ChannelName, _.ChannelCode, _.MajorVersion, _.MinorVersion });
+                        }
+                        else
                         {
-                            ChannelCode = _.ChannelCode,
-                            ChannelName = _.ChannelName,
-                            MajorVersion = _.MajorVersion,
-                            MinorVersion = _.MinorVersion
-                        });
+                            result[item.Key] = item.ToList().Select(_ => new ReleaseChannel
+                            {
+                                ChannelCode = _.ChannelCode,
+                                ChannelName = _.ChannelName,
+                                MajorVersion = _.MajorVersion,
+                                MinorVersion = _.MinorVersion
+                            });
+                        }
                     }
                 }
             }
