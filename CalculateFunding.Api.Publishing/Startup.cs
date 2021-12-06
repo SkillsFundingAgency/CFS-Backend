@@ -264,7 +264,7 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IHealthChecker, PublishedSearchService>();
 
             builder.AddSingleton<IPoliciesService, PoliciesService>();
-            builder.AddSingleton<IPublishedProviderStatusService, PublishedProviderStatusService>();
+            builder.AddScoped<IPublishedProviderStatusService, PublishedProviderStatusService>();
             builder.AddScoped<IProfileTotalsService, ProfileTotalsService>();
             builder.AddSingleton<IFundingConfigurationService, FundingConfigurationService>();
             builder.AddScoped<IPublishService, PublishService>();
@@ -606,7 +606,7 @@ namespace CalculateFunding.Api.Publishing
 
             builder.AddSingleton<IPublishedProviderFundingCountProcessor, PublishedProviderFundingCountProcessor>();
             builder.AddSingleton<IPublishedProviderFundingCsvDataProcessor, PublishedProviderFundingCsvDataProcessor>();
-            builder.AddSingleton<IPublishedProviderFundingSummaryProcessor, PublishedProviderFundingSummaryProcessor>();
+            builder.AddScoped<IPublishedProviderFundingSummaryProcessor, PublishedProviderFundingSummaryProcessor>();
 
             if (Configuration.IsSwaggerEnabled())
             {

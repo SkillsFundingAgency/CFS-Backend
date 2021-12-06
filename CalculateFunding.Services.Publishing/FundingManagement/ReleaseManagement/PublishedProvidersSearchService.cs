@@ -87,17 +87,20 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         {
             List<int> channelIds = new List<int>();
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStreamId, fundingPeriodId);
-            IEnumerable<string> visibleChannelCodes = fundingConfiguration.ReleaseChannels.Where(_ => _.IsVisible).Select(_ => _.ChannelCode);
-            foreach (string channelCode in visibleChannelCodes)
+            IEnumerable<string> visibleChannelCodes = fundingConfiguration.ReleaseChannels?.Where(_ => _.IsVisible).Select(_ => _.ChannelCode);
+            if (visibleChannelCodes.AnyWithNullCheck())
             {
-                int? channelId = (await _releaseManagementRepository.GetChannelByChannelCode(channelCode))?.ChannelId;
-                if (channelId == null)
+                foreach (string channelCode in visibleChannelCodes)
                 {
-                    throw new KeyNotFoundException(
-                        $"PublishedProvidersSearchService:GetVisibleChannelIds ChannelCode {channelCode} could not be found." +
-                        $"FundingStreamId: {fundingStreamId} and FundingPeriodId: {fundingPeriodId}");
+                    int? channelId = (await _releaseManagementRepository.GetChannelByChannelCode(channelCode))?.ChannelId;
+                    if (channelId == null)
+                    {
+                        throw new KeyNotFoundException(
+                            $"PublishedProvidersSearchService:GetVisibleChannelIds ChannelCode {channelCode} could not be found." +
+                            $"FundingStreamId: {fundingStreamId} and FundingPeriodId: {fundingPeriodId}");
+                    }
+                    channelIds.Add(channelId.Value);
                 }
-                channelIds.Add(channelId.Value);
             }
             return channelIds;
         }
