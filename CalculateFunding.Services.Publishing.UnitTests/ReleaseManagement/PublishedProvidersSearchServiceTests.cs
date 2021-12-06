@@ -192,6 +192,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         }
 
         [TestMethod]
+        public async Task HandlesNoChannels()
+        {
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration();
+
+            GivenFundingConfiguration(fundingConfiguration);
+
+            List<ReleaseChannelSearch> request = NewRequest(NewReleaseChannelSearch(_specificationOneId, _fundingStreamId, _fundingPeriodId));
+
+            Dictionary<string, IEnumerable<ReleaseChannel>> result = await _sut.GetPublishedProviderReleaseChannelsLookup(request);
+
+            result
+                .Should()
+                .NotBeNull();
+
+            result
+                .Should()
+                .HaveCount(fundingConfiguration.ReleaseChannels.Count(_ => _.IsVisible));
+
+            _repo.Verify(_ => _.GetChannelByChannelCode(It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
         public async Task ReturnsDistinctReleaseChannelsWhenMultipleSpecifications()
         {
             FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _
