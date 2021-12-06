@@ -1,7 +1,7 @@
 ﻿using CalculateFunding.Common.TemplateMetadata.Models;
 using System.Collections.Generic;
 
-namespace CalculateFunding.Services.Publishing.SqlExport
+namespace CalculateFunding.Services.Results.SqlExport
 {
     public class UniqueTemplateContents
     {

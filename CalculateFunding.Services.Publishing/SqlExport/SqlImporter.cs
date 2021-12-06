@@ -7,6 +7,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces.Threading;
+using CalculateFunding.Services.SqlExport;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing.SqlExport

@@ -5,6 +5,7 @@ using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Profiling;
+using CalculateFunding.Services.SqlExport;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
 {

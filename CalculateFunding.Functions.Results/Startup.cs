@@ -40,6 +40,15 @@ using Polly.Bulkhead;
 using AzureStorage = CalculateFunding.Services.Core.AzureStorage;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 using CommonStorage = CalculateFunding.Common.Storage;
+using CalculateFunding.Services.SqlExport;
+using CalculateFunding.Services.Results.SqlExport;
+using CalculateFunding.Common.Sql.Interfaces;
+using CalculateFunding.Common.Sql;
+using CalculateFunding.Common.TemplateMetadata;
+using Serilog;
+using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
+using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
+using TemplateMetadataSchema12 = CalculateFunding.Common.TemplateMetadata.Schema12;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Results.Startup))]
 
@@ -129,6 +138,50 @@ namespace CalculateFunding.Functions.Results
             builder.AddScoped<ISearchIndexTrasformer<ProviderResult, ProviderCalculationResultsIndex>, ProviderCalculationResultsIndexTransformer>();
             builder.AddScoped<ISearchIndexProcessor, ProviderCalculationResultsIndexProcessor>();
             builder.AddScoped<ISearchIndexWriterService, SearchIndexWriterService>();
+
+            builder.AddScoped<ISqlNameGenerator, SqlNameGenerator>();
+            builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
+            builder.AddScoped<IQaSchemaService, QaSchemaService>();
+
+            builder.AddScoped<IDataTableImporter, DataTableImporter>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                config.Bind("crSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+
+                return new DataTableImporter(sqlConnectionFactory);
+            });
+
+            builder.AddScoped<IQaRepository, QaRepository>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                config.Bind("crSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+                SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
+
+                return new QaRepository(sqlConnectionFactory, sqlPolicyFactory);
+            });
+
+            builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
+            {
+                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+                ILogger logger = ctx.GetService<ILogger>();
+
+                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+                resolver.Register("1.0", schema10Generator);
+
+                TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+                resolver.Register("1.1", schema11Generator);
+
+                TemplateMetadataSchema12.TemplateMetadataGenerator schema12Generator = new TemplateMetadataSchema12.TemplateMetadataGenerator(logger);
+                resolver.Register("1.2", schema12Generator);
+
+                return resolver;
+            });
 
             builder.AddCaching(config);
 

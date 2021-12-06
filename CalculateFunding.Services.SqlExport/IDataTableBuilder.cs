@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace CalculateFunding.Services.Publishing.SqlExport
+namespace CalculateFunding.Services.SqlExport
 {
     public interface IDataTableBuilder<in TDto>
     {

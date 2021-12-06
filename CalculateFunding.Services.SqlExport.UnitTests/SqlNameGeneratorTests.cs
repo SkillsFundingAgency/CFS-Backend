@@ -1,4 +1,4 @@
-using CalculateFunding.Services.Publishing.SqlExport;
+using CalculateFunding.Services.SqlExport;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

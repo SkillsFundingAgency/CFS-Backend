@@ -1,4 +1,4 @@
-namespace CalculateFunding.Services.Publishing.SqlExport
+namespace CalculateFunding.Services.SqlExport
 {
     public interface ISqlNameGenerator
     {

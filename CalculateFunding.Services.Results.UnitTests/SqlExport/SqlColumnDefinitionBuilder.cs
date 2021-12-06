@@ -1,7 +1,7 @@
 using CalculateFunding.Services.SqlExport.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
+namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 {
     public class SqlColumnDefinitionBuilder : TestEntityBuilder
     {

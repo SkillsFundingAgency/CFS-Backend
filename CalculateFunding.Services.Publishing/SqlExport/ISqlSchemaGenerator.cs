@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using CalculateFunding.Models.Publishing.SqlExport;
+using CalculateFunding.Services.SqlExport.Models;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
 {

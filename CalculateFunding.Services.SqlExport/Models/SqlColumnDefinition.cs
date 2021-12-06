@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Models.Publishing.SqlExport
+﻿namespace CalculateFunding.Services.SqlExport.Models
 {
     public class SqlColumnDefinition
     {

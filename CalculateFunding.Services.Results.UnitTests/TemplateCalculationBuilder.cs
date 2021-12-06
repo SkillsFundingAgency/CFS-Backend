@@ -1,9 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Publishing.UnitTests
+namespace CalculateFunding.Services.Results.UnitTests
 {
     public class TemplateCalculationBuilder : TestEntityBuilder
     {
@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
         public TemplateCalculationBuilder WithName(string name)
         {
             _name = name;
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
         public Calculation Build()
         {
             return new Calculation

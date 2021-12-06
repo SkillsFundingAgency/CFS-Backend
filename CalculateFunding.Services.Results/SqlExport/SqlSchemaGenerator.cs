@@ -2,17 +2,17 @@
 using System.Text;
 using CalculateFunding.Services.SqlExport.Models;
 
-namespace CalculateFunding.Services.Publishing.SqlExport
+namespace CalculateFunding.Services.Results.SqlExport
 {
     public class SqlSchemaGenerator : ISqlSchemaGenerator
     {
         public string GenerateCreateTableSql(string tableName,
-            string fundingStreamId,
-            string fundingPeriodId,
-            IEnumerable<SqlColumnDefinition> fields)
+            string specificationId,
+            IEnumerable<SqlColumnDefinition> fields,
+            bool isSpecificationTable = false)
         {
-            string createTableSql = GenerateCreateTableSql(tableName, fields);
-            string createExtendedPropertiesSql = CreateExtendedPropertiesSql(tableName, fundingStreamId, fundingPeriodId);
+            string createTableSql = GenerateCreateTableSql(tableName, fields, isSpecificationTable);
+            string createExtendedPropertiesSql = CreateExtendedPropertiesSql(tableName, specificationId);
             
             return $@"{createTableSql}
 
@@ -20,28 +20,29 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         }
 
         private string CreateExtendedPropertiesSql(string tableName,
-            string fundingStreamId,
-            string fundingPeriodId) =>
+            string specificationId) =>
             $@"EXEC sys.sp_addextendedproperty   
-@name = N'CFS_FundingStreamId_FundingPeriodId',   
-@value = N'{fundingStreamId}_{fundingPeriodId}',   
+@name = N'CFS_SpecificationId',   
+@value = N'{specificationId}',   
 @level0type = N'SCHEMA', @level0name = 'dbo',  
 @level1type = N'TABLE',  @level1name = '{tableName}';";
 
-        public string GenerateCreateTableSql(string tableName, IEnumerable<SqlColumnDefinition> fields)
+        public string GenerateCreateTableSql(
+            string tableName, 
+            IEnumerable<SqlColumnDefinition> fields,
+            bool isSpecificationTable = false)
         {
-
             string fieldSql = GenerateFieldSql(fields);
+            string primaryKeyFieldName = isSpecificationTable ? "SpecificationId": "ProviderId";
 
             string sql = $@" CREATE TABLE[dbo].[{tableName}](
            
-               [PublishedProviderId][varchar](128) NOT NULL,
+               [{primaryKeyFieldName}][varchar](128) NOT NULL,
           
               {fieldSql}
  CONSTRAINT[PK_{tableName}_1] PRIMARY KEY CLUSTERED
 (
-
-   [PublishedProviderId] ASC
+   [{primaryKeyFieldName}] ASC
 )WITH(PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON[PRIMARY]
 ) ON[PRIMARY];";
 

@@ -1,6 +1,7 @@
+using CalculateFunding.Services.SqlExport;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Publishing.SqlExport
+namespace CalculateFunding.Services.SqlExport
 {
     public interface IDataTableImporter
     {

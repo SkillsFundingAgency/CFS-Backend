@@ -4,6 +4,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Models;
+using CalculateFunding.Services.Results.SqlExport;
 using CalculateFunding.Tests.Common.Helpers;
 using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using FluentAssertions;
@@ -23,6 +24,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private const string JobId = "jobId";
 
         private Mock<IJobManagement> _jobs;
+        private Mock<IQaSchemaService> _qaSchemaService;
 
         private CalculationResultQADatabasePopulationService _service;
 
@@ -30,13 +32,16 @@ namespace CalculateFunding.Services.Results.UnitTests
         public void SetUp()
         {
             _jobs = new Mock<IJobManagement>();
+            _qaSchemaService = new Mock<IQaSchemaService>();
 
-            _service = new CalculationResultQADatabasePopulationService(new ResiliencePolicies
-            {
-                JobsApiClient = Policy.NoOpAsync(),
-            },
-            _jobs.Object,
-            Logger.None);
+            _service = new CalculationResultQADatabasePopulationService(
+                _qaSchemaService.Object,
+                new ResiliencePolicies
+                {
+                    JobsApiClient = Policy.NoOpAsync(),
+                },
+                _jobs.Object,
+                Logger.None);
         }
 
         [TestMethod]
@@ -56,13 +61,14 @@ namespace CalculateFunding.Services.Results.UnitTests
         [TestMethod]
         public async Task QueueMergeSpecificationInformationJobCreatesNewJobWithSuppliedMergeRequest()
         {
+            string specificationId = NewRandomString();
             PopulateCalculationResultQADatabaseRequest populateCalculationResultQADatabaseRequest  
-                = NewPopulateCalculationResultQADatabaseRequest(_ => _.WithSpecificationId(NewRandomString()));
+                = NewPopulateCalculationResultQADatabaseRequest(_ => _.WithSpecificationId(specificationId));
             Job expectedJob = NewJob();
             Reference user = NewUser();
             string correlationId = NewRandomString();
 
-            GivenTheJob(expectedJob, populateCalculationResultQADatabaseRequest, user, correlationId);
+            GivenTheJob(expectedJob, populateCalculationResultQADatabaseRequest, user, correlationId, specificationId);
 
             OkObjectResult okObjectResult = await WhenTheCalculationResultQADatabasePopulationJobIsQueued(populateCalculationResultQADatabaseRequest, user, correlationId) as OkObjectResult;
 
@@ -81,7 +87,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             PopulateCalculationResultQADatabaseRequest request,
             Reference user,
             string correlationId,
-            string specificationId = null)
+            string specificationId)
         {
             _jobs.Setup(_ => _.QueueJob(It.Is<JobCreateModel>(jb =>
                     jb.SpecificationId == specificationId &&
@@ -89,7 +95,10 @@ namespace CalculateFunding.Services.Results.UnitTests
                     jb.InvokerUserId == user.Id &&
                     jb.InvokerUserDisplayName == user.Name &&
                     jb.MessageBody == request.AsJson(true) &&
-                    jb.JobDefinitionId == JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob)))
+                    jb.JobDefinitionId == JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob &&
+                    jb.Properties.ContainsKey("specification-id") &&
+                    jb.Properties["specification-id"] == specificationId
+                )))
                 .ReturnsAsync(job);
         }
 

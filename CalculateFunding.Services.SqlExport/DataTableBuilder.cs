@@ -1,7 +1,7 @@
 using System;
 using System.Data;
 
-namespace CalculateFunding.Services.Publishing.SqlExport
+namespace CalculateFunding.Services.SqlExport
 {
     public abstract class DataTableBuilder<TDto> : IDataTableBuilder<TDto>
     {

@@ -3,7 +3,7 @@ using System.Data.SqlClient;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Sql.Interfaces;
 
-namespace CalculateFunding.Services.Publishing.SqlExport
+namespace CalculateFunding.Services.SqlExport
 {
     public class DataTableImporter : IDataTableImporter
     {

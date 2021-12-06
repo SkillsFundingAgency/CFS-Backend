@@ -15,6 +15,7 @@
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.23.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="5.2.0" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="7.1.1" />
+    <PackageReference Include="CalculateFunding.Common.Sql" Version="2.2.1" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.5" />
     <PackageReference Include="LINQKit.Core" Version="1.1.16" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.3.0" />
@@ -23,10 +24,12 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.Calcs\CalculateFunding.Models.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Messages\CalculateFunding.Models.Messages.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Publishing\CalculateFunding.Models.Publishing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Result\CalculateFunding.Models.Result.csproj" />
     <ProjectReference Include="..\CalculateFunding.Repositories.Common.Search\CalculateFunding.Repositories.Common.Search.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.SqlExport\CalculateFunding.Services.SqlExport.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,9 +15,10 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Publishing.SqlExport;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.SqlExport;
+using CalculateFunding.Services.SqlExport.Models;
 using Polly;
 
 namespace CalculateFunding.Services.Publishing.SqlExport

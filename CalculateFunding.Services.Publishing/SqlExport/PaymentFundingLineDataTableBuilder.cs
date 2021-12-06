@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.SqlExport;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
 {

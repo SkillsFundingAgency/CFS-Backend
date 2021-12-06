@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace CalculateFunding.Services.Publishing.SqlExport
+namespace CalculateFunding.Services.SqlExport
 {
     public class SqlNameGenerator : ISqlNameGenerator
     {
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             }
 
 
-            return schemaObject.Replace(" ", String.Empty);
+            return schemaObject.Replace(" ", string.Empty);
         }
     }
 }

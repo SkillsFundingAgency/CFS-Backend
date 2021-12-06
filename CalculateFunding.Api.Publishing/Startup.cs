@@ -54,6 +54,7 @@ using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Services.Publishing.Undo;
 using CalculateFunding.Services.Publishing.Undo.Repositories;
+using CalculateFunding.Services.SqlExport;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -197,21 +198,21 @@ namespace CalculateFunding.Api.Publishing
             });
 
             builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
-           {
-               TemplateMetadataResolver resolver = new TemplateMetadataResolver();
-               ILogger logger = ctx.GetService<ILogger>();
+            {
+                   TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+                   ILogger logger = ctx.GetService<ILogger>();
 
-               TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
-               resolver.Register("1.0", schema10Generator);
+                   TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+                   resolver.Register("1.0", schema10Generator);
 
-               TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
-               resolver.Register("1.1", schema11Generator);
+                   TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+                   resolver.Register("1.1", schema11Generator);
 
-               TemplateMetadataSchema12.TemplateMetadataGenerator schema12Generator = new TemplateMetadataSchema12.TemplateMetadataGenerator(logger);
-               resolver.Register("1.2", schema12Generator);
+                   TemplateMetadataSchema12.TemplateMetadataGenerator schema12Generator = new TemplateMetadataSchema12.TemplateMetadataGenerator(logger);
+                   resolver.Register("1.2", schema12Generator);
 
-               return resolver;
-           });
+                   return resolver;
+            });
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
             CosmosDbSettings settings = new CosmosDbSettings();

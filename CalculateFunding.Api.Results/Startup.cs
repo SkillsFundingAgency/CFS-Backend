@@ -11,11 +11,13 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Sql;
+using CalculateFunding.Common.Sql.Interfaces;
+using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Result;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
@@ -29,13 +31,19 @@ using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
+using CalculateFunding.Services.Results.SqlExport;
+using CalculateFunding.Services.SqlExport;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly.Bulkhead;
+using Serilog;
 using CommonStorage = CalculateFunding.Common.Storage;
+using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
+using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
+using TemplateMetadataSchema12 = CalculateFunding.Common.TemplateMetadata.Schema12;
 
 namespace CalculateFunding.Api.Results
 {
@@ -110,6 +118,50 @@ namespace CalculateFunding.Api.Results
             builder.AddScoped<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
             builder.AddScoped<ICalculationResultQADatabasePopulationService, CalculationResultQADatabasePopulationService>();
             builder.AddScoped<IProducerConsumerFactory, ProducerConsumerFactory>();
+
+            builder.AddScoped<ISqlNameGenerator, SqlNameGenerator>();
+            builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
+            builder.AddScoped<IQaSchemaService, QaSchemaService>();
+
+            builder.AddScoped<IDataTableImporter, DataTableImporter>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                Configuration.Bind("crSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+
+                return new DataTableImporter(sqlConnectionFactory);
+            });
+
+            builder.AddScoped<IQaRepository, QaRepository>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                Configuration.Bind("crSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+                SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
+
+                return new QaRepository(sqlConnectionFactory, sqlPolicyFactory);
+            });
+
+            builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
+            {
+                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+                ILogger logger = ctx.GetService<ILogger>();
+
+                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+                resolver.Register("1.0", schema10Generator);
+
+                TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+                resolver.Register("1.1", schema11Generator);
+
+                TemplateMetadataSchema12.TemplateMetadataGenerator schema12Generator = new TemplateMetadataSchema12.TemplateMetadataGenerator(logger);
+                resolver.Register("1.2", schema12Generator);
+
+                return resolver;
+            });
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 

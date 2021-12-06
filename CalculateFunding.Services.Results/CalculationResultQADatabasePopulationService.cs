@@ -7,10 +7,12 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Models;
+using CalculateFunding.Services.Results.SqlExport;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
@@ -19,15 +21,19 @@ namespace CalculateFunding.Services.Results
     {
         private readonly AsyncPolicy _jobsPolicy;
         private readonly IJobManagement _jobs;
+        private readonly IQaSchemaService _schema;
 
         public CalculationResultQADatabasePopulationService(
+            IQaSchemaService schema,
             IResultsResiliencePolicies resiliencePolicies,
             IJobManagement jobs,
             ILogger logger)
             : base(jobs, logger)
         {
+            Guard.ArgumentNotNull(schema, nameof(schema));
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
 
+            _schema = schema;
             _jobsPolicy = resiliencePolicies.JobsApiClient;
             _jobs = jobs;
         }
@@ -60,7 +66,12 @@ namespace CalculateFunding.Services.Results
                     EntityType = "Specification",
                     EntityId = populateCalculationResultQADatabaseRequest.SpecificationId
                 },
-                MessageBody = populateCalculationResultQADatabaseRequest.AsJson()
+                MessageBody = populateCalculationResultQADatabaseRequest.AsJson(),
+                SpecificationId = populateCalculationResultQADatabaseRequest.SpecificationId,
+                Properties = new Dictionary<string, string>
+                {
+                    {"specification-id", populateCalculationResultQADatabaseRequest.SpecificationId},
+                },
             };
 
             return new OkObjectResult(await _jobsPolicy.ExecuteAsync(() => _jobs.QueueJob(job)));
@@ -70,7 +81,7 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(populateCalculationResultQADatabaseRequest, nameof(populateCalculationResultQADatabaseRequest));
 
-
+            await _schema.ReCreateTablesForSpecification(populateCalculationResultQADatabaseRequest.SpecificationId);
         }
     }
 

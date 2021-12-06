@@ -27,6 +27,7 @@ namespace CalculateFunding.Api.Results.UnitTests
                 { "graphClient:ApiKey", "Local" },
                 { "jobsClient:ApiKey", "Local" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
+                { "crSql:ConnectionString", "Server=localhost;Initial Catalog=cr_SqlExport;Trusted_Connection=True;" },
             };
         }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.SqlExport;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
 {

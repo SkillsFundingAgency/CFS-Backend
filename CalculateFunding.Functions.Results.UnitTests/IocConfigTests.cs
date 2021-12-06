@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Tests.Common;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Functions.Results.UnitTests
@@ -38,6 +36,7 @@ namespace CalculateFunding.Functions.Results.UnitTests
                 { "providersClient:ApiKey", "Local" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
                 { "jobsClient:ApiKey", "Local" },
+                { "crSql:ConnectionString", "Server=localhost;Initial Catalog=cr_SqlExport;Trusted_Connection=True;" },
             };
 
             return configData;

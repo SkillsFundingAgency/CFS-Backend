@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.SqlExport;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
 {

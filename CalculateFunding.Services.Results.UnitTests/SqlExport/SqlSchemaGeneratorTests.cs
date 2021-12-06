@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
-using CalculateFunding.Services.Publishing.SqlExport;
+using CalculateFunding.Services.Results.SqlExport;
 using CalculateFunding.Services.SqlExport.Models;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
+namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 {
     [TestClass]
     public class SqlSchemaGeneratorTests
     {
         private SqlSchemaGenerator _sqlSchemaGenerator;
-
 
         [TestInitialize]
         public void SetUp()
@@ -22,23 +21,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         [TestMethod]
         [DynamicData(nameof(GenerateDDLExamples), DynamicDataSourceType.Method)]
         public void GeneratesDDLForSuppliedTableDefinitions(string tableName,
-            string fundingStreamId,
-            string fundingPeriodId,
+            string specificationId,
             IEnumerable<SqlColumnDefinition> columnDefinitions,
             string expectedDDL)
         {
-            TheGeneratedDDLFor(tableName, fundingStreamId, fundingPeriodId, columnDefinitions)
+            TheGeneratedDDLFor(tableName, specificationId, columnDefinitions)
                 .Should()
                 .Be(expectedDDL);
         }
 
         private string TheGeneratedDDLFor(string tableName,
-            string fundingStreamId,
-            string fundingPeriodId,
+            string specificationId,
             IEnumerable<SqlColumnDefinition> columnDefinitions)
             => _sqlSchemaGenerator.GenerateCreateTableSql(tableName,
-                fundingStreamId,
-                fundingPeriodId,
+                specificationId,
                 columnDefinitions);
 
         private static IEnumerable<object[]> GenerateDDLExamples()
@@ -46,8 +42,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             yield return new object[]
             {
                 "TableOne",
-                "streamOne",
-                "periodOne",
+                "specificationOne",
                 AsArray(NewColumn(_ => _.WithName("one")
                         .WithType("boolean")
                         .WithAllowNulls(false)),
@@ -59,7 +54,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                         .WithAllowNulls(true))),
                 @" CREATE TABLE[dbo].[TableOne](
            
-               [PublishedProviderId][varchar](128) NOT NULL,
+               [ProviderId][varchar](128) NOT NULL,
           
               [one]boolean NOT NULL,
 [two]string NOT NULL,
@@ -67,22 +62,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
  CONSTRAINT[PK_TableOne_1] PRIMARY KEY CLUSTERED
 (
-
-   [PublishedProviderId] ASC
+   [ProviderId] ASC
 )WITH(PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON[PRIMARY]
 ) ON[PRIMARY];
 
 EXEC sys.sp_addextendedproperty   
-@name = N'CFS_FundingStreamId_FundingPeriodId',   
-@value = N'streamOne_periodOne',   
+@name = N'CFS_SpecificationId',   
+@value = N'specificationOne',   
 @level0type = N'SCHEMA', @level0name = 'dbo',  
 @level1type = N'TABLE',  @level1name = 'TableOne';"
             };
             yield return new object[]
             {
                 "TableOne",
-                "streamTwo",
-                "periodTwo",
+                "specificationTwo",
                 AsArray(NewColumn(_ => _.WithName("one")
                         .WithType("decimal")
                         .WithAllowNulls(true)),
@@ -91,21 +84,20 @@ EXEC sys.sp_addextendedproperty
                         .WithAllowNulls(false))),
                 @" CREATE TABLE[dbo].[TableOne](
            
-               [PublishedProviderId][varchar](128) NOT NULL,
+               [ProviderId][varchar](128) NOT NULL,
           
               [one]decimal NULL,
 [two]string NOT NULL,
 
  CONSTRAINT[PK_TableOne_1] PRIMARY KEY CLUSTERED
 (
-
-   [PublishedProviderId] ASC
+   [ProviderId] ASC
 )WITH(PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON[PRIMARY]
 ) ON[PRIMARY];
 
 EXEC sys.sp_addextendedproperty   
-@name = N'CFS_FundingStreamId_FundingPeriodId',   
-@value = N'streamTwo_periodTwo',   
+@name = N'CFS_SpecificationId',   
+@value = N'specificationTwo',   
 @level0type = N'SCHEMA', @level0name = 'dbo',  
 @level1type = N'TABLE',  @level1name = 'TableOne';"
             };

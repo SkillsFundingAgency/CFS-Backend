@@ -6,6 +6,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing.SqlExport;
+using CalculateFunding.Services.SqlExport;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
