@@ -88,6 +88,7 @@ steps:
       **/*.${{ parameters.ProjectName }}*AcceptanceTests/*.csproj
       !**/*.Services.${{ parameters.ProjectName }}.*SmokeTests/*.csproj
       !**/*.Services.${{ parameters.ProjectName }}.IntegrationTests/*.csproj
+   enabled: "false"
 
  - task: DotNetCoreCLI@2
    condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true))

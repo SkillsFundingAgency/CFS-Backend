@@ -15,22 +15,19 @@ namespace CalculateFunding.Editor.FundingDataZone
 {
     public class Startup
     {
-        private IWebHostEnvironment _hostingEnvironment;
-
-        public Startup(IConfiguration configuration, IWebHostEnvironment hostingEnvironment)
+        public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            _hostingEnvironment = hostingEnvironment;
         }
 
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services, IWebHostEnvironment environment)
         {
-            AuthModule module = new AuthModule();
+            AuthModule module = new();
             module.Configuration = Configuration;
-            module.HostingEnvironment = _hostingEnvironment;
+            module.HostingEnvironment = environment;
             module.Configure(services);
 
             services.AddRazorPages();
@@ -45,13 +42,9 @@ namespace CalculateFunding.Editor.FundingDataZone
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment environment)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (!environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.

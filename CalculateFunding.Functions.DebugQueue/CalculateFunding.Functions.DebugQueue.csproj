@@ -1,45 +1,42 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AzureFunctionsVersion>v3</AzureFunctionsVersion>
-    <UserSecretsId>df0d69d5-a6db-4598-909f-262fc39cb8c8</UserSecretsId>
-    <LangVersion>8</LangVersion>
-    <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
-    <FileVersion>1.0.0.$(VersionSuffix)</FileVersion>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SignalRService" Version="1.2.2" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.8" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.11" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Functions.CalcEngine\CalculateFunding.Functions.CalcEngine.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.CosmosDbScaling\CalculateFunding.Functions.CosmosDbScaling.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Datasets\CalculateFunding.Functions.Datasets.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Jobs\CalculateFunding.Functions.Jobs.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Notifications\CalculateFunding.Functions.Notifications.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Policy\CalculateFunding.Functions.Policy.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Providers\CalculateFunding.Functions.Providers.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Publishing\CalculateFunding.Functions.Publishing.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj" />
-    <!--<ProjectReference Include="..\CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj" />-->
-    <ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Users\CalculateFunding.Functions.Users.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="host.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="local.settings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<AzureFunctionsVersion>v4</AzureFunctionsVersion>
+		<LangVersion>8</LangVersion>
+		<UserSecretsId>b697c5aa-1ccf-4a9c-b457-590e583dc059</UserSecretsId>
+		<_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
+		<FileVersion>1.0.0.$(VersionSuffix)</FileVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Azure.Messaging.EventHubs" Version="5.6.2" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SignalRService" Version="1.6.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
+		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\CalculateFunding.Functions.CalcEngine\CalculateFunding.Functions.CalcEngine.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.CosmosDbScaling\CalculateFunding.Functions.CosmosDbScaling.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.Datasets\CalculateFunding.Functions.Datasets.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.Jobs\CalculateFunding.Functions.Jobs.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.Notifications\CalculateFunding.Functions.Notifications.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.Policy\CalculateFunding.Functions.Policy.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.Providers\CalculateFunding.Functions.Providers.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.Publishing\CalculateFunding.Functions.Publishing.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />
+		<ProjectReference Include="..\CalculateFunding.Functions.Users\CalculateFunding.Functions.Users.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="host.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="local.settings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
+		</None>
+	</ItemGroup>
 </Project>
+
