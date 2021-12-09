@@ -1,0 +1,241 @@
+parameters:
+- name: DotnetCoreSdkVersion
+  type: string
+  default: '3.1.101'
+- name: ApiFrameworkVersion
+  type: string
+  default: 'netcoreapp3.1'
+- name: ProjectName
+  type: string
+  default: ''
+- name: ServiceName
+  type: string
+  default: ''
+- name: buildconfiguration
+  type: string
+  default: 'Release'
+- name: vstsFeed
+  type: string
+  default: 'ecf37bc0-472b-47bf-91e3-6774809fd194'
+- name: 'ResourceGroup'
+  type: 'string'
+  default: ''
+- name: azureSubscription
+  type: 'string'
+  default: ''
+- name: productVersion
+  type: string
+  default: 'PR'
+- name: EnvironmentKey
+  type: string
+  default: ''
+- name: SmokeTestTenantId
+  type: string
+  default: ''
+- name: SmokeTestApplicationUrl
+  type: string
+  default: ''
+- name: SmokeTestClientID
+  type: string
+  default: ''
+- name: SmokeTestClientSecret
+  type: string
+  default: ''
+- name: APIKey
+  type: string
+  default: ''
+- name: apiBuildNumber
+  type: string
+  default: ''
+- name: BuildApi
+  type: boolean
+  default: true
+- name: BuildFunction
+  type: boolean
+  default: true
+- name: SecureSmokeTest
+  type: boolean
+  default: false
+- name: ServiceBusSettings
+  type: string
+  default: ''
+
+steps:
+ - task: UseDotNet@2
+   displayName: 'Use .NET Core sdk ${{ parameters.DotnetCoreSdkVersion }}'
+   inputs:
+     version: ${{ parameters.DotnetCoreSdkVersion }}
+
+ - task: DotNetCoreCLI@2
+   displayName: 'dotnet restore'
+   inputs:
+     command: restore
+     vstsFeed: '${{ parameters.vstsFeed }}'
+     projects: |
+      **/*.${{ parameters.ProjectName }}.*Tests/*.csproj
+      **/*.Models.*UnitTests/*.csproj
+      CalculateFunding.Api.${{ parameters.ProjectName }}/CalculateFunding.Api.${{ parameters.ProjectName }}.csproj
+      CalculateFunding.Functions.${{ parameters.ProjectName }}/CalculateFunding.Functions.${{ parameters.ProjectName }}.csproj
+
+ - task: DotNetCoreCLI@2
+   displayName: 'dotnet test for Service (no Model Tests)'
+   inputs:
+     command: test
+     arguments: '--configuration ${{ parameters.buildconfiguration }}'
+     projects: |
+      **/*.Services.${{ parameters.ProjectName }}.*Tests/*.csproj
+      **/*.${{ parameters.ProjectName }}*AcceptanceTests/*.csproj
+      !**/*.Services.${{ parameters.ProjectName }}.*SmokeTests/*.csproj
+      !**/*.Services.${{ parameters.ProjectName }}.IntegrationTests/*.csproj
+
+ - task: DotNetCoreCLI@2
+   condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true))
+   displayName: 'dotnet test for API'
+   inputs:
+     command: test
+     arguments: '--configuration ${{ parameters.buildconfiguration }}'
+     projects: |
+      **/*.Api.${{ parameters.ProjectName }}.*Tests/*.csproj
+      !**/*.Api.${{ parameters.ProjectName }}.*SmokeTests/*.csproj
+      !**/*.Api.${{ parameters.ProjectName }}.IntegrationTests/*.csproj   
+
+ - task: DotNetCoreCLI@2
+   condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true))
+   displayName: 'dotnet test for functions'
+   inputs:
+     command: test
+     arguments: '--configuration ${{ parameters.buildconfiguration }}'
+     projects: |
+      **/*.Functions.${{ parameters.ProjectName }}*UnitTests/*.csproj
+      !**/*.Api.${{ parameters.ProjectName }}.*SmokeTests/*.csproj
+      !**/*.Api.${{ parameters.ProjectName }}.IntegrationTests/*.csproj 
+
+ - task: DotNetCoreCLI@2
+   condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true))
+   displayName: 'dotnet publish API'
+   inputs:
+     command: publish
+     publishWebProjects: false
+     zipAfterPublish: false
+     arguments: '--configuration ${{ parameters.buildconfiguration }} --version-suffix $(Build.BuildId)'
+     projects: 'CalculateFunding.Api.${{ parameters.ProjectName }}/CalculateFunding.Api.${{ parameters.ProjectName }}.csproj'
+
+ - task: DotNetCoreCLI@2
+   condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true))
+   displayName: 'dotnet publish Function'
+   inputs:
+     command: publish
+     publishWebProjects: false
+     zipAfterPublish: false
+     arguments: '--configuration ${{ parameters.buildconfiguration }} --version-suffix $(Build.BuildId)'
+     projects: 'CalculateFunding.Functions.${{ parameters.ProjectName }}/CalculateFunding.Functions.${{ parameters.ProjectName }}.csproj'
+
+ - task: PowerShell@2
+   condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true))
+   displayName: 'Get File Version Info for API'
+   inputs:
+     targetType: 'inline'
+     script: |
+       ($apibuildnumber = (Get-Command $(System.DefaultWorkingDirectory)\CalculateFunding.Api.${{ parameters.ProjectName }}\bin\Release\${{ parameters.ApiFrameworkVersion }}\CalculateFunding.Api.${{ parameters.ProjectName }}.dll).FileVersionInfo.FileVersion)
+       echo "##vso[task.setvariable variable=apibuildnumber]$apibuildnumber"
+
+ - task: PowerShell@2
+   condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true))
+   displayName: 'Get File Version Info for Function'
+   inputs:
+     targetType: 'inline'
+     script: |
+       ($functionbuildnumber = (Get-Command $(System.DefaultWorkingDirectory)\CalculateFunding.Functions.${{ parameters.ProjectName }}\bin\Release\${{ parameters.ApiFrameworkVersion }}\CalculateFunding.Functions.${{ parameters.ProjectName }}.dll).FileVersionInfo.FileVersion)
+       echo "##vso[task.setvariable variable=functionbuildnumber]$functionbuildnumber"
+
+ - task: ArchiveFiles@2
+   condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true))
+   displayName: 'Zip CalculateFunding.Api.${{ parameters.ProjectName }}.zip'
+   inputs:
+     rootFolderOrFile: 'CalculateFunding.Api.${{ parameters.ProjectName }}\bin\${{ parameters.BuildConfiguration }}\${{ parameters.ApiFrameworkVersion }}\publish'
+     includeRootFolder: false
+     archiveFile: '$(Build.ArtifactStagingDirectory)/CalculateFunding.Api.${{ parameters.ProjectName }}.zip'
+
+ - task: ArchiveFiles@2
+   condition: and(succeeded(), eq('${{ parameters.BuildFunction }}', true))
+   displayName: 'Zip CalculateFunding.Functions.${{ parameters.ProjectName }}.zip'
+   inputs:
+    rootFolderOrFile: 'CalculateFunding.Functions.${{ parameters.ProjectName }}\bin\${{ parameters.BuildConfiguration }}\${{ parameters.ApiFrameworkVersion }}\publish'
+    includeRootFolder: false
+    archiveFile: '$(Build.ArtifactStagingDirectory)/CalculateFunding.Functions.${{ parameters.ProjectName }}.zip'
+ 
+ - task: CopyFiles@2
+   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+   displayName: "Copy DevOps Scripts"
+   inputs:
+    SourceFolder: DevOps
+    Contents: |
+      *.ps1
+      **/*.json
+      *.json
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/DevOps'
+
+ - task: PublishPipelineArtifact@1
+   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+   displayName: 'Publish Drop Artifact'
+   inputs:
+    targetPath: $(build.artifactstagingdirectory)
+    artifactName: drop
+
+ - powershell: |
+    Write-Host "Project: ${{ parameters.ProjectName }}"
+    $myPath = "$(Build.Repository.LocalPath)" + '\' + 'CalculateFunding.Functions.' + "${{ parameters.ProjectName }}" + '.SmokeTests'
+    Write-Host "Path: $myPath"
+    If (Test-Path -LiteralPath $myPath -PathType container) {
+      Write-Host "##vso[task.setvariable variable=ExecuteMyTask]True"
+      Write-Host "I set ExecuteMyTask to True"
+    }
+    Else {
+      Write-Host "##vso[task.setvariable variable=ExecuteMyTask]False"
+      Write-Host "I set ExecuteMyTask to False"
+    }
+   displayName: 'Check for Function App Smoke Test project'   
+   condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true))
+
+ - task: DotNetCoreCLI@2
+   condition: and(succeeded(), eq(variables['ExecuteMyTask'], 'True'))
+   displayName: "dotnet publish Function App Smoke Test"
+   inputs:
+     command: publish
+     publishWebProjects: false
+     zipAfterPublish: false
+     arguments: '--configuration ${{ parameters.BuildConfiguration }} --output $(Build.ArtifactStagingDirectory)/CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests'
+     projects: 'CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests/CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests.csproj'
+
+ - task: PublishPipelineArtifact@1
+   condition: and(succeeded(), eq(variables['ExecuteMyTask'], 'True'), ne(variables['Build.Reason'], 'PullRequest'))
+   displayName: 'Publish Smoketest Artifact'
+   inputs:
+     targetPath: ' $(build.artifactstagingdirectory)/CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests'
+     artifactName: Smoketest   
+
+ - ${{ if and(eq(parameters.BuildApi, true), eq(variables['Build.Reason'], 'PullRequest')) }}:
+   - template: standard-service-pr-appsrv-deploy.yml
+     parameters:
+       ProjectName: ${{ parameters.ProjectName }}
+       ServiceName: ${{ parameters.ServiceName }}
+       ResourceGroup: ${{ parameters.ResourceGroup }}
+       azureSubscription: ${{ parameters.azureSubscription }}
+       EnvironmentKey: ${{ parameters.EnvironmentKey }}
+       SmokeTestTenantId: ${{ parameters.SmokeTestTenantId }}
+       SmokeTestApplicationUrl: ${{ parameters.SmokeTestApplicationUrl }}
+       SmokeTestClientID: ${{ parameters.SmokeTestClientID }}
+       SmokeTestClientSecret: ${{ parameters.SmokeTestClientSecret }}
+       APIKey: ${{ parameters.APIKey }}
+       apiBuildNumber: ${{ parameters.apiBuildNumber }}
+       SecureSmokeTest: ${{ parameters.SecureSmokeTest }}
+
+ - ${{ if and(eq(parameters.BuildFunction, true), eq(variables['Build.Reason'], 'PullRequest')) }}:
+   - template: standard-service-pr-funcapp-deploy.yml
+     parameters:
+       ProjectName: ${{ parameters.ProjectName }}
+       ServiceName: ${{ parameters.ServiceName }}
+       ResourceGroup: ${{ parameters.ResourceGroup }}
+       azureSubscription: ${{ parameters.azureSubscription }}
+       EnvironmentKey: ${{ parameters.EnvironmentKey }}
+       ServiceBusSettings: ${{ parameters.ServiceBusSettings }}

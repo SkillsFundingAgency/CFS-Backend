@@ -407,7 +407,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.DevOps.Rel
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.SqlExport", "CalculateFunding.Services.SqlExport\CalculateFunding.Services.SqlExport.csproj", "{717F71B8-6EFF-4CB8-B42F-BE71D3CBB1EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.SqlExport.UnitTests", "CalculateFunding.Services.SqlExport.UnitTests\CalculateFunding.Services.SqlExport.UnitTests.csproj", "{3E6308B5-2878-48D5-9AA1-77DADDFDC396}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.SqlExport.UnitTests", "CalculateFunding.Services.SqlExport.UnitTests\CalculateFunding.Services.SqlExport.UnitTests.csproj", "{3E6308B5-2878-48D5-9AA1-77DADDFDC396}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
