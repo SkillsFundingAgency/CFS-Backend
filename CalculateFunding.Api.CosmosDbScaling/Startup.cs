@@ -30,8 +30,6 @@ namespace CalculateFunding.API.CosmosDbScaling
 {
     public class Startup
     {
-        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
-
         public IConfiguration Configuration { get; }       
 
         public Startup(IConfiguration configuration)
@@ -52,16 +50,7 @@ namespace CalculateFunding.API.CosmosDbScaling
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (!string.IsNullOrEmpty(AppConfigConnectionString))
-            {
-                app.UseAzureAppConfiguration();
-            }
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (!env.IsDevelopment())
             {
                 app.UseHsts();
             }
@@ -98,12 +87,141 @@ namespace CalculateFunding.API.CosmosDbScaling
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddScoped<ICosmosDbScalingService, CosmosDbScalingService>();
             builder.AddSingleton<ICosmosDbScalingRepositoryProvider, CosmosDbScalingRepositoryProvider>();
             builder.AddSingleton<ICosmosDbScalingRequestModelBuilder, CosmosDbScalingRequestModelBuilder>();
             builder.AddSingleton<ICosmosDbThrottledEventsFilter, CosmosDbThrottledEventsFilter>();
             builder.AddSingleton<IValidator<ScalingConfigurationUpdateModel>, ScalingConfigurationUpdateModelValidator>();
+
+            builder.AddSingleton((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.ContainerName = "calculationresults";
+
+                CosmosRepository cosmosRepostory = new CosmosRepository(cosmosDbSettings);
+
+                return new CalculationProviderResultsScalingRepository(cosmosRepostory);
+            });
+
+            builder.AddSingleton((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.ContainerName = "providerdatasets";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
+
+                return new ProviderSourceDatasetsScalingRepository(cosmosRepository);
+            });
+
+            builder.AddSingleton((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.ContainerName = "publishedfunding";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
+
+                return new PublishedFundingScalingRepository(cosmosRepository);
+            });
+
+            builder.AddSingleton((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.ContainerName = "calcs";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
+
+                return new CalculationsScalingRepository(cosmosRepository);
+            });
+
+            builder.AddSingleton((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.ContainerName = "jobs";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
+
+                return new JobsScalingRepository(cosmosRepository);
+            });
+
+            builder.AddSingleton((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.ContainerName = "datasetaggregations";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
+
+                return new DatasetAggregationsScalingRepository(cosmosRepository);
+            });
+
+            builder.AddSingleton((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.ContainerName = "datasets";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
+
+                return new DatasetsScalingRepository(cosmosRepository);
+            });
+
+            builder.AddSingleton((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.ContainerName = "profiling";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
+
+                return new ProfilingScalingRepository(cosmosRepository);
+            });
+
+            builder.AddSingleton((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.ContainerName = "specs";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
+
+                return new SpecificationsScalingRepository(cosmosRepository);
+            });
+
+            builder.AddSingleton((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.ContainerName = "users";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
+
+                return new UsersScalingRepository(cosmosRepository);
+            });
 
             builder.AddSingleton<ICosmosDbScalingConfigRepository>((ctx) =>
             {

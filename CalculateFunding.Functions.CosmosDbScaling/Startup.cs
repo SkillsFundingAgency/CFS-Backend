@@ -68,7 +68,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
             builder.AddSingleton<IValidator<ScalingConfigurationUpdateModel>, ScalingConfigurationUpdateModelValidator>();
             builder.AddSingleton<IJobManagement, JobManagement>();
 
-            builder.AddSingleton<CalculationProviderResultsScalingRepository>((ctx) =>
+            builder.AddSingleton((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -81,7 +81,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new CalculationProviderResultsScalingRepository(cosmosRepostory);
             });
 
-            builder.AddSingleton<ProviderSourceDatasetsScalingRepository>((ctx) =>
+            builder.AddSingleton((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -94,7 +94,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new ProviderSourceDatasetsScalingRepository(cosmosRepository);
             });
 
-            builder.AddSingleton<PublishedFundingScalingRepository>((ctx) =>
+            builder.AddSingleton((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -107,7 +107,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new PublishedFundingScalingRepository(cosmosRepository);
             });
 
-            builder.AddSingleton<CalculationsScalingRepository>((ctx) =>
+            builder.AddSingleton((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -120,7 +120,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new CalculationsScalingRepository(cosmosRepository);
             });
 
-            builder.AddSingleton<JobsScalingRepository>((ctx) =>
+            builder.AddSingleton((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -133,7 +133,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new JobsScalingRepository(cosmosRepository);
             });
 
-            builder.AddSingleton<DatasetAggregationsScalingRepository>((ctx) =>
+            builder.AddSingleton((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -146,7 +146,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new DatasetAggregationsScalingRepository(cosmosRepository);
             });
 
-            builder.AddSingleton<DatasetsScalingRepository>((ctx) =>
+            builder.AddSingleton((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -159,7 +159,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new DatasetsScalingRepository(cosmosRepository);
             });
 
-            builder.AddSingleton<ProfilingScalingRepository>((ctx) =>
+            builder.AddSingleton((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -172,7 +172,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new ProfilingScalingRepository(cosmosRepository);
             });
 
-            builder.AddSingleton<SpecificationsScalingRepository>((ctx) =>
+            builder.AddSingleton((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -185,7 +185,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new SpecificationsScalingRepository(cosmosRepository);
             });
 
-            builder.AddSingleton<UsersScalingRepository>((ctx) =>
+            builder.AddSingleton((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
