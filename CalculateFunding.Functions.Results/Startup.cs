@@ -95,7 +95,7 @@ namespace CalculateFunding.Functions.Results
             }
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
             builder.AddSingleton<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
-            builder.AddSingleton<ICalculationResultQADatabasePopulationService, CalculationResultQADatabasePopulationService>();
+            builder.AddScoped<ICalculationResultQADatabasePopulationService, CalculationResultQADatabasePopulationService>();
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
 
             builder.AddSingleton<IConfiguration>(config);
