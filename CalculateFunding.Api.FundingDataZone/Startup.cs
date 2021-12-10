@@ -20,8 +20,6 @@ namespace CalculateFunding.Api.FundingDataZone
         private const string FundingDataZone = "CalculateFunding.Api.FundingDataZone";
         private const string Title = "Funding Data Zone - Microservice API";
         
-        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
-        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -42,16 +40,7 @@ namespace CalculateFunding.Api.FundingDataZone
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (!string.IsNullOrEmpty(AppConfigConnectionString))
-            {
-                app.UseAzureAppConfiguration();
-            }
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (!env.IsDevelopment())
             {
                 app.UseHsts();
             }
