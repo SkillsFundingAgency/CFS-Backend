@@ -278,6 +278,14 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
                 NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 8000),
             };
+            yield return new object[]
+            {
+                8,
+                NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
+                NewDecimals(800, 800, 800, 800, 800, 800, 800, 800, 800, 0),
+                NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 4000, 3200),
+            };
         }
     }
 }

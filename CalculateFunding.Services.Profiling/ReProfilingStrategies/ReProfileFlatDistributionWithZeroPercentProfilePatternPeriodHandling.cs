@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
                 IProfilePeriod profilePeriod = orderedRefreshProfilePeriods[refreshProfilePeriodIndex];
 
-                decimal adjustedProfileValue = useExisting ?
+                decimal adjustedProfileValue = useExisting && orderedExistingProfilePeriods.Length > refreshProfilePeriodIndex ?
                     orderedExistingProfilePeriods[refreshProfilePeriodIndex].GetProfileValue() :
                     profilePeriod.GetProfileValue() + remainingPeriodsProfileValue;
 
