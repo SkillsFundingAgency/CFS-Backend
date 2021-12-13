@@ -192,16 +192,14 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
             if (organisationGroupingReasons.Any(_ => !IsContracted(_)))
             {
-                IEnumerable<FundingLineProfileOverrides> currentProfile = publishedProvider.Current.CustomProfiles;
-
-                if(currentProfile != null && currentProfile.Any())
+                if (publishedProvider.Current.CustomProfiles.AnyWithNullCheck(_ => _.FundingLineCode == request.FundingLineCode))
                 {
                     ProfileVariationPointer latestProfileVariationPointer = profileVariationPointers
                     .OrderByDescending(_ => _.Year)
                     .ThenByDescending(_ => YearMonthOrderedProfilePeriods.MonthNumberFor(_.TypeValue))
                     .FirstOrDefault();
 
-                    DistributionPeriod currentDistributionPeriod = currentProfile.Where(_ => _.FundingLineCode == request.FundingLineCode).FirstOrDefault()
+                    DistributionPeriod currentDistributionPeriod = publishedProvider.Current.FundingLines.Where(_ => _.FundingLineCode == request.FundingLineCode).FirstOrDefault()?
                                                                 .DistributionPeriods.Where(_ => _.DistributionPeriodId == request.FundingPeriodId).FirstOrDefault();
 
                     if(currentDistributionPeriod == null)

@@ -340,7 +340,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
         private async Task<IActionResult> UpdateNonContractedProvider(decimal pastPeriodChangeOffset, decimal futurePeriodChangeOffset)
         {
-            int? carryOver = 2;
             PublishedProviderStatus currentStatus = PublishedProviderStatus.Draft;
 
             string specificationId = NewRandomString();
@@ -350,17 +349,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             int? providerSnapshotId = NewRandomNumber();
 
             string fundingLineOne = NewRandomString();
+
             ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithYear(2021).WithTypeValue("May").WithOccurence(1));
             ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithYear(2022).WithTypeValue("April").WithOccurence(1));
 
             ProfilePeriod currentProfilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithYear(2021).WithTypeValue("May").WithOccurence(1).WithAmount(profilePeriod1.ProfiledValue + pastPeriodChangeOffset));
             ProfilePeriod currentProfilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithYear(2022).WithTypeValue("April").WithOccurence(1).WithAmount(profilePeriod2.ProfiledValue + futurePeriodChangeOffset));
-
+            int? carryOver = Convert.ToInt32(pastPeriodChangeOffset + futurePeriodChangeOffset);
+            
             ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
                 .WithFundingPeriodId("FY-2021")
                 .WithFundingLineCode(fundingLineOne)
                 .WithProfilePeriods(profilePeriod1, profilePeriod2)
-                .WithCarryOver(carryOver));
+                .WithCarryOver(carryOver == 0 ? null : carryOver));
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
                 NewPublishedProviderVersion(ppv =>
@@ -386,10 +387,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                         fl.WithFundingLineCode(fundingLineOne)
                             .WithDistributionPeriods(NewDistributionPeriod(dp =>
                                 dp.WithDistributionPeriodId("FY-2021")
-                                    .WithProfilePeriods(profilePeriod1)),
+                                    .WithProfilePeriods(currentProfilePeriod1)),
                                     NewDistributionPeriod(dp =>
                                 dp.WithDistributionPeriodId("FY-2022")
-                                    .WithProfilePeriods(profilePeriod2)))
+                                    .WithProfilePeriods(currentProfilePeriod2)))
                             .WithValue(profilePeriod1.ProfiledValue + profilePeriod2.ProfiledValue + carryOver.GetValueOrDefault()))
                         ))));
 
