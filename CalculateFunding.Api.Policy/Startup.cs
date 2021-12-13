@@ -44,7 +44,6 @@ namespace CalculateFunding.Api.Policy
 {
     public class Startup
     {
-        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -64,16 +63,7 @@ namespace CalculateFunding.Api.Policy
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (!string.IsNullOrEmpty(AppConfigConnectionString))
-            {
-                app.UseAzureAppConfiguration();
-            }
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (!env.IsDevelopment())
             {
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();

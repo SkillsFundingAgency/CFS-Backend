@@ -358,8 +358,8 @@ namespace CalculateFunding.Services.Policy
                     IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(x => x.FundingLines);
                     IEnumerable<Calculation> flatternedCalculations = flattenedFundingLines.SelectMany(fl => fl.Calculations.Flatten(cal => cal.Calculations));
 
-                    IEnumerable<FundingLine> uniqueFundingLines = flattenedFundingLines.DistinctBy(f => f.TemplateLineId);
-                    IEnumerable<Calculation> uniqueCalculations = flatternedCalculations.DistinctBy(c => c.TemplateCalculationId);
+                    IEnumerable<FundingLine> uniqueFundingLines = Enumerable.DistinctBy(flattenedFundingLines, f => f.TemplateLineId);
+                    IEnumerable<Calculation> uniqueCalculations = Enumerable.DistinctBy(flatternedCalculations, c => c.TemplateCalculationId);
 
                     fundingLines = _mapper.Map<IEnumerable<TemplateMetadataFundingLine>>(uniqueFundingLines);
                     calculations = _mapper.Map<IEnumerable<TemplateMetadataCalculation>>(uniqueCalculations);
@@ -396,7 +396,7 @@ namespace CalculateFunding.Services.Policy
             IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(x => x.FundingLines);
             IEnumerable<Calculation> flatternedCalculations = flattenedFundingLines.SelectMany(fl => fl.Calculations.Flatten(cal => cal.Calculations));
 
-            IEnumerable<FundingLine> uniqueFundingLines = flattenedFundingLines.DistinctBy(f => f.TemplateLineId);
+            IEnumerable<FundingLine> uniqueFundingLines = Enumerable.DistinctBy(flattenedFundingLines, f => f.TemplateLineId);
 
             IOrderedEnumerable<FundingLine> paymentFundingLine = uniqueFundingLines.Where(f => f.Type == Common.TemplateMetadata.Enums.FundingLineType.Payment).OrderBy(f => f.FundingLineCode);
 
