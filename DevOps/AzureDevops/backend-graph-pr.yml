@@ -1,7 +1,7 @@
 name: $(Rev:r)
 
 pool:
-  vmImage: windows-2019
+  vmImage: windows-2022
 
 trigger:
   batch: true
@@ -54,11 +54,12 @@ steps:
        azureSubscription: $(azureSubscription)
        overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -apiHostingPlanName $(apiHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -sharedLogStorageName $(sharedLogStorageName) -graphAccountName $(graphAccountName) -graphDbName $(graphDatabaseName) -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -applicationInsightsName $(applicationInsightsName)'
 
- - template: templates\standard-service-pr-ci-build-prinfra.yml
+ - template: templates\standard-service-pr-ci-build-prinfra-noModelsTests.yml
    parameters:
      ProjectName: ${{ variables.ProjectName }}
      ServiceName: ${{ variables.ServiceName }} 
-     DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+     DotnetCoreSdkVersion: $(DotnetCoreSdkVersionNet6)
+     ApiFrameworkVersion: 'net6'
      ResourceGroup: $(ResourceGroup)
      ServiceBusSettings: $(ServiceBusSettingsPR)
      azureSubscription: '$(azureSubscription)'

@@ -24,8 +24,6 @@ namespace CalculateFunding.Api.Graph
 {
     public class Startup
     {
-        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
-
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -51,16 +49,7 @@ namespace CalculateFunding.Api.Graph
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (!string.IsNullOrEmpty(AppConfigConnectionString))
-            {
-                app.UseAzureAppConfiguration();
-            }
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (!env.IsDevelopment())
             {
                 app.UseHsts();
             }

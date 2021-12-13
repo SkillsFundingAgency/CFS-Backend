@@ -427,7 +427,7 @@ namespace CalculateFunding.Services.Graph
                         .ToArray()));
                     }
 
-                    await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, circularDependencies.DistinctBy(_ => _.Node.CalculationId).ToList(), TimeSpan.FromDays(7), true));
+                    await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, Enumerable.DistinctBy(circularDependencies, _ => _.Node.CalculationId).ToList(), TimeSpan.FromDays(7), true));
                         
                     return circularDependencies;
                 }, $"Unable to retrieve calculation circular dependencies for specification {specificationId}.");
