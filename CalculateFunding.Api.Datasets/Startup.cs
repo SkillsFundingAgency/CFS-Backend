@@ -33,8 +33,6 @@ using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
 using CalculateFunding.Services.Datasets.Validators;
-using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Services.Results.Repositories;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -63,8 +61,6 @@ namespace CalculateFunding.Api.Datasets
 {
     public class Startup
     {
-        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -85,16 +81,7 @@ namespace CalculateFunding.Api.Datasets
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (!string.IsNullOrEmpty(AppConfigConnectionString))
-            {
-                app.UseAzureAppConfiguration();
-            }
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (!env.IsDevelopment())
             {
                 app.UseHsts();
             }
@@ -164,9 +151,6 @@ namespace CalculateFunding.Api.Datasets
 
             builder
                 .AddSingleton<IProvidersApiClient, ProvidersApiClient>();
-
-            builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>(ctx =>
-                new ProviderSourceDatasetRepository(CreateCosmosDbSettings("providerdatasets")));
 
             builder
                 .AddSingleton<IDatasetService, DatasetService>()

@@ -19,7 +19,6 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -2120,18 +2119,18 @@ namespace CalculateFunding.Services.Datasets.Services
             ISpecificationsApiClient specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
             var apiResponseWithSpecSummary = new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary);
             specificationsApiClient.GetSpecificationSummaryById(specificationId).Returns(apiResponseWithSpecSummary);
-            IProviderSourceDatasetRepository providerSourceDatasetRepository = Substitute.For<IProviderSourceDatasetRepository>();
+            IProviderSourceDatasetsRepository providerSourceDatasetsRepository = Substitute.For<IProviderSourceDatasetsRepository>();
             IDatasetRepository datasetRepository = Substitute.For<IDatasetRepository>();
 
             DatasetService service = CreateDatasetService(
-                providerSourceDatasetRepository: providerSourceDatasetRepository,
+                providerSourceDatasetsRepository: providerSourceDatasetsRepository,
                 datasetRepository: datasetRepository,
                 specificationsApiClient: specificationsApiClient);
 
             await service.DeleteDatasets(message);
 
-            await providerSourceDatasetRepository.Received(1).DeleteProviderSourceDataset(dataDefinitionRelationshipId, deletionType);
-            await providerSourceDatasetRepository.Received(1).DeleteProviderSourceDatasetVersion(dataDefinitionRelationshipId, deletionType);
+            await providerSourceDatasetsRepository.Received(1).DeleteProviderSourceDataset(dataDefinitionRelationshipId, deletionType);
+            await providerSourceDatasetsRepository.Received(1).DeleteProviderSourceDatasetVersion(dataDefinitionRelationshipId, deletionType);
             await datasetRepository.Received(1).DeleteDefinitionSpecificationRelationshipBySpecificationId(specificationId, deletionType);
             await datasetRepository.Received(1).DeleteDatasetsBySpecificationId(specificationId, deletionType);
         }

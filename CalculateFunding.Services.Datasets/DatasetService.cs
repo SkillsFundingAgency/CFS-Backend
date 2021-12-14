@@ -30,7 +30,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Excel;
 using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Results.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
@@ -59,11 +58,11 @@ using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculat
 using GraphEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
 using GraphEntityFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.FundingLine>;
 using CalculateFunding.Common.Helpers;
-using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculationRelationship = CalculateFunding.Models.Graph.CalculationRelationship;
 using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
+using CalculateFunding.Common.ApiClient.Graph;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -86,7 +85,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IValidator<DatasetUploadValidationModel> _datasetUploadValidator;
         private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly IJobManagement _jobManagement;
-        private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
+        private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly IPolicyRepository _policyRepository;
@@ -114,7 +113,7 @@ namespace CalculateFunding.Services.Datasets
             ISearchRepository<DatasetVersionIndex> datasetVersionIndexRepository,
             IProvidersApiClient providersApiClient,
             IJobManagement jobManagement,
-            IProviderSourceDatasetRepository providerSourceDatasetRepository,
+            IProviderSourceDatasetsRepository providerSourceDatasetsRepository,
             ISpecificationsApiClient specificationsApiClient,
             IPolicyRepository policyRepository,
             ICalcsRepository calcsRepository,
@@ -141,7 +140,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.SpecificationsApiClient, nameof(datasetsResiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
-            Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
+            Guard.ArgumentNotNull(providerSourceDatasetsRepository, nameof(providerSourceDatasetsRepository));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(datasetDataMergeService, nameof(datasetDataMergeService));
@@ -165,7 +164,7 @@ namespace CalculateFunding.Services.Datasets
             _providersApiClient = providersApiClient;
             _providersApiClientPolicy = datasetsResiliencePolicies.ProvidersApiClient;
             _jobManagement = jobManagement;
-            _providerSourceDatasetRepository = providerSourceDatasetRepository;
+            _providerSourceDatasetsRepository = providerSourceDatasetsRepository;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiClientPolicy = datasetsResiliencePolicies.SpecificationsApiClient;
             _policyRepository = policyRepository;
@@ -1406,9 +1405,9 @@ namespace CalculateFunding.Services.Datasets
 
             foreach (string id in specificationSummary.DataDefinitionRelationshipIds)
             {
-                await _providerSourceDatasetRepository.DeleteProviderSourceDatasetVersion(id, deletionType);
+                await _providerSourceDatasetsRepository.DeleteProviderSourceDatasetVersion(id, deletionType);
 
-                await _providerSourceDatasetRepository.DeleteProviderSourceDataset(id, deletionType);
+                await _providerSourceDatasetsRepository.DeleteProviderSourceDataset(id, deletionType);
             }
 
             await _datasetRepository.DeleteDefinitionSpecificationRelationshipBySpecificationId(specificationId, deletionType);
@@ -1512,7 +1511,7 @@ namespace CalculateFunding.Services.Datasets
                     }
 
                     IEnumerable<uint> metadataFundingLineIds = (metadata.FundingLines ?? Enumerable.Empty<TemplateMetadataFundingLine>()).Select(x => x.TemplateLineId).Distinct().ToList();
-                    IEnumerable<PublishedSpecificationItem> missingFundingLines = definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.FundingLines.DistinctBy(_ => _.TemplateId).Where(x => !x.IsObsolete && !metadataFundingLineIds.Contains(x.TemplateId)).ToList();
+                    IEnumerable<PublishedSpecificationItem> missingFundingLines = Enumerable.DistinctBy(definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.FundingLines, _ => _.TemplateId).Where(x => !x.IsObsolete && !metadataFundingLineIds.Contains(x.TemplateId)).ToList();
 
                     if (missingFundingLines.Any())
                     {
@@ -1547,7 +1546,7 @@ namespace CalculateFunding.Services.Datasets
                     }
 
                     IEnumerable<uint> metadataCalculationIds = (metadata.Calculations ?? Enumerable.Empty<TemplateMetadataCalculation>()).Select(x => x.TemplateCalculationId).Distinct().ToList();
-                    IEnumerable<PublishedSpecificationItem> missingCalculations = definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.Calculations.DistinctBy(_ => _.TemplateId).Where(x => !x.IsObsolete && !metadataCalculationIds.Contains(x.TemplateId)).ToList();
+                    IEnumerable<PublishedSpecificationItem> missingCalculations = Enumerable.DistinctBy(definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.Calculations, _ => _.TemplateId).Where(x => !x.IsObsolete && !metadataCalculationIds.Contains(x.TemplateId)).ToList();
 
                     if (missingCalculations.Any())
                     {

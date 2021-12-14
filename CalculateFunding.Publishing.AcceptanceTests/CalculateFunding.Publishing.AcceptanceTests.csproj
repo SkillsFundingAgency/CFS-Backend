@@ -126,7 +126,6 @@
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Specs\CalculateFunding.Services.Specs.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
     <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
   </ItemGroup>
 

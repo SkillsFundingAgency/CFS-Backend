@@ -34,8 +34,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.FromResult(false);
             }
 
-            fundingLinesWithProfilingChanges.ForEach(_ => providerVariationContext.AddAffectedFundingLineCode(Name, _));
-
             return Task.FromResult(true);
         }
 

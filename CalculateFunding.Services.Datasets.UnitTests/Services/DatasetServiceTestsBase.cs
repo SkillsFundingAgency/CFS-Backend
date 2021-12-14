@@ -10,7 +10,6 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
 using FluentValidation;
 using FluentValidation.Results;
@@ -61,7 +60,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IValidator<DatasetUploadValidationModel> datasetUploadValidator = null,
             IProvidersApiClient providersApiClient = null,
             IJobManagement jobManagement = null,
-            IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
+            IProviderSourceDatasetsRepository providerSourceDatasetsRepository = null,
             ISpecificationsApiClient specificationsApiClient = null,
             IPolicyRepository policyRepository = null,
             IDatasetDataMergeService datasetDataMergeService = null,
@@ -86,7 +85,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetVersionIndex ?? CreateDatasetVersionIndexRepository(),
                 providersApiClient ?? CreateProvidersApiClient(),
                 jobManagement ?? CreateJobManagement(),
-                providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
+                providerSourceDatasetsRepository ?? CreateProviderSourceDatasetsRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 policyRepository ?? CreatePolicyRepository(),
                 calcsRepository ?? CreateCalcsRepository(),
@@ -123,9 +122,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ISpecificationsApiClient>();
         }
 
-        private IProviderSourceDatasetRepository CreateProviderSourceDatasetRepository()
+        private IProviderSourceDatasetsRepository CreateProviderSourceDatasetsRepository()
         {
-            return Substitute.For<IProviderSourceDatasetRepository>();
+            return Substitute.For<IProviderSourceDatasetsRepository>();
         }
 
         protected IJobManagement CreateJobManagement()

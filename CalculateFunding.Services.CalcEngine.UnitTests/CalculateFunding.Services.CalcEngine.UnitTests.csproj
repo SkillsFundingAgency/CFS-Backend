@@ -32,7 +32,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.CalcEngine\CalculateFunding.Services.CalcEngine.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Calcs\CalculateFunding.Services.Calcs.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.Datasets\CalculateFunding.Services.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
   </ItemGroup>
 

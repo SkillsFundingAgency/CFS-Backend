@@ -32,8 +32,6 @@ using CalculateFunding.Services.Datasets.MappingProfiles;
 using CalculateFunding.Services.Datasets.Validators;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Processing.Interfaces;
-using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Services.Results.Repositories;
 using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -140,8 +138,8 @@ namespace CalculateFunding.Functions.Datasets
             builder
                 .AddSingleton<IProvidersApiClient, ProvidersApiClient>();
 
-            builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>(ctx =>
-                new ProviderSourceDatasetRepository(CreateCosmosDbSettings(config, "providerdatasets")));
+            builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>(ctx =>
+                new ProviderSourceDatasetsRepository(CreateCosmosDbSettings(config, "providerdatasets")));
 
             builder
                 .AddScoped<IDatasetService, DatasetService>();

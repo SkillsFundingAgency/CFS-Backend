@@ -5,7 +5,6 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Processing.Functions;
-using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
