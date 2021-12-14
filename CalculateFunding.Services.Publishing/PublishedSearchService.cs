@@ -230,16 +230,6 @@ namespace CalculateFunding.Services.Publishing
                     }
                     else
                     {
-                        Dictionary<string, IEnumerable<ReleaseChannel>> releaseChannelLookupByProviderId =
-                            await _publishedProvidersSearchService.GetPublishedProviderReleaseChannelsLookup(searchResult.Results?
-                                .Select(_ => new ReleaseChannelSearch
-                                {
-                                    ProviderId = _.Result.UKPRN,
-                                    SpecificationId = _.Result.SpecificationId,
-                                    FundingStreamId = _.Result.FundingStreamId,
-                                    FundingPeriodId = _.Result.FundingPeriodId
-                                }));
-
                         results.TotalCount = (int)(searchResult.TotalCount ?? 0);
                         results.Results = searchResult.Results?.Select(m => new PublishedSearchResult
                         {
@@ -262,9 +252,26 @@ namespace CalculateFunding.Services.Publishing
                             Errors = m.Result.Errors,
                             OpenedDate = m.Result.DateOpened,
                             MajorVersion = m.Result.MajorVersion,
-                            MinorVersion = m.Result.MinorVersion,
-                            ReleaseChannels = GetReleaseChannels(releaseChannelLookupByProviderId, m.Result.UKPRN)
+                            MinorVersion = m.Result.MinorVersion
                         });
+                    }
+                }
+
+                Dictionary<string, IEnumerable<ReleaseChannel>> releaseChannelLookupByProviderId =
+                            await _publishedProvidersSearchService.GetPublishedProviderReleaseChannelsLookup(results.Results?
+                                .Select(_ => new ReleaseChannelSearch
+                                {
+                                    ProviderId = _.UKPRN,
+                                    SpecificationId = _.SpecificationId,
+                                    FundingStreamId = _.FundingStreamId,
+                                    FundingPeriodId = _.FundingPeriodId
+                                }));
+
+                if (results.Results != null)
+                {
+                    foreach (PublishedSearchResult result in results.Results)
+                    {
+                        result.ReleaseChannels = GetReleaseChannels(releaseChannelLookupByProviderId, result.UKPRN);
                     }
                 }
 
