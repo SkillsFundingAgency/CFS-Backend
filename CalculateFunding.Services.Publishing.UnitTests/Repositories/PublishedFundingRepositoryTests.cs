@@ -248,7 +248,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                         c.content.id,
                                         { 
                                            'providerType' : c.content.provider.providerType,
-                                           'localAuthorityName' : c.content.provider.localAuthorityName,
+                                           'authority' : c.content.provider.authority,
                                            'name' : c.content.provider.name
                                         } AS Provider,
                                         c.content.status,

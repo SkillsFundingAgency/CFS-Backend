@@ -666,7 +666,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                         c.content.id,
                                         { 
                                            'providerType' : c.content.provider.providerType,
-                                           'localAuthorityName' : c.content.provider.localAuthorityName,
+                                           'authority' : c.content.provider.authority,
                                            'name' : c.content.provider.name
                                         } AS Provider,
                                         c.content.status,
@@ -932,7 +932,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                         'provider':{{ 
                                             'providerType' : c.content.provider.providerType,
                                             'providerSubType' : c.content.provider.providerSubType,
-                                            'localAuthorityName' : c.content.provider.localAuthorityName,
+                                            'authority' : c.content.provider.authority,
                                             'laCode' : c.content.provider.laCode,
                                             'name' : c.content.provider.name,
                                             'ukprn' : c.content.provider.ukprn,
@@ -999,7 +999,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     'provider'        : {{ 
                                         'providerType' : c.content.current.provider.providerType,
                                         'providerSubType' : c.content.current.provider.providerSubType,
-                                        'localAuthorityName' : c.content.current.provider.localAuthorityName,
+                                        'authority' : c.content.current.provider.authority,
                                         'laCode' : c.content.current.provider.laCode,
                                         'name' : c.content.current.provider.name,
                                         'ukprn' : c.content.current.provider.ukprn,
@@ -1048,7 +1048,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     'provider'        : {{ 
                                         'providerType' : c.content.released.provider.providerType,
                                         'providerSubType' : c.content.released.provider.providerSubType,
-                                        'localAuthorityName' : c.content.released.provider.localAuthorityName,
+                                        'authority' : c.content.released.provider.authority,
                                         'laCode' : c.content.released.provider.laCode,
                                         'name' : c.content.released.provider.name,
                                         'ukprn' : c.content.released.provider.ukprn,
@@ -1214,7 +1214,6 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                            'provider'        : { 
                                                'providerType' : c.content.current.provider.providerType,
                                                'providerSubType' : c.content.current.provider.providerSubType,
-                                               'localAuthorityName' : c.content.current.provider.localAuthorityName,
                                                'authority' : c.content.current.provider.authority,
                                                'name' : c.content.current.provider.name,
                                                'ukprn' : c.content.current.provider.ukprn,
@@ -1492,8 +1491,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             if (localAuthority.IsNotNullOrWhitespace())
             {
-                additionalFilter.Append($" and f.content.current.provider.localAuthorityName = @localAuthorityName ");
-                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@localAuthorityName", localAuthority));
+                additionalFilter.Append($" and f.content.current.provider.authority = @authority ");
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@authority", localAuthority));
             }
 
             if (status.IsNotNullOrWhitespace())
@@ -1573,7 +1572,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                             'providerType': c.content.provider.providerType,
                                             'providerSubType': c.content.provider.providerSubType,
                                             'laCode' : c.content.provider.laCode,
-                                            'localAuthorityName' : c.content.provider.localAuthorityName,
+                                            'authority' : c.content.provider.authority,
                                             'reasonEstablishmentOpened' : c.content.provider.reasonEstablishmentOpened,
                                             'reasonEstablishmentClosed' : c.content.provider.reasonEstablishmentClosed,
                                             'trustCode' : c.content.provider.trustCode,
