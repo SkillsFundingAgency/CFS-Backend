@@ -122,6 +122,7 @@ namespace CalculateFunding.Services.Specs
             try
             {
                 searchModel.OrderBy = DefaultOrderBy;
+                searchModel.FacetCount = 50;
 
                 IEnumerable<Task<SearchResults<SpecificationIndex>>> searchTasks = await BuildSearchTasks(searchModel, SpecificationIndexFacets);
 
