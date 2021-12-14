@@ -491,7 +491,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return QuerySql<ProviderVersionInChannel>(
             @$"
 				SELECT RPVC.[ChannelId], C.ChannelCode, C.ChannelName, RPV.MajorVersion, RPV.MinorVersion, RP.ProviderId
-				FROM [ReleaseManagement].[dbo].[ReleasedProviderVersionChannels] RPVC
+				FROM ReleasedProviderVersionChannels RPVC
 				INNER JOIN ReleasedProviderVersions RPV on RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
 				INNER JOIN (
 				SELECT Max(MajorVersion) As MajorVersion, RPV.ReleasedProviderId
@@ -500,8 +500,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 				WHERE RP.SpecificationId = @{nameof(specificationId)}
 				GROUP BY RPV.ReleasedProviderId) LatestVersion ON LatestVersion.MajorVersion = RPV.MajorVersion AND LatestVersion.ReleasedProviderId = RPV.ReleasedProviderId
 				INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
-                INNER JOIN Channel C ON C.ChannelId = RPVC.ChannelId
-				WHERE RPVC.ChannelId IN {nameof(channelIds)}",
+                INNER JOIN Channels C ON C.ChannelId = RPVC.ChannelId
+				WHERE RPVC.ChannelId IN @{nameof(channelIds)}",
             new
             {
                 specificationId,
