@@ -395,42 +395,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     It.IsAny<bool>()), Times.Never);
         }
 
-
-        [TestMethod]
-        public async Task RefreshResults_WhenPublishedProviderVariesButNoApplicableProfilingUpdatedVariationDetected_ErrorLogged()
-        {
-            GivenJobCanBeProcessed();
-            AndSpecification();
-            AndCalculationResultsBySpecificationId(new decimal?[] { 1M, 2M, 4M});
-            AndTemplateMetadataContents();
-            AndScopedProviders();
-            AndScopedProviderCalculationResults();
-            AndTemplateMapping();
-            AndTheVariationPointers();
-            AndPublishedProviders();
-            AndNewMissingPublishedProviders();
-            AndProfilePatternsForFundingStreamAndFundingPeriod();
-            GivenFundingConfiguration(new IndicativeToLiveVariationStrategy());
-            AndFundingConfiguration("NoApplicableProfilingUpdateVariationErrorDetector");
-            AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
-            AndTheFundingPeriod();
-
-            await WhenMessageReceivedWithJobIdAndCorrelationId();
-
-            _publishedProviderStatusUpdateService
-                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.AnyWithNullCheck() && _.First().Current.Errors.Any(_ => _.Type == PublishedProviderErrorType.NoApplicableProfilingUpdateVariation)),
-                    It.IsAny<Reference>(),
-                    PublishedProviderStatus.Updated,
-                    JobId,
-                    CorrelationId,
-                    It.IsAny<bool>()), Times.Once);
-
-            _publishedProviderIndexerService
-                .Verify(_ => _.IndexPublishedProviders(
-                    It.Is<IEnumerable<PublishedProviderVersion>>(_ => _.First().Errors.Any(_ => _.Type == PublishedProviderErrorType.NoApplicableProfilingUpdateVariation))), Times.Once);
-        }
-
-
         [TestMethod]
         public async Task RefreshResults_WhenPublishedProviderVariesButNoApplicableVariationDetected_ErrorLogged()
         {
