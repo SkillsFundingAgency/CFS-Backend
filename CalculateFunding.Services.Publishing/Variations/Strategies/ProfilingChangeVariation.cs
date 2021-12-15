@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                     continue;
                 }
 
-                if (previousFundingLine.Value == 0 && latestFundingLine.Value == 0)
+                if (previousFundingLine.Value == 0 && (latestFundingLine.Value == 0 || previousFundingLine.DistributionPeriods == null))
                 {
                     continue;
                 }

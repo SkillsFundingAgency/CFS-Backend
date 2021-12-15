@@ -505,45 +505,6 @@ namespace CalculateFunding.Services.Publishing
             //apply any post variation error detection that we also need to run
             foreach (PublishedProvider publishedProvider in _refreshStateService.UpdatedProviders)
             {
-                // if variation pointers have been set and there is a variation context which
-                // hasn't executed any strategies which adjust profiles on all funding lines 
-                // then we need to make sure we don't overwrite existing funding line profiles automatically
-                if (variationPointers.AnyWithNullCheck() &&
-                    publishedProvidersContext.VariationContexts.ContainsKey(publishedProvider.Current.ProviderId) &&
-                    !publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].ApplicableVariations.AnyWithNullCheck(_ => _ == "DistributionProfile"))
-                {
-                    ProviderVariationContext providerVariationContext = publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId];
-                    publishedProvider.Current.FundingLines = publishedProvider.Current.FundingLines.Select(_ =>
-                    {
-                        // persist changes if the current funding line has been changed through variation strategy
-                        // or there is no variation pointer set for the current funding line
-                        if ((providerVariationContext.AllAffectedFundingLineCodes != null && 
-                            providerVariationContext.AllAffectedFundingLineCodes.Contains(_.FundingLineCode)) ||
-                            providerVariationContext.CurrentState.FundingLineHasCustomProfile(_.FundingLineCode) ||
-                            !variationPointers.AnyWithNullCheck(vp => vp.FundingLineId == _.FundingLineCode))
-                        {
-                            return _;
-                        }
-                        else
-                        {
-                            // if a funding line is not changed through re-profiling then we need to make sure we don't override the existing profiling
-                            return new CalculateFunding.Models.Publishing.FundingLine
-                            {
-                                FundingLineCode = _.FundingLineCode,
-                                Name = _.Name,
-                                TemplateLineId = _.TemplateLineId,
-                                DistributionPeriods = providerVariationContext
-                                                        .PreRefreshState
-                                                        .FundingLines
-                                                        .First(fl => 
-                                                            fl.FundingLineCode == _.FundingLineCode).DistributionPeriods,
-                                Type = _.Type,
-                                Value = _.Value
-                            };
-                        }
-                    }).ToList();
-                }
-
                 await _detection.ApplyRefreshPostVariationsErrorDetection(publishedProvider, publishedProvidersContext);
             }
 

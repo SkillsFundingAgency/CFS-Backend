@@ -336,7 +336,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddTransient<IDetectPublishedProviderErrors, ProfilingConsistencyCheckErrorDetector>();
             builder.AddTransient<IDetectPublishedProviderErrors, MultipleSuccessorErrorDetector>();
             builder.AddTransient<IDetectPublishedProviderErrors, NoApplicableVariationErrorDetector>();
-
+            builder.AddTransient<IDetectPublishedProviderErrors, NoApplicableProfilingUpdateVariationErrorDetector>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreationLocator, GeneratePublishedFundingCsvJobsCreationLocator>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateRefreshPublishedFundingCsvJobsCreation>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateApprovePublishedFundingCsvJobsCreation>();

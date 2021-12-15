@@ -101,7 +101,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private Mock<ICacheProvider> _cacheProvider;
         private string providerVersionId;
         private PublishedProvider _missingProvider;
-        private ArraySegment<ProfileVariationPointer> _profileVariationPointers;
+        private IEnumerable<ProfileVariationPointer> _profileVariationPointers;
         private Mock<IBatchProfilingService> _batchProfilingService;
         private Mock<ICalculationsService> _calculationsService;
         private IRefreshStateService _refreshStateService;
@@ -128,10 +128,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _specificationService = new SpecificationService(_specificationsApiClient.Object, _publishingResiliencePolicies);
 
             _profileVariationPointers = ArraySegment<ProfileVariationPointer>.Empty;
-
-            _specificationsApiClient.Setup(_ =>
-                _.GetProfileVariationPointers(It.IsAny<string>()))
-                .ReturnsAsync(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, _profileVariationPointers));
 
             _providerService = new Mock<IProviderService>();
             _calculationResultsService = new Mock<ICalculationResultsService>();
@@ -398,6 +394,42 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     CorrelationId,
                     It.IsAny<bool>()), Times.Never);
         }
+
+
+        [TestMethod]
+        public async Task RefreshResults_WhenPublishedProviderVariesButNoApplicableProfilingUpdatedVariationDetected_ErrorLogged()
+        {
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId(new decimal?[] { 1M, 2M, 4M});
+            AndTemplateMetadataContents();
+            AndScopedProviders();
+            AndScopedProviderCalculationResults();
+            AndTemplateMapping();
+            AndTheVariationPointers();
+            AndPublishedProviders();
+            AndNewMissingPublishedProviders();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
+            GivenFundingConfiguration(new IndicativeToLiveVariationStrategy());
+            AndFundingConfiguration("NoApplicableProfilingUpdateVariationErrorDetector");
+            AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
+            AndTheFundingPeriod();
+
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            _publishedProviderStatusUpdateService
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.AnyWithNullCheck() && _.First().Current.Errors.Any(_ => _.Type == PublishedProviderErrorType.NoApplicableProfilingUpdateVariation)),
+                    It.IsAny<Reference>(),
+                    PublishedProviderStatus.Updated,
+                    JobId,
+                    CorrelationId,
+                    It.IsAny<bool>()), Times.Once);
+
+            _publishedProviderIndexerService
+                .Verify(_ => _.IndexPublishedProviders(
+                    It.Is<IEnumerable<PublishedProviderVersion>>(_ => _.First().Errors.Any(_ => _.Type == PublishedProviderErrorType.NoApplicableProfilingUpdateVariation))), Times.Once);
+        }
+
 
         [TestMethod]
         public async Task RefreshResults_WhenPublishedProviderVariesButNoApplicableVariationDetected_ErrorLogged()
@@ -1188,6 +1220,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     $"Received job with id: 'JobId' is already in a completed state with status {jobViewModel.CompletionStatus}", jobViewModel));
         }
 
+        private void AndTheVariationPointers()
+        {
+            _profileVariationPointers = _fundingLines.Select(_ => new ProfileVariationPointer { FundingLineId = _.FundingLineCode }); _specificationsApiClient.Setup(_ =>
+            
+            _.GetProfileVariationPointers(It.IsAny<string>()))
+            .ReturnsAsync(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, _profileVariationPointers));
+        }
+
         private void AndSpecification(bool? forceUpdateOnNextRefresh = null)
         {
             _specificationSummary = NewSpecificationSummary(_ => _
@@ -1201,6 +1241,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _specificationsApiClient.Setup(_ => _.GetSpecificationSummaryById(SpecificationId))
                 .ReturnsAsync(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, _specificationSummary));
+
+            _specificationsApiClient.Setup(_ =>
+                _.GetProfileVariationPointers(It.IsAny<string>()))
+                .ReturnsAsync(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, _profileVariationPointers));
         }
 
         private async Task WhenMessageReceivedWithJobIdAndCorrelationId()
