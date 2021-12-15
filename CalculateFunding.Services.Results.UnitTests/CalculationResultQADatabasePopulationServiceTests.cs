@@ -25,6 +25,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
         private Mock<IJobManagement> _jobs;
         private Mock<IQaSchemaService> _qaSchemaService;
+        private Mock<ISqlImporter> _sqlImporter;
 
         private CalculationResultQADatabasePopulationService _service;
 
@@ -33,6 +34,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         {
             _jobs = new Mock<IJobManagement>();
             _qaSchemaService = new Mock<IQaSchemaService>();
+            _sqlImporter = new Mock<ISqlImporter>();
 
             _service = new CalculationResultQADatabasePopulationService(
                 _qaSchemaService.Object,
@@ -41,7 +43,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                     JobsApiClient = Policy.NoOpAsync(),
                 },
                 _jobs.Object,
-                Logger.None);
+                Logger.None,
+                _sqlImporter.Object);
         }
 
         [TestMethod]

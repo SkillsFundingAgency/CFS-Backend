@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
         protected override DataColumn[] GetDataColumns(PublishedProviderVersion dto)
         {
-            FundingCalculation[] calculations = dto.Calculations
+            Calculation[] calculations = _calculations.Values
                 .OrderBy(_ => _.TemplateCalculationId)
                 .ToArray();
 
@@ -32,10 +32,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 .ToArray();
         }
 
-        private DataColumn NewCalculationDataColumn(FundingCalculation calculation)
+        private DataColumn NewCalculationDataColumn(Calculation templateCalculation)
         {
-            Calculation templateCalculation = GetTemplateCalculation(calculation.TemplateCalculationId);
-
             string columnName = $"Calc_{templateCalculation.TemplateCalculationId}_{templateCalculation.Name.Replace(" ", "")}";
 
             return templateCalculation.ValueFormat switch

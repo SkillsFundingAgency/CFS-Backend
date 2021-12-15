@@ -1,7 +1,6 @@
 using System;
 using System.Data;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Services.SqlExport;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;

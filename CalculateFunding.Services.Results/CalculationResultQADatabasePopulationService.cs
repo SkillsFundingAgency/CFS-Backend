@@ -22,20 +22,24 @@ namespace CalculateFunding.Services.Results
         private readonly AsyncPolicy _jobsPolicy;
         private readonly IJobManagement _jobs;
         private readonly IQaSchemaService _schema;
+        private readonly ISqlImporter _import;
 
         public CalculationResultQADatabasePopulationService(
             IQaSchemaService schema,
             IResultsResiliencePolicies resiliencePolicies,
             IJobManagement jobs,
-            ILogger logger)
+            ILogger logger,
+            ISqlImporter import)
             : base(jobs, logger)
         {
             Guard.ArgumentNotNull(schema, nameof(schema));
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(import, nameof(import));
 
             _schema = schema;
             _jobsPolicy = resiliencePolicies.JobsApiClient;
             _jobs = jobs;
+            _import = import;
         }
 
         public override async Task Process(Message message)
@@ -82,6 +86,8 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(populateCalculationResultQADatabaseRequest, nameof(populateCalculationResultQADatabaseRequest));
 
             await _schema.ReCreateTablesForSpecification(populateCalculationResultQADatabaseRequest.SpecificationId);
+
+            await _import.ImportData(populateCalculationResultQADatabaseRequest.SpecificationId);
         }
     }
 

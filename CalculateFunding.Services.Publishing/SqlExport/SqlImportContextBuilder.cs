@@ -10,7 +10,6 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;

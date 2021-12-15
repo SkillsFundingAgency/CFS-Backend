@@ -1,23 +1,28 @@
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.TemplateMetadata.Models;
-using CalculateFunding.Services.Publishing.SqlExport;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Results.SqlExport;
+using CalculateFunding.Services.SqlExport;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
+using CalcsApiCalculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
 
-namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
+namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 {
     [TestClass]
     public class SqlImportContextBuilderTests : QaSchemaTemplateTest
     {
         private Mock<ICosmosRepository> _cosmos;
-
         private Mock<ICosmosDbFeedIterator> _publishedProviders;
+        private Mock<ISqlNameGenerator> _sqlNameGenerator;
 
         private SqlImportContextBuilder _contextBuilder;
 
@@ -26,6 +31,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         {
             _cosmos = new Mock<ICosmosRepository>();
             _publishedProviders = new Mock<ICosmosDbFeedIterator>();
+            _sqlNameGenerator = new Mock<ISqlNameGenerator>();
 
             _contextBuilder = new SqlImportContextBuilder(_cosmos.Object,
                 Policies.Object,
@@ -34,8 +40,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 new ResiliencePolicies
                 {
                     SpecificationsApiClient = Policy.NoOpAsync(),
-                    PoliciesApiClient = Policy.NoOpAsync()
-                });
+                    PoliciesApiClient = Policy.NoOpAsync(),
+                    CalculationsApiClient = Policy.NoOpAsync(),
+                    JobsApiClient = Policy.NoOpAsync()
+                },
+                _sqlNameGenerator.Object,
+                Calculations.Object,
+                Jobs.Object);
         }
 
         [TestMethod]
@@ -54,8 +65,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             Calculation calculationFour = NewCalculation(_ => _.WithCalculations(calculationOne));
             Calculation calculationFive = NewCalculation(_ => _.WithCalculations(calculationTwo));
 
-            SchemaContext schemaContext = new SchemaContext();
-
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
                 .WithFundingStreamIds(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
@@ -67,83 +76,62 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                         calculationFive)
                     .WithFundingLines(NewFundingLine(fl1 => fl1.WithCalculations(calculationThree)))
                 )));
-            
+
             GivenTheSpecification(specificationId, specificationSummary);
+
+            IEnumerable<CalcsApiCalculation> calculations = new List<CalcsApiCalculation>()
+            {
+                NewApiCalculation(_ => _.WithType(Common.ApiClient.Calcs.Models.CalculationType.Template)),
+                NewApiCalculation(_ => _.WithType(Common.ApiClient.Calcs.Models.CalculationType.Additional))
+            };
+
+            JobSummary jobSummary = NewJobSummary();
+
+            AndTheCalculationsForSpecification(specificationId, calculations);
             AndTheFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion, fundingTemplate);
             AndTheTemplateMetadataContents(schemaVersion, fundingTemplateContents, templateMetadataContents);
             AndTheCosmosDocumentFeed(specificationId, fundingStreamId);
+            AndTheGetLatestSuccessfulJobForSpecification(specificationId, JobConstants.DefinitionNames.CreateInstructAllocationJob, jobSummary);
 
-            ISqlImportContext importContext = await WhenTheImportContextIsBuilt(specificationId, fundingStreamId, schemaContext);
+            ISqlImportContext importContext = await WhenTheImportContextIsBuilt(specificationId);
 
             importContext
                 .Should()
                 .BeOfType<SqlImportContext>();
 
             importContext
-                .SchemaContext
+                .CalculationRuns
                 .Should()
-                .BeSameAs(schemaContext);
-
-            importContext
-                .Calculations
-                .Should()
-                .BeOfType<CalculationDataTableBuilder>();
+                .BeOfType<CalculationRunDataTableBuilder>();
 
             importContext
                 .PaymentFundingLines
                 .Should()
                 .BeOfType<PaymentFundingLineDataTableBuilder>();
-            
+
             importContext
                 .InformationFundingLines
                 .Should()
                 .BeOfType<InformationFundingLineDataTableBuilder>();
 
-            //profiling is lazily initialised from the first dto profile periods
             importContext
-                .Profiling
+                .ProviderSummaries
                 .Should()
-                .BeNull();
-            
-            importContext
-                .Calculations
-                .Should()
-                .BeOfType<CalculationDataTableBuilder>();
+                .BeOfType<ProviderSummaryDataTableBuilder>();
 
             importContext
-                .Providers
+                .TemplateCalculations
                 .Should()
-                .BeOfType<ProviderDataTableBuilder>();
+                .BeOfType<TemplateCalculationsDataTableBuilder>();
 
             importContext
-                .Funding
+                .AdditionalCalculations
                 .Should()
-                .BeOfType<PublishedProviderVersionDataTableBuilder>();
-            
-            AndTheImportContextHasADataTableBuilderForTheCalculation(importContext, calculationOne);
-            AndTheImportContextHasADataTableBuilderForTheCalculation(importContext, calculationTwo);
-            AndTheImportContextHasADataTableBuilderForTheCalculation(importContext, calculationThree);
-            AndTheImportContextHasADataTableBuilderForTheCalculation(importContext, calculationFour);
-            AndTheImportContextHasADataTableBuilderForTheCalculation(importContext, calculationFive);
+                .BeOfType<AdditionalCalculationsDataTableBuilder>();
         }
 
-        private void AndTheImportContextHasADataTableBuilderForTheCalculation(ISqlImportContext importContext,
-            Calculation calculation)
-        {
-            importContext.CalculationNames
-                .TryGetValue(calculation.TemplateCalculationId, out string calculationName)
-                .Should()
-                .BeTrue();
-
-            calculationName
-                .Should()
-                .Be(calculation.Name);
-        }
-
-        private async Task<ISqlImportContext> WhenTheImportContextIsBuilt(string specificationId,
-            string fundingStreamId,
-            SchemaContext schemaContext)
-            => await _contextBuilder.CreateImportContext(specificationId, fundingStreamId, schemaContext);
+        private async Task<ISqlImportContext> WhenTheImportContextIsBuilt(string specificationId)
+            => await _contextBuilder.CreateImportContext(specificationId);
 
         private void AndTheCosmosDocumentFeed(string specificationId,
             string fundingStreamId)
@@ -151,12 +139,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                         => qry.QueryText == @"SELECT
                               *
                         FROM publishedProvider p
-                        WHERE p.documentType = 'PublishedProvider'
-                        AND p.content.current.fundingStreamId = @fundingStreamId
+                        WHERE p.documentType = 'ProviderResult'
                         AND p.content.current.specificationId = @specificationId
                         AND p.deleted = false" &&
-                           HasParameter(qry, "@specificationId", specificationId) &&
-                           HasParameter(qry, "@fundingStreamId", fundingStreamId)),
+                           HasParameter(qry, "@specificationId", specificationId)),
                     100, null))
                 .Returns(_publishedProviders.Object);
 

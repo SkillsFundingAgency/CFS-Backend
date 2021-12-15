@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,7 +30,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
         }
 
         [TestMethod]
-        public async Task ShouldThrowException_IfConextIsNotProviderCalculationResultsIndexProcessorContextType()
+        public void ShouldThrowException_IfConextIsNotProviderCalculationResultsIndexProcessorContextType()
         {
             ProviderResult providerResult = new ProviderResult();
             ISearchIndexProcessorContext context = new DefaultSearchIndexProcessorContext(new Message());

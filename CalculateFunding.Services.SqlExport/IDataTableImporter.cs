@@ -1,4 +1,3 @@
-using CalculateFunding.Services.SqlExport;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.SqlExport

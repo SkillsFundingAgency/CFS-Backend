@@ -92,7 +92,6 @@ namespace CalculateFunding.Services.Results.UnitTests
                 EstablishmentNumber = _establishmentNumber ?? NewRandomString(),
                 LACode = _laCode ?? NewRandomString(),
                 Id = _id ?? NewRandomString()
-                // LocalAuthorityName = _localAuthorityName ?? NewRandomString()
             };
         }
     }

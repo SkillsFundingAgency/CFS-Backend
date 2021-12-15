@@ -111,6 +111,10 @@ namespace CalculateFunding.Api.Results
             builder.AddScoped<ISqlNameGenerator, SqlNameGenerator>();
             builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
             builder.AddScoped<IQaSchemaService, QaSchemaService>();
+            builder.AddScoped<ISqlImporter, SqlImporter>();
+            builder.AddScoped<ISqlImportContext, SqlImportContext>();
+            builder.AddScoped<ISqlImportContextBuilder, SqlImportContextBuilder>();
+
 
             builder.AddScoped<IDataTableImporter, DataTableImporter>((ctx) =>
             {
@@ -134,6 +138,13 @@ namespace CalculateFunding.Api.Results
 
                 return new QaRepository(sqlConnectionFactory, sqlPolicyFactory);
             });
+
+            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
+
+            CosmosDbSettings settings = new CosmosDbSettings();
+            Configuration.Bind("CosmosDbSettings", settings);
+            settings.ContainerName = "calculationresults";
+            builder.AddSingleton(settings);
 
             builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
             {
@@ -175,19 +186,19 @@ namespace CalculateFunding.Api.Results
             builder.AddGraphInterServiceClient(Configuration);
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
-                           {
-                               CosmosDbSettings calcsDbSettings = new CosmosDbSettings();
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
 
-                               Configuration.Bind("CosmosDbSettings", calcsDbSettings);
+                Configuration.Bind("CosmosDbSettings", calssDbSettings);
 
-                               calcsDbSettings.ContainerName = "calculationresults";
+                calssDbSettings.ContainerName = "calculationresults";
 
-                               CosmosRepository calcsCosmosRepostory = new CosmosRepository(calcsDbSettings);
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
-                               EngineSettings engineSettings = ctx.GetService<EngineSettings>();
+                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
 
-                               return new CalculationResultsRepository(calcsCosmosRepostory, engineSettings);
-                           });
+                return new CalculationResultsRepository(calcsCosmosRepostory, engineSettings);
+            });
 
             builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>((ctx) =>
             {

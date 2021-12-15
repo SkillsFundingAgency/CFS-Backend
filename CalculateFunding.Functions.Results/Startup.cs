@@ -142,6 +142,9 @@ namespace CalculateFunding.Functions.Results
             builder.AddScoped<ISqlNameGenerator, SqlNameGenerator>();
             builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
             builder.AddScoped<IQaSchemaService, QaSchemaService>();
+            builder.AddScoped<ISqlImporter, SqlImporter>();
+            builder.AddScoped<ISqlImportContext, SqlImportContext>();
+            builder.AddScoped<ISqlImportContextBuilder, SqlImportContextBuilder>();
 
             builder.AddScoped<IDataTableImporter, DataTableImporter>((ctx) =>
             {
@@ -165,6 +168,13 @@ namespace CalculateFunding.Functions.Results
 
                 return new QaRepository(sqlConnectionFactory, sqlPolicyFactory);
             });
+
+            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
+
+            CosmosDbSettings settings = new CosmosDbSettings();
+            config.Bind("CosmosDbSettings", settings);
+            settings.ContainerName = "calculationresults";
+            builder.AddSingleton(settings);
 
             builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
             {

@@ -1,4 +1,6 @@
 ﻿using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
@@ -19,6 +21,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
     public abstract class QaSchemaTemplateTest
     {
         protected Mock<IPoliciesApiClient> Policies;
+        protected Mock<IJobsApiClient> Jobs;
         protected Mock<ISpecificationsApiClient> Specifications;
         protected Mock<ICalculationsApiClient> Calculations;
         protected Mock<ITemplateMetadataResolver> TemplateMetadataResolver;
@@ -30,6 +33,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             Policies = new Mock<IPoliciesApiClient>();
             Specifications = new Mock<ISpecificationsApiClient>();
             Calculations = new Mock<ICalculationsApiClient>();
+            Jobs = new Mock<IJobsApiClient>();
             TemplateMetadataResolver = new Mock<ITemplateMetadataResolver>();
             TemplateMetadataGenerator = new Mock<ITemplateMetadataGenerator>();
         }
@@ -44,6 +48,13 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             IEnumerable<CalcsApiCalculation> calculations)
             => Calculations.Setup(_ => _.GetCalculationsForSpecification(specificationId))
                 .ReturnsAsync(new ApiResponse<IEnumerable<CalcsApiCalculation>>(HttpStatusCode.OK, calculations));
+
+        protected void AndTheGetLatestSuccessfulJobForSpecification(
+            string specificationId,
+            string jobDefinitionId,
+            JobSummary jobSummary)
+            => Jobs.Setup(_ => _.GetLatestSuccessfulJobForSpecification(specificationId, jobDefinitionId))
+                .ReturnsAsync(new ApiResponse<JobSummary>(HttpStatusCode.OK, jobSummary));
 
         protected void AndTheFundingTemplate(string fundingStreamId,
             string fundingPeriodId,
@@ -116,6 +127,15 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             setUp?.Invoke(fundingTemplateContentsBuilder);
 
             return fundingTemplateContentsBuilder.Build();
+        }
+
+        protected JobSummary NewJobSummary(Action<JobSummaryBuilder> setUp = null)
+        {
+            JobSummaryBuilder jobSummaryBuilder = new JobSummaryBuilder();
+
+            setUp?.Invoke(jobSummaryBuilder);
+
+            return jobSummaryBuilder.Build();
         }
 
         protected static string NewRandomString() => new RandomString();

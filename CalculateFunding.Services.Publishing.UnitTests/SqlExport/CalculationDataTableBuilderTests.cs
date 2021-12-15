@@ -41,19 +41,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             _templateCalculations = AsArray(NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdOne)
                     .WithName(_calculationNameOne)
                     .WithValueFormat(CalculationValueFormat.Boolean)),
-                NewTemplateCalculation(),
                 NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdFive)
                     .WithName(_calculationNameFive)
                     .WithValueFormat(CalculationValueFormat.Number)),
-                NewTemplateCalculation(),
                 NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdFour)
                     .WithName(_calculationNameFour)
                     .WithValueFormat(CalculationValueFormat.Percentage)),
-                NewTemplateCalculation(),
                 NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdTwo)
                     .WithName(_calculationNameTwo)
                     .WithValueFormat(CalculationValueFormat.String)),
-                NewTemplateCalculation(),
                 NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdThree)
                     .WithName(_calculationNameThree)
                     .WithValueFormat(CalculationValueFormat.Currency)));
