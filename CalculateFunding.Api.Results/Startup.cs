@@ -49,8 +49,6 @@ namespace CalculateFunding.Api.Results
 {
     public class Startup
     {
-        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -70,16 +68,7 @@ namespace CalculateFunding.Api.Results
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (!string.IsNullOrEmpty(AppConfigConnectionString))
-            {
-                app.UseAzureAppConfiguration();
-            }
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (!env.IsDevelopment())
             {
                 app.UseHsts();
             }
@@ -168,7 +157,6 @@ namespace CalculateFunding.Api.Results
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
-            builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder
                 .AddSingleton<IResultsService, ResultsService>()
                 .AddSingleton<IHealthChecker, ResultsService>();
@@ -188,13 +176,13 @@ namespace CalculateFunding.Api.Results
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
                            {
-                               CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+                               CosmosDbSettings calcsDbSettings = new CosmosDbSettings();
 
-                               Configuration.Bind("CosmosDbSettings", calssDbSettings);
+                               Configuration.Bind("CosmosDbSettings", calcsDbSettings);
 
-                               calssDbSettings.ContainerName = "calculationresults";
+                               calcsDbSettings.ContainerName = "calculationresults";
 
-                               CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+                               CosmosRepository calcsCosmosRepostory = new CosmosRepository(calcsDbSettings);
 
                                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
 
