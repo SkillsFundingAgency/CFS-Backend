@@ -202,13 +202,13 @@ namespace CalculateFunding.Services.Calcs.Analysis
             }
 
             // retrieve all data field referenced from the current graph related to the dataset relationships
-            IDictionary<string, DatasetRelationshipDataFieldRelationship> datasetRelationshipDataFieldReferences = datasetRelationshipDataFieldRelationships.Select(_ =>
+            IDictionary<string, DatasetRelationshipDataFieldRelationship> datasetRelationshipDataFieldReferences = Enumerable.DistinctBy(datasetRelationshipDataFieldRelationships.Select(_ =>
                 new DatasetRelationshipDataFieldRelationship
                 {
                     //double check how we handle dynamic at the other end as I don't believe this is needed
                     DatasetRelationship = ((object)_.One).AsJson().AsPoco<DatasetRelationship>(),
                     DataField = ((object)_.Two).AsJson().AsPoco<DataField>()
-                }).DistinctBy(_ => new { _.DatasetRelationship.DatasetRelationshipId, _.DataField.UniqueDataFieldId }).ToDictionary(_ => $"{_.DatasetRelationship.DatasetRelationshipId}{_.DataField.UniqueDataFieldId}");
+                }),_ => new { _.DatasetRelationship.DatasetRelationshipId, _.DataField.UniqueDataFieldId }).ToDictionary(_ => $"{_.DatasetRelationship.DatasetRelationshipId}{_.DataField.UniqueDataFieldId}");
 
             // there are no data field references in the new set of dataset relationships so need to delete all current references
             if (allDatasetRelationshipDataFieldRelationship.IsNullOrEmpty())
@@ -218,7 +218,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             // retrieve all the new data field related to the dataset relationships
             IDictionary<string, DatasetRelationshipDataFieldRelationship> newDatasetRelationshipDataFields =
-                allDatasetRelationshipDataFieldRelationship.DistinctBy(_ => new { _.DatasetRelationship.DatasetRelationshipId, _.DataField.UniqueDataFieldId }).ToDictionary(_ => $"{_.DatasetRelationship.DatasetRelationshipId}{_.DataField.UniqueDataFieldId}");
+                Enumerable.DistinctBy(allDatasetRelationshipDataFieldRelationship, _ => new { _.DatasetRelationship.DatasetRelationshipId, _.DataField.UniqueDataFieldId }).ToDictionary(_ => $"{_.DatasetRelationship.DatasetRelationshipId}{_.DataField.UniqueDataFieldId}");
 
             // retrieve all dataset field relationships which exist in the current graph but not in the new result set
             IEnumerable<DatasetRelationshipDataFieldRelationship> removedEnums = datasetRelationshipDataFieldReferences
@@ -288,13 +288,13 @@ namespace CalculateFunding.Services.Calcs.Analysis
             }
 
             // retrieve all emums referenced from the current graph related to the calculations
-            IDictionary<string, CalculationEnumRelationship> calculationEnumReferences = calculationEnumRelations.Select(_ =>
+            IDictionary<string, CalculationEnumRelationship> calculationEnumReferences = Enumerable.DistinctBy(calculationEnumRelations.Select(_ =>
                 new CalculationEnumRelationship
                 {
                     //double check how we handle dynamic at the other end as I don't believe this is needed
                     Calculation = ((object)_.One).AsJson().AsPoco<Calculation>(),
                     Enum = ((object)_.Two).AsJson().AsPoco<Enum>()
-                }).DistinctBy(_ => new {_.Calculation.CalculationId, _.Enum.EnumId}).ToDictionary(_ => $"{_.Calculation.CalculationId}{_.Enum.EnumId}");
+                }), _ => new {_.Calculation.CalculationId, _.Enum.EnumId}).ToDictionary(_ => $"{_.Calculation.CalculationId}{_.Enum.EnumId}");
 
             // there are no enum references in the new set of calculations so need to delete all current references
             if (enumReferences.IsNullOrEmpty())
@@ -303,7 +303,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             }
 
             // retrieve all the new enums related to the calculations
-            IDictionary<string, CalculationEnumRelationship> newCalculationEnums = enumReferences.DistinctBy(_ => new {_.Calculation.CalculationId, _.Enum.EnumId}).ToDictionary(_ => $"{_.Calculation.CalculationId}{_.Enum.EnumId}");
+            IDictionary<string, CalculationEnumRelationship> newCalculationEnums = Enumerable.DistinctBy(enumReferences, _ => new {_.Calculation.CalculationId, _.Enum.EnumId}).ToDictionary(_ => $"{_.Calculation.CalculationId}{_.Enum.EnumId}");
 
             // retrieve all dataset field relationships which exist in the current graph but not in the new result set
             IEnumerable<CalculationEnumRelationship> removedEnums = calculationEnumReferences
@@ -327,13 +327,13 @@ namespace CalculateFunding.Services.Calcs.Analysis
             }
 
             // retrieve all dataset referenced from the current graph related to the calculations
-            IDictionary<string, CalculationDataFieldRelationship> calculationDatasetReferences = calculationDataFieldRelations.Select(_ =>
+            IDictionary<string, CalculationDataFieldRelationship> calculationDatasetReferences = Enumerable.DistinctBy(calculationDataFieldRelations.Select(_ =>
                 new CalculationDataFieldRelationship
                 {
                     //double check how we handle dynamic at the other end as I don't believe this is needed
                     Calculation = ((object)_.One).AsJson().AsPoco<Calculation>(),
                     DataField = ((object)_.Two).AsJson().AsPoco<DataField>()
-                }).DistinctBy(_ => new {_.Calculation.CalculationId, _.DataField.DataFieldId}).ToDictionary(_ => $"{_.Calculation.CalculationId}{_.DataField.DataFieldId}");
+                }), _ => new {_.Calculation.CalculationId, _.DataField.DataFieldId}).ToDictionary(_ => $"{_.Calculation.CalculationId}{_.DataField.DataFieldId}");
 
             // there are no dataset references in the new set of calculations so need to delete all current references
             if (datasetReferences.IsNullOrEmpty())
@@ -342,7 +342,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             }
 
             // retrieve all the new dataset fields related to the calculations
-            IDictionary<string, CalculationDataFieldRelationship> newCalculationDatafields = datasetReferences.DistinctBy(_ => new {_.Calculation.CalculationId, _.DataField.DataFieldId}).ToDictionary(_ => $"{_.Calculation.CalculationId}{_.DataField.DataFieldId}");
+            IDictionary<string, CalculationDataFieldRelationship> newCalculationDatafields = Enumerable.DistinctBy(datasetReferences, _ => new {_.Calculation.CalculationId, _.DataField.DataFieldId}).ToDictionary(_ => $"{_.Calculation.CalculationId}{_.DataField.DataFieldId}");
 
             // retrieve all dataset field relationships which exist in the current graph but not in the new result set
             IEnumerable<CalculationDataFieldRelationship> removedDatasetFields = calculationDatasetReferences
@@ -365,16 +365,16 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 return null;
             }
 
-            IDictionary<string, CalculationRelationship> calculationCalculationRelationsDictionary = calculationCalculationRelations.Select(_ =>
+            IDictionary<string, CalculationRelationship> calculationCalculationRelationsDictionary = Enumerable.DistinctBy(calculationCalculationRelations.Select(_ =>
                 new CalculationRelationship
                 {
                     //double check how we handle dynamic at the other end as I don't believe this is needed
                     CalculationOneId = ((object) _.One).AsJson().AsPoco<Calculation>().CalculationId,
                     CalculationTwoId = ((object) _.Two).AsJson().AsPoco<Calculation>().CalculationId
-                }).DistinctBy(_ => new {_.CalculationOneId, _.CalculationTwoId}).ToDictionary(_ => $"{_.CalculationOneId}{_.CalculationTwoId}");
+                }), _ => new {_.CalculationOneId, _.CalculationTwoId}).ToDictionary(_ => $"{_.CalculationOneId}{_.CalculationTwoId}");
 
             // retrieve all new calculation relationships 
-            IDictionary<string, CalculationRelationship> calculationRelationshipsDictionary = calculationRelationships.DistinctBy(_ => new {_.CalculationOneId, _.CalculationTwoId}).ToDictionary(_ => $"{_.CalculationOneId}{_.CalculationTwoId}");
+            IDictionary<string, CalculationRelationship> calculationRelationshipsDictionary = Enumerable.DistinctBy(calculationRelationships, _ => new {_.CalculationOneId, _.CalculationTwoId}).ToDictionary(_ => $"{_.CalculationOneId}{_.CalculationTwoId}");
 
             // retrieve all calculation to calculation relationships from current graph not in the new result set
             IEnumerable<CalculationRelationship> removedCalculationRelationships = calculationCalculationRelationsDictionary
@@ -608,7 +608,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             Dictionary<string, Calculation> calcDictionary = calculations.ToDictionary(_ => _.CalculationId);
 
-            calculations = calculations.Concat(calculationRelationships.DistinctBy(_ => _.CalculationTwoId).Where(_ =>
+            calculations = calculations.Concat(Enumerable.DistinctBy(calculationRelationships, _ => _.CalculationTwoId).Where(_ =>
                 !calcDictionary.ContainsKey(_.CalculationTwoId)).Select(_ =>
                     new Calculation { 
                         CalculationId = _.CalculationTwoId,
@@ -754,7 +754,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             {
                 HttpStatusCode response;
 
-                ApiEnum[] apiEnums = relationships.Select(_ => _mapper.Map<ApiEnum>(_.Enum)).DistinctBy(_ => _.EnumId).ToArray();
+                ApiEnum[] apiEnums = Enumerable.DistinctBy(relationships.Select(_ => _mapper.Map<ApiEnum>(_.Enum)), _ => _.EnumId).ToArray();
 
                 response = await _resilience.ExecuteAsync(() =>
                     _graphApiClient.UpsertEnums(apiEnums));
@@ -826,7 +826,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             HttpStatusCode response;
 
-            ApiFundingLine[] apiFundingLines = fundingLineCalculationRelationships.Select(_ => _mapper.Map<ApiFundingLine>(_.FundingLine)).DistinctBy(_ => _.FundingLineId).ToArray();
+            ApiFundingLine[] apiFundingLines = Enumerable.DistinctBy(fundingLineCalculationRelationships.Select(_ => _mapper.Map<ApiFundingLine>(_.FundingLine)), _ => _.FundingLineId).ToArray();
 
             response = await _resilience.ExecuteAsync(() =>
                 _graphApiClient.UpsertFundingLines(apiFundingLines));

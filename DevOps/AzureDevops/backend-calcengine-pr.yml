@@ -1,7 +1,7 @@
 name: $(Rev:r)
 
 pool:
-  vmImage: windows-2019
+  vmImage: windows-2022
 
 trigger:
   branches:
@@ -53,13 +53,14 @@ steps:
        ServiceName: ${{ variables.ServiceName }}
        ResourceGroup: $(ResourceGroup)
        azureSubscription: $(azureSubscription)
-       overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -apiHostingPlanName $(apiHostingPlanNamePR) -sharedLogStorageName $(sharedLogStorageName) -enableExceptionMessages "false" -FUNCTIONS_EXTENSION_VERSION $(FUNCTIONS_EXTENSION_VERSION) -calcEngineHostingPlanName $(calcEngineHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -searchName $(searchName) -enableNewProviderCalculationResultsIndex $(EnableNewProviderCalculationResultsIndex) -enableUseFieldDefinitionIdsInSourceDatasets $(EnableUseFieldDefinitionIdsInSourceDatasets) -ProviderBatchSize "300" -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -applicationInsightsName $(applicationInsightsName)'
+       overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -apiHostingPlanName $(apiHostingPlanNamePR) -sharedLogStorageName $(sharedLogStorageName) -enableExceptionMessages "false" -FUNCTIONS_EXTENSION_VERSION $(FUNCTIONS_EXTENSION_VERSION_net6) -calcEngineHostingPlanName $(calcEngineHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -searchName $(searchName) -enableNewProviderCalculationResultsIndex $(EnableNewProviderCalculationResultsIndex) -enableUseFieldDefinitionIdsInSourceDatasets $(EnableUseFieldDefinitionIdsInSourceDatasets) -ProviderBatchSize "300" -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -applicationInsightsName $(applicationInsightsName)'
 
- - template: templates\standard-service-pr-ci-build-prinfra.yml
+ - template: templates\standard-service-pr-ci-build-prinfra-noModelsTests.yml
    parameters:
      ProjectName: ${{ variables.ProjectName }}
      ServiceName: ${{ variables.ServiceName }} 
-     DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+     DotnetCoreSdkVersion: $(DotnetCoreSdkVersionNet6)
+     ApiFrameworkVersion: 'net6'
      ResourceGroup: $(ResourceGroup)
      azureSubscription: '$(azureSubscription)'
      environmentKey: $(EnvironmentKey)

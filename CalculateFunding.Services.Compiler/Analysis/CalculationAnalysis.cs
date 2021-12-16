@@ -130,8 +130,8 @@ namespace CalculateFunding.Services.Compiler.Analysis
 
             foreach (Funding funding in fundingLines.Values)
             {
-                Dictionary<string, (FundingLine, IEnumerable<string>)> fundingLineIdsBySourceCodeName = funding.FundingLines
-                    .DistinctBy(_ => $"{_.Namespace}.FundingLines.{_.SourceCodeName}")
+                Dictionary<string, (FundingLine, IEnumerable<string>)> fundingLineIdsBySourceCodeName = Enumerable.DistinctBy(funding.FundingLines,
+                    _ => $"{_.Namespace}.FundingLines.{_.SourceCodeName}")
                     .ToDictionary(_ => $"{GetSourceCodeName(_.Namespace)}.FundingLines.{_.SourceCodeName}", _ => (_ , _.Calculations.Select(calc => funding.Mappings[calc.Id])));
                 string[] fundingLineNames = fundingLines.SelectMany(_ => _.Value.FundingLines).Select(_ => $"{GetSourceCodeName(_.Namespace)}.FundingLines.{_.SourceCodeName}")
                     .ToArray();

@@ -134,7 +134,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 CalculationRelationships = calculationRelationships,
                 FundingLineRelationships = fundingLineRelationships,
                 CalculationEnumRelationships = calculationEnumRelationships,
-                CalculationDataFieldRelationships = datasetReferences.SelectMany(_ => _.Calculations.Select(calc => new CalculationDataFieldRelationship { Calculation = calc, DataField = _.DataField })).DistinctBy(_ => new { _.Calculation.CalculationId, _.DataField.DataFieldId }),
+                CalculationDataFieldRelationships = Enumerable.DistinctBy(datasetReferences.SelectMany(_ => _.Calculations.Select(calc => new CalculationDataFieldRelationship { Calculation = calc, DataField = _.DataField })), _ => new { _.Calculation.CalculationId, _.DataField.DataFieldId }),
                 DatasetDataFieldRelationships = datasetReferences.Select(_ => new DatasetDataFieldRelationship { Dataset = _.Dataset, DataField = _.DataField }),
                 DatasetDatasetDefinitionRelationships = datasetReferences.Select(_ => new DatasetDatasetDefinitionRelationship { Dataset = _.Dataset, DatasetDefinition = _.DatasetDefinition })
             };

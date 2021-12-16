@@ -189,7 +189,7 @@ namespace CalculateFunding.Services.Calcs
                     }
                 });
 
-                Dictionary<uint, FundingLine> templateFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).DistinctBy(_ => _.TemplateLineId).ToDictionary(_ => _.TemplateLineId);
+                Dictionary<uint, FundingLine> templateFundingLines = Enumerable.DistinctBy(templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines), _ => _.TemplateLineId).ToDictionary(_ => _.TemplateLineId);
 
                 templateFundingLines.ForEach(_ =>
                 {

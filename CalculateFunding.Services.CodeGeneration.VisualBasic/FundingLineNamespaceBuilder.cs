@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                                                 SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
                                     new SyntaxList<InheritsStatementSyntax>(),
                                     new SyntaxList<ImplementsStatementSyntax>(),
-                                    SyntaxFactory.List(CreateFundingLineClass(funding[@namespace].FundingLines.DistinctBy(_ => _.Id), @namespace, decimalPlaces, obsoleteItems)),
+                                    SyntaxFactory.List(CreateFundingLineClass(Enumerable.DistinctBy(funding[@namespace].FundingLines, _ => _.Id), @namespace, decimalPlaces, obsoleteItems)),
                                     SyntaxFactory.EndClassStatement()
                                 );
 

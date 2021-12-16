@@ -749,7 +749,7 @@ namespace CalculateFunding.Services.Calcs
                 return _.FundingLines;
             });
 
-            return flattenedFundingLines.DistinctBy(_ => _.TemplateLineId).Select(_ =>
+            return Enumerable.DistinctBy(flattenedFundingLines, _ => _.TemplateLineId).Select(_ =>
             {
                 return new FundingLine
                 {
@@ -757,20 +757,22 @@ namespace CalculateFunding.Services.Calcs
                     Name = _.Name,
                     Namespace = fundingStreamId,
                     SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(_.Name),
-                    Calculations = _.Calculations?.DistinctBy(_ => _.TemplateCalculationId).Select(calc => new FundingLineCalculation
-                    {
-                        Id = calc.TemplateCalculationId,
-                        Name = calc.Name,
-                        Namespace = fundingStreamId,
-                        SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calc.Name)
-                    }) ?? ArraySegment<FundingLineCalculation>.Empty,
-                    FundingLines = _.FundingLines?.DistinctBy(_ => _.TemplateLineId).Select(fl => new FundingLine
-                    {
-                        Id = fl.TemplateLineId,
-                        Name = fl.Name,
-                        Namespace = fundingStreamId,
-                        SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fl.Name)
-                    }) ?? ArraySegment<FundingLine>.Empty
+                    Calculations = _.Calculations.AnyWithNullCheck() ? 
+                        Enumerable.DistinctBy(_.Calculations, _ => _.TemplateCalculationId).Select(calc => new FundingLineCalculation
+                        {
+                            Id = calc.TemplateCalculationId,
+                            Name = calc.Name,
+                            Namespace = fundingStreamId,
+                            SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calc.Name)
+                        }) : ArraySegment<FundingLineCalculation>.Empty,
+                    FundingLines = _.FundingLines.AnyWithNullCheck() ?
+                        Enumerable.DistinctBy(_.FundingLines, _ => _.TemplateLineId).Select(fl => new FundingLine
+                        {
+                            Id = fl.TemplateLineId,
+                            Name = fl.Name,
+                            Namespace = fundingStreamId,
+                            SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fl.Name)
+                        }) : ArraySegment<FundingLine>.Empty
                 };
             }).ToList();
         }

@@ -192,7 +192,7 @@ namespace CalculateFunding.Services.Calcs
                     $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId}, funding period id {fundingPeriodId} and template version {templateVersion}");
             }
 
-            return templateMetadataContents.RootFundingLines?.Flatten(_ => _.FundingLines).DistinctBy(_ => _.TemplateLineId) ?? ArraySegment<FundingLine>.Empty;
+            return Enumerable.DistinctBy(templateMetadataContents.RootFundingLines?.Flatten(_ => _.FundingLines), _ => _.TemplateLineId) ?? ArraySegment<FundingLine>.Empty;
         }
 
         private async Task EnsureAllExistingCalculationsModified(TemplateMappingItem[] mappingsWithCalculations,

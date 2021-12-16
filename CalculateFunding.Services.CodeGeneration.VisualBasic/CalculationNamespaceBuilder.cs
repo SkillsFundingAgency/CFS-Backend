@@ -133,8 +133,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             IEnumerable<ObsoleteItem> obsoleteItems,
             IDictionary<string, Funding> funding)
         {
-            IDictionary<uint, string> templateCalculationMappings = funding.SelectMany(_ => _.Value.Mappings)
-                .DistinctBy(_ => $"{_.Key}_{_.Value}")
+            IDictionary<uint, string> templateCalculationMappings = Enumerable.DistinctBy(funding.SelectMany(_ => _.Value.Mappings)
+                , _ => $"{_.Key}_{_.Value}")
                 .ToDictionary(_ => _.Key, _ => _.Value);
 
             IDictionary<string, ObsoleteItem> obsoleteEnumsByCalculationId = obsoleteItems
