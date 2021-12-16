@@ -1,6 +1,5 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Messages;
-using CalculateFunding.Models.Specs;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

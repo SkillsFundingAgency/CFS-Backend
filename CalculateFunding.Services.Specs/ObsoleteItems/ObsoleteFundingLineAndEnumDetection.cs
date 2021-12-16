@@ -154,13 +154,13 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                                         !previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId].SequenceEqual(_.AllowedEnumTypeValues));
 
             // get all enum names which have been removed against the template calculation
-            IEnumerable<TemplateCalculationEnum> templateCalculationWithMissingEnums = unMatchedEnumCalculations.SelectMany(_ => previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId]
+            IEnumerable<TemplateCalculationEnum> templateCalculationWithMissingEnums = Enumerable.DistinctBy(unMatchedEnumCalculations.SelectMany(_ => previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId]
                                         .Except(_.AllowedEnumTypeValues)
                                         .Select(t => new TemplateCalculationEnum { 
                                             TemplateCalculation = _,
                                             EnumName = t
                                         }))
-                                        .DistinctBy(_ => _.EnumName);
+                                        , _ => _.EnumName);
 
             foreach (TemplateCalculationEnum templateCalculationMissingEnum in templateCalculationWithMissingEnums)
             {
