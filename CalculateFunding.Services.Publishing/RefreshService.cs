@@ -323,7 +323,7 @@ namespace CalculateFunding.Services.Publishing
 
             //we need enumerate a readonly cut of this as we add to it in some variations now (for missing providers not in scope)
             Dictionary<string, PublishedProvider> publishedProvidersReadonlyDictionary = publishedProviders.ToDictionary(_ => _.Key, _ => _.Value);
-            
+
             _logger.Information($"Start getting funding configuration for funding stream '{fundingStream.Id}'");
             // set up the published providers context for error detection laterawait 
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
@@ -331,7 +331,7 @@ namespace CalculateFunding.Services.Publishing
 
             HashSet<string> indicativeStatus = new HashSet<string>(fundingConfiguration?.IndicativeOpenerProviderStatus ?? ArraySegment<string>.Empty);
 
-            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = 
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData =
                 await _organisationGroupService.GenerateOrganisationGroups(
                     scopedProviders.Values,
                     publishedProvidersReadonlyDictionary.Values,
@@ -505,48 +505,6 @@ namespace CalculateFunding.Services.Publishing
             //apply any post variation error detection that we also need to run
             foreach (PublishedProvider publishedProvider in _refreshStateService.UpdatedProviders)
             {
-                // if variation pointers have been set and there is a variation context which
-                // hasn't executed any strategies which adjust profiles on all funding lines 
-                // then we need to make sure we don't overwrite existing funding line profiles automatically
-                if (publishedProvider.Released != null &&
-                    variationPointers.AnyWithNullCheck() &&
-                    publishedProvidersContext.VariationContexts.ContainsKey(publishedProvider.Current.ProviderId) &&
-                    !publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].ApplicableVariations.AnyWithNullCheck(_ => _ == "DistributionProfile"))
-                {
-                    ProviderVariationContext providerVariationContext = publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId];
-                    publishedProvider.Current.FundingLines = publishedProvider.Current.FundingLines.Select(_ =>
-                    {
-                        // persist changes if the current funding line has been changed through variation strategy
-                        // or there is no variation pointer set for the current funding line
-                        if ((providerVariationContext.AllAffectedFundingLineCodes != null &&
-                            providerVariationContext.AllAffectedFundingLineCodes.Contains(_.FundingLineCode)) ||
-                            providerVariationContext.CurrentState.FundingLineHasCustomProfile(_.FundingLineCode) ||
-                            !variationPointers.AnyWithNullCheck(vp => vp.FundingLineId == _.FundingLineCode))
-                        {
-                            return _;
-                        }
-                        else
-                        {
-                            CalculateFunding.Models.Publishing.FundingLine currentFundingLine = providerVariationContext
-                                                    .PreRefreshState
-                                                    .FundingLines
-                                                    .First(fl =>
-                                                        fl.FundingLineCode == _.FundingLineCode);
-
-                            // if a funding line is not changed through re-profiling then we need to make sure we don't override the existing profiling
-                            return new CalculateFunding.Models.Publishing.FundingLine
-                            {
-                                FundingLineCode = _.FundingLineCode,
-                                Name = _.Name,
-                                TemplateLineId = _.TemplateLineId,
-                                DistributionPeriods = currentFundingLine.DistributionPeriods,
-                                Type = _.Type,
-                                Value = currentFundingLine.Value
-                            };
-                        }
-                    }).ToList();
-                }
-
                 await _detection.ApplyRefreshPostVariationsErrorDetection(publishedProvider, publishedProvidersContext);
             }
 
