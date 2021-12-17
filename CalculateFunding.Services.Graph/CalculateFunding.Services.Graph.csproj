@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Graph" Version="3.3.4" />
+    <PackageReference Include="CalculateFunding.Common.Graph" Version="3.4.2" />
   </ItemGroup>
 
   <ItemGroup>

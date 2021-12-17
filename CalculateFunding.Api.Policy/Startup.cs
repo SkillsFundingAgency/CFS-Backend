@@ -55,7 +55,10 @@ namespace CalculateFunding.Api.Policy
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
-               .AddNewtonsoftJson();
+               .AddNewtonsoftJson(options =>
+               {
+                   options.SerializerSettings.MaxDepth = null;
+               });
 
             RegisterComponents(services);
         }
