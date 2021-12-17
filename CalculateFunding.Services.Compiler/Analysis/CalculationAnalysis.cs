@@ -6,6 +6,9 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Compiler.Interfaces;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using FundingLine = CalculateFunding.Models.Calcs.FundingLine;
 using GraphFundingLine = CalculateFunding.Models.Graph.FundingLine;
@@ -18,21 +21,14 @@ namespace CalculateFunding.Services.Compiler.Analysis
         {
             Guard.IsNotEmpty(calculations, nameof(calculations));
             
-            Dictionary<string, string> calculationIdsBySourceCodeName = calculations
-                .ToDictionary(_ => $"{GetSourceCodeName(_.Namespace)}.{_.Current.SourceCodeName}", _ => _.Id);
-            string[] calculationNames = calculations.Select(_ => $"{GetSourceCodeName(_.Namespace)}.{_.Current.SourceCodeName}")
-                .ToArray();
-
             return calculations.SelectMany(_ =>
             {
-                IEnumerable<string> relatedCalculationNames = SourceCodeHelpers.GetReferencedCalculations(calculationNames, _.Current.SourceCode);
+                IEnumerable<Calculation> relatedCalculationNames = GetReferencedCalculations(GetSourceCodeName(_.Namespace), _.Current.SourceCode, calculations);
 
                 return relatedCalculationNames.Select(rel => new CalculationRelationship
                 {
                     CalculationOneId = _.Id,
-                    CalculationTwoId = calculationIdsBySourceCodeName.TryGetValue(rel, out string twoId) ? 
-                        twoId : 
-                        throw new InvalidOperationException($"Could not locate a calculation id for sourceCodeName {rel}")
+                    CalculationTwoId = rel.Id
                 });
             });
         }
@@ -196,6 +192,56 @@ namespace CalculateFunding.Services.Compiler.Analysis
                     CalculationTwoId = null
                 });
             }).ToList();
+        }
+
+        public IEnumerable<Calculation> GetReferencedCalculations(string @namespace, string sourceCode, IEnumerable<Calculation> calculations)
+        {
+            Guard.IsNullOrWhiteSpace(@namespace, nameof(@namespace));
+
+            if (string.IsNullOrWhiteSpace(sourceCode) || calculations == null || !calculations.Any())
+            {
+                return Enumerable.Empty<Calculation>();
+            }
+
+            SyntaxTree calculationSyntaxTree = VisualBasicSyntaxTree.ParseText(sourceCode);
+            SyntaxNode root = calculationSyntaxTree.GetRoot();
+
+            SyntaxNode[] invocationsToCheck = root
+                .DescendantNodes()
+                .Where(_ => _.Parent is InvocationExpressionSyntax && !(_ is ArgumentListSyntax))
+                .ToArray();
+
+            List<Calculation> referencedCalculations = new List<Calculation>();
+            foreach(Calculation calculation in calculations)
+            {
+                if(invocationsToCheck.Any(_ => HasReference(_, @namespace, calculation.Namespace, calculation.Current.SourceCodeName)))
+                {
+                    referencedCalculations.Add(calculation);
+                }
+            }
+
+            return referencedCalculations;
+        }
+
+        private const string FundingLinesNamespace = "FundingLines";
+
+        private bool HasReference(SyntaxNode statementSyntax,
+            string defaultNamespace,
+            string calculationNamespace,
+            string calculationName)
+        {
+            IEnumerable<string> texts = (statementSyntax is MemberAccessExpressionSyntax) ? statementSyntax.DescendantNodes().Select(_ => _.GetText().ToString().Trim()) :
+                                        (statementSyntax is IdentifierNameSyntax) ? new[] { defaultNamespace, statementSyntax.GetText().ToString().Trim() } :
+                                        new[] { string.Empty };
+
+            // if this is a funding line and we haven't passed the funding line namespace in then we need to filter it out
+            if (calculationNamespace != FundingLinesNamespace && texts.Any(_ => _.Equals(FundingLinesNamespace, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return false;
+            }
+
+            return texts.Any(_ => _.Equals(calculationNamespace, StringComparison.InvariantCultureIgnoreCase)) &&
+                   texts.Any(_ => _.Equals(calculationName, StringComparison.InvariantCultureIgnoreCase));
         }
     }
 }

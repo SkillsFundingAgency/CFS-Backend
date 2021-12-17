@@ -32,6 +32,152 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
             _analysis = new CalculationAnalysis();
         }
 
+        private IEnumerable<Calculation> BuildStandardAdditionalCalculationList()
+        {
+            return new[]
+                {
+                    new Calculation { Id = Guid.NewGuid().ToString(), Current = new CalculationVersion { Namespace = CalculationNamespace.Additional, SourceCodeName = "CalcOne" } },
+                    new Calculation { Id = Guid.NewGuid().ToString(), Current = new CalculationVersion { Namespace = CalculationNamespace.Additional, SourceCodeName = "CalcTwo" } },
+                    new Calculation { Id = Guid.NewGuid().ToString(), Current = new CalculationVersion { Namespace = CalculationNamespace.Additional, SourceCodeName = "CalcThree" } },
+                    new Calculation { Id = Guid.NewGuid().ToString(), Current = new CalculationVersion { Namespace = CalculationNamespace.Additional, SourceCodeName = "CalcFour" } }
+                };
+        }
+
+        private IEnumerable<Calculation> BuildStandardTemplateCalculationList()
+        {
+            return new[]
+                {
+                    new Calculation { Id = Guid.NewGuid().ToString(), FundingStreamId = "PSG", Current = new CalculationVersion { Namespace = CalculationNamespace.Template, SourceCodeName = "CalcOne" } },
+                    new Calculation { Id = Guid.NewGuid().ToString(), FundingStreamId = "PSG", Current = new CalculationVersion { Namespace = CalculationNamespace.Template, SourceCodeName = "CalcTwo" } },
+                    new Calculation { Id = Guid.NewGuid().ToString(), FundingStreamId = "PSG", Current = new CalculationVersion { Namespace = CalculationNamespace.Template, SourceCodeName = "CalcThree" } },
+                    new Calculation { Id = Guid.NewGuid().ToString(), FundingStreamId = "PSG", Current = new CalculationVersion { Namespace = CalculationNamespace.Template, SourceCodeName = "CalcFour" } }
+                };
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_AdditionalCalculationWithFullyQualifiedReferencedCalcs()
+        {
+            var sourceCode = "Dim a As Decimal? = Calculations.CalcOne()\na = Calculations.CalcTwo() + 3\nIf Calculations.CalcThree() Then\nReturn Calculations.CalcFour()\nEnd If";
+
+            IEnumerable<Calculation> referencedCalculations = _analysis.GetReferencedCalculations("Calculations", sourceCode, BuildStandardAdditionalCalculationList());
+
+            Assert.IsTrue(referencedCalculations.Count() == 4);
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_AdditionalCalculationWithUnqualifiedReferencedCalcs()
+        {
+            var sourceCode = "Dim a As Decimal? = CalcOne()\na = CalcTwo() + 3\nIf CalcThree() Then\nReturn CalcFour()\nEnd If";
+
+            IEnumerable<Calculation> referencedCalculations = _analysis.GetReferencedCalculations("Calculations", sourceCode, BuildStandardAdditionalCalculationList());
+
+            Assert.IsTrue(referencedCalculations.Count() == 4);
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_AdditionalCalculationWithUnqualifiedReferencedCalcs_InDifferentNamespace()
+        {
+            var sourceCode = "Dim a As Decimal? = CalcOne()\na = CalcTwo() + 3\nIf CalcThree() Then\nReturn CalcFour()\nEnd If";
+
+            IEnumerable<Calculation> referencedCalculations = _analysis.GetReferencedCalculations("DifferentNamespace", sourceCode, BuildStandardAdditionalCalculationList());
+
+            Assert.IsTrue(!referencedCalculations.Any());
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_AdditionalCalculationWithFullyQualifiedReferencedCalcs_InDifferentNamespace()
+        {
+            var sourceCode = "Dim a As Decimal? = Calculations.CalcOne()\na = Calculations.CalcTwo() + 3\nIf Calculations.CalcThree() Then\nReturn Calculations.CalcFour()\nEnd If";
+
+            IEnumerable<Calculation> referencedCalculations = _analysis.GetReferencedCalculations("DifferentNamespace", sourceCode, BuildStandardAdditionalCalculationList());
+
+            Assert.IsTrue(referencedCalculations.Count() == 4);
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_TemplateCalculationWithFullyQualifiedReferencedCalcs()
+        {
+            var sourceCode = "Dim a As Decimal? = PSG.CalcOne()\na = PSG.CalcTwo() + 3\nIf PSG.CalcThree() Then\nReturn PSG.CalcFour()\nEnd If";
+
+            IEnumerable<Calculation> referencedCalculations = _analysis.GetReferencedCalculations("PSG", sourceCode, BuildStandardTemplateCalculationList());
+
+            Assert.IsTrue(referencedCalculations.Count() == 4);
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_TemplateCalculationWithUnqualifiedReferencedCalcs()
+        {
+            var sourceCode = "Dim a As Decimal? = CalcOne()\na = CalcTwo() + 3\nIf CalcThree() Then\nReturn CalcFour()\nEnd If";
+
+            IEnumerable<Calculation> referencedCalculations = _analysis.GetReferencedCalculations("PSG", sourceCode, BuildStandardTemplateCalculationList());
+
+            Assert.IsTrue(referencedCalculations.Count() == 4);
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_GivenAnEmptySourceCodeString_ReturnsEmptyList()
+        {
+            var sourceCode = "";
+
+            IEnumerable<Calculation> referencedCalculations = _analysis.GetReferencedCalculations("Calculations", sourceCode, BuildStandardAdditionalCalculationList());
+
+            referencedCalculations
+                .Any()
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_GivenAnEmptyNamespaceString_ThrowsArgumentNullException()
+        {
+            var sourceCode = "return 0";
+
+            Action invocation = () => _analysis.GetReferencedCalculations(String.Empty, sourceCode, BuildStandardAdditionalCalculationList());
+
+            invocation
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_GivenEmptyListOfCalcs_ReturnsEmptyList()
+        {
+            var sourceCode = "return Calculations.CalcFive() + Calculations.CalcSix()";
+
+            IEnumerable<Calculation> referencedCalculations = _analysis.GetReferencedCalculations("Calculations", sourceCode, Enumerable.Empty<Calculation>());
+
+            referencedCalculations
+                .Any()
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_GivenNullListOfCalcs_ReturnsEmptyList()
+        {
+            var sourceCode = "return Calculations.CalcFive() + Calculations.CalcSix()";
+
+            IEnumerable<Calculation> referencedCalculations = _analysis.GetReferencedCalculations("Calculations", sourceCode, null);
+
+            referencedCalculations
+                .Any()
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public void GetReferencedCalculations_GivenListOfCalcsAndSourceCodeDoesNotContainCalc_ReturnsEmptyList()
+        {
+            var sourceCode = "return Calculations.CalcFive() + Calculations.CalcSix()";
+
+            IEnumerable<Calculation> referencedCalculations = _analysis.GetReferencedCalculations("Calculations", sourceCode, BuildStandardAdditionalCalculationList());
+
+            referencedCalculations
+                .Any()
+                .Should()
+                .BeFalse();
+        }
+
         [TestMethod]
         [DynamicData(nameof(MissingCalculationExamples), DynamicDataSourceType.Method)]
         public void ThrowsArgumentExceptionIfNoCalculationsSuppliedToAnalyse(IEnumerable<Calculation> calculations)
