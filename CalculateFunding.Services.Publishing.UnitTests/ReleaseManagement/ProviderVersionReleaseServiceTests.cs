@@ -137,6 +137,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 FundingId = s.FundingId,
                 MajorVersion = s.MajorVersion,
                 MinorVersion = s.MinorVersion,
+                TotalFunding = s.TotalFunding ?? 0m,
                 ReleasedProviderId = new RandomNumberBetween(1, 1000)
             }).ToArray();
 

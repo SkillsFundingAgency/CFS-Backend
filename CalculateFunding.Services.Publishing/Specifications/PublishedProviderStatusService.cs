@@ -18,6 +18,9 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using Serilog;
 using Newtonsoft.Json;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
+using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
@@ -37,6 +40,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private readonly ICsvUtils _csvUtils;
         private readonly IBlobClient _blobClient;
         private readonly IPoliciesService _policiesService;
+        private readonly IReleaseManagementRepository _releaseManagementRepository;
         private readonly ILogger _logger;
 
         public PublishedProviderStatusService(
@@ -50,6 +54,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             IBlobClient blobClient,
             IPublishedProviderFundingSummaryProcessor publishedProviderFundingSummaryProcessor,
             IPoliciesService policiesService,
+            IReleaseManagementRepository releaseManagementRepository,
             ILogger logger)
         {
             Guard.ArgumentNotNull(validator, nameof(validator));
@@ -65,6 +70,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(publishedProviderFundingSummaryProcessor, nameof(publishedProviderFundingSummaryProcessor));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _validator = validator;
@@ -79,6 +85,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             _blobClient = blobClient;
             _publishedProviderFundingSummaryProcessor = publishedProviderFundingSummaryProcessor;
             _policiesService = policiesService;
+            _releaseManagementRepository = releaseManagementRepository;
             _logger = logger;
         }
 
@@ -121,17 +128,17 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
                 return new OkObjectResult(fundingSummary);
             }
-            catch(KeyNotFoundException ex)
+            catch (KeyNotFoundException ex)
             {
                 return new BadRequestObjectResult(ex.Message);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error(ex, $"Error in GetPublishedProviderReleaseFundingSummary for specification {specificationId} with params {JsonConvert.SerializeObject(request)}: {ex.Message}");
                 return new InternalServerErrorResult("An error occurred while generating funding summary");
             }
         }
-        
+
         public async Task<IActionResult> GetProviderStatusCounts(string specificationId,
             string providerType,
             string localAuthority,
@@ -187,49 +194,108 @@ namespace CalculateFunding.Services.Publishing.Specifications
         public async Task<IActionResult> GetProviderDataForBatchApprovalAsCsv(PublishedProviderIdsRequest providerIds, string specificationId)
         {
             return await GetProviderDataAsCsv(
-                providerIds, 
-                specificationId, 
-                $"ProvidersToApprove-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}", 
-                PublishedProviderStatus.Draft, 
+                providerIds,
+                specificationId,
+                $"ProvidersToApprove-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}",
+                PublishedProviderStatus.Draft,
                 PublishedProviderStatus.Updated);
         }
 
         public async Task<IActionResult> GetProviderDataForBatchReleaseAsCsv(PublishedProviderIdsRequest providerIds, string specificationId)
         {
             return await GetProviderDataAsCsv(
-                providerIds, 
-                specificationId, 
-                $"ProvidersToRelease-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}", 
+                providerIds,
+                specificationId,
+                $"ProvidersToRelease-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}",
                 PublishedProviderStatus.Approved);
         }
 
         public async Task<IActionResult> GetProviderDataForAllApprovalAsCsv(string specificationId)
         {
-            IEnumerable<string> publishedProviderIds = 
-                await _publishedFundingRepositoryResilience.ExecuteAsync(() => 
+            IEnumerable<string> publishedProviderIds =
+                await _publishedFundingRepositoryResilience.ExecuteAsync(() =>
                     _publishedFundingRepository.GetPublishedProviderPublishedProviderIds(specificationId));
             PublishedProviderIdsRequest publishedProviderIdsRequest = new PublishedProviderIdsRequest { PublishedProviderIds = publishedProviderIds };
 
             return await GetProviderDataAsCsv(
-                publishedProviderIdsRequest, 
-                specificationId, 
-                $"ProvidersToApprove-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}", 
-                PublishedProviderStatus.Draft, 
+                publishedProviderIdsRequest,
+                specificationId,
+                $"ProvidersToApprove-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}",
+                PublishedProviderStatus.Draft,
                 PublishedProviderStatus.Updated);
         }
 
         public async Task<IActionResult> GetProviderDataForAllReleaseAsCsv(string specificationId)
         {
-            IEnumerable<string> publishedProviderIds = 
-                await _publishedFundingRepositoryResilience.ExecuteAsync(() => 
+            IEnumerable<string> publishedProviderIds =
+                await _publishedFundingRepositoryResilience.ExecuteAsync(() =>
                     _publishedFundingRepository.GetPublishedProviderPublishedProviderIds(specificationId));
             PublishedProviderIdsRequest publishedProviderIdsRequest = new PublishedProviderIdsRequest { PublishedProviderIds = publishedProviderIds };
 
             return await GetProviderDataAsCsv(
-                publishedProviderIdsRequest, 
-                specificationId, 
-                $"ProvidersToRelease-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}", 
+                publishedProviderIdsRequest,
+                specificationId,
+                $"ProvidersToRelease-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}",
                 PublishedProviderStatus.Approved);
+        }
+
+        public async Task<IActionResult> GetPublishedProviderTransactions(string specificationId,
+            string providerId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+
+            IEnumerable<PublishedProviderVersion> unreleasedProviderVersions = await _publishedFundingRepositoryResilience.ExecuteAsync(() =>
+                _publishedFundingRepository.GetUnreleasedPublishedProviderVersions(specificationId, providerId));
+
+            IEnumerable<ReleasedDataAllocationHistory> releasedData =
+                await _releaseManagementRepository.GetPublishedProviderTransactionHistory(specificationId, providerId);
+
+            IEnumerable<ReleasePublishedProviderTransaction> unreleasedTransaction = unreleasedProviderVersions.Select(x => new ReleasePublishedProviderTransaction
+            {
+                ProviderId = x.ProviderId,
+                Author = x.Author,
+                Date = x.Date,
+                Status = x.Status,
+                TotalFunding = x.TotalFunding,
+                MajorVersion = x.MajorVersion,
+                MinorVersion = x.MinorVersion,
+                ChannelCode = null,
+                ChannelName = null,
+                VariationReasons = x.VariationReasons.Select(_ => _.ToString()).ToArray()
+            });
+
+            IEnumerable<ReleasePublishedProviderTransaction> releasedTransactions = releasedData
+                .GroupBy(c => new
+                {
+                    c.ProviderId,
+                    c.AuthorName,
+                    c.AuthorId,
+                    c.StatusChangedDate,
+                    c.ChannelCode,
+                    c.ChannelName,
+                    c.MajorVersion,
+                    c.MinorVersion,
+                    c.TotalFunding
+                }).Select(x => new ReleasePublishedProviderTransaction
+                {
+                    ProviderId = x.Key.ProviderId,
+                    Author = new Reference(x.Key.AuthorId, x.Key.AuthorName),
+                    Date = x.Key.StatusChangedDate,
+                    Status = PublishedProviderStatus.Released,
+                    MajorVersion = x.Key.MajorVersion,
+                    MinorVersion = x.Key.MinorVersion,
+                    ChannelCode = x.Key.ChannelCode,
+                    ChannelName = x.Key.ChannelName,
+                    VariationReasons = x.Select(s => s.VariationReasonName).ToArray()
+                });
+
+            return new OkObjectResult(
+                unreleasedTransaction
+                .Concat(releasedTransactions)
+                .OrderByDescending(_ => _.Date)
+                .ThenBy(_ => _.ChannelCode)
+                .ToList());
         }
 
         private async Task<IActionResult> GetProviderDataAsCsv(PublishedProviderIdsRequest providerIds, string specificationId, string csvFileSuffix, params PublishedProviderStatus[] statuses)

@@ -23,5 +23,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
         /// </summary>
         [Required]
         public string FundingId { get; set; }
+
+        [Required]
+        public decimal TotalFunding { get; set; }
     }
 }

@@ -7,9 +7,7 @@ using CalculateFunding.Common.Config.ApiClient.Calcs;
 using System.Threading.Tasks;
 using System;
 using CalculateFunding.Api.Calcs.IntegrationTests.Data;
-using System.Reflection;
 using System.Linq;
-using CalculateFunding.IntegrationTests.Common.Data;
 using FluentAssertions;
 using System.Collections.Generic;
 

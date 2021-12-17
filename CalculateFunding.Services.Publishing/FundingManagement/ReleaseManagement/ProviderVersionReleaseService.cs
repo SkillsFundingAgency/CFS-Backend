@@ -44,6 +44,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     MajorVersion = providerVersion.MajorVersion,
                     MinorVersion = providerVersion.MinorVersion,
                     FundingId = providerVersion.FundingId,
+                    TotalFunding = providerVersion.TotalFunding ?? 0m,
                     ReleasedProviderId = _releaseToChannelSqlMappingContext.ReleasedProviders[providerVersion.ProviderId].ReleasedProviderId
                 });
 

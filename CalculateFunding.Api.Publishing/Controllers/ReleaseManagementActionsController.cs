@@ -6,6 +6,7 @@ using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Publishing.Controllers
@@ -49,5 +50,17 @@ namespace CalculateFunding.Api.Publishing.Controllers
             [FromBody] ReleaseFundingPublishProvidersRequest request,
             [FromRoute] string specificationId) =>
             await _publishedProviderStatusService.GetApprovedPublishedProviderReleaseFundingSummary(request, specificationId);
+
+        /// <summary>
+        /// Get all provider versions (summary) for provider for all funding streams
+        /// </summary>
+        /// <param name="specificationId">Specification Id</param>
+        /// <param name="providerId">Provider Id</param>
+        /// <returns></returns>
+        [HttpGet("api/specifications/{specificationId}/provider/{providerId}/publishedprovidertransactions")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<PublishedProviderTransaction>))]
+        public async Task<IActionResult> GetPublishedProviderTransactions([FromRoute] string specificationId,
+            [FromRoute] string providerId) =>
+            await _publishedProviderStatusService.GetPublishedProviderTransactions(specificationId, providerId);
     }
 }

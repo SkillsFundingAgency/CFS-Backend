@@ -23,6 +23,8 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using NSubstitute.ExceptionExtensions;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
@@ -43,6 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private ICsvUtils _csvUtils;
         private IBlobClient _blobClient;
         private IPoliciesService _policiesService;
+        private IReleaseManagementRepository _releaseManagementRepository;
         private ILogger _logger;
         private string _specificationId;
 
@@ -66,6 +69,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _fundingCountProcessor = Substitute.For<IPublishedProviderFundingCountProcessor>();
             _fundingCsvDataProcessor = Substitute.For<IPublishedProviderFundingCsvDataProcessor>();
             _publishedProviderFundingSummaryProcessor = Substitute.For<IPublishedProviderFundingSummaryProcessor>();
+            _releaseManagementRepository = Substitute.For<IReleaseManagementRepository>();
             _csvUtils = Substitute.For<ICsvUtils>();
             _blobClient = Substitute.For<IBlobClient>();
             _logger = Substitute.For<ILogger>();
@@ -82,6 +86,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 _blobClient,
                 _publishedProviderFundingSummaryProcessor,
                 _policiesService,
+                _releaseManagementRepository,
                 _logger);
         }
 
@@ -643,6 +648,83 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .BeOfType<string>();
         }
 
+        [TestMethod]
+        public async Task GetPublishedProviderTransactions_ReturnsSuccess()
+        {
+            string providerId = NewRandomString();
+            Reference author = new Reference(NewRandomString(), NewRandomString());
+
+            GivenTheUnreleasedPublishedProviderVersions(providerId, new PublishedProviderVersion
+            {
+                ProviderId = providerId,
+                Author = author,
+                Date = new RandomDateTime(),
+                Status = PublishedProviderStatus.Approved,
+                TotalFunding = new decimal(NewRandomNumber()),
+                MajorVersion = NewRandomNumber(),
+                MinorVersion = NewRandomNumber(),
+                VariationReasons = new List<VariationReason>
+                {
+                    VariationReason.AuthorityFieldUpdated,
+                    VariationReason.CalculationValuesUpdated
+                }
+            });
+
+            string authorId = NewRandomString();
+            string authorName = NewRandomString();
+            DateTime statusChangedDate = new RandomDateTime();
+            int majorVersion = NewRandomNumber();
+            int minorVersion = NewRandomNumber();
+            decimal totalFunding = new decimal(NewRandomNumber());
+
+            GivenTheReleasedDataAllocationHistory(providerId, new ReleasedDataAllocationHistory
+            {
+                ProviderId = providerId,
+                AuthorId = authorId,
+                AuthorName = authorName,
+                StatusChangedDate = statusChangedDate,
+                MajorVersion = majorVersion,
+                MinorVersion = minorVersion,
+                TotalFunding = totalFunding,
+                ChannelCode = "Statement",
+                ChannelName = "Statement",
+                VariationReasonName = NewRandomString()
+            }, new ReleasedDataAllocationHistory
+            {
+                ProviderId = providerId,
+                AuthorId = authorId,
+                AuthorName = authorName,
+                StatusChangedDate = statusChangedDate,
+                MajorVersion = majorVersion,
+                MinorVersion = minorVersion,
+                TotalFunding = totalFunding,
+                ChannelCode = "Contracting",
+                ChannelName = "Contracting",
+                VariationReasonName = NewRandomString()
+            });
+
+            OkObjectResult result = await WhenGetPublishedProviderTransactions(_specificationId, providerId) as OkObjectResult;
+
+            result
+                .Should()
+                .NotBeNull();
+
+            result.Value
+                .Should()
+                .BeOfType<List<ReleasePublishedProviderTransaction>>();
+
+            List<ReleasePublishedProviderTransaction> values = result.Value as List<ReleasePublishedProviderTransaction>;
+
+            values
+                .Should()
+                .HaveCount(3);
+
+            values
+                .Where(_ => _.Status == PublishedProviderStatus.Released)
+                .Should()
+                .HaveCount(2);
+        }
+
         public void GivenBlobUrl(string blobNamePrefix, string expectedUrl)
         {
             _blobClient.GetBlobSasUrl(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)), Arg.Any<DateTimeOffset>(), Arg.Is(SharedAccessBlobPermissions.Read), Arg.Is(BlobContainerName))
@@ -715,6 +797,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             IEnumerable<string> channelCodes, string specificationId)
             => await _service.GetApprovedPublishedProviderReleaseFundingSummary(NewReleaseSummaryRequest(
                 _ => _.WithProviders(publishedProviderIds.ToArray()).WithChannelCodes(channelCodes.ToArray())), specificationId);
+
+        private async Task<IActionResult> WhenGetPublishedProviderTransactions(string specificationId, string providerId)
+            => await _service.GetPublishedProviderTransactions(specificationId, providerId);
 
         private async Task<IActionResult> WhenTheGetProviderDataForAllReleaseAsCsvExecuted(string specificationId)
             => await _service.GetProviderDataForAllReleaseAsCsv(specificationId);
@@ -800,6 +885,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _publishedFundingRepository.GetPublishedProviderPublishedProviderIds(_specificationId)
                 .Returns(publishedProviderIds);
         }
+
+        private void GivenTheUnreleasedPublishedProviderVersions(string providerId, params PublishedProviderVersion[] publishedProviderVersions) =>
+            _publishedFundingRepository.GetUnreleasedPublishedProviderVersions(_specificationId, providerId)
+                .Returns(publishedProviderVersions);
+
+        private void GivenTheReleasedDataAllocationHistory(string providerId, params ReleasedDataAllocationHistory[] releasedDataAllocationHistories) =>
+            _releaseManagementRepository.GetPublishedProviderTransactionHistory(_specificationId, providerId)
+            .Returns(releasedDataAllocationHistories);
 
         private async Task WhenThePublishedProvidersStatusAreQueried(bool? isIndicative = null,
             string monthYearOpened = null)

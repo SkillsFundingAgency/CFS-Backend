@@ -276,6 +276,30 @@ namespace CalculateFunding.Services.Publishing.Repositories
              });
         }
 
+        public async Task<IEnumerable<PublishedProviderVersion>> GetUnreleasedPublishedProviderVersions(string specificationId,
+            string providerId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+
+            return await _repository
+             .QuerySql<PublishedProviderVersion>(new CosmosDbQuery
+             {
+                 QueryText = @"SELECT * FROM c
+                                WHERE c.content.specificationId = @specificationId
+                                AND c.content.providerId = @providerId
+                                AND c.content.status <> 'Released'
+                                AND c.deleted = false
+                                AND c.documentType = 'PublishedProviderVersion'
+                                ORDER BY c.content.date desc",
+                 Parameters = new[]
+                 {
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@providerId", providerId)
+                 }
+             });
+        }
+
         public async Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersionsForApproval(
             string specificationId,
             string fundingStreamId,

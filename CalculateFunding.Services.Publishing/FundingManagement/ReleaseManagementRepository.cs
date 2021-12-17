@@ -575,5 +575,24 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             return fundingGroupProvider;
         }
+
+        public async Task<IEnumerable<ReleasedDataAllocationHistory>> GetPublishedProviderTransactionHistory(string specificationId, string providerId)
+        {
+            return await QuerySql<ReleasedDataAllocationHistory>(
+            @$"
+                SELECT RP.ProviderId, RPV.MajorVersion, RPV.MinorVersion, C.ChannelName, C.ChannelCode, VR.VariationReasonName, RPVC.AuthorId, RPVC.AuthorName, RPVC.StatusChangedDate, RPV.TotalFunding
+                FROM ReleasedProviders RP
+                INNER JOIN ReleasedProviderVersions RPV ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
+                INNER JOIN Channels C ON RPVC.ChannelId = C.ChannelId
+                INNER JOIN ReleasedProviderChannelVariationReasons RPCVR ON RPVC.ReleasedProviderVersionChannelId = RPCVR.ReleasedProviderVersionChannelId
+                INNER JOIN VariationReasons VR ON RPCVR.VariationReasonId = VR.VariationReasonId
+                WHERE RP.ProviderId = @{nameof(providerId)} AND RP.SpecificationId = @{nameof(specificationId)}",
+            new
+            {
+                specificationId,
+                providerId,
+            });
+        }
     }
 }
