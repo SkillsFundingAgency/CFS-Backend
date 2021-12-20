@@ -31,6 +31,11 @@ using Moq;
 using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.ApiClient.Graph;
+using GraphCalculation = CalculateFunding.Models.Graph.Calculation;
+using ApiCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using ApiEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
+using ApiRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -66,9 +71,8 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task EditCalculation_GivenCalculationExistsWithNoHistory_CreatesNewVersion()
         {
             //Arrange
-            Calculation calculation = CreateCalculation();
-
             CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
 
             Reference author = new Reference();
 
@@ -196,9 +200,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string buildProjectId = Guid.NewGuid().ToString();
 
-            Calculation calculation = CreateCalculation();
-
             CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
 
             Reference author = new Reference();
 
@@ -324,9 +327,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProject buildProject = new BuildProject();
 
-            Calculation calculation = CreateCalculation();
-
             CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
 
             Reference author = new Reference();
 
@@ -437,12 +439,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             List<Calculation> calcCalculations = new List<Calculation>();
 
-            Calculation calculation = CreateCalculation();
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.SpecificationId = specificationId;
 
             calcCalculations.Add(calculation);
-
-            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
             Reference author = new Reference();
 
@@ -572,7 +573,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             List<Calculation> calcCalculations = new List<Calculation>();
 
-            Calculation calculation = CreateCalculation();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.SpecificationId = specificationId;
 
 
@@ -691,9 +692,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProject buildProject = new BuildProject();
 
-            Calculation calculation = CreateCalculation();
-
             CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
 
             Reference author = new Reference();
 
@@ -785,7 +785,8 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task EditCalculation_GivenCalculationExistsWithBuildIdButButNotInSearch_CreatesSearchDocument()
         {
             //Arrange
-            Calculation calculation = CreateCalculation();
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
 
             string buildProjectId = Guid.NewGuid().ToString();
             string specificationId = calculation.SpecificationId;
@@ -797,8 +798,6 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
-
-            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
             Reference author = new Reference();
 
@@ -915,7 +914,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = buildProjectId,
             };
 
-            Calculation calculation = CreateCalculation();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.Current.PublishStatus = PublishStatus.Approved;
 
             ILogger logger = CreateLogger();
@@ -1027,12 +1026,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = buildProjectId,
             };
 
-            Calculation calculation = CreateCalculation();
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
-
-            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
             Reference author = new Reference();
 
@@ -1150,7 +1148,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Reference author = CreateAuthor();
 
-            Calculation calculation = CreateCalculation();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
@@ -1282,7 +1280,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 SpecificationId = specificationId
             };
 
-            Calculation calculation = CreateCalculation();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
@@ -1406,7 +1404,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = buildProjectId,
             };
 
-            Calculation calculation = CreateCalculation();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
@@ -1494,7 +1492,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 SpecificationId = specificationId
             };
 
-            Calculation calculation = CreateCalculation();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.SpecificationId = specificationId;
 
             ILogger logger = CreateLogger();
@@ -1645,7 +1643,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 SpecificationId = specificationId
             };
 
-            Calculation calculation = CreateCalculation();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.SpecificationId = specificationId;
 
             ILogger logger = CreateLogger();
@@ -1760,7 +1758,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = buildProjectId,
             };
 
-            Calculation calculation = CreateCalculation();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
@@ -1994,7 +1992,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = buildProjectId,
             };
 
-            Calculation calculation = CreateCalculation();
+            Calculation calculation = CreateCalculation(calculationEditModel.Name);
             calculation.Current.CalculationType = CalculationType.Additional;
             calculation.Current.DataType = CalculationDataType.Decimal;
             calculation.Current.ValueType = CalculationValueType.Number;
@@ -2113,6 +2111,177 @@ namespace CalculateFunding.Services.Calcs.Services
                     Version = 1,
                     WasTemplateCalculation = false,
                 });
+        }
+
+        [TestMethod]
+        public async Task EditCalculation_GivenUserEditsAdditionalCalculationWithUpdatedName_AndGraphApiClientFails_ThenThrowInternalServerErrorResult()
+        {
+            IGraphApiClient graphApiClient = CreateGraphApiClient();
+            graphApiClient
+                .GetAllEntitiesRelatedToCalculation(Arg.Any<string>())
+                .Returns(new Common.ApiClient.Models.ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<Common.ApiClient.Graph.Models.Calculation>>>(HttpStatusCode.BadGateway));
+
+            IActionResult result = await EditCalculation_GivenUserEditsAdditionalCalculationWithUpdatedName_AndGraphApiClientRuns(graphApiClient);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>();
+        }
+
+        [TestMethod]
+        public async Task EditCalculation_GivenUserEditsAdditionalCalculationWithUpdatedName_AndGraphApiClientSucess_Then()
+        {
+            var a = new Common.ApiClient.Models.ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<Common.ApiClient.Graph.Models.Calculation>>>(HttpStatusCode.OK);
+
+            string specificationId = Guid.NewGuid().ToString();
+
+            IEnumerable<ApiEntityCalculation> existingCalculationEntities = new[] { new ApiEntityCalculation
+            {
+                Node = new ApiCalculation { CalculationId = Guid.NewGuid().ToString() },
+                Relationships = new[] { new ApiRelationship
+                                            {
+                                                One = new GraphCalculation
+                                                        {
+                                                            CalculationId = Guid.NewGuid().ToString(),
+                                                            CalculationName = "CalculationOne",
+                                                            CalculationType = Models.Graph.CalculationType.Additional,
+                                                            SpecificationId = specificationId
+                                                        },
+                                                Type = "callscalculation",
+                                                Two = new GraphCalculation
+                                                        {
+                                                            CalculationId = Guid.NewGuid().ToString(),
+                                                            CalculationName = "CalculationOne",
+                                                            CalculationType = Models.Graph.CalculationType.Additional,
+                                                            SpecificationId = specificationId
+                                                        }
+                                            }
+                                        }
+            } };
+
+            IGraphApiClient graphApiClient = CreateGraphApiClient();
+            graphApiClient
+                .GetAllEntitiesRelatedToCalculation(Arg.Any<string>())
+                .Returns(new Common.ApiClient.Models.ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<Common.ApiClient.Graph.Models.Calculation>>>(HttpStatusCode.OK, existingCalculationEntities));
+
+            IActionResult result = await EditCalculation_GivenUserEditsAdditionalCalculationWithUpdatedName_AndGraphApiClientRuns(graphApiClient);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        private async Task<IActionResult> EditCalculation_GivenUserEditsAdditionalCalculationWithUpdatedName_AndGraphApiClientRuns(IGraphApiClient graphApiClient)
+        {
+            //Arrange
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            calculationEditModel.DataType = CalculationDataType.String; // Try changing the data type to string
+
+            Reference author = new Reference();
+
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.Current.CalculationType = CalculationType.Additional;
+            calculation.Current.DataType = CalculationDataType.Decimal;
+            calculation.Current.ValueType = CalculationValueType.Number;
+            calculation.Current.AllowedEnumTypeValues = null;
+            calculation.Current.Namespace = CalculationNamespace.Additional;
+            
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+                FundingStreams = new[]
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            Mock<IVersionRepository<CalculationVersion>> versionRepository = new Mock<IVersionRepository<CalculationVersion>>();
+
+            CalculationVersion createdCalculationVersion = null;
+
+            versionRepository
+                .Setup(m => m.CreateVersion(It.IsAny<CalculationVersion>(), It.IsAny<CalculationVersion>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Callback((CalculationVersion newVersion, CalculationVersion currentVersion, string partitionKey, bool incrementFromCurrentVersion) =>
+                {
+                    createdCalculationVersion = newVersion;
+                })
+                .ReturnsAsync(calculationVersion);
+
+
+            Build build = new Build
+            {
+                Success = true
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            CalculationService service = CreateCalculationService(
+                calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService,
+                searchRepository: searchRepository,
+                specificationsApiClient: specificationsApiClient,
+                calculationVersionRepository: versionRepository.Object,
+                sourceCodeService: sourceCodeService,
+                jobManagement: jobManagement,
+                graphApiClient: graphApiClient);
+
+            //Act
+            return await service.EditCalculation(
+                SpecificationId,
+                CalculationId,
+                calculationEditModel,
+                author,
+                CorrelationId,
+                setAdditional: false,
+                calculationEditMode: CalculationEditMode.User,
+                existingCalculation: calculation);
         }
 
         [TestMethod]

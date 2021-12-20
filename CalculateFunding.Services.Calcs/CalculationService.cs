@@ -57,6 +57,8 @@ using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Graph;
+using GraphModels = CalculateFunding.Common.ApiClient.Graph.Models;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -91,6 +93,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly AsyncPolicy _datasetsApiClientPolicy;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
+        private readonly IGraphApiClient _graphApiClient;
+        private readonly Polly.AsyncPolicy _graphApiClientPolicy;
         private readonly IValidator<CalculationEditModel> _calculationEditModelValidator;
         private readonly ICalculationNameInUseCheck _calculationNameInUseCheck;
         private readonly IInstructionAllocationJobCreation _instructionAllocationJobCreation;
@@ -118,6 +122,7 @@ namespace CalculateFunding.Services.Calcs
             IValidator<CalculationCreateModel> calculationCreateModelValidator,
             IValidator<CalculationEditModel> calculationEditModelValidator,
             ISpecificationsApiClient specificationsApiClient,
+            IGraphApiClient graphApiClient,
             ICalculationNameInUseCheck calculationNameInUseCheck,
             IInstructionAllocationJobCreation instructionAllocationJobCreation,
             ICreateCalculationService createCalculationService,
@@ -144,6 +149,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationCodeReferenceUpdate, nameof(calculationCodeReferenceUpdate));
             Guard.ArgumentNotNull(calculationCreateModelValidator, nameof(calculationCreateModelValidator));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
             Guard.ArgumentNotNull(calculationEditModelValidator, nameof(calculationEditModelValidator));
             Guard.ArgumentNotNull(calculationNameInUseCheck, nameof(calculationNameInUseCheck));
             Guard.ArgumentNotNull(instructionAllocationJobCreation, nameof(instructionAllocationJobCreation));
@@ -185,10 +191,12 @@ namespace CalculateFunding.Services.Calcs
             _policiesApiClient = policiesApiClient;
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _specificationsApiClient = specificationsApiClient;
+            _graphApiClient = graphApiClient;
             _calculationNameInUseCheck = calculationNameInUseCheck;
             _instructionAllocationJobCreation = instructionAllocationJobCreation;
             _createCalculationService = createCalculationService;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
+            _graphApiClientPolicy = resiliencePolicies.GraphApiClientPolicy;
             _calculationEditModelValidator = calculationEditModelValidator;
             _graphRepository = graphRepository;
             _jobManagement = jobManagement;
@@ -625,6 +633,30 @@ namespace CalculateFunding.Services.Calcs
                 if (calculationEditMode == CalculationEditMode.System)
                 {
                     ApplySystemAllowedEditsToCalculation(calculationEditModel, calculationVersion);
+                }
+
+                if(calculation.Name != calculationVersion.Name && calculation.Current.CalculationType == CalculationType.Additional)
+                {
+                    ApiResponse<IEnumerable<GraphModels.Entity<GraphModels.Calculation>>> relatedEntitiesResponse = await _graphApiClient.GetAllEntitiesRelatedToCalculation(calculationId);
+
+                    if (!relatedEntitiesResponse.StatusCode.IsSuccess())
+                    {
+                        return new InternalServerErrorResult($"Error checking for related calculations {relatedEntitiesResponse.Message}");
+                    }
+
+                    if(relatedEntitiesResponse.Content != null && relatedEntitiesResponse.Content.Any(_ => _.Relationships != null))
+                    {
+                        List<string> relatedCalculationIds = relatedEntitiesResponse.Content.SelectMany(_ => _.Relationships).Where(_ => _.Type == "calledbycalculation")
+                                                                        .Select(_ => ((object)_.Two).AsJson().AsPoco<GraphModels.Calculation>())
+                                                                        .Select(_ => _.CalculationId).ToList();
+
+                        if (relatedCalculationIds.Any())
+                        {
+                            await UpdateCalculationCodeOnCalculationOrFundinglineChange(calculation.Name, calculationVersion.Name, specificationId, "Calculations", author, false, relatedCalculationIds);
+                        }
+                    }
+
+                    await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
                 }
 
                 UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author, updateBuildProject);
@@ -1320,7 +1352,8 @@ End Select");
             };
         }
 
-        public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationOrFundinglineChange(string oldSourceCodeName, string newSourceCodeName, string specificationId, string @namespace, Reference user, bool isEnum)
+        public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationOrFundinglineChange(string oldSourceCodeName, string newSourceCodeName, string specificationId, string @namespace, Reference user, bool isEnum,
+            IEnumerable<string> calculationFilter = null)
         {
             List<Calculation> updatedCalculations = new List<Calculation>();
 
@@ -1331,6 +1364,11 @@ End Select");
             if (oldSourceCodeNameEscaped != newSourceCodeNameEscaped)
             {
                 IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
+
+                if(calculationFilter != null)
+                {
+                    calculations = calculations.Where(_ => calculationFilter.Contains(_.Id)).Select(_ => _);
+                }
 
                 foreach (Calculation calculation in calculations)
                 {

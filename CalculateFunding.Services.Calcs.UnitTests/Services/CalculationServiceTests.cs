@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.DataSets;
+using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -59,6 +60,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
             ISpecificationsApiClient specificationsApiClient = null,
+            IGraphApiClient graphApiClient = null,
             IGraphRepository graphRepository = null,
             ICalculationsFeatureFlag calculationsFeatureFlag = null,
             ICodeContextCache codeContextCache = null,
@@ -98,6 +100,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationCreateModelValidator ?? CreateCalculationCreateModelValidator(),
                 calculationEditModelValidator ?? CreateCalculationEditModelValidator(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
+                graphApiClient ?? CreateGraphApiClient(),
                 calculationNameInUseCheck,
                 instructionAllocationJobCreation,
                 new CreateCalculationService(calculationNameInUseCheck,
@@ -273,7 +276,12 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ISpecificationsApiClient>();
         }
 
-        private static Calculation CreateCalculation()
+        private static IGraphApiClient CreateGraphApiClient()
+        {
+            return Substitute.For<IGraphApiClient>();
+        }
+
+        private static Calculation CreateCalculation(string name = null)
         {
             return new Calculation
             {
@@ -285,7 +293,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     SourceCode = "source code",
                     PublishStatus = PublishStatus.Draft,
                     Description = "description",
-                    Name = "Test Calc Name",
+                    Name = name ?? "Test Calc Name",
                     SourceCodeName = "TestCalcName",
                     CalculationId = CalculationId,
                     Version = 1,
