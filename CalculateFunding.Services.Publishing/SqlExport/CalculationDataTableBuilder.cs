@@ -48,9 +48,6 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             };
         }
 
-        private Calculation GetTemplateCalculation(uint templateCalculationId)
-            => _calculations.TryGetValue(templateCalculationId, out Calculation calculation) ? calculation : throw new ArgumentOutOfRangeException(nameof(templateCalculationId));
-
         protected override void AddDataRowToDataTable(PublishedProviderVersion dto)
         {
             IEnumerable<object> calculationValues = dto.Calculations
