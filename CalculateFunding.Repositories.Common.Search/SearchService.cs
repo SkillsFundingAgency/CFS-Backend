@@ -73,7 +73,7 @@ namespace CalculateFunding.Repositories.Common.Search
                         {
                             return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
-                                Facets = new[]{ filterPair.Key },
+                                Facets = new[]{ $"{filterPair.Key},count:{searchModel.FacetCount}" },
                                 SearchMode = (SearchMode)searchModel.SearchMode,
                                 SearchFields = searchFields,
                                 IncludeTotalResultCount = true,
