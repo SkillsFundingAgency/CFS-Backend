@@ -2,14 +2,14 @@
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 
-namespace CalculateFunding.Api.Datasets.IntegrationTests.Data
+namespace CalculateFunding.Api.Results.IntegrationTests.Data
 {
     public class FundingTemplateDataContext : BlobBulkDataContext
     {
         public FundingTemplateDataContext(IConfiguration configuration) 
             : base(configuration, 
                   "fundingtemplates",
-                  "CalculateFunding.Api.Datasets.IntegrationTests.Resources.FundingTemplateTemplate",
+                  "CalculateFunding.Api.Results.IntegrationTests.Resources.FundingTemplateTemplate",
                   typeof(FundingTemplateDataContext).Assembly)
         {
         }

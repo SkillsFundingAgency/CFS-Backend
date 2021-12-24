@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net6</TargetFramework>
@@ -7,7 +7,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="6.3.0" />
+      <None Remove="Resources\CalculationTemplate.json" />
+      <None Remove="Resources\FundingTemplateTemplate.json" />
+      <None Remove="Resources\SpecificationTemplate.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\CalculationTemplate.json" />
+      <EmbeddedResource Include="Resources\FundingTemplateTemplate.json" />
+      <EmbeddedResource Include="Resources\SpecificationTemplate.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="6.4.0" />
         <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="5.2.0" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
