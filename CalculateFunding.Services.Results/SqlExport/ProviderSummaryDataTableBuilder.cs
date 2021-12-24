@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Results.SqlExport
             {
                 NewDataColumn<string>("ProviderId", 128),
                 NewDataColumn<string>("ProviderName", 256),
-                NewDataColumn<string>("URN", 256),
+                NewDataColumn<string>("URN", 256, allowNull: true),
                 NewDataColumn<string>("UKPRN", 256, allowNull: true),
                 NewDataColumn<string>("UPIN", 256, allowNull: true),
                 NewDataColumn<string>("EstablishmentNumber", 256, allowNull: true),

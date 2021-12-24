@@ -15,6 +15,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.SqlExport;
 using Polly;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -75,8 +76,9 @@ namespace CalculateFunding.Services.Results.SqlExport
             ICosmosDbFeedIterator providerResultsFeed = GetProviderResultsFeed(specificationId);
 
             SpecificationSummary specificationSummary = await GetSpecificationSummary(specificationId);
-            TemplateMetadataContents template = await GetTemplateMetadataContents(specificationSummary);
-            IEnumerable<FundingLine> allFundingLines = template.RootFundingLines.Flatten(_ => _.FundingLines);
+            UniqueTemplateContents uniqueTemplateContents = await GetTemplateData(specificationSummary, specificationSummary.FundingStreams.FirstOrDefault().Id);
+            IEnumerable<FundingLine> allFundingLines = uniqueTemplateContents.FundingLines;
+            IEnumerable<Calculation> uniqueCalculations = uniqueTemplateContents.Calculations;
 
             IEnumerable<CalcsApiCalculation> calculations = await GetCalculations(specificationId);
 
@@ -89,7 +91,7 @@ namespace CalculateFunding.Services.Results.SqlExport
                 ProviderSummaries = new ProviderSummaryDataTableBuilder(),
                 PaymentFundingLines = new PaymentFundingLineDataTableBuilder(allFundingLines, _sqlNameGenerator),
                 InformationFundingLines = new InformationFundingLineDataTableBuilder(allFundingLines, _sqlNameGenerator),
-                TemplateCalculations = new TemplateCalculationsDataTableBuilder(calculations, _sqlNameGenerator),
+                TemplateCalculations = new TemplateCalculationsDataTableBuilder(calculations, _sqlNameGenerator, uniqueCalculations),
                 AdditionalCalculations = new AdditionalCalculationsDataTableBuilder(calculations, _sqlNameGenerator),
             };
         }
@@ -134,10 +136,40 @@ namespace CalculateFunding.Services.Results.SqlExport
             return specificationResponse.Content;
         }
 
+        private async Task<UniqueTemplateContents> GetTemplateData(SpecificationSummary specification, string fundingStreamId)
+        {
+            UniqueTemplateContents uniqueTemplateContents = new UniqueTemplateContents();
+
+            TemplateMetadataContents templateMetadata = await GetTemplateMetadataContents(specification);
+
+            if (templateMetadata == null)
+            {
+                throw new NonRetriableException(
+                    $"Did not locate template information for specification {specification.Id} in {fundingStreamId}. Unable to complete Qa Schema Generation");
+            }
+
+            IEnumerable<FundingLine> flattenedFundingLines = templateMetadata.RootFundingLines.Flatten(_ => _.FundingLines)
+                                                             ?? new FundingLine[0];
+
+            IEnumerable<FundingLine> uniqueFundingLines = flattenedFundingLines.GroupBy(x => x.TemplateLineId)
+                .Select(f => f.First());
+
+            IEnumerable<Calculation> flattenedCalculations =
+                flattenedFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations)) ?? Array.Empty<Calculation>();
+
+            IEnumerable<Calculation> uniqueFlattenedCalculations =
+                flattenedCalculations.GroupBy(x => x.TemplateCalculationId)
+                    .Select(x => x.FirstOrDefault());
+
+            uniqueTemplateContents.FundingLines = uniqueFundingLines;
+            uniqueTemplateContents.Calculations = uniqueFlattenedCalculations;
+
+            return uniqueTemplateContents;
+        }
+
         private async Task<TemplateMetadataContents> GetTemplateMetadataContents(SpecificationSummary specificationSummary)
         {
             string fundingStreamId = specificationSummary.FundingStreams.FirstOrDefault()?.Id;
-
             string templateVersion = specificationSummary.TemplateIds[fundingStreamId];
 
             ApiResponse<FundingTemplateContents> templateContentsRequest = await _policiesResilience.ExecuteAsync(()
@@ -151,6 +183,7 @@ namespace CalculateFunding.Services.Results.SqlExport
 
             return templateContents.GetMetadata(fundingTemplateContents.TemplateFileContents);
         }
+
         private ICosmosDbFeedIterator GetProviderResultsFeed(string specificationId)
             => _cosmos.GetFeedIterator(new CosmosDbQuery
             {

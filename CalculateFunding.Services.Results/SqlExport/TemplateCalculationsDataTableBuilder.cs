@@ -7,6 +7,7 @@ using System.Data;
 using System.Linq;
 using CalcsApiCalculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
 using CalcsApiCalculationValueType = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationValueType;
+using TemplateMetadataCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 
 namespace CalculateFunding.Services.Results.SqlExport
 {
@@ -14,15 +15,18 @@ namespace CalculateFunding.Services.Results.SqlExport
     {
         private readonly IEnumerable<CalcsApiCalculation> _calculations;
         private readonly ISqlNameGenerator _sqlNameGenerator;
+        private readonly IEnumerable<TemplateMetadataCalculation> _templateMetadataCalculation;
 
         public TemplateCalculationsDataTableBuilder(
             IEnumerable<CalcsApiCalculation> calculations,
-            ISqlNameGenerator sqlNameGenerator)
+            ISqlNameGenerator sqlNameGenerator,
+            IEnumerable<TemplateMetadataCalculation> templateMetadataCalculations)
         {
             Guard.ArgumentNotNull(sqlNameGenerator, nameof(sqlNameGenerator));
 
             _calculations = calculations;
             _sqlNameGenerator = sqlNameGenerator;
+            _templateMetadataCalculation = templateMetadataCalculations;
         }
 
         protected override DataColumn[] GetDataColumns(ProviderResult dto)
@@ -37,7 +41,11 @@ namespace CalculateFunding.Services.Results.SqlExport
             {
                 NewDataColumn<string>("ProviderId", 128)
             }
-            .Concat(templateCalculationResults.Select(_ => NewDataColumn(_, templateCalculations.SingleOrDefault(t => t.Id == _.Calculation.Id))))
+            .Concat(templateCalculationResults.Select(_ => 
+                NewDataColumn(
+                    _, 
+                    templateCalculations.SingleOrDefault(t => t.Id == _.Calculation.Id), 
+                    _templateMetadataCalculation.SingleOrDefault(t => t.Name == _.Calculation.Name))))
             .ToArray();
         }
 
@@ -60,20 +68,23 @@ namespace CalculateFunding.Services.Results.SqlExport
 
         private DataColumn NewDataColumn(
             CalculationResult calculationResult,
-            CalcsApiCalculation calcsApiCalculation)
+            CalcsApiCalculation calcsApiCalculation,
+            TemplateMetadataCalculation templateMetadataCalculation)
             => calcsApiCalculation.ValueType switch
             {
                 var format when format == CalcsApiCalculationValueType.Currency ||
                                 format == CalcsApiCalculationValueType.Number ||
                                 format == CalcsApiCalculationValueType.Percentage
-                => NewDataColumn<decimal>(GetColumnName(calculationResult), allowNull: true),
-                CalcsApiCalculationValueType.Boolean => NewDataColumn<bool>(GetColumnName(calculationResult), allowNull: true),
-                CalcsApiCalculationValueType.String => NewDataColumn<string>(GetColumnName(calculationResult), allowNull: true),
+                => NewDataColumn<decimal>(GetColumnName(calculationResult, templateMetadataCalculation), allowNull: true),
+                CalcsApiCalculationValueType.Boolean => NewDataColumn<bool>(GetColumnName(calculationResult, templateMetadataCalculation), allowNull: true),
+                CalcsApiCalculationValueType.String => NewDataColumn<string>(GetColumnName(calculationResult, templateMetadataCalculation), allowNull: true),
                 _ => throw new InvalidOperationException("Unknown value type")
             };
 
-        private string GetColumnName(CalculationResult calculationResult)
-            => $"Calc_{calculationResult.Calculation.Id}_{_sqlNameGenerator.GenerateIdentifier(calculationResult.Calculation.Name)}";
+        private string GetColumnName(
+            CalculationResult calculationResult,
+            TemplateMetadataCalculation templateMetadataCalculation)
+            => $"Calc_{templateMetadataCalculation.TemplateCalculationId}_{_sqlNameGenerator.GenerateIdentifier(calculationResult.Calculation.Name)}";
 
         protected override void EnsureTableNameIsSet(ProviderResult dto)
             => TableName = $"[dbo].[{dto.SpecificationId}_TemplateCalculations]";

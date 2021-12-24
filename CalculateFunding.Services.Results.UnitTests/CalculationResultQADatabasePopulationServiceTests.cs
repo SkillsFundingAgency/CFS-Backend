@@ -14,6 +14,7 @@ using Moq;
 using Polly;
 using Serilog.Core;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.UnitTests
@@ -21,8 +22,6 @@ namespace CalculateFunding.Services.Results.UnitTests
     [TestClass]
     public class CalculationResultQADatabasePopulationServiceTests
     {
-        private const string JobId = "jobId";
-
         private Mock<IJobManagement> _jobs;
         private Mock<IQaSchemaService> _qaSchemaService;
         private Mock<ISqlImporter> _sqlImporter;
@@ -62,10 +61,37 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
+        public async Task QueueMergeSpecificationInformationJobFailsWhenThereIsAnExistingJobForSameSpecification()
+        {
+            string specificationId = NewRandomString();
+            PopulateCalculationResultQADatabaseRequest populateCalculationResultQADatabaseRequest
+                = NewPopulateCalculationResultQADatabaseRequest(_ => _.WithSpecificationId(specificationId));
+            Reference user = NewUser();
+            string correlationId = NewRandomString();
+
+            IDictionary<string, JobSummary> jobSummaries = new Dictionary<string, JobSummary>
+            {
+                {JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob, NewJobSummary() }
+            };
+
+            GivenGetLatestJobsForSpecification(specificationId, jobSummaries);
+
+            IActionResult actionResult 
+                = await WhenTheCalculationResultQADatabasePopulationJobIsQueued(populateCalculationResultQADatabaseRequest, user, correlationId);
+            actionResult.Should().BeOfType<BadRequestObjectResult>();
+            BadRequestObjectResult badRequestObjectResult = actionResult as BadRequestObjectResult;
+
+            string errorMessage =
+                    $"There is an existing {JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob} job running for Specification {populateCalculationResultQADatabaseRequest.SpecificationId}. Please wait for that job to complete.";
+
+            badRequestObjectResult.Value.Should().Be(errorMessage);
+        }
+
+        [TestMethod]
         public async Task QueueMergeSpecificationInformationJobCreatesNewJobWithSuppliedMergeRequest()
         {
             string specificationId = NewRandomString();
-            PopulateCalculationResultQADatabaseRequest populateCalculationResultQADatabaseRequest  
+            PopulateCalculationResultQADatabaseRequest populateCalculationResultQADatabaseRequest
                 = NewPopulateCalculationResultQADatabaseRequest(_ => _.WithSpecificationId(specificationId));
             Job expectedJob = NewJob();
             Reference user = NewUser();
@@ -73,7 +99,10 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             GivenTheJob(expectedJob, populateCalculationResultQADatabaseRequest, user, correlationId, specificationId);
 
-            OkObjectResult okObjectResult = await WhenTheCalculationResultQADatabasePopulationJobIsQueued(populateCalculationResultQADatabaseRequest, user, correlationId) as OkObjectResult;
+            IActionResult actionResult 
+                = await WhenTheCalculationResultQADatabasePopulationJobIsQueued(populateCalculationResultQADatabaseRequest, user, correlationId) as OkObjectResult;
+            actionResult.Should().BeOfType<OkObjectResult>();
+            OkObjectResult okObjectResult = actionResult as OkObjectResult;
 
             okObjectResult?.Value
                 .Should()
@@ -105,11 +134,22 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .ReturnsAsync(job);
         }
 
+        private void GivenGetLatestJobsForSpecification(
+            string specificationId,
+            IDictionary<string, JobSummary> jobSummaries)
+        {
+            _jobs
+                .Setup(_ => _.GetLatestJobsForSpecification(specificationId, It.IsAny<IEnumerable<string>>()))
+                .ReturnsAsync(jobSummaries);
+        }
+
         private Reference NewUser() => new ReferenceBuilder().Build();
 
         private string NewRandomString() => new RandomString();
 
         private Job NewJob() => new JobBuilder().Build();
+
+        private JobSummary NewJobSummary() => new JobSummaryBuilder().Build();
 
         private PopulateCalculationResultQADatabaseRequest NewPopulateCalculationResultQADatabaseRequest(Action<PopulateCalculationResultQADatabaseRequestBuilder> setUp = null)
         {

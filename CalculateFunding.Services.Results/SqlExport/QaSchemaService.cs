@@ -130,10 +130,10 @@ namespace CalculateFunding.Services.Results.SqlExport
             EnsureTable($"{specificationTablePrefix}_Providers", GetSqlColumnDefinitionsForProviders(), specification.Id);
 
             (IEnumerable<SqlColumnDefinition> informationFundingLineFields, IEnumerable<SqlColumnDefinition> paymentFundingLineFields) 
-                = GetUniqueFundingLinesForSpecification(templateMetadata);
+                = GetUniqueFundingLinesForSpecification(templateMetadata.FundingLines);
 
             (IEnumerable<SqlColumnDefinition> templateCalculationFields, IEnumerable<SqlColumnDefinition> additionalCalculationFields) 
-                = GetUniqueCalculationsForSpecification(calculations);
+                = GetUniqueCalculationsForSpecification(calculations, templateMetadata.Calculations);
 
             EnsureTable($"{specificationTablePrefix}_PaymentFundingLines", paymentFundingLineFields, specification.Id);
             EnsureTable($"{specificationTablePrefix}_InformationFundingLines", informationFundingLineFields, specification.Id);
@@ -600,21 +600,24 @@ namespace CalculateFunding.Services.Results.SqlExport
             };
 
         private (IEnumerable<SqlColumnDefinition> informationFundingLineFields, IEnumerable<SqlColumnDefinition> paymentFundingLineFields) 
-            GetUniqueFundingLinesForSpecification(UniqueTemplateContents templateContents)
+            GetUniqueFundingLinesForSpecification(
+            IEnumerable<FundingLine> templateFundingLines)
         {
             IEnumerable<SqlColumnDefinition> informationFundingLineFields =
-                GetSqlColumnDefinitionsForFundingLines(templateContents.FundingLines.Where(f => f.Type == FundingLineType.Information));
+                GetSqlColumnDefinitionsForFundingLines(templateFundingLines.Where(f => f.Type == FundingLineType.Information));
             IEnumerable<SqlColumnDefinition> paymentFundingLineFields =
-                GetSqlColumnDefinitionsForFundingLines(templateContents.FundingLines.Where(f => f.Type == FundingLineType.Payment));
+                GetSqlColumnDefinitionsForFundingLines(templateFundingLines.Where(f => f.Type == FundingLineType.Payment));
 
             return (informationFundingLineFields, paymentFundingLineFields);
         }
 
         private (IEnumerable<SqlColumnDefinition> templateCalculationFields, IEnumerable<SqlColumnDefinition> additionalCalculationFields)
-            GetUniqueCalculationsForSpecification(IEnumerable<CalcsApiCalculation> calculations)
+            GetUniqueCalculationsForSpecification(
+            IEnumerable<CalcsApiCalculation> calculations,
+            IEnumerable<Calculation> templateCalculations)
         {
             IEnumerable<SqlColumnDefinition> templateCalculationFields = 
-                GetSqlColumnDefinitionsForTemplateCalculations(calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Template));
+                GetSqlColumnDefinitionsForTemplateCalculations(calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Template), templateCalculations);
             IEnumerable<SqlColumnDefinition> additionalCalculationFields =
                 GetSqlColumnDefinitionsForAdditionalCalculations(calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Additional));
 
@@ -622,15 +625,18 @@ namespace CalculateFunding.Services.Results.SqlExport
         }
 
         private IEnumerable<SqlColumnDefinition> GetSqlColumnDefinitionsForTemplateCalculations(
-            IEnumerable<CalcsApiCalculation> calculations)
+            IEnumerable<CalcsApiCalculation> calculations,
+            IEnumerable<Calculation> templateCalculations)
         {
             List<SqlColumnDefinition> fields = new List<SqlColumnDefinition>(calculations.Count());
 
             foreach (CalcsApiCalculation calculation in calculations.OrderBy(c => c.Id))
             {
+                Calculation templateCalculation = templateCalculations.SingleOrDefault(_ => _.Name == calculation.Name);
+
                 fields.Add(new SqlColumnDefinition
                 {
-                    Name = $"Calc_{calculation.Id}_{_sqlNames.GenerateIdentifier(calculation.Name)}",
+                    Name = $"Calc_{templateCalculation.TemplateCalculationId}_{_sqlNames.GenerateIdentifier(calculation.Name)}",
                     Type = GetSqlDatatypeForCalculation(calculation.ValueType),
                     AllowNulls = true
                 });
@@ -665,7 +671,7 @@ namespace CalculateFunding.Services.Results.SqlExport
                                 format == CalcsApiCalculationValueType.Percentage
                     => "[decimal](30, 18)",
                 CalcsApiCalculationValueType.Boolean => "[bit]",
-                CalcsApiCalculationValueType.String => "[varchar](128)",
+                CalcsApiCalculationValueType.String => "[varchar](256)",
                 _ => throw new InvalidOperationException("Unknown value type")
             };
 
@@ -682,13 +688,13 @@ namespace CalculateFunding.Services.Results.SqlExport
             }
 
             IEnumerable<FundingLine> flattenedFundingLines = templateMetadata.RootFundingLines.Flatten(_ => _.FundingLines)
-                                                             ?? new FundingLine[0];
+                                                             ?? Array.Empty<FundingLine>();
 
             IEnumerable<FundingLine> uniqueFundingLines = flattenedFundingLines.GroupBy(x => x.TemplateLineId)
                 .Select(f => f.First());
 
             IEnumerable<Calculation> flattenedCalculations =
-                flattenedFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations)) ?? new Calculation[0];
+                flattenedFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations)) ?? Array.Empty<Calculation>();
 
             IEnumerable<Calculation> uniqueFlattenedCalculations =
                 flattenedCalculations.GroupBy(x => x.TemplateCalculationId)

@@ -11,6 +11,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalcsApiCalculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
+using TemplateMetadataCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 
 namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 {
@@ -66,24 +67,28 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             string fundingLineOneName = NewRandomString();
             string fundingLineTwoName = NewRandomString();
 
+            string calculationOneName = NewRandomString();
+
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
                 .WithFundingStreamIds(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithTemplateIds((fundingStreamId, templateVersion)));
             FundingTemplateContents fundingTemplate = NewFundingTemplateContents(_ => _.WithSchemaVersion(schemaVersion)
                 .WithTemplateFileContents(fundingTemplateContents));
-            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(
-                NewFundingLine(fl => fl
-                    .WithName(fundingLineOneName)
-                    .WithTemplateLineId(fundingLineOneTemplateLineId)),
-                NewFundingLine(fl => fl
-                    .WithName(fundingLineTwoName)
-                    .WithTemplateLineId(fundingLineTwoTemplateLineId))
-                ));
+            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _
+                .WithFundingLines(
+                    NewFundingLine(fl => fl
+                        .WithName(fundingLineOneName)
+                        .WithTemplateLineId(fundingLineOneTemplateLineId)
+                        .WithCalculations(
+                            NewTemplateMetadataCalculation(tmc => tmc.WithName(calculationOneName)))),
+                    NewFundingLine(fl => fl
+                        .WithName(fundingLineTwoName)
+                        .WithTemplateLineId(fundingLineTwoTemplateLineId))));
 
             IEnumerable<CalcsApiCalculation> calculations = new List<CalcsApiCalculation>()
             {
-                NewApiCalculation(_ => _.WithType(Common.ApiClient.Calcs.Models.CalculationType.Template)),
+                NewApiCalculation(_ => _.WithType(Common.ApiClient.Calcs.Models.CalculationType.Template).WithName(calculationOneName)),
                 NewApiCalculation(_ => _.WithType(Common.ApiClient.Calcs.Models.CalculationType.Additional))
             };
 
@@ -120,6 +125,8 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             string fundingLineOneName = NewRandomString();
             string fundingLineTwoName = NewRandomString();
 
+            string calculationOneName = NewRandomString();
+
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
                 .WithFundingStreamIds(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
@@ -129,7 +136,9 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(
                 NewFundingLine(fl => fl
                     .WithName(fundingLineOneName)
-                    .WithTemplateLineId(fundingLineOneTemplateLineId)),
+                    .WithTemplateLineId(fundingLineOneTemplateLineId)
+                    .WithCalculations(
+                            NewTemplateMetadataCalculation(tmc => tmc.WithName(calculationOneName)))),
                 NewFundingLine(fl => fl
                     .WithName(fundingLineTwoName)
                     .WithTemplateLineId(fundingLineTwoTemplateLineId))
@@ -137,7 +146,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 
             IEnumerable<CalcsApiCalculation> calculations = new List<CalcsApiCalculation>()
             {
-                NewApiCalculation(_ => _.WithType(Common.ApiClient.Calcs.Models.CalculationType.Template)),
+                NewApiCalculation(_ => _.WithType(Common.ApiClient.Calcs.Models.CalculationType.Template).WithName(calculationOneName)),
             };
 
             GivenTheSpecification(specificationId, specificationSummary);

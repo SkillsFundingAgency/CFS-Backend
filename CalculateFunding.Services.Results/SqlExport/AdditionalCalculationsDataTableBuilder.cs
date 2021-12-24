@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Results.SqlExport
             };
 
         private string GetColumnName(CalculationResult calculationResult)
-            => $"Calc_{calculationResult.Calculation.Id}_{_sqlNameGenerator.GenerateIdentifier(calculationResult.Calculation.Name)}";
+            => $"Calc_{_sqlNameGenerator.GenerateIdentifier(calculationResult.Calculation.Name)}";
 
         protected override void EnsureTableNameIsSet(ProviderResult dto)
             =>  TableName = _calculations.Any(_ => _.CalculationType == CalcsApiCalculationType.Additional) ? $"[dbo].[{dto.SpecificationId}_AdditionalCalculations]" : string.Empty;

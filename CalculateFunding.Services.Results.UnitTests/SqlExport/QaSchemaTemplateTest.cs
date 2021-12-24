@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using CalcsApiCalculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
+using TemplateMetadataCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 
 namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 {
@@ -136,6 +137,15 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             setUp?.Invoke(jobSummaryBuilder);
 
             return jobSummaryBuilder.Build();
+        }
+
+        protected TemplateMetadataCalculation NewTemplateMetadataCalculation(Action<TemplateMetadataCalculationBuilder> setUp = null)
+        {
+            TemplateMetadataCalculationBuilder templateMetadataCalculationBuilder = new TemplateMetadataCalculationBuilder();
+
+            setUp?.Invoke(templateMetadataCalculationBuilder);
+
+            return templateMetadataCalculationBuilder.Build();
         }
 
         protected static string NewRandomString() => new RandomString();

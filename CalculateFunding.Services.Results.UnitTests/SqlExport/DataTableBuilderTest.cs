@@ -11,6 +11,7 @@ using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 using CalcsApiCalculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using TemplateMetadataCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 
 namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 {
@@ -118,6 +119,14 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             return jobSummaryBuilder.Build();
         }
 
+        protected TemplateMetadataCalculation NewTemplateMetadataCalculation(Action<TemplateMetadataCalculationBuilder> setUp = null)
+        {
+            TemplateMetadataCalculationBuilder templateMetadataCalculationBuilder = new TemplateMetadataCalculationBuilder();
+
+            setUp?.Invoke(templateMetadataCalculationBuilder);
+
+            return templateMetadataCalculationBuilder.Build();
+        }
 
         protected DataColumn NewDataColumn<T>(string name,
             int? maxLength = null,

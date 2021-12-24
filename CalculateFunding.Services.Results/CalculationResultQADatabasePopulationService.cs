@@ -58,6 +58,21 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(populateCalculationResultQADatabaseRequest, nameof(populateCalculationResultQADatabaseRequest));
 
+            IDictionary<string, JobSummary> jobSummaries = await _jobsPolicy.ExecuteAsync(() => 
+                _jobs.GetLatestJobsForSpecification(populateCalculationResultQADatabaseRequest.SpecificationId, new[] { JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob }));
+
+            if (jobSummaries != null 
+                && jobSummaries.ContainsKey(JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob) 
+                && jobSummaries[JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob] != null
+                && (jobSummaries[JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob].RunningStatus == RunningStatus.InProgress 
+                    || jobSummaries[JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob].RunningStatus == RunningStatus.Queued))
+            {
+                string errorMessage = 
+                    $"There is an existing {JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob} job running for Specification {populateCalculationResultQADatabaseRequest.SpecificationId}. Please wait for that job to complete.";
+
+                return new BadRequestObjectResult(errorMessage);
+            }
+
             JobCreateModel job = new JobCreateModel
             {
                 JobDefinitionId = JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob,
