@@ -41,7 +41,6 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IPublishedProviderIndexerService, PublishedProviderIndexerService>();
             serviceCollection.AddSingleton<IPublishProviderExclusionCheck, PublishedProviderExclusionCheck>();
             serviceCollection.AddSingleton<IFundingLineValueOverride, FundingLineValueOverride>();
-            serviceCollection.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
             serviceCollection.AddSingleton<IPublishedFundingDataService, PublishedFundingDataService>();
             serviceCollection.AddSingleton<IPublishedProviderContentPersistanceService, PublishedProviderContentPersistanceService>();
             serviceCollection.AddSingleton<ICreateRefreshFundingJobs, RefreshFundingJobCreation>();

@@ -617,6 +617,7 @@ namespace CalculateFunding.Api.Publishing
 
             builder.AddSingleton<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
             builder.AddSingleton<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
+            builder.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
 
             builder.AddReleaseManagementServices(Configuration);
         }

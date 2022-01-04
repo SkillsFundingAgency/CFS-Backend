@@ -669,6 +669,7 @@ namespace CalculateFunding.Functions.Publishing
                 return new ReleaseManagementRepository(factory, sqlPolicyFactory, externalApiQueryBuilder);
             });
 
+            builder.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
             builder.AddReleaseManagementServices(config);
 
             return builder.BuildServiceProvider();

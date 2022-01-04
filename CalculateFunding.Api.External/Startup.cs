@@ -6,6 +6,10 @@ using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Api.External.V4.IoC;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -37,17 +41,23 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Polly.Bulkhead;
 using Serilog;
-using System;
 using System.Linq;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using SwaggerSetup = CalculateFunding.Api.External.Swagger.SwaggerSetup;
+using BlobClient = CalculateFunding.Common.Storage.BlobClient;
+using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
+using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
+using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 
 namespace CalculateFunding.Api.External
 {
     public class Startup
     {
-        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -121,16 +131,7 @@ namespace CalculateFunding.Api.External
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
-            if (!string.IsNullOrEmpty(AppConfigConnectionString))
-            {
-                app.UseAzureAppConfiguration();
-            }
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (!env.IsDevelopment())
             {
                 app.UseHsts();
             }
@@ -316,9 +317,27 @@ namespace CalculateFunding.Api.External
             builder.AddSingleton(externalConfig.CreateMapper());
 
             builder.AddAuthenticatedHealthCheckMiddleware();
-            builder.AddTransient<ContentTypeCheckMiddleware>();
             builder.AddPoliciesInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
+            builder.AddFundingDataServiceInterServiceClient(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
+            builder.AddCalculationsInterServiceClient(Configuration);
+
+            builder.AddServiceBus(Configuration, "external");
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                };
+
+            });
 
             builder.AddSingleton<IProviderFundingVersionService>((ctx) =>
             {
@@ -336,10 +355,119 @@ namespace CalculateFunding.Api.External
                 IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
                 IExternalApiFileSystemCacheSettings settings = ctx.GetService<IExternalApiFileSystemCacheSettings>();
                 IPublishedFundingRepository publishedFundingRepository = ctx.GetService<IPublishedFundingRepository>();
-
+                
                 return new ProviderFundingVersionService(blobClient, publishedFundingRepository, logger, publishingResiliencePolicies, fileSystemCache, settings);
             });
 
+            builder.AddSingleton<IPublishedProviderContentsGeneratorResolver>(ctx =>
+            {
+                PublishedProviderContentsGeneratorResolver resolver = new PublishedProviderContentsGeneratorResolver();
+
+                resolver.Register("1.0", new Generators.Schema10.PublishedProviderContentsGenerator());
+                resolver.Register("1.1", new Generators.Schema11.PublishedProviderContentsGenerator());
+                resolver.Register("1.2", new Generators.Schema12.PublishedProviderContentsGenerator());
+
+                return resolver;
+            });
+
+            builder.AddSingleton<IPublishedFundingContentsGeneratorResolver>(ctx =>
+            {
+                PublishedFundingContentsGeneratorResolver resolver = new PublishedFundingContentsGeneratorResolver();
+
+                resolver.Register("1.0", new Generators.Schema10.PublishedFundingContentsGenerator());
+                resolver.Register("1.1", new Generators.Schema11.PublishedFundingContentsGenerator());
+                resolver.Register("1.2", new Generators.Schema12.PublishedFundingContentsGenerator());
+
+                return resolver;
+            });
+
+            builder.AddSingleton<IPublishedFundingIdGeneratorResolver>(ctx =>
+            {
+                PublishedFundingIdGeneratorResolver resolver = new PublishedFundingIdGeneratorResolver();
+
+                IPublishedFundingIdGenerator v10Generator = new Generators.Schema10.PublishedFundingIdGenerator();
+
+                resolver.Register("1.0", v10Generator);
+                resolver.Register("1.1", v10Generator);
+                resolver.Register("1.2", v10Generator);
+
+                return resolver;
+            });
+            builder.AddSingleton<IPublishedProviderContentPersistanceService, PublishedProviderContentPersistanceService>();
+            builder.AddSingleton<IPublishedFundingContentsPersistanceService>((ctx) =>
+            {
+                BlobStorageOptions storageSettings = new BlobStorageOptions();
+
+                Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                storageSettings.ContainerName = "publishedfunding";
+
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+
+                IBlobClient blobClient = new BlobClient(blobContainerRepository);
+
+                IPublishedFundingContentsGeneratorResolver publishedFundingContentsGeneratorResolver = ctx.GetService<IPublishedFundingContentsGeneratorResolver>();
+
+                ISearchRepository<PublishedFundingIndex> searchRepository = ctx.GetService<ISearchRepository<PublishedFundingIndex>>();
+
+                IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
+
+                return new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver,
+                    blobClient,
+                    publishingResiliencePolicies,
+                    ctx.GetService<IPublishingEngineOptions>());
+            });
+            
+            builder.AddSingleton<IVersionRepository<PublishedProviderVersion>, VersionRepository<PublishedProviderVersion>>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "publishedfunding";
+
+                CosmosRepository cosmos = new CosmosRepository(settings);
+
+                return new VersionRepository<PublishedProviderVersion>(cosmos, new NewVersionBuilderFactory<PublishedProviderVersion>());
+            });
+
+            builder.AddSingleton<IVersionBulkRepository<PublishedProviderVersion>, VersionBulkRepository<PublishedProviderVersion>>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "publishedfunding";
+
+                CosmosRepository cosmos = new CosmosRepository(settings);
+
+                return new VersionBulkRepository<PublishedProviderVersion>(cosmos, new NewVersionBuilderFactory<PublishedProviderVersion>());
+            });
+
+            builder
+                .AddSingleton<LocalIBlobClient, LocalBlobClient>((ctx) =>
+                {
+                    AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                    Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "publishedfunding";
+
+                    return new LocalBlobClient(storageSettings);
+                });
+
+            builder.AddSingleton<IJobManagement, JobManagement>();
+            builder.AddSingleton<IJobTracker, JobTracker>();
+            builder
+                .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
+                {
+                    PublishedProviderStatusUpdateSettings settings = new PublishedProviderStatusUpdateSettings();
+
+                    Configuration.Bind("PublishedProviderStatusUpdateSettings", settings);
+
+                    return settings;
+                }
+                );
             builder.AddExternalApiV4Services(Configuration);
             builder.AddReleaseManagementServices(Configuration);
         }

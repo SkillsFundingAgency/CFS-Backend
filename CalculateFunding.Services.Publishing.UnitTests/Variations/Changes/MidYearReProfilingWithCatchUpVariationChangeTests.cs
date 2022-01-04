@@ -27,12 +27,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             ReProfileRequest reProfileRequest,
             string key = null)
         {
+            ProfilePeriod firstPeriod = new YearMonthOrderedProfilePeriods(fundingLine).ToArray().First();
+            bool catchup = OpenDate == null ? false : OpenDate.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && OpenDate.Year <= firstPeriod.Year;
             ReProfileRequestBuilder.Setup(_ => _.BuildReProfileRequest(fundingLine.FundingLineCode,
                     key,
                     RefreshState,
                     ProfileConfigurationType.RuleBased,
                     fundingLine.Value,
-                    MidYearType.OpenerCatchup))
+                    catchup ? MidYearType.OpenerCatchup : MidYearType.Opener))
                 .ReturnsAsync(reProfileRequest);
         }
 
