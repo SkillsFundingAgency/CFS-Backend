@@ -58,7 +58,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="providerId">Provider Id</param>
         /// <returns></returns>
         [HttpGet("api/specifications/{specificationId}/provider/{providerId}/publishedprovidertransactions")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<PublishedProviderTransaction>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<ReleasePublishedProviderTransaction>))]
         public async Task<IActionResult> GetPublishedProviderTransactions([FromRoute] string specificationId,
             [FromRoute] string providerId) =>
             await _publishedProviderStatusService.GetPublishedProviderTransactions(specificationId, providerId);
