@@ -200,6 +200,11 @@ namespace CalculateFunding.Models.Publishing
             Errors?.Clear();
         }
 
+        public void ResetErrors(Predicate<PublishedProviderError> predicate)
+        {
+            Errors?.RemoveAll(predicate);
+        }
+
         public bool HasErrors => Errors?.Any() == true;
 
         /// <summary>

@@ -571,7 +571,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                                 dp.WithDistributionPeriodId("FY-2022")
                                     .WithProfilePeriods(profilePeriod2)))
                             .WithValue(profilePeriod1.ProfiledValue + profilePeriod2.ProfiledValue + carryOver.GetValueOrDefault()))
-                        ))));
+                        )
+                    .WithErrors(new PublishedProviderError { Type = PublishedProviderErrorType.FundingLineValueProfileMismatch }))));
 
             Reference author = NewAuthor();
 
@@ -590,7 +591,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             AndTheCustomProfilePeriodsWereUsedOn(fundingLine, profilePeriods);
             AndANewProviderVersionWasCreatedFor(publishedProvider, expectedRequestedStatus, author);
             AndProfilingAuditUpdatedForFundingLines(publishedProvider, new[] { fundingLineOne }, author);
+            AndErrorsAreCleared(publishedProvider);
             AndPublishCsvReportsJobCreated();
+        }
+
+        private void AndErrorsAreCleared(PublishedProvider publishedProvider)
+        {
+            publishedProvider
+                .Current
+                .Errors
+                .Where(_ => _.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch)
+                .Should()
+                .BeEmpty();
         }
 
         private void AndProfilingAuditUpdatedForFundingLines(PublishedProvider publishedProvider, string[] fundingLines, Reference author)
