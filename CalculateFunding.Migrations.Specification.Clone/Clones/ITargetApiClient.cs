@@ -34,5 +34,7 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
         Task<IEnumerable<Calculation>> GetCalculationsForSpecification(string specificationId);
 
         Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId);
+
+        Task<FundingTemplateContents> GetFundingTemplate(string fundingStreamId, string fundingPeriodId, string templateVersion);
     }
 }

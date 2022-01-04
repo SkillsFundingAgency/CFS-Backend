@@ -172,5 +172,13 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
             targetFundingPeriodResponse.ValidateApiResponse(_logger, $"Error while retrieving FundingPeriodId={fundingPeriodId}");
             return targetFundingPeriodResponse.Content;
         }
+
+        public async Task<FundingTemplateContents> GetFundingTemplate(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        {
+            ApiResponse<FundingTemplateContents> templateResponse = 
+                await _policiesPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion));
+            templateResponse.ValidateApiResponse(_logger, $"Error while retrieving funding template {fundingStreamId}, {fundingPeriodId}, {templateVersion}");
+            return templateResponse.Content;
+        }
     }
 }

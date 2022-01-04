@@ -46,6 +46,14 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
         {
             string specificationId = cloneOptions.SourceSpecificationId;
 
+            _logger.Information("Validating configuration.");
+            if (! await ValidateConfiguration(cloneOptions))
+            {
+                _logger.Error("Configuration invalid - clone cancelled.");
+                return;
+            }
+            _logger.Information("Configuration valid.");
+
             _logger.Information($"Starting to clone SpecificationId={specificationId}");
 
             _logger.Information($"Retrieving Specification Summary.");
@@ -289,6 +297,55 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
             _logger.Information($"Completed clone uploaded dataset relationships.");
 
             _logger.Information($"Completed Spec Copy operation for SpecificationId={specificationId} and created SpecificationId={cloneSpecificationSummary.Id}");
+        }
+
+        public async Task<bool> ValidateConfiguration(CloneOptions cloneOptions)
+        {
+            string specificationId = cloneOptions.SourceSpecificationId;
+            try
+            {
+                SpecificationSummary specificationSummary = await _sourceDataOperations.GetSpecificationSummaryById(specificationId);
+                FundingPeriod targetFundingPeriod = await _targetDataOperations.GetFundingPeriodById(cloneOptions.TargetPeriodId);
+
+                string fundingStreamId = specificationSummary.FundingStreams.FirstOrDefault().Id;
+
+                FundingTemplateContents template = await _targetDataOperations.GetFundingTemplate(fundingStreamId, targetFundingPeriod.Id, cloneOptions.TargetFundingTemplateVersion);
+            }
+            catch
+            {
+                return false;
+            }
+            
+            if (cloneOptions.IncludeReleasedDataDateset.GetValueOrDefault())
+            {
+                if(_specificationMappingOptions == null || !_specificationMappingOptions.Any())
+                {
+                    _logger.Error("include-released-data-dataset argument used, however no SpecificationMappingOption configuration items have been added.");
+                    return false;
+                }
+                
+                IEnumerable<DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModel = await _sourceDataOperations.GetRelationshipsBySpecificationId(specificationId);
+
+                IEnumerable<DatasetSpecificationRelationshipViewModel> releasedDatasetSpecificationRelationshipViewModels =
+                    datasetSpecificationRelationshipViewModel.Where(_ => _.RelationshipType == DatasetRelationshipType.ReleasedData);
+
+                if (!releasedDatasetSpecificationRelationshipViewModels.Any())
+                {
+                    _logger.Error("include-released-data-dataset argument used, however specification does not contain any released data items.");
+                    return false;
+                }
+
+                List<string> unreferencedReleasedSpecifications = releasedDatasetSpecificationRelationshipViewModels
+                                                            .Where(_ => !_specificationMappingOptions.Select(m => m.SourceSpecificationId).Contains(_.PublishedSpecificationConfiguration.SpecificationId))
+                                                            .Select(_ => _.PublishedSpecificationConfiguration.SpecificationId).ToList();
+                if (unreferencedReleasedSpecifications.Any())
+                {
+                    _logger.Error($"Source specification contains released datasets which have no associated SpecificationMappingOption configuration item. {unreferencedReleasedSpecifications.Join(",")}");
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private async Task ThenTheJobSucceeds(string jobId,
