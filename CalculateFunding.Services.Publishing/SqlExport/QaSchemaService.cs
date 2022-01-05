@@ -176,7 +176,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     .SelectMany(p => p.ProfilePattern)
                     .ToArray();
 
-                IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = allPatterns.DistinctBy(_ => new
+                IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = Enumerable.DistinctBy(allPatterns, _ => new
                 {
                     _.Occurrence,
                     _.Period,

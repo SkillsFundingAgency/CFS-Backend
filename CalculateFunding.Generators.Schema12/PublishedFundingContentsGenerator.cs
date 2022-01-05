@@ -136,14 +136,14 @@ namespace CalculateFunding.Generators.Schema12
                     FundingValue = new
                     {
                         TotalValue = publishedFundingVersion.TotalFunding,
-                        FundingLines = fundingLines?.DistinctBy(x => x.TemplateLineId).OrderBy(_ => _.TemplateLineId).Select(rootFundingLine =>
+                        FundingLines = fundingLines.AnyWithNullCheck() ? Enumerable.DistinctBy(fundingLines, x => x.TemplateLineId).OrderBy(_ => _.TemplateLineId).Select(rootFundingLine =>
                               BuildSchemaJsonFundingLines(publishedFundingVersion.FundingLines,
-                                  rootFundingLine)),
-                        Calculations = calculations?.DistinctBy(_ => _.TemplateCalculationId).OrderBy(_ => _.TemplateCalculationId).Select(calculation =>
+                                  rootFundingLine)) : null,
+                        Calculations = calculations.AnyWithNullCheck() ? Enumerable.DistinctBy(calculations, _ => _.TemplateCalculationId).OrderBy(_ => _.TemplateCalculationId).Select(calculation =>
                                 BuildSchemaJsonCalculations(publishedFundingVersion.Calculations,
                                     calculation,
                                     publishedFundingVersion.OrganisationGroupTypeIdentifier,
-                                    publishedFundingVersion.OrganisationGroupIdentifierValue)).Where(_ => _ != null)
+                                    publishedFundingVersion.OrganisationGroupIdentifierValue)).Where(_ => _ != null) : null
                     },
                     ProviderFundings = publishedFundingVersion.ProviderFundings.ToArray(),
                     publishedFundingVersion.GroupingReason,

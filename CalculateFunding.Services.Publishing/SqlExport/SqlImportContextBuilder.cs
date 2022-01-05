@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             IEnumerable<FundingLine> allFundingLines = template.RootFundingLines.Flatten(_ => _.FundingLines);
             IEnumerable<Calculation> allCalculations = allFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations));
-            IEnumerable<Calculation> uniqueCalculations = allCalculations.DistinctBy(_ => _.TemplateCalculationId);
+            IEnumerable<Calculation> uniqueCalculations = Enumerable.DistinctBy(allCalculations, _ => _.TemplateCalculationId);
             IDictionary<uint, string> calculationNames = GetCalculationNames(uniqueCalculations);
 
             return new SqlImportContext

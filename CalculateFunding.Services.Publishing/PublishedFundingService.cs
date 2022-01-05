@@ -89,7 +89,7 @@ namespace CalculateFunding.Services.Publishing
             // filter out organisation groups which don't contain a provider which is in scope
             if (!publishedProvidersInScope.IsNullOrEmpty())
             {
-                HashSet<string> publishedProviderIdsInScope = new HashSet<string>(publishedProvidersInScope.DistinctBy(_ => _.Current.ProviderId).Select(_ => _.Current.ProviderId));
+                HashSet<string> publishedProviderIdsInScope = new HashSet<string>(Enumerable.DistinctBy(publishedProvidersInScope, _ => _.Current.ProviderId).Select(_ => _.Current.ProviderId));
                 organisationGroups = organisationGroups.Where(_ => _.Providers.Any(provider => publishedProviderIdsInScope.Contains(provider.ProviderId)));
             }
 

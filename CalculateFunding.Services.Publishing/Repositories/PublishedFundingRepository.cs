@@ -1644,7 +1644,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 fundingLines.Add((item.fundingLineCode, item.name));
             }
 
-            return fundingLines.DistinctBy(_ => _.Code);
+            return Enumerable.DistinctBy(fundingLines, _ => _.Code);
         }
 
         public async Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds,

@@ -331,11 +331,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 publishedProviders = _repo.PublishedProviders[specificationId].Select(_ => _.Value);
             }
 
-            IEnumerable<(string Code, string Name)> fundingLines = publishedProviders
+            IEnumerable<(string Code, string Name)> fundingLines = Enumerable.DistinctBy(publishedProviders
                 .Where(_ => _.Current.FundingLines.AnyWithNullCheck())
                 .SelectMany(x => x.Current.FundingLines)
                 .Select(x => (x.Name, x.FundingLineCode))
-                .DistinctBy(_ => _.FundingLineCode);
+                , _ => _.FundingLineCode);
 
             return Task.FromResult(fundingLines);
         }

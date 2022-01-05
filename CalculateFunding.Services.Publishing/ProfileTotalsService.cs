@@ -277,10 +277,10 @@ namespace CalculateFunding.Services.Publishing
                     latestPublishedProviderVersion.TemplateVersion,
                     specificationId);
 
-            FundingLine[] fundingLines = latestPublishedProviderVersion
+            FundingLine[] fundingLines = Enumerable.DistinctBy(latestPublishedProviderVersion
                 .FundingLines
                 .Where(f => f.Type == FundingLineType.Payment)
-                .DistinctBy(f => f.FundingLineCode)
+                , f => f.FundingLineCode)
                 .OrderBy(f => f.Name).ToArray();
 
             List<FundingLineProfile> fundingLineProfiles = new List<FundingLineProfile>(fundingLines.Length);

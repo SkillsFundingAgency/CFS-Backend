@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     .SelectMany(p => p.ProfilePattern)
                     .ToArray();
 
-            return allPatterns.DistinctBy(_ => new
+            return Enumerable.DistinctBy(allPatterns, _ => new
             {
                 _.Occurrence,
                 _.Period,

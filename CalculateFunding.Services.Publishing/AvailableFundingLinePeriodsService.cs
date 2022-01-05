@@ -124,7 +124,7 @@ namespace CalculateFunding.Services.Publishing
                     allPatternsForFundingLine.AddRange(profilingConfig.ProfilePattern);
                 }
 
-                IEnumerable<ProfilePeriodPattern> distinctPeriodsForFundingLine = allPatternsForFundingLine.DistinctBy(_ => new
+                IEnumerable<ProfilePeriodPattern> distinctPeriodsForFundingLine = Enumerable.DistinctBy(allPatternsForFundingLine, _ => new
                 {
                     _.Occurrence,
                     _.Period,

@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Publishing
 
         private void InitialiseProfilingBatches()
         {
-            ProfilingBatches ??= new ProfilingBatches(ProfilingRequests).DistinctBy(_ => _.Key).ToDictionary(_ => _.Key);
+            ProfilingBatches ??= Enumerable.DistinctBy(new ProfilingBatches(ProfilingRequests), _ => _.Key).ToDictionary(_ => _.Key);
         }
 
         public void ReconcileBatchProfilingResponse(BatchProfilingResponseModel response)

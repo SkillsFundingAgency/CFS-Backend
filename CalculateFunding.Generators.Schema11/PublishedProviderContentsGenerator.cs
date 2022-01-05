@@ -131,11 +131,11 @@ namespace CalculateFunding.Generators.Schema11
                 FundingValue = new
                 {
                     TotalValue = publishedProviderVersion.TotalFunding,
-                    FundingLines = fundingLines?.DistinctBy(x => x.TemplateLineId).Select(x => ToFundingLine(x,
-                        publishedProviderVersion.FundingLines)).ToDictionary(_ => _.TemplateLineId),
-                    Calculations = calculations?.DistinctBy(x => x.TemplateCalculationId).Select(calculation => BuildCalculations(publishedProviderVersion.Calculations,
+                    FundingLines = fundingLines.AnyWithNullCheck() ? Enumerable.DistinctBy(fundingLines, x => x.TemplateLineId).Select(x => ToFundingLine(x,
+                        publishedProviderVersion.FundingLines)).ToDictionary(_ => _.TemplateLineId) : null,
+                    Calculations = calculations.AnyWithNullCheck() ? Enumerable.DistinctBy(calculations, x => x.TemplateCalculationId).Select(calculation => BuildCalculations(publishedProviderVersion.Calculations,
                         calculation,
-                        publishedProviderVersion.ProviderId)).Where(_ => _ != null).ToDictionary(_ => _.TemplateCalculationId)
+                        publishedProviderVersion.ProviderId)).Where(_ => _ != null).ToDictionary(_ => _.TemplateCalculationId) : null
                 },
                 publishedProviderVersion.VariationReasons,
                 Successors = string.IsNullOrWhiteSpace(publishedProviderVersion.Provider.Successor)

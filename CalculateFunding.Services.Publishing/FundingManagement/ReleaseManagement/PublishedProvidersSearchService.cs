@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
                             List<ReleaseChannel> existingReleaseChannels = result[item.Key].ToList();
                             existingReleaseChannels.AddRange(newReleaseChannels);
-                            result[item.Key] = existingReleaseChannels.DistinctBy(_ => new { _.ChannelName, _.ChannelCode, _.MajorVersion, _.MinorVersion });
+                            result[item.Key] = Enumerable.DistinctBy(existingReleaseChannels, _ => new { _.ChannelName, _.ChannelCode, _.MajorVersion, _.MinorVersion });
                         }
                         else
                         {
