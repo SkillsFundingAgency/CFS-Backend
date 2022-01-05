@@ -7,6 +7,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -218,5 +219,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Received(1)
                 .GetAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{SpecificationId}"));
         }
+
+        private DateTimeOffset NewRandomDateTimeOffset() => new DateTimeOffset(new RandomDateTime());
     }
 }

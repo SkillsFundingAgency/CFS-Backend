@@ -49,11 +49,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> SelectSpecificationForFunding(string specificationId);
 
-        Task<IActionResult> GetPublishDates(string specificationId);
-
         Task<IActionResult> GetProfileVariationPointers(string specificationId);
-
-        Task<IActionResult> SetPublishDates(string specificationId, SpecificationPublishDateModel specificationPublishDateModel);
 
         Task<IActionResult> SetProfileVariationPointers(string specificationId, IEnumerable<SpecificationProfileVariationPointerModel> specificationProfileVariationPointerModels, bool merge = false);
 

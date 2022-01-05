@@ -244,29 +244,12 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.DeselectSpecificationForFunding(specificationId);
         }
 
-        [Route("/api/specs/{specificationId}/publishdates")]
-        [HttpGet]
-        [Produces(typeof(SpecificationPublishDateModel))]
-        public async Task<IActionResult> GetPublishDates([FromRoute]string specificationId)
-        {
-            return await _specService.GetPublishDates(specificationId);
-        }
-
         [Route("/api/specs/{specificationId}/profilevariationpointers")]
         [HttpGet]
         [Produces(typeof(IEnumerable<SpecificationProfileVariationPointerModel>))]
         public async Task<IActionResult> GetProfileVariationPointers([FromRoute]string specificationId)
         {
             return await _specService.GetProfileVariationPointers(specificationId);
-        }
-
-        [Route("/api/specs/{specificationId}/publishdates")]
-        [HttpPut]
-        [Produces(typeof(HttpStatusCode))]
-        public async Task<IActionResult> SetPublishDates([FromRoute]string specificationId,
-           [FromBody]SpecificationPublishDateModel specificationPublishDateModel)
-        {
-            return await _specService.SetPublishDates(specificationId, specificationPublishDateModel);
         }
 
         [Route("/api/specs/{specificationId}/profilevariationpointers")]

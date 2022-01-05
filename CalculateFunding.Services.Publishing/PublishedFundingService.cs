@@ -111,7 +111,7 @@ namespace CalculateFunding.Services.Publishing
                 TemplateVersion = specification.TemplateIds[fundingStream.Id],
                 FundingStream = fundingStream,
                 FundingPeriod = await _policiesService.GetFundingPeriodByConfigurationId(specification.FundingPeriod.Id),
-                PublishingDates = await _publishedFundingDateService.GetDatesForSpecification(specification.Id),
+                PublishingDates = _publishedFundingDateService.GetDatesForSpecification(),
                 SpecificationId = specification.Id,
             };
         }

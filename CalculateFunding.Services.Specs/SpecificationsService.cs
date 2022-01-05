@@ -1531,37 +1531,6 @@ WHERE   s.documentType = @DocumentType",
             );
         }
 
-        public async Task<IActionResult> GetPublishDates(string specificationId)
-        {
-            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-
-            if (specification == null)
-            {
-                string message =
-                    $"No specification ID {specificationId} were returned from the repository, result came back null";
-                _logger.Error(message);
-                return new PreconditionFailedResult(message);
-            }
-
-            Models.Specs.SpecificationVersion specificationVersion = specification.Current;
-
-            if (specificationVersion == null)
-            {
-                string message =
-                    $"Specification ID {specificationId} does not contains current for given specification";
-                _logger.Error(message);
-                return new PreconditionFailedResult(message);
-            }
-
-            return new OkObjectResult(new SpecificationPublishDateModel()
-            {
-                ExternalPublicationDate = specificationVersion.ExternalPublicationDate,
-                EarliestPaymentAvailableDate = specificationVersion.EarliestPaymentAvailableDate
-            });
-        }
-
         public async Task<IActionResult> GetProfileVariationPointers(string specificationId)
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
@@ -1593,47 +1562,6 @@ WHERE   s.documentType = @DocumentType",
                 TypeValue = _.TypeValue,
                 Year = _.Year
             }));
-        }
-
-        public async Task<IActionResult> SetPublishDates(string specificationId,
-            SpecificationPublishDateModel specificationPublishDateModel)
-        {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.ArgumentNotNull(specificationPublishDateModel, nameof(specificationPublishDateModel));
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-
-            if (specification == null)
-            {
-                string message =
-                    $"No specification ID {specificationId} were returned from the repository, result came back null";
-                _logger.Error(message);
-                return new PreconditionFailedResult(message);
-            }
-
-            Models.Specs.SpecificationVersion currentSpecificationVersion = specification.Current;
-            Models.Specs.SpecificationVersion newSpecificationVersion =
-                specification.Current.Clone() as Models.Specs.SpecificationVersion;
-
-            newSpecificationVersion.Version++;
-            newSpecificationVersion.ExternalPublicationDate = specificationPublishDateModel.ExternalPublicationDate.TrimToTheMinute();
-            newSpecificationVersion.EarliestPaymentAvailableDate =
-                specificationPublishDateModel.EarliestPaymentAvailableDate.TrimToTheMinute();
-
-            HttpStatusCode updateSpecificationResult =
-                await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
-
-            if (!updateSpecificationResult.IsSuccess())
-            {
-                string message =
-                    $"Failed to update specification for id: {specificationId} with ExternalPublishDate {specificationPublishDateModel.ExternalPublicationDate} " +
-                    $"and EarliestPaymentAvailableDate {specificationPublishDateModel.EarliestPaymentAvailableDate}";
-                _logger.Error(message);
-
-                return new InternalServerErrorResult(message);
-            }
-
-            return new OkObjectResult(updateSpecificationResult);
         }
 
         public async Task<IActionResult> SetProfileVariationPointers(string specificationId,

@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 OrganisationGroupsToSave = await GeneratePublishedFundingOrganisationGroupResultTuples(organisationGroupsToCreate, specification, fundingStream),
                 FundingStream = fundingStream,
                 FundingPeriod = await _policiesService.GetFundingPeriodByConfigurationId(specification.FundingPeriod.Id),
-                PublishingDates = await _publishedFundingDateService.GetDatesForSpecification(specification.Id),
+                PublishingDates = _publishedFundingDateService.GetDatesForSpecification(),
                 TemplateMetadataContents = await ReadTemplateMetadataContents(fundingStream, specification),
                 TemplateVersion = specification.TemplateIds[fundingStream.Id],
                 SpecificationId = specification.Id
