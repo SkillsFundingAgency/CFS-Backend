@@ -25,7 +25,7 @@
         <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.18.1" />
         <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.9.1" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
         <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
         <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />

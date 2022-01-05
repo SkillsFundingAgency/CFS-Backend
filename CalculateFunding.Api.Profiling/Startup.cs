@@ -27,8 +27,6 @@ namespace CalculateFunding.Api.Profiling
 {
     public class Startup
     {
-        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -57,16 +55,7 @@ namespace CalculateFunding.Api.Profiling
         public void Configure(IApplicationBuilder app,
             IWebHostEnvironment env)
         {
-            if (!string.IsNullOrEmpty(AppConfigConnectionString))
-            {
-                app.UseAzureAppConfiguration();
-            }
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (!env.IsDevelopment())
             {
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
@@ -98,7 +87,6 @@ namespace CalculateFunding.Api.Profiling
             ConfigureSwaggerServices(builder, "Calculate Funding Profiling", "v1");
 
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
-            builder.AddSingleton<IProfilePatternRepository, ProfilePatternRepository>();
             builder.AddSingleton<IFundingValueProfiler, FundingValueProfiler>();
             builder.AddSingleton<IValidator<ProfileBatchRequest>, ProfileBatchRequestValidator>();
 
@@ -118,7 +106,6 @@ namespace CalculateFunding.Api.Profiling
             builder.AddSingleton<ICalculateProfileService, CalculateProfileService>()
                 .AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>()
                 .AddSingleton<IHealthChecker, CalculateProfileService>();
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
             builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Profiling");

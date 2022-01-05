@@ -22,7 +22,6 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.19.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.2.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
-    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
