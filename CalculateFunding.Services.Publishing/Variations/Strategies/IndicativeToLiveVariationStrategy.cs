@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.FromResult(false);
             }
 
-            newOpenerFundingLines.ForEach(_=> providerVariationContext.AddAffectedFundingLineCode(Name, _));
+            newOpenerFundingLines.ForEach(_ => providerVariationContext.AddAffectedFundingLineCode(Name, _));
 
             return Task.FromResult(true);
         }

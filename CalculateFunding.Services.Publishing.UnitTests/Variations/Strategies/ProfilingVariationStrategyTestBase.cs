@@ -31,9 +31,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.AllPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
                 _.AllPublishedProvidersRefreshStates = new Dictionary<string, PublishedProvider>();
             });
-            
+
             await WhenTheVariationsAreProcessed();
-            
+
             VariationContext
                 .QueuedChanges
                 .Should()

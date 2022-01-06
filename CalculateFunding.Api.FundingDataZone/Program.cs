@@ -24,6 +24,7 @@ namespace CalculateFunding.Api.FundingDataZone
                     config.AddAzureAppConfiguration(options =>
                     {
                         options.Connect(AppConfigConnectionString);
+                        options.UseFeatureFlags();
                     });
                 });
             startup.ConfigureServices(builder.Services);

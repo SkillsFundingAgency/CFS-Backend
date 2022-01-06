@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             int year = NewRandomNumber();
             string month = NewRandomMonth();
-            
+
             GivenTheOtherwiseValidVariationContext(_ =>
             {
                 _.RefreshState.IsIndicative = false;

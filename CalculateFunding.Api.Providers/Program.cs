@@ -23,6 +23,7 @@ namespace CalculateFunding.Api.Providers
                     config.AddAzureAppConfiguration(options =>
                     {
                         options.Connect(AppConfigConnectionString);
+                        options.UseFeatureFlags();
                     });
                 });
             startup.ConfigureServices(builder.Services);
