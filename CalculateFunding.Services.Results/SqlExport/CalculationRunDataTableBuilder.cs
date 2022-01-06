@@ -13,6 +13,8 @@ namespace CalculateFunding.Services.Results.SqlExport
         private readonly SpecificationSummary _specificationSummary;
         private readonly JobSummary _jobSummary;
 
+        private readonly object lockObject = new object();
+
         public CalculationRunDataTableBuilder(
             SpecificationSummary specificationSummary,
             JobSummary jobSummary)
@@ -35,16 +37,31 @@ namespace CalculateFunding.Services.Results.SqlExport
             };
 
         protected override void AddDataRowToDataTable(ProviderResult dto)
-            => DataTable.Rows.Add(
-                dto.SpecificationId,
-                _specificationSummary.FundingStreams.FirstOrDefault().Id,
-                _specificationSummary.FundingPeriod.Id,
-                _specificationSummary.Name,
-                _specificationSummary.TemplateIds[_specificationSummary.FundingStreams.FirstOrDefault().Id],
-                _specificationSummary.ProviderVersionId,
-                _jobSummary.LastUpdated.UtcDateTime,
-                _jobSummary.InvokerUserDisplayName
-                );
+        {
+            if(DataTable.Rows.Count == 1)
+            {
+                return;
+            }
+
+            lock (lockObject)
+            {
+                if (DataTable.Rows.Count == 1)
+                {
+                    return;
+                }
+
+                DataTable.Rows.Add(
+                    dto.SpecificationId,
+                    _specificationSummary.FundingStreams.FirstOrDefault().Id,
+                    _specificationSummary.FundingPeriod.Id,
+                    _specificationSummary.Name,
+                    _specificationSummary.TemplateIds[_specificationSummary.FundingStreams.FirstOrDefault().Id],
+                    _specificationSummary.ProviderVersionId,
+                    _jobSummary.LastUpdated.UtcDateTime,
+                    _jobSummary.InvokerUserDisplayName
+                    );
+            }
+        }
 
         protected override void EnsureTableNameIsSet(ProviderResult dto)
             => TableName = $"[dbo].[{dto.SpecificationId}_CalculationRun]";

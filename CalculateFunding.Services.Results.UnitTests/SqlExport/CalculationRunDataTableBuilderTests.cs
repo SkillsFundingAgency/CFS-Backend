@@ -45,8 +45,9 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
         public void MapsTemplateCalculationsIntoDataTable()
         {
             ProviderResult rowOne = NewProviderResult(_ => _.WithSpecificationId(SpecificationId));
+            ProviderResult rowTwo = NewProviderResult(_ => _.WithSpecificationId(SpecificationId));
 
-            WhenTheRowsAreAdded(rowOne);
+            WhenTheRowsAreAdded(rowOne, rowTwo);
 
             ThenTheDataTableHasColumnsMatching(
                 NewDataColumn<string>("SpecificationId"),

@@ -7,6 +7,8 @@ namespace CalculateFunding.Services.SqlExport
     {
         private volatile bool _isSetUp;
 
+        private readonly object dataTableLock = new object();
+
         public DataTable DataTable { get; set; }
 
         public string TableName { get; protected set; }
@@ -38,7 +40,7 @@ namespace CalculateFunding.Services.SqlExport
                     _isSetUp = true;
                 }
 
-                lock (DataTable)
+                lock (dataTableLock)
                 {
                     AddDataRowToDataTable(row);
                 }
@@ -51,14 +53,14 @@ namespace CalculateFunding.Services.SqlExport
 
         protected void EnsureDataTableExists(TDto dto)
         {
-            if (DataTable != null)
+            if (DataTable != null && DataTable.Columns.Count > 0)
             {
                 return;
             }
 
             lock (this)
             {
-                if (DataTable != null)
+                if (DataTable != null && DataTable.Columns.Count > 0)
                 {
                     return;
                 }
