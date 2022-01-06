@@ -51,11 +51,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         {
             List<string> fundingLines = new List<string>();
 
-            if (refreshState.Provider.ReasonEstablishmentOpened == AcademyConverter &&
-                refreshState.Provider.Predecessors.AnyWithNullCheck() &&
-                refreshState.Provider.DateOpened != null &&
-                refreshState.Provider.DateOpened.Value >= fundingPeriodStartDate &&
-                refreshState.Provider.DateOpened.Value <= fundingPeriodEndDate)
+            if (refreshState.IsConverter(fundingPeriodStartDate, fundingPeriodEndDate, AcademyConverter))
             {
                 // we only need to re-profile an opener if it has a none zero value
                 foreach (FundingLine fundingLine in refreshState.PaymentFundingLinesWithValues.Where(_ => _.Value != 0))

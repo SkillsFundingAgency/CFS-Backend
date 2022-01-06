@@ -54,9 +54,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         {
             providerVariationContext.AddVariationReasons(VariationReason.IndicativeToLive);
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext, Name));
-            providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext, Name));
 
-            return Task.FromResult(true);
+            return Task.FromResult(false);
         }
     }
 }

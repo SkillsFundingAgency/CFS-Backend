@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         }
 
         [TestMethod]
-        public async Task SetTheVariationReasonIfFundingSchemaVersionIsUpated()
+        public async Task SetTheVariationReasonIfIndicativeToLive()
         {
             int year = NewRandomNumber();
             string month = NewRandomMonth();
@@ -65,7 +65,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             await WhenTheVariationsAreProcessed();
 
             ThenTheVariationChangeWasQueued<MetaDataVariationsChange>();
-            AndTheVariationChangeWasQueued<MidYearReProfileVariationChange>();
             AndTheVariationReasonsWereRecordedOnTheVariationContext(VariationReason.IndicativeToLive);
             AndTheAffectedFundingLinesWereTracked(FundingLineCode);
         }

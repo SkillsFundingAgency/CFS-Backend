@@ -253,6 +253,18 @@ namespace CalculateFunding.Models.Publishing
             return isIndicative != IsIndicative;
         }
 
+        public bool IsConverter(DateTimeOffset? fundingPeriodStartDate,
+            DateTimeOffset? fundingPeriodEndDate,
+            string academyConverter)
+        {
+            return Provider != null && 
+                Provider.ReasonEstablishmentOpened == academyConverter &&
+                Provider.Predecessors.AnyWithNullCheck() &&
+                Provider.DateOpened != null &&
+                Provider.DateOpened.Value >= fundingPeriodStartDate &&
+                Provider.DateOpened.Value <= fundingPeriodEndDate;
+        }
+
         public decimal? GetCarryOverTotalForFundingLine(string fundingLineCode)
             => CarryOvers?.Where(_ => _.FundingLineCode == fundingLineCode).Sum(_ => _.Amount);
 

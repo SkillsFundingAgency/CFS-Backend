@@ -170,6 +170,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             VariationContext.RefreshState.FundingLines = fundingLines;
         }
 
+        protected void AndTheRefreshStateProvider(Provider provider)
+        {
+            VariationContext.RefreshState.Provider = provider;
+        }
+
         protected void AndTheReleaseStateFundingLines(params FundingLine[] fundingLines)
         {
             VariationContext.PriorState.FundingLines = fundingLines;
