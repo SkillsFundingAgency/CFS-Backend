@@ -211,12 +211,21 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                         Author = additionalCalculation.Author
                     };
 
-                    await _targetDataOperations.CreateCalculation(
-                        cloneSpecificationSummary.Id,
-                        calculationCreateModel,
-                        skipCalcRun: true,
-                        skipQueueCodeContextCacheUpdate: true,
-                        overrideCreateModelAuthor: true);
+                    try
+                    {
+                        await _targetDataOperations.CreateCalculation(
+                                                cloneSpecificationSummary.Id,
+                                                calculationCreateModel,
+                                                skipCalcRun: true,
+                                                skipQueueCodeContextCacheUpdate: true,
+                                                overrideCreateModelAuthor: true);
+                    }
+                    catch(Exception ex)
+                    {
+                        _logger.Error(ex, $"Error creating additional calculation {calculationCreateModel.Name} so calculation skipped. " +
+                            $"This is probably due to calculation referencing template calculation which is not in template. " +
+                            $"Additional calculation will need to be manually created with correct details if required.");
+                    }
                 }
                 additionalCalculationIndex++;
 
