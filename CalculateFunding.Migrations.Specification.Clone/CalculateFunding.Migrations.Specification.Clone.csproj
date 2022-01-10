@@ -2,21 +2,21 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6</TargetFramework>
     <UserSecretsId>96839a6b-8adf-4a77-8e64-8dd8331fd520</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="5.3.2" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.14.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.2.0" />
-    <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="5.9.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="6.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="6.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.1" />
+    <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="6.0.0" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.20.1" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.9.1" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.19.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0" />
 
     
   </ItemGroup>

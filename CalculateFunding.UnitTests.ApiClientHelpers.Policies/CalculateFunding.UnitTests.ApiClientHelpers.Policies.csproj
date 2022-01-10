@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6</TargetFramework>
     <RootNamespace>CalculateFunding.UnitTests.ApiClientHelpers.Policies</RootNamespace>
     <DebugType>full</DebugType>
     <LangVersion>8</LangVersion>
@@ -10,7 +10,7 @@
   
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.18.1" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="7.0.1" />
   </ItemGroup>
   
   

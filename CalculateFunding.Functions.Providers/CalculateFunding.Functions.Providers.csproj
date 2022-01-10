@@ -7,11 +7,11 @@
   </PropertyGroup>
   <ItemGroup>
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="1.7.0" />  
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.2.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.9.1" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.19.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="5.2.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="2.0.2" />  
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="6.0.2" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="4.2.1" />
 	<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />

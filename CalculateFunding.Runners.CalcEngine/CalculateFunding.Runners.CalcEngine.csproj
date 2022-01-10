@@ -12,10 +12,10 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.14.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.2.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.9.1" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="5.2.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="6.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="6.0.2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Sql" Version="2.2.1" />
+    <PackageReference Include="CalculateFunding.Common.Sql" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>

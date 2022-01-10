@@ -2,6 +2,7 @@
 using System.IO;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -48,6 +49,24 @@ namespace CalculateFunding.Services.Core.Extensions
                 configBuilder.AddJsonFile("appsettings.development.json", true);
                 configBuilder.AddUserSecrets("df0d69d5-a6db-4598-909f-262fc39cb8c8");
             }
+        }
+
+        public static IHostBuilder ConfigureAppConfiguration(this IHostBuilder hostBuilder)
+        {
+            return hostBuilder
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    if (string.IsNullOrWhiteSpace(AppConfigConnectionString))
+                    {
+                        return;
+                    }
+                    var settings = config.Build();
+                    config.AddAzureAppConfiguration(options =>
+                    {
+                        options.Connect(AppConfigConnectionString);
+                        options.UseFeatureFlags();
+                    });
+                });
         }
 
         private static IConfigurationBuilder AddAppConfiguration(this IConfigurationBuilder configBuilder)

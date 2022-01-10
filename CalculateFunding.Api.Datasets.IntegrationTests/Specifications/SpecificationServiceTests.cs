@@ -52,6 +52,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Specifications
         }
 
         [TestMethod]
+        [Ignore]
         public async Task ReturnsEligibleSpecificationReferencesWhenGetEligibleSpecificationsToReferenceCalled()
         {
             string specificationId = NewRandomString();

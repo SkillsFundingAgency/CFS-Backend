@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net6</TargetFramework>
@@ -10,7 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema12" Version="1.3.0" />
+      <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema12" Version="2.0.0" />
     </ItemGroup>
 
 </Project>

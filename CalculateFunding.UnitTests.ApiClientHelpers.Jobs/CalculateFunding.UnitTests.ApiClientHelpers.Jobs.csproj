@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="5.3.1" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>

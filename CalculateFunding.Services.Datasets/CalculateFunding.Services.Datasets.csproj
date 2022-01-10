@@ -7,14 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.18.1" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="8.3.1" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="5.3.1" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="4.11.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.23.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="4.4.22" />
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="7.1.1" />
-    <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.5" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="7.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="9.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="6.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="5.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="5.0.2" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="8.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Storage" Version="3.0.0" />
     <PackageReference Include="FluentValidation" Version="8.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="YamlDotNet" Version="6.1.2" />

@@ -16,27 +16,16 @@
   <ItemGroup>
 
     <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.7.4" />
-
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="7.5.0" />
-
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.14.0" />
-
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="7.5.0" />
-
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="1.7.0" />
-
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.2.0" />
-
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="5.3.2" />
-
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.9.1" />
-
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Profiling" Version="2.2.0" />
-
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.8.0" />
-
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.19.0" />
-
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="8.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="6.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="8.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="2.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="6.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Profiling" Version="3.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="5.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />

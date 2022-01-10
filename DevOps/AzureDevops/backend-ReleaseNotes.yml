@@ -1,7 +1,7 @@
 name: $(Rev:r)
 
 pool:
-  vmImage: windows-2019
+  vmImage: windows-2022
 
 trigger:
   batch: true
@@ -28,9 +28,9 @@ variables:
 
 steps:
 - task: UseDotNet@2
-  displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersion)'
+  displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersionNet6)'
   inputs:
-    version: '$(DotnetCoreSdkVersion)'
+    version: '$(DotnetCoreSdkVersionNet6)'
     
 - task: DotNetCoreCLI@2
   displayName: Restore
