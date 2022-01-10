@@ -80,5 +80,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> QueueApproveAllSpecificationCalculations(string specificationId, Reference author, string correlationId);
 
         Task<IActionResult> QueueCalculationRun(string specificationId, QueueCalculationRunModel initiateCalculationRunModel);
+
+        IActionResult GenerateCalculationIdentifier(GenerateIdentifierModel generateIdentifierModel);
     }
 }

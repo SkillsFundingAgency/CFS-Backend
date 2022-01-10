@@ -1309,6 +1309,29 @@ End Select");
             }
         }
 
+        public IActionResult GenerateCalculationIdentifier(GenerateIdentifierModel generateIdentifierModel)
+        {
+            try
+            {
+                string sourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(generateIdentifierModel.CalculationName);
+                CalculationIdentifier calculationIdentifier = new CalculationIdentifier
+                {
+                    Name = generateIdentifierModel.CalculationName,
+                    SourceCodeName = sourceCodeName
+                };
+
+                return new OkObjectResult(calculationIdentifier);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Unable to generate calculation identifier. Input={generateIdentifierModel.CalculationName}";
+
+                _logger.Error(ex, errorMessage);
+
+                return new InternalServerErrorResult(errorMessage);
+            }
+        }
+
         private async Task TrackJobFailed(string jobId, Exception exception)
         {
             await AddJobTracking(jobId, new JobLogUpdateModel

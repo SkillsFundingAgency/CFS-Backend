@@ -314,8 +314,6 @@ namespace CalculateFunding.Api.Calcs.Controllers
             return await _calcsService.QueueApproveAllSpecificationCalculations(specificationId, httpRequest.GetUser(), httpRequest.GetCorrelationId());
         }
 
-
-
         [HttpPost("api/calcs/{specificationId}/{datasetDefinitionRelationshipId}/remap")]
         [Produces(typeof(JobViewModel))]
         public async Task<IActionResult> ReMapSpecificationRelationship([FromRoute] string specificationId, [FromRoute] string datasetDefinitionRelationshipId)
@@ -328,5 +326,11 @@ namespace CalculateFunding.Api.Calcs.Controllers
                 user,
                 correlationId);
         }
+
+        [Route("api/calcs/generate-identifier")]
+        [HttpPost]
+        [Produces(typeof(CalculationIdentifier))]
+        public IActionResult GenerateCalculationIdentifier([FromBody] GenerateIdentifierModel generateIdentifierModel) 
+            => _calcsService.GenerateCalculationIdentifier(generateIdentifierModel);
     }
 }

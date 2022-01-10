@@ -2132,8 +2132,6 @@ namespace CalculateFunding.Services.Calcs.Services
         [TestMethod]
         public async Task EditCalculation_GivenUserEditsAdditionalCalculationWithUpdatedName_AndGraphApiClientSucess_Then()
         {
-            var a = new Common.ApiClient.Models.ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<Common.ApiClient.Graph.Models.Calculation>>>(HttpStatusCode.OK);
-
             string specificationId = Guid.NewGuid().ToString();
 
             IEnumerable<ApiEntityCalculation> existingCalculationEntities = new[] { new ApiEntityCalculation
@@ -2163,7 +2161,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IGraphApiClient graphApiClient = CreateGraphApiClient();
             graphApiClient
                 .GetAllEntitiesRelatedToCalculation(Arg.Any<string>())
-                .Returns(new Common.ApiClient.Models.ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<Common.ApiClient.Graph.Models.Calculation>>>(HttpStatusCode.OK, existingCalculationEntities));
+                .Returns(new Common.ApiClient.Models.ApiResponse<IEnumerable<ApiEntityCalculation>>(HttpStatusCode.OK, existingCalculationEntities));
 
             IActionResult result = await EditCalculation_GivenUserEditsAdditionalCalculationWithUpdatedName_AndGraphApiClientRuns(graphApiClient);
 
