@@ -237,10 +237,16 @@ namespace CalculateFunding.Services.Publishing
             fundingLineProfile.AmountAlreadyPaid = profileTotals.Where(_ => _.IsPaid).Sum(_ => _.Value);
             fundingLineProfile.RemainingAmount = fundingLineProfile.FundingLineAmount - fundingLineProfile.AmountAlreadyPaid;
 
-            foreach (ProfileTotal profileTotal in profileTotals.Where(_ => !_.IsPaid))
+            foreach (ProfileTotal profileTotal in profileTotals)
             {
-                profileTotal.ProfileRemainingPercentage = fundingLineProfile.ProfilePatternTotal.HasValue && (fundingLineProfile.ProfilePatternTotal - fundingLineProfile.AmountAlreadyPaid) != 0 ?
-                        profileTotal.Value / (fundingLineProfile.ProfilePatternTotal - fundingLineProfile.AmountAlreadyPaid) * 100 : 0;
+                if (!profileTotal.IsPaid)
+                {
+                    profileTotal.ProfileRemainingPercentage = fundingLineProfile.ProfilePatternTotal.HasValue && (fundingLineProfile.ProfilePatternTotal - fundingLineProfile.AmountAlreadyPaid) != 0 ?
+                            profileTotal.Value / (fundingLineProfile.ProfilePatternTotal - fundingLineProfile.AmountAlreadyPaid) * 100 : 0;
+                }
+
+                profileTotal.ProfilePercentage = fundingLineProfile.ProfilePatternTotal.HasValue && (fundingLineProfile.ProfilePatternTotal) != 0 ?
+                            profileTotal.Value / fundingLineProfile.ProfilePatternTotal * 100 : 0;
             }
 
             fundingLineProfile.ProfileTotals = profileTotals;

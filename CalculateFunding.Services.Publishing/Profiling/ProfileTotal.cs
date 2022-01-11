@@ -20,6 +20,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
 
         public decimal? ProfileRemainingPercentage { get; set; }
 
+        public decimal? ProfilePercentage { get; set; }
+
         public DateTimeOffset? ActualDate { get; set; }
 
         public string DistributionPeriod { get; set; }

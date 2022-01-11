@@ -405,7 +405,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         .WithIsPaid(true)
                         .WithActualDate(fundingDatePatternJune)
                         .WithDistributionPeriod(distributionPeriodId1)
-                        .WithInstallmentNumber(1)),
+                        .WithInstallmentNumber(1)
+                        .WithProfilePercentage(33.333333333333333333333333330M)),
                     NewProfileTotal(pt => pt
                         .WithYear(2020)
                         .WithTypeValue("June")
@@ -416,7 +417,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         .WithActualDate(fundingDatePatternJuly)
                         .WithInstallmentNumber(2)
                         .WithDistributionPeriod(distributionPeriodId2)
-                        .WithProfileRemainingPercentage(100))
+                        .WithProfileRemainingPercentage(100)
+                        .WithProfilePercentage(66.666666666666666666666666670M))
                 }));
 
             actualFundingLineProfile
@@ -637,7 +639,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         .WithIsPaid(true)
                         .WithActualDate(fundingDatePatternJune)
                         .WithDistributionPeriod(distributionPeriodId1)
-                        .WithInstallmentNumber(1)),
+                        .WithInstallmentNumber(1)
+                        .WithProfilePercentage(33.333333333333333333333333330M)),
                     NewProfileTotal(pt => pt
                         .WithYear(2020)
                         .WithTypeValue("June")
@@ -647,7 +650,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         .WithIsPaid(true)
                         .WithActualDate(fundingDatePatternJuly)
                         .WithInstallmentNumber(2)
-                        .WithDistributionPeriod(distributionPeriodId2)),
+                        .WithDistributionPeriod(distributionPeriodId2)
+                        .WithProfilePercentage(66.666666666666666666666666670M)),
                     NewProfileTotal(pt => pt
                         .WithYear(2020)
                         .WithTypeValue("July")
@@ -657,7 +661,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         .WithIsPaid(false)
                         .WithInstallmentNumber(3)
                         .WithDistributionPeriod(distributionPeriodId2)
-                        .WithProfileRemainingPercentage(0))
+                        .WithProfileRemainingPercentage(0)
+                        .WithProfilePercentage(0))
                 }));
 
             actualFundingLineProfile
@@ -1328,6 +1333,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         .WithDistributionPeriod(distributionPeriod1)
                         .WithInstallmentNumber(1)
                         .WithProfileRemainingPercentage(33.333333333333333333333333330M)
+                        .WithProfilePercentage(33.333333333333333333333333330M)
                         .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())),
                     NewProfileTotal(pt => pt
                         .WithYear(2020)
@@ -1337,6 +1343,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         .WithValue(1000)
                         .WithDistributionPeriod(distributionPeriod2)
                         .WithProfileRemainingPercentage(66.666666666666666666666666670M)
+                        .WithProfilePercentage(66.666666666666666666666666670M)
                         .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString()))
                 }));
 
