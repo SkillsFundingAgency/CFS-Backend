@@ -262,7 +262,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 MinorVersion = x.MinorVersion,
                 ChannelCode = null,
                 ChannelName = null,
-                VariationReasons = x.VariationReasons.Select(_ => _.ToString()).ToArray()
+                VariationReasons = x.VariationReasons?.Select(_ => _.ToString()).ToArray()
             });
 
             IEnumerable<ReleasePublishedProviderTransaction> releasedTransactions = releasedData
