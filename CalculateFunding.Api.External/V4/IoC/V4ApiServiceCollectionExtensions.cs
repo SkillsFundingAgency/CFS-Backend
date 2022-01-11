@@ -238,7 +238,7 @@ namespace CalculateFunding.Api.External.V4.IoC
 
                 configuration.Bind("AzureStorageSettings", storageSettings);
 
-                storageSettings.ContainerName = "publishedfunding";
+                storageSettings.ContainerName = "releasedgroups";
 
                 IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
 
@@ -261,7 +261,7 @@ namespace CalculateFunding.Api.External.V4.IoC
 
                 configuration.Bind("AzureStorageSettings", storageSettings);
 
-                storageSettings.ContainerName = "publishedfunding";
+                storageSettings.ContainerName = "releasedgroups";
 
                 IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
 

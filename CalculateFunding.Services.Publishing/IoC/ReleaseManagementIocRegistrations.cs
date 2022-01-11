@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Common.Sql;
 using CalculateFunding.Common.Sql.Interfaces;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
@@ -8,6 +9,7 @@ using CalculateFunding.Services.Publishing.Variations;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.IoC
 {
@@ -47,9 +49,44 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IReleaseProvidersToChannelsService, ReleaseProvidersToChannelsService>();
             builder.AddScoped<IGenerateVariationReasonsForChannelService, GenerateVariationReasonsForChannelService>();
             builder.AddScoped<IProviderVariationReasonsReleaseService, ProviderVariationReasonsReleaseService>();
-            builder.AddScoped<IPublishedProviderChannelVersionService, PublishedProviderChannelVersionService>();
+            builder.AddSingleton<IPublishedProviderChannelVersionService>((ctx) =>
+            {
+                BlobStorageOptions storageSettings = new BlobStorageOptions();
+
+                configuration.Bind("AzureStorageSettings", storageSettings);
+
+                storageSettings.ContainerName = "releasedproviders";
+
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+                IBlobClient blobClient = new BlobClient(blobContainerRepository);
+
+                IPublishingResiliencePolicies resiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
+                ILogger logger = ctx.GetService<ILogger>();
+
+                return new PublishedProviderChannelVersionService(logger, blobClient, resiliencePolicies);
+            });
+
             builder.AddScoped<IPublishedProviderContentChannelPersistanceService, PublishedProviderContentChannelPersistanceService>();
-            builder.AddScoped<IPublishedFundingContentsChannelPersistanceService, PublishedFundingContentsChannelPersistanceService>();
+            builder.AddSingleton<IPublishedFundingContentsChannelPersistanceService>((ctx) =>
+            {
+                BlobStorageOptions storageSettings = new BlobStorageOptions();
+
+                configuration.Bind("AzureStorageSettings", storageSettings);
+
+                storageSettings.ContainerName = "releasedgroups";
+
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+                IBlobClient blobClient = new BlobClient(blobContainerRepository);
+
+                IPublishedFundingContentsGeneratorResolver resolver = ctx.GetService<IPublishedFundingContentsGeneratorResolver>();
+                IPublishingResiliencePolicies resiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
+                IPublishingEngineOptions engineOptions = ctx.GetService<IPublishingEngineOptions>();
+                IPoliciesService policiesService = ctx.GetService<IPoliciesService>();
+                ILogger logger = ctx.GetService<ILogger>();
+
+                return new PublishedFundingContentsChannelPersistanceService(logger, resolver, blobClient, resiliencePolicies, engineOptions, policiesService);
+            });
+
             builder.AddScoped<IFundingGroupService, FundingGroupService>();
             builder.AddScoped<IFundingGroupDataGenerator, FundingGroupDataGenerator>();
             builder.AddScoped<IPublishedProviderLoaderForFundingGroupData, PublishedProviderLoaderForFundingGroupData>();
