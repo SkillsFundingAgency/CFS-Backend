@@ -487,9 +487,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             StringBuilder queryTextBuilder = new StringBuilder(@"
-                                SELECT c.id as id FROM c
+                                SELECT c.publishedProviderId as id FROM c
                                 WHERE c.documentType = 'PublishedProvider'
-                                AND c.content.current.specificationId = @specificationId");
+                                AND c.content.current.specificationId = @specificationId
+                                AND c.deleted = false");
 
             List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>{
                 new CosmosDbQueryParameter("@specificationId", specificationId),
@@ -506,7 +507,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             foreach (dynamic item in queryResults)
             {
-                results.Add((string)item.id);
+                results.Add((string)item.publishedProviderId);
             }
 
             return results;

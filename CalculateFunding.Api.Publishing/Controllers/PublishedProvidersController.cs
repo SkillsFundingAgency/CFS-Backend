@@ -123,6 +123,11 @@ namespace CalculateFunding.Api.Publishing.Controllers
             [FromRoute] string providerId) =>
             await _providerFundingPublishingService.GetPublishedProviderTransactions(specificationId,providerId);
 
+        [HttpGet("api/publishedprovider/publishedprovider-id/{specificationId}")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
+        public async Task<IActionResult> GetPublishedProviderIds([FromRoute] string specificationId) =>
+            await _providerFundingPublishingService.GetPublishedProviderIds(specificationId);
+
         /// <summary>
         /// Get released provider's external API output body JSON
         /// </summary>

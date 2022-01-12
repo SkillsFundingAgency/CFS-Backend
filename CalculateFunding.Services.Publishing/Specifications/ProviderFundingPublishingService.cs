@@ -165,6 +165,16 @@ namespace CalculateFunding.Services.Publishing.Specifications
             }));
         }
 
+        public async Task<IActionResult> GetPublishedProviderIds(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            IEnumerable<string> publishedProviderIds = await ResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.GetPublishedProviderIds(specificationId));
+
+            return new OkObjectResult(publishedProviderIds);
+        }
+
         public async Task<IActionResult> GetPublishedProviderVersion(string fundingStreamId,
             string fundingPeriodId,
             string providerId,

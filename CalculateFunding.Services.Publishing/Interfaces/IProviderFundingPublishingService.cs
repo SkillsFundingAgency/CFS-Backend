@@ -24,6 +24,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IActionResult> GetPublishedProviderTransactions(string specificationId,
             string providerId);
 
+        Task<IActionResult> GetPublishedProviderIds(string specificationId);
+
         Task<IActionResult> GetCurrentPublishedProviderVersion(string fundingStreamId,
             string providerId,
             string specificationId);
