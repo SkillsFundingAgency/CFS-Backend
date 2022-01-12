@@ -16,6 +16,8 @@ using System.Collections.Generic;
 using System.Net;
 using CalcsApiCalculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
 using TemplateMetadataCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
+using CalcsApiCalculationIdentifier = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationIdentifier;
+using CalcsApiGenerateIdentifierModel = CalculateFunding.Common.ApiClient.Calcs.Models.GenerateIdentifierModel;
 
 namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 {
@@ -49,6 +51,12 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             IEnumerable<CalcsApiCalculation> calculations)
             => Calculations.Setup(_ => _.GetCalculationsForSpecification(specificationId))
                 .ReturnsAsync(new ApiResponse<IEnumerable<CalcsApiCalculation>>(HttpStatusCode.OK, calculations));
+
+        protected void AndTheGenerateCalculationIdentifier(
+            string identifier,
+            CalcsApiCalculationIdentifier identifierResult)
+            => Calculations.Setup(_ => _.GenerateCalculationIdentifier(It.Is<CalcsApiGenerateIdentifierModel>(_ => _.CalculationName == identifier)))
+                .ReturnsAsync(new ApiResponse<CalcsApiCalculationIdentifier>(HttpStatusCode.OK, identifierResult));
 
         protected void AndTheGetLatestSuccessfulJobForSpecification(
             string specificationId,

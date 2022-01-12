@@ -11,7 +11,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalcsApiCalculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
-using TemplateMetadataCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
+using CalcsApiCalculationIdentifier = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationIdentifier;
 
 namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 {
@@ -54,13 +54,15 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
         public async Task CreatesDDLMatchingSpecificationAndReCreatesSchemaObjectsInQaRepository()
         {
             string specificationId = NewRandomString();
+            string specificationName = NewRandomString();
+            string specificationGeneratedIdentifierName = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string templateVersion = NewRandomString();
             string schemaVersion = NewRandomString();
             string fundingTemplateContents = NewRandomString();
 
-            string specificationTablePrefix = specificationId;
+            string specificationTablePrefix = specificationGeneratedIdentifierName;
 
             uint fundingLineOneTemplateLineId = NewRandomUInt();
             uint fundingLineTwoTemplateLineId = NewRandomUInt();
@@ -69,7 +71,9 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 
             string calculationOneName = NewRandomString();
 
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _
+                .WithId(specificationId)
+                .WithName(specificationName)
                 .WithFundingStreamIds(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithTemplateIds((fundingStreamId, templateVersion)));
@@ -92,8 +96,15 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                 NewApiCalculation(_ => _.WithType(Common.ApiClient.Calcs.Models.CalculationType.Additional))
             };
 
+            CalcsApiCalculationIdentifier calcsApiCalculationIdentifier = new CalcsApiCalculationIdentifier
+            {
+                Name = specificationName,
+                SourceCodeName = specificationGeneratedIdentifierName
+            };
+
             GivenTheSpecification(specificationId, specificationSummary);
             AndTheCalculationsForSpecification(specificationId, calculations);
+            AndTheGenerateCalculationIdentifier(specificationName, calcsApiCalculationIdentifier);
             AndTheFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion, fundingTemplate);
             AndTheTemplateMetadataContents(schemaVersion, fundingTemplateContents, templateMetadataContents);
 
@@ -112,13 +123,16 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
         public async Task CreatesDDLMatchingSpecificationAndReCreatesSchemaObjectsInQaRepositoryWithoutAdditionalCalculations()
         {
             string specificationId = NewRandomString();
+            string specificationName = NewRandomString();
+            string specificationGeneratedIdentifierName = NewRandomString();
+
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string templateVersion = NewRandomString();
             string schemaVersion = NewRandomString();
             string fundingTemplateContents = NewRandomString();
 
-            string specificationTablePrefix = specificationId;
+            string specificationTablePrefix = specificationGeneratedIdentifierName;
 
             uint fundingLineOneTemplateLineId = NewRandomUInt();
             uint fundingLineTwoTemplateLineId = NewRandomUInt();
@@ -127,7 +141,9 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 
             string calculationOneName = NewRandomString();
 
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _
+                .WithId(specificationId)
+                .WithName(specificationName)
                 .WithFundingStreamIds(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithTemplateIds((fundingStreamId, templateVersion)));
@@ -149,8 +165,15 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                 NewApiCalculation(_ => _.WithType(Common.ApiClient.Calcs.Models.CalculationType.Template).WithName(calculationOneName)),
             };
 
+            CalcsApiCalculationIdentifier calcsApiCalculationIdentifier = new CalcsApiCalculationIdentifier
+            {
+                Name = specificationName,
+                SourceCodeName = specificationGeneratedIdentifierName
+            };
+
             GivenTheSpecification(specificationId, specificationSummary);
             AndTheCalculationsForSpecification(specificationId, calculations);
+            AndTheGenerateCalculationIdentifier(specificationName, calcsApiCalculationIdentifier);
             AndTheFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion, fundingTemplate);
             AndTheTemplateMetadataContents(schemaVersion, fundingTemplateContents, templateMetadataContents);
 

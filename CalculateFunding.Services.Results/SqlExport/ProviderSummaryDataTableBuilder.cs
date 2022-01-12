@@ -8,6 +8,14 @@ namespace CalculateFunding.Services.Results.SqlExport
 {
     public class ProviderSummaryDataTableBuilder : DataTableBuilder<ProviderResult>
     {
+        private readonly string _specificationIdentifier;
+
+        public ProviderSummaryDataTableBuilder(
+            string specificationIdentifier)
+        {
+            _specificationIdentifier = specificationIdentifier;
+        }
+
         protected override DataColumn[] GetDataColumns(ProviderResult dto)
             => new[]
             {
@@ -143,6 +151,6 @@ namespace CalculateFunding.Services.Results.SqlExport
                 dto.IsIndicativeProvider);
 
         protected override void EnsureTableNameIsSet(ProviderResult dto)
-            => TableName = $"[dbo].[{dto.SpecificationId}_Providers]";
+            => TableName = $"[dbo].[{_specificationIdentifier}_Providers]";
     }
 }

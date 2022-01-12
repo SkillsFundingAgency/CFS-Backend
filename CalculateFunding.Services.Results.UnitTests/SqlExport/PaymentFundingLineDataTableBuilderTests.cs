@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                 .WithName(fundingLineFourName));
 
             IEnumerable<FundingLine> fundingLines = new []{ paymentFundingLineOne, paymentFundingLineTwo, paymentFundingLineThree, paymentFundingLineFour };
-            DataTableBuilder = new PaymentFundingLineDataTableBuilder(fundingLines, new SqlNameGenerator());
+            DataTableBuilder = new PaymentFundingLineDataTableBuilder(fundingLines, new SqlNameGenerator(), SpecificationIdentifierName);
         }
 
         [TestMethod]
@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                     rowTwo.Provider.Id,
                     fundingLineResultThree.Value,
                     fundingLineResultFour.Value));
-            AndTheTableNameIs($"[dbo].[{SpecificationId}_PaymentFundingLines]");
+            AndTheTableNameIs($"[dbo].[{SpecificationIdentifierName}_PaymentFundingLines]");
         }
     }
 }

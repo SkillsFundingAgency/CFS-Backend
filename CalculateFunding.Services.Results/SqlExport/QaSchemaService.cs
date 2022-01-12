@@ -22,7 +22,6 @@ using CalcsApiCalculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calcu
 using CalcsApiCalculationValueType = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationValueType;
 using CalcsApiCalculationType = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationType;
 
-
 namespace CalculateFunding.Services.Results.SqlExport
 {
     public class QaSchemaService : IQaSchemaService
@@ -111,7 +110,19 @@ namespace CalculateFunding.Services.Results.SqlExport
         {
             await DropExistingTables(specification.Id);
 
-            string specificationTablePrefix = specification.Id;
+            ApiResponse<Common.ApiClient.Calcs.Models.CalculationIdentifier> specsIdentifierResponse =
+                await _calcsResilience.ExecuteAsync(() => _calculationsApiClient.GenerateCalculationIdentifier(
+                    new Common.ApiClient.Calcs.Models.GenerateIdentifierModel {CalculationName = specification.Name }));
+
+            Common.ApiClient.Calcs.Models.CalculationIdentifier specsIdentifier = specsIdentifierResponse.Content;
+
+            if (specsIdentifier == null)
+            {
+                throw new NonRetriableException(
+                    $"Did not generate identifiers for {specification.Name}. Unable to complete Qa Schema Generation");
+            }
+
+            string specificationTablePrefix = specsIdentifier.SourceCodeName;
 
             UniqueTemplateContents templateMetadata = await GetTemplateData(specification, specification.FundingStreams.FirstOrDefault().Id);
 

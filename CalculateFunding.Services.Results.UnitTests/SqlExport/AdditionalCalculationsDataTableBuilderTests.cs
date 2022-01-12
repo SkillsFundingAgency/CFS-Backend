@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                 .WithName(calculationFourName));
 
             IEnumerable<CalcsApiCalculation> calculations = new[] { calculationOne, calculationTwo, calculationThree, calculationFour };
-            DataTableBuilder = new AdditionalCalculationsDataTableBuilder(calculations, new SqlNameGenerator());
+            DataTableBuilder = new AdditionalCalculationsDataTableBuilder(calculations, new SqlNameGenerator(), SpecificationIdentifierName);
         }
 
         [TestMethod]
@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                     rowTwo.Provider.Id,
                     calculationResultThree.Value,
                     calculationResultFour.Value));
-            AndTheTableNameIs($"[dbo].[{SpecificationId}_AdditionalCalculations]");
+            AndTheTableNameIs($"[dbo].[{SpecificationIdentifierName}_AdditionalCalculations]");
         }
     }
 }

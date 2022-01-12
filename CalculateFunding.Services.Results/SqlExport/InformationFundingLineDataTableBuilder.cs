@@ -12,15 +12,18 @@ namespace CalculateFunding.Services.Results.SqlExport
     {
         private readonly IEnumerable<FundingLine> _fundingLines;
         private readonly ISqlNameGenerator _sqlNameGenerator;
+        private readonly string _specificationIdentifier;
 
         public InformationFundingLineDataTableBuilder(
             IEnumerable<FundingLine> fundingLines,
-            ISqlNameGenerator sqlNameGenerator)
+            ISqlNameGenerator sqlNameGenerator,
+            string specificationIdentifier)
         {
             Guard.ArgumentNotNull(sqlNameGenerator, nameof(sqlNameGenerator));
 
             _fundingLines = fundingLines;
             _sqlNameGenerator = sqlNameGenerator;
+            _specificationIdentifier = specificationIdentifier;
         }
 
         protected override DataColumn[] GetDataColumns(ProviderResult dto)
@@ -50,6 +53,6 @@ namespace CalculateFunding.Services.Results.SqlExport
         }
 
         protected override void EnsureTableNameIsSet(ProviderResult dto)
-            => TableName = $"[dbo].[{dto.SpecificationId}_InformationFundingLines]";
+            => TableName = $"[dbo].[{_specificationIdentifier}_InformationFundingLines]";
     }
 }

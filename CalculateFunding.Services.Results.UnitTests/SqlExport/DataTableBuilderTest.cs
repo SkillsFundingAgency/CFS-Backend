@@ -24,6 +24,8 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
         protected string FundingStreamId;
         protected string FundingPeriodId;
         protected string SpecificationId;
+        protected string SpecificationName;
+        protected string SpecificationIdentifierName;
 
         [TestInitialize]
         public void DataTableBuilderTestSetUp()
@@ -31,6 +33,8 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             ExpectedDataTable = new DataTable();
 
             SpecificationId = NewRandomStringWithMaxLength(32);
+            SpecificationName = NewRandomStringWithMaxLength(32);
+            SpecificationIdentifierName = NewRandomStringWithMaxLength(32);
         }
 
         protected T[] AsArray<T>(params T[] items) => items;

@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                 .WithProviderVersionId(providerVersion));
             JobSummary jobSummary = NewJobSummary(_ => _.WithLastUpdated(lastUpdated).WithInvokerUserDisplayName(lastUpdatedBy));
 
-            DataTableBuilder = new CalculationRunDataTableBuilder(specificationSummary, jobSummary);
+            DataTableBuilder = new CalculationRunDataTableBuilder(specificationSummary, jobSummary, SpecificationIdentifierName);
         }
 
         [TestMethod]
@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                     providerVersion,
                     lastUpdated,
                     lastUpdatedBy));
-            AndTheTableNameIs($"[dbo].[{SpecificationId}_CalculationRun]");
+            AndTheTableNameIs($"[dbo].[{SpecificationIdentifierName}_CalculationRun]");
         }
     }
 }

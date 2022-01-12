@@ -12,15 +12,17 @@ namespace CalculateFunding.Services.Results.SqlExport
     {
         private readonly SpecificationSummary _specificationSummary;
         private readonly JobSummary _jobSummary;
-
+        private readonly string _specificationIdentifier;
         private readonly object lockObject = new object();
 
         public CalculationRunDataTableBuilder(
             SpecificationSummary specificationSummary,
-            JobSummary jobSummary)
+            JobSummary jobSummary,
+            string specificationIdentifier)
         {
             _specificationSummary = specificationSummary;
             _jobSummary = jobSummary;
+            _specificationIdentifier = specificationIdentifier;
         }
 
         protected override DataColumn[] GetDataColumns(ProviderResult dto)
@@ -64,6 +66,6 @@ namespace CalculateFunding.Services.Results.SqlExport
         }
 
         protected override void EnsureTableNameIsSet(ProviderResult dto)
-            => TableName = $"[dbo].[{dto.SpecificationId}_CalculationRun]";
+            => TableName = $"[dbo].[{_specificationIdentifier}_CalculationRun]";
     }
 }

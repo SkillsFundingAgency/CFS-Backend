@@ -221,5 +221,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<CalculationIdentifier>> GenerateCalculationIdentifier(GenerateIdentifierModel model)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

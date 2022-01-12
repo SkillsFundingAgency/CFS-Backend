@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                 templateMetadataCalculationTwo,
                 templateMetadataCalculationThree,
                 templateMetadataCalculationFour };
-            DataTableBuilder = new TemplateCalculationsDataTableBuilder(calculations, new SqlNameGenerator(), templateMetadataCalculations);
+            DataTableBuilder = new TemplateCalculationsDataTableBuilder(calculations, new SqlNameGenerator(), templateMetadataCalculations, SpecificationIdentifierName);
         }
 
         [TestMethod]
@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                     rowTwo.Provider.Id,
                     calculationResultThree.Value,
                     calculationResultFour.Value));
-            AndTheTableNameIs($"[dbo].[{SpecificationId}_TemplateCalculations]");
+            AndTheTableNameIs($"[dbo].[{SpecificationIdentifierName}_TemplateCalculations]");
         }
     }
 }

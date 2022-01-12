@@ -15,15 +15,18 @@ namespace CalculateFunding.Services.Results.SqlExport
     {
         private readonly IEnumerable<CalcsApiCalculation> _calculations;
         private readonly ISqlNameGenerator _sqlNameGenerator;
+        private readonly string _specificationIdentifier;
 
         public AdditionalCalculationsDataTableBuilder(
             IEnumerable<CalcsApiCalculation> calculations,
-            ISqlNameGenerator sqlNameGenerator)
+            ISqlNameGenerator sqlNameGenerator,
+            string specificationIdentifier)
         {
             Guard.ArgumentNotNull(sqlNameGenerator, nameof(sqlNameGenerator));
 
             _calculations = calculations;
             _sqlNameGenerator = sqlNameGenerator;
+            _specificationIdentifier = specificationIdentifier;
         }
 
         protected override DataColumn[] GetDataColumns(ProviderResult dto)
@@ -74,6 +77,6 @@ namespace CalculateFunding.Services.Results.SqlExport
             => $"Calc_{_sqlNameGenerator.GenerateIdentifier(calculationResult.Calculation.Name)}";
 
         protected override void EnsureTableNameIsSet(ProviderResult dto)
-            =>  TableName = _calculations.Any(_ => _.CalculationType == CalcsApiCalculationType.Additional) ? $"[dbo].[{dto.SpecificationId}_AdditionalCalculations]" : string.Empty;
+            =>  TableName = _calculations.Any(_ => _.CalculationType == CalcsApiCalculationType.Additional) ? $"[dbo].[{_specificationIdentifier}_AdditionalCalculations]" : string.Empty;
     }
 }

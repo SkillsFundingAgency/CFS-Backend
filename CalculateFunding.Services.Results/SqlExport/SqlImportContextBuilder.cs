@@ -84,15 +84,29 @@ namespace CalculateFunding.Services.Results.SqlExport
 
             JobSummary jobSummary = await GetLatestCalcRunJobSummary(specificationId);
 
+            ApiResponse<Common.ApiClient.Calcs.Models.CalculationIdentifier> specsIdentifierResponse =
+            await _calcsResilience.ExecuteAsync(() => _calculationsApiClient.GenerateCalculationIdentifier(
+                new Common.ApiClient.Calcs.Models.GenerateIdentifierModel { CalculationName = specificationSummary.Name }));
+
+            Common.ApiClient.Calcs.Models.CalculationIdentifier specsIdentifier = specsIdentifierResponse.Content;
+
+            if (specsIdentifier == null)
+            {
+                throw new NonRetriableException(
+                    $"Did not generate identifiers for {specificationSummary.Name}. Unable to complete Qa Schema Generation");
+            }
+
+            string specificationTablePrefix = specsIdentifier.SourceCodeName;
+
             return new SqlImportContext
             {
                 Documents = providerResultsFeed,
-                CalculationRuns = new CalculationRunDataTableBuilder(specificationSummary, jobSummary),
-                ProviderSummaries = new ProviderSummaryDataTableBuilder(),
-                PaymentFundingLines = new PaymentFundingLineDataTableBuilder(allFundingLines, _sqlNameGenerator),
-                InformationFundingLines = new InformationFundingLineDataTableBuilder(allFundingLines, _sqlNameGenerator),
-                TemplateCalculations = new TemplateCalculationsDataTableBuilder(calculations, _sqlNameGenerator, uniqueCalculations),
-                AdditionalCalculations = new AdditionalCalculationsDataTableBuilder(calculations, _sqlNameGenerator),
+                CalculationRuns = new CalculationRunDataTableBuilder(specificationSummary, jobSummary, specificationTablePrefix),
+                ProviderSummaries = new ProviderSummaryDataTableBuilder(specificationTablePrefix),
+                PaymentFundingLines = new PaymentFundingLineDataTableBuilder(allFundingLines, _sqlNameGenerator, specificationTablePrefix),
+                InformationFundingLines = new InformationFundingLineDataTableBuilder(allFundingLines, _sqlNameGenerator, specificationTablePrefix),
+                TemplateCalculations = new TemplateCalculationsDataTableBuilder(calculations, _sqlNameGenerator, uniqueCalculations, specificationTablePrefix),
+                AdditionalCalculations = new AdditionalCalculationsDataTableBuilder(calculations, _sqlNameGenerator, specificationTablePrefix),
             };
         }
 

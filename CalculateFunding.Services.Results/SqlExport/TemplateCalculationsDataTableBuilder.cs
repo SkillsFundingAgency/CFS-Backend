@@ -16,17 +16,20 @@ namespace CalculateFunding.Services.Results.SqlExport
         private readonly IEnumerable<CalcsApiCalculation> _calculations;
         private readonly ISqlNameGenerator _sqlNameGenerator;
         private readonly IEnumerable<TemplateMetadataCalculation> _templateMetadataCalculation;
+        private readonly string _specificationIdentifier;
 
         public TemplateCalculationsDataTableBuilder(
             IEnumerable<CalcsApiCalculation> calculations,
             ISqlNameGenerator sqlNameGenerator,
-            IEnumerable<TemplateMetadataCalculation> templateMetadataCalculations)
+            IEnumerable<TemplateMetadataCalculation> templateMetadataCalculations,
+            string specificationIdentifier)
         {
             Guard.ArgumentNotNull(sqlNameGenerator, nameof(sqlNameGenerator));
 
             _calculations = calculations;
             _sqlNameGenerator = sqlNameGenerator;
             _templateMetadataCalculation = templateMetadataCalculations;
+            _specificationIdentifier = specificationIdentifier;
         }
 
         protected override DataColumn[] GetDataColumns(ProviderResult dto)
@@ -87,6 +90,6 @@ namespace CalculateFunding.Services.Results.SqlExport
             => $"Calc_{templateMetadataCalculation.TemplateCalculationId}_{_sqlNameGenerator.GenerateIdentifier(calculationResult.Calculation.Name)}";
 
         protected override void EnsureTableNameIsSet(ProviderResult dto)
-            => TableName = $"[dbo].[{dto.SpecificationId}_TemplateCalculations]";
+            => TableName = $"[dbo].[{_specificationIdentifier}_TemplateCalculations]";
     }
 }

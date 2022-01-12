@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                 .WithTemplateIds((FundingStreamId, templateVersion))
                 .WithProviderVersionId(providerVersion));
 
-            DataTableBuilder = new ProviderSummaryDataTableBuilder();
+            DataTableBuilder = new ProviderSummaryDataTableBuilder(SpecificationIdentifierName);
         }
 
         [TestMethod]
@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                     string.Join(";", rowOne.Provider.Predecessors?.Select(s => s) ?? Array.Empty<string>()),
                     string.Join(";", rowOne.Provider.Successors?.Select(s => s) ?? Array.Empty<string>()),
                     rowOne.IsIndicativeProvider));
-            AndTheTableNameIs($"[dbo].[{SpecificationId}_Providers]");
+            AndTheTableNameIs($"[dbo].[{SpecificationIdentifierName}_Providers]");
         }
     }
 }

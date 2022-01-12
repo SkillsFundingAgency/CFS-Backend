@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
@@ -14,6 +16,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
 using CalcsApiCalculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
+using CalcsApiCalculationIdentifier = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationIdentifier;
+using CalcsApiGenerateIdentifierModel = CalculateFunding.Common.ApiClient.Calcs.Models.GenerateIdentifierModel;
 
 namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 {
@@ -53,6 +57,8 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
         public async Task CreatesContextWithDocumentFeedForFundingStreamAndPeriodAndInitialisedDataTableBuilders()
         {
             string specificationId = NewRandomString();
+            string specificationName = NewRandomString();
+            string specificationGeneratedIdentifierName = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string templateVersion = NewRandomString();
@@ -65,7 +71,9 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             Calculation calculationFour = NewCalculation(_ => _.WithCalculations(calculationOne));
             Calculation calculationFive = NewCalculation(_ => _.WithCalculations(calculationTwo));
 
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _
+                .WithId(specificationId)
+                .WithName(specificationName)
                 .WithFundingStreamIds(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithTemplateIds((fundingStreamId, templateVersion)));
@@ -85,9 +93,16 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                 NewApiCalculation(_ => _.WithType(Common.ApiClient.Calcs.Models.CalculationType.Additional))
             };
 
+            CalcsApiCalculationIdentifier calcsApiCalculationIdentifier = new CalcsApiCalculationIdentifier
+            {
+                Name = specificationName,
+                SourceCodeName = specificationGeneratedIdentifierName
+            };
+
             JobSummary jobSummary = NewJobSummary();
 
             AndTheCalculationsForSpecification(specificationId, calculations);
+            AndTheGenerateCalculationIdentifier(specificationName, calcsApiCalculationIdentifier);
             AndTheFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion, fundingTemplate);
             AndTheTemplateMetadataContents(schemaVersion, fundingTemplateContents, templateMetadataContents);
             AndTheCosmosDocumentFeed(specificationId, fundingStreamId);
