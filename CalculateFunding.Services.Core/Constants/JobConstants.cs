@@ -79,6 +79,8 @@
 
             public const string RunSqlImportJob = nameof(RunSqlImportJob);
 
+            public const string RunReleasedSqlImportJob = nameof(RunReleasedSqlImportJob);
+
             public const string GenerateCalcCsvResultsJob = nameof(GenerateCalcCsvResultsJob);
 
             public const string BatchPublishedProviderValidationJob = nameof(BatchPublishedProviderValidationJob);

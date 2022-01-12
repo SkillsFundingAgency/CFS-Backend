@@ -235,6 +235,12 @@
             
             public const string PublishingRunSqlImportPoisonedLocal = "publishing-run-sql-import-poisoned";
 
+            public const string PublishingRunReleasedSqlImport = "publishing-run-released-sql-import";
+
+            public const string PublishingRunReleasedSqlImportPoisoned = "publishing-run-released-sql-import/$DeadLetterQueue";
+
+            public const string PublishingRunReleasedSqlImportPoisonedLocal = "publishing-run-released-sql-import-poisoned";
+
             public const string DetectObsoleteFundingLines = "detect-obsolete-funding-lines";
             
             public const string DetectObsoleteFundingLinesPoisoned = "detect-obsolete-funding-lines/$DeadLetterQueue";

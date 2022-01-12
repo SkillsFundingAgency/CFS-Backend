@@ -163,6 +163,9 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
             builder.AddScoped<IQaSchemaService, QaSchemaService>();
 
+            builder.AddScoped<IReleasedSqlImportService, ReleasedSqlImportService>();
+
+
             builder.AddScoped<IDataTableImporter, DataTableImporter>((ctx) =>
             {
                 ISqlSettings sqlSettings = new SqlSettings();

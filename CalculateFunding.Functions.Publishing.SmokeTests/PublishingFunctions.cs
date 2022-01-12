@@ -33,6 +33,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         private static IDeletePublishedProvidersService _deletePublishedProvidersService;
         private static IUserProfileProvider _userProfileProvider;
         private static ISqlImportService _sqlImportService;
+        private static IReleasedSqlImportService _releasedSqlImportService;
         private static IDatasetsDataCopyService _datasetsDataCopyService;
         private static IReleaseProvidersToChannelsService _releaseProvidersToChannelsService;
 
@@ -51,6 +52,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             _deletePublishedProvidersService = CreateDeletePublishedProvidersService();
             _userProfileProvider = CreateUserProfileProvider();
             _sqlImportService = Substitute.For<ISqlImportService>();
+            _releasedSqlImportService = Substitute.For<IReleasedSqlImportService>();
             _datasetsDataCopyService = CreateDatasetsDataCopyService();
             _releaseProvidersToChannelsService = CreateReleaseProvidersToChannelsService();
         }
@@ -67,6 +69,24 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRunSqlImport,
                 async(Message smokeResponse) => await onRunSqlImport.Run(smokeResponse), useSession: true);
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
+        [TestMethod]
+        public async Task OnRunReleasedSqlImport_SmokeTestSucceeds()
+        {
+            OnRunReleasedSqlImport onRunSqlImport = new OnRunReleasedSqlImport(_logger,
+                _releasedSqlImportService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRunReleasedSqlImport,
+                async (Message smokeResponse) => await onRunSqlImport.Run(smokeResponse), useSession: true);
 
             response
                 .Should()

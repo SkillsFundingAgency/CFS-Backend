@@ -9,12 +9,12 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnRunSqlImportFailure : Failure
+    public class OnRunReleasedSqlImportFailure : Failure
     {
-        public const string FunctionName = FunctionConstants.PublishingRunSqlImportPoisoned;
-        public const string QueueName = ServiceBusConstants.QueueNames.PublishingRunSqlImportPoisoned;
+        public const string FunctionName = FunctionConstants.PublishingRunReleasedSqlImportPoisoned;
+        public const string QueueName = ServiceBusConstants.QueueNames.PublishingRunReleasedSqlImportPoisoned;
 
-        public OnRunSqlImportFailure(
+        public OnRunReleasedSqlImportFailure(
             ILogger logger,
             IDeadletterService jobHelperService,
             IConfigurationRefresherProvider refresherProvider) : base(logger, jobHelperService, QueueName, refresherProvider)

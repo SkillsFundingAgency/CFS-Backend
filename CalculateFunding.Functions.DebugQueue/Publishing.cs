@@ -41,7 +41,7 @@ namespace CalculateFunding.Functions.DebugQueue
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
         
-        [FunctionName("on-publishing-run-sql-import")]
+        [FunctionName(FunctionConstants.PublishingRunSqlImport)]
         public static async Task RunSqlImport([QueueTrigger(ServiceBusConstants.QueueNames.PublishingRunSqlImport, 
             Connection = "AzureConnectionString")] string item, ILogger log)
         {
@@ -62,13 +62,41 @@ namespace CalculateFunding.Functions.DebugQueue
             using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
             Message message = Helpers.ConvertToMessage<string>(item);
 
-            OnRunSqlImportFailureFailure function = scope.ServiceProvider.GetService<OnRunSqlImportFailureFailure>();
+            OnRunSqlImportFailure function = scope.ServiceProvider.GetService<OnRunSqlImportFailure>();
 
             await function.Run(message);
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
-        
+
+        [FunctionName(FunctionConstants.PublishingRunReleasedSqlImport)]
+        public static async Task RunReleasedSqlImport([QueueTrigger(ServiceBusConstants.QueueNames.PublishingRunReleasedSqlImport,
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnRunReleasedSqlImport function = scope.ServiceProvider.GetService<OnRunReleasedSqlImport>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-publishing-run-released-sql-import-failure")]
+        public static async Task RunReleasedSqlImportFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingRunReleasedSqlImportPoisonedLocal,
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnRunReleasedSqlImportFailure function = scope.ServiceProvider.GetService<OnRunReleasedSqlImportFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
         [FunctionName("on-published-funding-undo")]
         public static async Task RunUndoPublishedFunding([QueueTrigger(ServiceBusConstants.QueueNames.PublishedFundingUndo, 
             Connection = "AzureConnectionString")] string item, ILogger log)

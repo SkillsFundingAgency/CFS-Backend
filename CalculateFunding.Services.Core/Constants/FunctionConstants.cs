@@ -5,8 +5,12 @@
         public const string PublishingApproveAllProviderFunding = "on-publishing-approve-all-provider-funding";
         
         public const string PublishingRunSqlImport = "on-publishing-run-sql-import";
-        
+
         public const string PublishingRunSqlImportPoisoned = "on-publishing-run-sql-import-poisoned";
+
+        public const string PublishingRunReleasedSqlImport = "on-publishing-run-released-sql-import";
+
+        public const string PublishingRunReleasedSqlImportPoisoned = "on-publishing-run-released-sql-import-poisoned";
 
         public const string PublishIntegrityCheck = "on-publish-integrity-check";
 

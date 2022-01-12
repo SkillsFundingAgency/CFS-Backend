@@ -9,16 +9,16 @@ namespace CalculateFunding.Api.Publishing.Controllers
 {
     public class SqlImportController : ControllerBase
     {
-        private readonly ISqlImporter _importer;
         private readonly ISqlImportService _importService;
+        private readonly IReleasedSqlImportService _releasedImportService;
 
-        public SqlImportController(ISqlImporter importer, ISqlImportService importService)
+        public SqlImportController(IReleasedSqlImportService releasedImportService, ISqlImportService importService)
         {
-            Guard.ArgumentNotNull(importer, nameof(importer));
+            Guard.ArgumentNotNull(releasedImportService, nameof(releasedImportService));
             Guard.ArgumentNotNull(importService, nameof(importService));
             
-            _importer = importer;
             _importService = importService;
+            _releasedImportService = releasedImportService;
         }
 
         [HttpGet("api/sqlqa/specifications/{specificationId}/funding-streams/{fundingStreamId}/import/queue")]
@@ -27,6 +27,14 @@ namespace CalculateFunding.Api.Publishing.Controllers
             => await _importService.QueueSqlImport(specificationId, 
                 fundingStreamId, 
                 Request.GetUser(), 
+                Request.GetCorrelationId());
+
+        [HttpGet("api/sqlqa/specifications/{specificationId}/funding-streams/{fundingStreamId}/released/import/queue")]
+        public async Task<IActionResult> QueueReleasedImportDataJob([FromRoute] string specificationId,
+            [FromRoute] string fundingStreamId)
+            => await _releasedImportService.QueueSqlImport(specificationId,
+                fundingStreamId,
+                Request.GetUser(),
                 Request.GetCorrelationId());
     }
 }
