@@ -35,8 +35,10 @@ namespace CalculateFunding.Services.Publishing.Errors
             ProviderVariationContext providerVariationContext = publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId];
 
             // only add no applicable variation if the provider doesn't have custom profiles because if it has
-            // custom profiles then it will always be updated
-            if (providerVariationContext.VariationPointers.AnyWithNullCheck() &&
+            // custom profiles then it will always be updated also we only require a variation strategy if the
+            // provider has previously been released
+            if (publishedProvider.Released != null &&
+                providerVariationContext.VariationPointers.AnyWithNullCheck() &&
                 !providerVariationContext.ApplicableVariations.AnyWithNullCheck(_ => _ == "DistributionProfile"))
             {
                 publishedProvider.Current.FundingLines = publishedProvider.Current.FundingLines.Select(_ =>
