@@ -10,7 +10,7 @@
   <ItemGroup>
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="5.0.2" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient" Version="3.0.3" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient" Version="3.0.4" />
     
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="8.0.0" />
     <PackageReference Include="CalculateFunding.Common.ServiceBus" Version="3.0.0" />

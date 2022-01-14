@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.2" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.3" />
         <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.2" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />

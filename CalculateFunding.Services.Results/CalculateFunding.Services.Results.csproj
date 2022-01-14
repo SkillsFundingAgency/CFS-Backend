@@ -12,7 +12,7 @@
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="7.0.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="9.1.1" />  
     <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="7.0.1" />  
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.3" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="6.0.1" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="8.0.0" />
     <PackageReference Include="CalculateFunding.Common.Sql" Version="3.0.0" />
