@@ -47,6 +47,11 @@ namespace CalculateFunding.Services.Profiling.Models
         public IEnumerable<ExistingProfilePeriod> ExistingPeriods { get; set; }
 
         /// <summary>
+        /// All exeisting profile periods
+        /// </summary>
+        public IEnumerable<ExistingProfilePeriod> AllExistingPeriods { get; set; }
+
+        /// <summary>
         /// Desired configuration type
         /// </summary>
         [Required]

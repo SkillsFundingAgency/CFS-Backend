@@ -69,6 +69,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 FundingLineTotal = fundingLineTotal.GetValueOrDefault(existingFundingLineTotal),
                 ExistingFundingLineTotal = existingFundingLineTotal,
                 ExistingPeriods = existingProfilePeriods,
+                AllExistingPeriods = BuildAllExistingProfilePeriods(orderedProfilePeriodsForFundingLine),
                 MidYearType = midYearType,
                 VariationPointerIndex = paidUpToIndex
             };
@@ -99,6 +100,24 @@ namespace CalculateFunding.Services.Publishing.Profiling
                     Year = profilePeriod.Year,
                     TypeValue = profilePeriod.TypeValue,
                     ProfileValue = period < paidUpToIndex ? profilePeriod.ProfiledValue : (decimal?)null
+                };
+            }
+        }
+
+        private IEnumerable<ExistingProfilePeriod> BuildAllExistingProfilePeriods(ProfilePeriod[] profilePeriods)
+        {
+            for (int period = 0; period < profilePeriods.Length; period++)
+            {
+                ProfilePeriod profilePeriod = profilePeriods[period];
+
+                yield return new ExistingProfilePeriod
+                {
+                    DistributionPeriod = profilePeriod.DistributionPeriodId,
+                    Occurrence = profilePeriod.Occurrence,
+                    Type = profilePeriod.Type.AsMatchingEnum<PeriodType>(),
+                    Year = profilePeriod.Year,
+                    TypeValue = profilePeriod.TypeValue,
+                    ProfileValue = profilePeriod.ProfiledValue
                 };
             }
         }

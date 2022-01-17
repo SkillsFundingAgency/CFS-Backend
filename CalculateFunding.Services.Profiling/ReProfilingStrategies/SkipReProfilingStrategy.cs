@@ -21,15 +21,19 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
             IProfilePeriod[] orderedRefreshProfilePeriods = new YearMonthOrderedProfilePeriods<IProfilePeriod>(context.ProfileResult.DeliveryProfilePeriods)
                 .ToArray();
-            IExistingProfilePeriod[] orderedExistingProfilePeriods = new YearMonthOrderedProfilePeriods<IExistingProfilePeriod>(reProfileRequest.ExistingPeriods)
+            IExistingProfilePeriod[] orderedAllExistingProfilePeriods = new YearMonthOrderedProfilePeriods<IExistingProfilePeriod>(reProfileRequest.AllExistingPeriods)
                 .ToArray();
 
-            for (int profilePeriodIndex = 0; profilePeriodIndex < orderedRefreshProfilePeriods.Length - 1; profilePeriodIndex++)
+            for (int profilePeriodIndex = 0; profilePeriodIndex < orderedAllExistingProfilePeriods.Length; profilePeriodIndex++)
             {
-                IProfilePeriod existingProfilePeriod = orderedExistingProfilePeriods[profilePeriodIndex];
-                IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[profilePeriodIndex];
+                IProfilePeriod existingProfilePeriod = orderedAllExistingProfilePeriods[profilePeriodIndex];
 
-                refreshProfilePeriod.SetProfiledValue(existingProfilePeriod.GetProfileValue());
+                if (orderedRefreshProfilePeriods.Length > profilePeriodIndex)
+                {
+                    IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[profilePeriodIndex];
+
+                    refreshProfilePeriod.SetProfiledValue(existingProfilePeriod.GetProfileValue());
+                }
             };
 
             return new ReProfileStrategyResult
