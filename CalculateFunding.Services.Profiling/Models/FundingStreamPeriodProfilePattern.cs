@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Profiling.Models
         public string GetReProfilingStrategyKeyForConverterFunding()
             => ReProfilingConfiguration?.ConverterFundingStrategyKey;
 
-        public string GetReProfilingStrategyKeyForFundingAmountChange(decimal change)
-            => ReProfilingConfiguration?.GetReProfilingStrategyKeyForFundingAmountChange(change);
+        public string GetReProfilingStrategyKeyForFundingAmountChange(ReProfileRequest request)
+            => ReProfilingConfiguration?.GetReProfilingStrategyKeyForFundingAmountChange(request);
     }
 }

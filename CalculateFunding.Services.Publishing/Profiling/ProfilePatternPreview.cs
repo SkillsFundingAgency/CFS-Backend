@@ -74,6 +74,11 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 publishedProviderVersion,
                 request.ConfigurationType);
 
+            if (reProfileRequest != null)
+            {
+                reProfileRequest.ForceSameAsKey = "IncreasedAmountStrategyKey";
+            }
+
             ApiResponse<ReProfileResponse> reProfilingApiResponse = await _profilingResilience.ExecuteAsync(() => _profiling.ReProfile(reProfileRequest));
 
             ReProfileResponse reProfileResponse = reProfilingApiResponse?.Content;

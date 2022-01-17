@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
         public string DisplayName => "ReProfile Future Distribution Periods With Adjustments";
 
         public string Description => "Adjusts future period allocations based on funding value amount changes";
-
+        
         public ReProfileStrategyResult ReProfile(ReProfileContext context)
         {
             ReProfileRequest reProfileRequest = context.Request;

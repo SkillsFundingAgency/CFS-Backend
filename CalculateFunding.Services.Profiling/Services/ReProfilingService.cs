@@ -101,7 +101,7 @@ namespace CalculateFunding.Services.Profiling.Services
         private static string GetReProfilingStrategyKey(ReProfileRequest reProfileRequest,
             FundingStreamPeriodProfilePattern profilePattern) => reProfileRequest.MidYearType switch
             {
-                null => profilePattern.GetReProfilingStrategyKeyForFundingAmountChange(reProfileRequest.FundingLineTotalChange),
+                null => profilePattern.GetReProfilingStrategyKeyForFundingAmountChange(reProfileRequest),
                 MidYearType.OpenerCatchup => profilePattern.GetReProfilingStrategyKeyForInitialFundingWithCatchup(),
                 MidYearType.Opener => profilePattern.GetReProfilingStrategyKeyForInitialFunding(),
                 MidYearType.Closure => profilePattern.GetReProfilingStrategyKeyForInitialClosureFunding(),

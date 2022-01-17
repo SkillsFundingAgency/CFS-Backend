@@ -157,6 +157,7 @@ namespace CalculateFunding.Api.Profiling
             builder.AddSingleton<IReProfilingStrategy, ReProfileFutureDistributionPeriodsWithAdjustments>();
             builder.AddSingleton<IReProfilingStrategy, ReProfileStartUpGrant>();
             builder.AddSingleton<IReProfilingStrategy, ReProfileFlatDistributionWithZeroPercentProfilePatternPeriodHandling>();
+            builder.AddSingleton<IReProfilingStrategy, SkipReProfilingStrategy>();
             builder.AddSingleton<IReProfilingStrategyLocator, ReProfilingStrategyLocator>();          
         }
 

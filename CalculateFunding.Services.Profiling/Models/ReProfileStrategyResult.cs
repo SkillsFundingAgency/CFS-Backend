@@ -9,5 +9,7 @@ namespace CalculateFunding.Services.Profiling.Models
         public DistributionPeriods[] DistributionPeriods { get; set; }
 
         public decimal CarryOverAmount { get; set; }
+
+        public bool SkipReProfiling;
     }
 }

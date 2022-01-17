@@ -64,6 +64,8 @@ namespace CalculateFunding.Services.Profiling.Models
         /// </summary>
         public int? VariationPointerIndex { get; set; }
 
+        public string ForceSameAsKey { get; set; }
+
         [JsonIgnore] 
         public decimal FundingLineTotalChange => FundingLineTotal - ExistingFundingLineTotal;
     }

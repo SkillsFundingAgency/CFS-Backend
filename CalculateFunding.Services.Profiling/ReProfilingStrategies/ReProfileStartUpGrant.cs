@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
         public string DisplayName => "Re-Profile GAG Start Up Grant";
 
         public string Description => "Distribute start-up grants got Academies";
-
+        
         public ReProfileStrategyResult ReProfile(ReProfileContext context)
         {
             IProfilePeriod[] orderedRefreshProfilePeriods = new YearMonthOrderedProfilePeriods<IProfilePeriod>(context.ProfileResult.DeliveryProfilePeriods)

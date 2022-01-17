@@ -81,16 +81,26 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             }
         }
 
-        protected virtual Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
+        protected virtual async Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
             IApplyProviderVariations variationApplications,
             string profilePatternKey,
-            FundingLine fundingLine) =>
-            variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
+            FundingLine fundingLine)
+        {
+
+            ReProfileRequest reProfileRequest = await variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
                 priorState,
                 ProfileConfigurationType.RuleBased,
                 fundingLine.Value);
+
+            if (VariationContext.AffectedFundingLineCodes("IndicativeToLive") != null && VariationContext.AffectedFundingLineCodes("IndicativeToLive").Contains(fundingLine.FundingLineCode))
+            {
+                reProfileRequest.ForceSameAsKey = "IncreasedAmountStrategyKey";
+            }
+
+            return reProfileRequest;
+        }
     }
 }

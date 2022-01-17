@@ -40,13 +40,13 @@ namespace CalculateFunding.Services.Profiling.Models
         [JsonProperty("converterFundingStrategyKey")]
         public string ConverterFundingStrategyKey { get; set; }
 
-        public string GetReProfilingStrategyKeyForFundingAmountChange(decimal change)
+        public string GetReProfilingStrategyKeyForFundingAmountChange(ReProfileRequest request)
         {
-            if (change == 0)
+            if (request.FundingLineTotalChange == 0)
             {
-                return SameAmountStrategyKey;
+                return request.ForceSameAsKey != null ? (string)GetType().GetProperty(request.ForceSameAsKey).GetValue(this) : SameAmountStrategyKey;
             }
-            else if (change > 0)
+            else if (request.FundingLineTotalChange > 0)
             {
                 return IncreasedAmountStrategyKey;
             }

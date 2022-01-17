@@ -204,6 +204,11 @@ namespace CalculateFunding.Services.Publishing
                 ProfileConfigurationType.Custom,
                 fundingLine.Value);
 
+            if (reProfileRequest != null)
+            {
+                reProfileRequest.ForceSameAsKey = "IncreasedAmountStrategyKey";
+            }
+
             ReProfileResponse reProfileResponse = (await _profilingPolicy.ExecuteAsync(() => _profiling.ReProfile(reProfileRequest)))?.Content;
 
             if (reProfileResponse == null)

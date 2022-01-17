@@ -189,12 +189,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<HttpStatusCode> SetProfileVariationPointer(string specificationId, ProfileVariationPointer profileVariationPointer)
+        public Task<ValidatedApiResponse<HttpStatusCode>> SetProfileVariationPointer(string specificationId, ProfileVariationPointer profileVariationPointer)
         {
             throw new NotImplementedException();
         }
 
-        public Task<HttpStatusCode> SetProfileVariationPointers(string specificationId, IEnumerable<ProfileVariationPointer> profileVariationPointer)
+        public Task<ValidatedApiResponse<HttpStatusCode>> SetProfileVariationPointers(string specificationId, IEnumerable<ProfileVariationPointer> profileVariationPointer)
         {
             throw new NotImplementedException();
         }
@@ -231,7 +231,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<HttpStatusCode> MergeProfileVariationPointers(string specificationId, IEnumerable<ProfileVariationPointer> profileVariationPointer)
+        public Task<ValidatedApiResponse<HttpStatusCode>> MergeProfileVariationPointers(string specificationId, IEnumerable<ProfileVariationPointer> profileVariationPointer)
         {
             throw new NotImplementedException();
         }

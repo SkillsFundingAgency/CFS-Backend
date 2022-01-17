@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
         public virtual string DisplayName => "Re-Profile Flat Distribution For Remaining Periods";
 
         public virtual string Description => "Distributes changes to funding evenly across all of the remaining profile periods";
-
+        
         public ReProfileStrategyResult ReProfile(ReProfileContext context)
         {
             ReProfileRequest reProfileRequest = context.Request;

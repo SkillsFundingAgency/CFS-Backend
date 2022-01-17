@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
         public string DisplayName => "Re-Profile Flat Distribution For Remaining Periods Handling 0% Profile Pattern Periods";
 
         public string Description => "Distributes changes to funding evenly across all of the remaining profile periods skipping any 0% Profile Pattern Periods unless all are 0%";
-
+        
         private ProfilePeriodPattern[] _orderedProfilePatternPeriods;
 
         public ReProfileStrategyResult ReProfile(ReProfileContext context)
