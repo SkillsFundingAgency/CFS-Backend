@@ -29,4 +29,9 @@
     <ProjectReference Include="..\CalculateFunding.Services.Profiling\CalculateFunding.Services.Profiling.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
 </Project>

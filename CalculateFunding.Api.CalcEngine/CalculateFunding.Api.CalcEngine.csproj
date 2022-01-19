@@ -4,7 +4,6 @@
     <TargetFramework>net6</TargetFramework>
     <UserSecretsId>df0d69d5-a6db-4598-909f-262fc39cb8c8</UserSecretsId>
     <LangVersion>8</LangVersion>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <FileVersion>1.0.0.$(VersionSuffix)</FileVersion>
   </PropertyGroup>
 
@@ -20,6 +19,10 @@
     <ProjectReference Include="..\CalculateFunding.Services.Calcs\CalculateFunding.Services.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core.AspNet\CalculateFunding.Services.Core.AspNet.csproj" />
   </ItemGroup>
-
-
+  
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+  
 </Project>
