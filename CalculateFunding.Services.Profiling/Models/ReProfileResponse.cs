@@ -11,5 +11,7 @@
         public string ProfilePatternDisplayName { get; set; }
 
         public decimal CarryOverAmount { get; set; }
+
+        public bool SkipReProfiling { get; set; }
     }
 }

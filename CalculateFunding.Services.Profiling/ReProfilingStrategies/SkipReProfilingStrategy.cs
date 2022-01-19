@@ -17,31 +17,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
         public ReProfileStrategyResult ReProfile(ReProfileContext context)
         {
-            ReProfileRequest reProfileRequest = context.Request;
-
-            IProfilePeriod[] orderedRefreshProfilePeriods = new YearMonthOrderedProfilePeriods<IProfilePeriod>(context.ProfileResult.DeliveryProfilePeriods)
-                .ToArray();
-            IExistingProfilePeriod[] orderedAllExistingProfilePeriods = new YearMonthOrderedProfilePeriods<IExistingProfilePeriod>(reProfileRequest.AllExistingPeriods)
-                .ToArray();
-
-            for (int profilePeriodIndex = 0; profilePeriodIndex < orderedAllExistingProfilePeriods.Length; profilePeriodIndex++)
-            {
-                IProfilePeriod existingProfilePeriod = orderedAllExistingProfilePeriods[profilePeriodIndex];
-
-                if (orderedRefreshProfilePeriods.Length > profilePeriodIndex)
-                {
-                    IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[profilePeriodIndex];
-
-                    refreshProfilePeriod.SetProfiledValue(existingProfilePeriod.GetProfileValue());
-                }
-            };
-
-            return new ReProfileStrategyResult
-            {
-                DistributionPeriods = MapIntoDistributionPeriods(context),
-                DeliveryProfilePeriods = context.ProfileResult.DeliveryProfilePeriods,
-                CarryOverAmount = reProfileRequest.FundingLineTotal - orderedRefreshProfilePeriods.Sum(_ => _.GetProfileValue())
-            };
+            return new ReProfileStrategyResult { SkipReProfiling = true };
         }
     }
 }

@@ -132,6 +132,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             VariationContext.RefreshState.FundingLines = fundingLines;
         }
 
+        protected void GivenTheCurrentFundingLines(params FundingLine[] fundingLines)
+        {
+            VariationContext.CurrentState.FundingLines = fundingLines;
+        }
+
         protected void GivenTheProfilePatternKeys(params ProfilePatternKey[] profilePatternKeys)
         {
             VariationContext.RefreshState.ProfilePatternKeys = profilePatternKeys;

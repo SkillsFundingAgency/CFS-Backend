@@ -153,33 +153,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("April")
                             .WithYear(2021))
-                    },
-                    AllExistingPeriods = new[]
-                    {
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(23)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("January")
-                            .WithYear(2021)),
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(1)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(24)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("January")
-                            .WithYear(2021)),
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(25)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("March")
-                            .WithYear(2021)),//is paid up until here according to the variation pointer for this funding line
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(26)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("April")
-                            .WithYear(2021))
                     }
                 });
         }
@@ -279,33 +252,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("April")
                             .WithYear(2021))
-                    },
-                    AllExistingPeriods = new[]
-                    {
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(23)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("January")
-                            .WithYear(2021)),
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(1)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(24)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("January")
-                            .WithYear(2021)),
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(25)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("March")
-                            .WithYear(2021)),//is paid up until here according to the variation pointer for this funding line
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(26)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("April")
-                            .WithYear(2021))
                     }
                 });
         }
@@ -398,33 +344,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                         NewExististingProfilePeriod(_ => _.WithOccurrence(0)
                             .WithDistributionPeriod("dp1")
                             .WithValue(null)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("April")
-                            .WithYear(2021))
-                    },
-                    AllExistingPeriods = new[]
-                    {
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(23)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("January")
-                            .WithYear(2021)),
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(1)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(24)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("January")
-                            .WithYear(2021)),
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(25)
-                            .WithPeriodType(PeriodType.CalendarMonth)
-                            .WithTypeValue("March")
-                            .WithYear(2021)),
-                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
-                            .WithDistributionPeriod("dp1")
-                            .WithValue(26)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("April")
                             .WithYear(2021))

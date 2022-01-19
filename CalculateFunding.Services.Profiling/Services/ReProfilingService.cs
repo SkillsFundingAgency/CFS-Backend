@@ -56,6 +56,11 @@ namespace CalculateFunding.Services.Profiling.Services
 
             ReProfileStrategyResult strategyResult = strategy.ReProfile(context);
 
+            if (strategyResult.SkipReProfiling)
+            {
+                return new ReProfileResponse { SkipReProfiling = true };
+            }
+
             VerifyProfileAmountsReturnedMatchRequestedFundingLineValue(reProfileRequest, strategyResult);
 
             return new ReProfileResponse

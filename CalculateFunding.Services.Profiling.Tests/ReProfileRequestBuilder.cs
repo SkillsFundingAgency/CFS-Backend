@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Profiling.Tests
         private string _fundingStreamId;
         private decimal? _fundingValue;
         private decimal? _existingFundingLineTotal;
+        private string _forceSameAsKey;
         private IEnumerable<ExistingProfilePeriod> _existingProfilePeriods;
         private string _profilePatternKey;
         private int? _variationPointer;
@@ -79,6 +80,13 @@ namespace CalculateFunding.Services.Profiling.Tests
             return this;
         }
 
+        public ReProfileRequestBuilder WithForceSameAsKey(string forceSameAsKey)
+        {
+            _forceSameAsKey = forceSameAsKey;
+
+            return this;
+        }
+
         public ReProfileRequest Build()
         {
             return new ReProfileRequest
@@ -91,7 +99,8 @@ namespace CalculateFunding.Services.Profiling.Tests
                 ExistingFundingLineTotal = _existingFundingLineTotal.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue)),
                 ExistingPeriods = _existingProfilePeriods,
                 VariationPointerIndex = _variationPointer,
-                MidYearType = _midYearType
+                MidYearType = _midYearType,
+                ForceSameAsKey = _forceSameAsKey
             };
         }
         

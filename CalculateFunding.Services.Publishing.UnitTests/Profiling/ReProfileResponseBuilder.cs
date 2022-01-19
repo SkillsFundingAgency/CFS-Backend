@@ -9,6 +9,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
     {
         private decimal _carryOverAmount;
         private IEnumerable<DeliveryProfilePeriod> _deliveryProfilePeriods;
+        private bool _skipReProfiling;
 
         public ReProfileResponseBuilder WithCarryOverAmount(decimal carryOverAmount)
         {
@@ -23,13 +24,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 
             return this;
         }
-        
+
+        public ReProfileResponseBuilder WithSkipReProfiling(bool skipReProfiling)
+        {
+            _skipReProfiling = skipReProfiling;
+
+            return this;
+        }
+
         public ReProfileResponse Build()
         {
             return new ReProfileResponse
             {
                 CarryOverAmount = _carryOverAmount,
-                DeliveryProfilePeriods = _deliveryProfilePeriods?.ToArray()
+                DeliveryProfilePeriods = _deliveryProfilePeriods?.ToArray(),
+                SkipReProfiling = _skipReProfiling
             };
         }
     }

@@ -276,6 +276,49 @@ namespace CalculateFunding.Services.Profiling.Tests
         }
 
         [TestMethod]
+        public async Task ForcesSameAmountKeyThenReProfilesUsingTheseResultsWithSameAmountStrategyIfFundingTheSame()
+        {
+            string key = NewRandomString();
+            decimal newFundingTotal = NewRandomTotal();
+
+            ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
+                .WithExistingFundingValue(newFundingTotal)
+                .WithForceSameAsKey("IncreasedAmountStrategyKey"));
+            AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
+
+            FundingStreamPeriodProfilePattern profilePattern = NewFundingStreamPeriodProfilePattern(_ =>
+                _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
+                    cfg.WithIsEnabled(true)
+                    .WithIncreasedAmountStrategyKey(key))));
+
+            DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
+            DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
+            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
+
+            GivenTheProfilePattern(request, profilePattern);
+            AndTheReProfilingStrategy(key);
+            AndTheProfiling(request, profilePattern, profileResponse);
+            AndTheReProfilingStrategyResponse(profileResponse, request, profilePattern, NewReProfileStrategyResult(_ =>
+                _.WithDistributionPeriods(distributionPeriods1)
+                    .WithDeliveryProfilePeriods(deliveryProfilePeriod1, deliveryProfilePeriod2)
+                    .WithCarryOverAmount(10)));
+
+            ActionResult<ReProfileResponse> reProfileResponse = await WhenTheFundingLineIsReProfiled(request);
+
+            reProfileResponse?
+                .Value
+                .Should()
+                .BeEquivalentTo(
+                    GetProfileResponse(
+                        new[] { distributionPeriods1 },
+                        new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
+                        10,
+                        profilePattern
+                    )
+                );
+        }
+
+        [TestMethod]
         [DataRow("ReProfileRemainingFundingForPeriod", MidYearType.Opener)]
         [DataRow("ReProfileFutureDistributionPeriodsWithAdjustments", MidYearType.OpenerCatchup)]
         [DataRow("ReProfileFutureDistributionPeriodsWithAdjustments", MidYearType.Closure)]
@@ -344,9 +387,9 @@ namespace CalculateFunding.Services.Profiling.Tests
                     request.ProfilePatternKey))
                 .ReturnsAsync(profilePattern);
 
-        private void AndTheReProfilingStrategy(string key)
+        private void AndTheReProfilingStrategy(string key, IReProfilingStrategy strategy = null)
             => _strategies.Setup(_ => _.GetStrategy(key))
-                .Returns(_reProfilingStrategy.Object);
+                .Returns(strategy ?? _reProfilingStrategy.Object);
 
         private void AndTheReProfilingStrategyResponse(AllocationProfileResponse profileResponse,
             ReProfileRequest request,

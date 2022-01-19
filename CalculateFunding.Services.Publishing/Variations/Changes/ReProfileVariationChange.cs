@@ -30,9 +30,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
             PublishedProviderVersion refreshState = RefreshState;
             PublishedProviderVersion priorState = VariationContext.PriorState;
+            PublishedProviderVersion currentState = VariationContext.CurrentState;
 
             Task[] reProfileTasks = GetAffectedFundingLines.Select(_ =>
-                    ReProfileFundingLine(_, refreshState, priorState, variationsApplications))
+                    ReProfileFundingLine(_, refreshState, priorState, variationsApplications, currentState))
                 .ToArray();
 
             await TaskHelper.WhenAllAndThrow(reProfileTasks);
@@ -41,7 +42,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         private async Task ReProfileFundingLine(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
-            IApplyProviderVariations variationApplications)
+            IApplyProviderVariations variationApplications,
+            PublishedProviderVersion currentState)
         {
             FundingLine fundingLine = refreshState.FundingLines.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
@@ -68,6 +70,26 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             if (reProfileResponse == null)
             {
                 throw new NonRetriableException($"Could not re profile funding line {fundingLineCode} for provider {providerId} with request: {reProfileRequest?.AsJson()}");
+            }
+
+            if (reProfileResponse.SkipReProfiling)
+            {
+                FundingLine currentFundingLine = currentState.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
+                
+                if (currentFundingLine == null)
+                {
+                    throw new NonRetriableException($"Could not re profile funding line {fundingLineCode} for provider {providerId} as no current funding line exists");
+                }
+                    
+                foreach (DistributionPeriod distributionPeriod in currentFundingLine.DistributionPeriods)
+                {
+                    refreshState.UpdateDistributionPeriodForFundingLine(fundingLineCode,
+                        distributionPeriod.DistributionPeriodId,
+                        distributionPeriod.ProfilePeriods,
+                        distributionPeriod);
+                }
+
+                return;
             }
 
             IEnumerable<DistributionPeriod> distributionPeriods = variationApplications.ReProfilingResponseMapper.MapReProfileResponseIntoDistributionPeriods(reProfileResponse);

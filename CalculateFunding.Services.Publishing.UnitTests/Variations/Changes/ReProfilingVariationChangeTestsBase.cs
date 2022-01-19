@@ -11,6 +11,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.UnitTests.Profiling;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -106,6 +107,134 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     .Be($"Unable to {Strategy} for provider id {VariationContext.ProviderId}. Could not re profile funding line {fundingLineOne.FundingLineCode} for provider {RefreshState.ProviderId} with request: {reProfileRequestOne?.AsJson()}");
         }
 
+        [TestMethod]
+        public async Task VariationErrorLoggedWhenSkipResponseReceivedButNoCurrentProviderFundingLineExists()
+        {
+            FundingLine fundingLineOne = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
+            
+            GivenTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(fundingLineOne.FundingLineCode)));
+
+            ProfilePatternKey profilePatternKey = NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode));
+
+            ReProfileRequest reProfileRequestOne = NewReProfileRequest();
+
+            ReProfileResponse reProfileResponseOne = NewReProfileResponse(_ => _.WithSkipReProfiling(true));
+
+            DistributionPeriod[] distributionPeriodsOne = NewDistributionPeriods();
+
+            fundingLineOne.DistributionPeriods = distributionPeriodsOne;
+
+            GivenTheFundingLines(fundingLineOne);
+            GivenThePublishedProviderOriginalSnapshot(RefreshState.ProviderId,
+                new Publishing.Variations.PublishedProviderSnapShots(
+                    NewPublishedProvider(_ =>
+                        _.WithCurrent(
+                            NewPublishedProviderVersion(ppv =>
+                                ppv.WithProviderId(RefreshState.ProviderId)
+                            )
+                        )
+                    )
+                )
+            );
+            GivenTheProfilePatternKeys(NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode)
+                .WithKey(profilePatternKey.Key)));
+            AndTheAffectedFundingLineCodes(fundingLineOne.FundingLineCode);
+            AndTheTheReProfileRequest(fundingLineOne, reProfileRequestOne, RefreshState.ProfilePatternKeys.Single(_ => _.FundingLineCode == fundingLineOne.FundingLineCode).Key);
+            AndTheReProfileResponse(reProfileRequestOne, reProfileResponseOne);
+            AndTheReProfileResponseMapping(reProfileResponseOne, distributionPeriodsOne);
+            
+            await WhenTheChangeIsApplied();
+
+            VariationContext.ErrorMessages
+                    .AnyWithNullCheck()
+                    .Should()
+                    .Be(true);
+
+            VariationContext.ErrorMessages.First()
+                    .Should()
+                    .Be($"Unable to {Strategy} for provider id {VariationContext.ProviderId}. Could not re profile funding line {fundingLineOne.FundingLineCode} for provider {RefreshState.ProviderId} as no current funding line exists");
+
+        }
+
+        [TestMethod]
+        public async Task ReProfilingSkipsWhenSkipResponseReceived()
+        {
+            FundingLine fundingLineOne = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
+            FundingLine fundingLineTwo = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
+            FundingLine fundingLineThree = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
+            FundingLine fundingLineFour = NewFundingLine(_ => _.WithValue(100));
+
+            GivenTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(fundingLineOne.FundingLineCode)),
+                NewVariationPointer(_ => _.WithFundingLineId(fundingLineTwo.FundingLineCode)),
+                NewVariationPointer(_ => _.WithFundingLineId(fundingLineThree.FundingLineCode)),
+                NewVariationPointer(_ => _.WithFundingLineId(fundingLineFour.FundingLineCode)));
+
+            ProfilePatternKey profilePatternKey = NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode));
+
+            ReProfileRequest reProfileRequestOne = NewReProfileRequest();
+            ReProfileRequest reProfileRequestThree = NewReProfileRequest();
+            ReProfileRequest reProfileRequestFour = NewReProfileRequest();
+
+            ReProfileResponse reProfileResponseOne = NewReProfileResponse(_ => _.WithSkipReProfiling(true));
+            ReProfileResponse reProfileResponseThree = NewReProfileResponse();
+            ReProfileResponse reProfileResponseFour = NewReProfileResponse();
+
+            DistributionPeriod[] distributionPeriodsOne = NewDistributionPeriods();
+            DistributionPeriod[] distributionPeriodsTwo = NewDistributionPeriods();
+            DistributionPeriod[] distributionPeriodsThree = NewDistributionPeriods();
+            DistributionPeriod[] distributionPeriodsFour = NewDistributionPeriods();
+
+            fundingLineOne.DistributionPeriods = distributionPeriodsOne;
+            fundingLineTwo.DistributionPeriods = distributionPeriodsTwo;
+            fundingLineThree.DistributionPeriods = NewDistributionPeriods(_ => _.WithProfilePeriods(NewProfilePeriod())
+            .WithDistributionPeriodId(distributionPeriodsThree.Single().DistributionPeriodId));
+            fundingLineFour.DistributionPeriods = distributionPeriodsFour;
+
+            GivenTheFundingLines(fundingLineOne, fundingLineTwo, fundingLineThree, fundingLineFour);
+            GivenThePublishedProviderOriginalSnapshot(RefreshState.ProviderId, 
+                new Publishing.Variations.PublishedProviderSnapShots(
+                    NewPublishedProvider(_ => 
+                        _.WithCurrent(
+                            NewPublishedProviderVersion(ppv => 
+                                ppv.WithProviderId(RefreshState.ProviderId)
+                                .WithFundingLines(fundingLineOne)
+                            )
+                        )
+                    )
+                )
+            );
+            GivenTheProfilePatternKeys(NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode)
+                .WithKey(profilePatternKey.Key)));
+            AndTheAffectedFundingLineCodes(fundingLineOne.FundingLineCode, fundingLineThree.FundingLineCode, fundingLineFour.FundingLineCode);
+            AndTheTheReProfileRequest(fundingLineOne, reProfileRequestOne, RefreshState.ProfilePatternKeys.Single(_ => _.FundingLineCode == fundingLineOne.FundingLineCode).Key);
+            AndTheTheReProfileRequest(fundingLineThree, reProfileRequestThree);
+            AndTheTheReProfileRequest(fundingLineFour, reProfileRequestFour);
+            AndTheReProfileResponse(reProfileRequestOne, reProfileResponseOne);
+            AndTheReProfileResponse(reProfileRequestThree, reProfileResponseThree);
+            AndTheReProfileResponse(reProfileRequestFour, reProfileResponseFour);
+            AndTheReProfileResponseMapping(reProfileResponseOne, distributionPeriodsOne);
+            AndTheReProfileResponseMapping(reProfileResponseThree, distributionPeriodsThree);
+            AndTheReProfileResponseMapping(reProfileResponseFour, distributionPeriodsFour);
+
+            await WhenTheChangeIsApplied();
+
+            fundingLineOne.DistributionPeriods
+                .Should()
+                .BeEquivalentTo<DistributionPeriod>(distributionPeriodsOne);
+
+            fundingLineTwo.DistributionPeriods
+                .Should()
+                .BeSameAs(distributionPeriodsTwo);
+
+            fundingLineThree.DistributionPeriods
+                .Should()
+                .BeEquivalentTo<DistributionPeriod>(distributionPeriodsThree);
+
+            fundingLineFour.DistributionPeriods
+                .Should()
+                .BeEquivalentTo<DistributionPeriod>(distributionPeriodsFour);
+        }
+
 
         [TestMethod]
         public async Task ReProfilesFundingLinesInTheRefreshStateWhereTheyShowAsAffectedFundingLineCodes()
@@ -190,7 +319,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         }
 
         private ReProfileRequest NewReProfileRequest() => new ReProfileRequest();
-        private ReProfileResponse NewReProfileResponse() => new ReProfileResponse();
+
+        protected ReProfileResponse NewReProfileResponse(Action<ReProfileResponseBuilder> setUp = null)
+        {
+            ReProfileResponseBuilder reProfileResponseBuilder = new ReProfileResponseBuilder();
+
+            setUp?.Invoke(reProfileResponseBuilder);
+
+            return reProfileResponseBuilder.Build();
+        }
 
         private void AndTheReProfileResponse(ReProfileRequest request,
             ReProfileResponse response)
