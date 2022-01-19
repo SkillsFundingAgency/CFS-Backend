@@ -49,10 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 _ => _.CreateFundingGroupVersionUsingAmbientTransaction(
                     It.Is<FundingGroupVersion>(f => f.ChannelId == _channelId)),
                         Times.Exactly(_fundingGroupData.Count()));
-            _releaseManagementRepository.Verify(
-                _ => _.CreateFundingGroupProviderUsingAmbientTransaction(
-                    It.Is<FundingGroupProvider>(f => f.ProviderFundingVersionChannelId == _channelId && f.FundingGroupVersionId == FundingGroupVersionId)),
-                        Times.Exactly(_fundingGroupData.Count()));
+
             _releaseManagementRepository.Verify(
                 _ => _.CreateFundingGroupVariationReasonUsingAmbientTransaction(
                     It.Is<FundingGroupVersionVariationReason>(f => f.FundingGroupVersionId == FundingGroupVersionId)),
@@ -170,6 +167,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             }
             _context.SetupGet(s => s.FundingGroups)
                 .Returns(fundingGroups);
+
+            _context.SetupGet(s => s.FundingGroupVersions)
+                .Returns(new Dictionary<string, FundingGroupVersion>());
         }
 
         private void GivenContextWithMissingFundingGroup()

@@ -122,5 +122,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(true);
         }
+
+        public Task StartCopyFromUriAsync(string sourceContainer, string sourceBlobName, string targetContainer, string targetBlobName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -11,13 +11,11 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
 using Polly;
 using Serilog;
 using System.Collections.Generic;
@@ -32,6 +30,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
     {
         private const string MigrationKey = "migration-key";
         private const string MigrationKeyValue = "6695d9f9-079f-4afe-ac13-53ca1dd39e28";
+        private const string DeleteAllDataBeforeMigrationKey = "delete-all";
         private readonly IReleaseManagementRepository _repo;
         private readonly ISpecificationsApiClient _specsClient;
         private readonly IPoliciesApiClient _policyClient;
@@ -42,6 +41,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private Dictionary<string, SqlModels.FundingStream> _fundingStreams;
         private Dictionary<string, SqlModels.GroupingReason> _groupingReasons;
         private Dictionary<string, SqlModels.VariationReason> _variationReasons;
+        private Dictionary<string, SqlModels.ReleasedProvider> _releasedProviders;
+        private Dictionary<string, SqlModels.ReleasedProviderVersion> _releasedProviderVersions;
 
         private IPublishedFundingReleaseManagementMigrator _fundingMigrator;
         private Dictionary<string, SqlModels.Specification> _specifications;
@@ -72,7 +73,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         public async Task<IActionResult> QueueReleaseManagementDataMigrationJob(Reference author,
             string correlationId,
-            string[] fundingStreamIds = null)
+            string[] fundingStreamIds = null,
+            bool deleteAllDataBeforeMigration = false)
         {
             IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(new string[] {
                     JobConstants.DefinitionNames.ReleaseManagementDataMigrationJob
@@ -92,7 +94,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 MessageBody = JsonExtensions.AsJson(fundingStreamIds),
                 Properties = new Dictionary<string, string>
                 {
-                    {MigrationKey, MigrationKeyValue}
+                    {MigrationKey, MigrationKeyValue},
+                    {DeleteAllDataBeforeMigrationKey, deleteAllDataBeforeMigration.ToString()},
                 },
                 Trigger = new Trigger
                 {
@@ -110,11 +113,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         public override async Task Process(Message message)
         {
             string[] fundingStreamIds = message.GetPayloadAsInstanceOf<string[]>();
+            bool deleteAllData = bool.Parse(message.GetUserProperty<string>(DeleteAllDataBeforeMigrationKey));
 
-            await PopulateReferenceData(fundingStreamIds);
+            await PopulateReferenceData(fundingStreamIds, deleteAllData);
         }
 
-        public async Task<IActionResult> PopulateReferenceData(string[] fundingStreamIds)
+        public async Task<IActionResult> PopulateReferenceData(string[] fundingStreamIds, bool deleteAllData)
         {
             ApiResponse<IEnumerable<SpecificationSummary>> publishedSpecificationsRequest = await _specsClientPolicy.ExecuteAsync(() => _specsClient.GetSpecificationsSelectedForFunding());
 
@@ -130,16 +134,27 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 return new OkResult();
             }
 
+            if (deleteAllData)
+            {
+                await ClearDatabase();
+            }
+
             await PopulateGroupingReasons();
             await PopulateVariationReasons();
             await PopulateChannels();
-
             await PopulateFundingStreamsAndPeriods(publishedSpecifications);
             await PopulateSpecifications(publishedSpecifications);
+            await PopulateReleasedProviders();
+            await PopulateReleasedProviderVersions();
 
-            await PopulateFunding();
+            await PopulateFundingAndProviders();
 
             return new OkResult();
+        }
+
+        private async Task ClearDatabase()
+        {
+            await _repo.ClearDatabase();
         }
 
         private async Task PopulateSpecifications(IEnumerable<Common.ApiClient.Specifications.Models.SpecificationSummary> specifications)
@@ -166,14 +181,28 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
         }
 
-        private async Task PopulateFunding()
+        private async Task PopulateReleasedProviders()
+        {
+            IEnumerable<SqlModels.ReleasedProvider> existingReleasedProviders = await _repo.GetReleasedProviders();
+            _releasedProviders = new Dictionary<string, SqlModels.ReleasedProvider>(existingReleasedProviders.ToDictionary(_ => $"{_.ProviderId}_{_.SpecificationId}"));
+        }
+
+        private async Task PopulateReleasedProviderVersions()
+        {
+            IEnumerable<SqlModels.ReleasedProviderVersion> existingReleasedProviderVersions = await _repo.GetReleasedProviderVersions();
+            _releasedProviderVersions = new Dictionary<string, SqlModels.ReleasedProviderVersion>(existingReleasedProviderVersions.ToDictionary(_ => _.FundingId));
+        }
+
+        private async Task PopulateFundingAndProviders()
         {
             await _fundingMigrator.Migrate(_fundingStreams,
                                            _fundingPeriods,
                                            _channels,
                                            _groupingReasons,
                                            _variationReasons,
-                                           _specifications);
+                                           _specifications,
+                                           _releasedProviders,
+                                           _releasedProviderVersions);
         }
 
 

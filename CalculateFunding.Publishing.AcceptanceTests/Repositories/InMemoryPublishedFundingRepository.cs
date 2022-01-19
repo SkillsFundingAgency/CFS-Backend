@@ -579,5 +579,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public ICosmosDbFeedIterator GetReleasedPublishedProviderIterator(int batchSize)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -50,6 +50,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     });
 
                 _releaseToChannelSqlMappingContext.ReleasedProviderVersionChannels.Add(key, releasedProviderVersionChannel);
+
+                FundingGroupProvider fundingGroupProvider = new FundingGroupProvider
+                {
+                    FundingGroupVersionId = GetFundingGroupVersionId(releasedProvider.ProviderId, channelId),
+                    ReleasedProviderVersionChannelId = releasedProviderVersionChannel.ReleasedProviderVersionChannelId
+                };
+
+                await _repo.CreateFundingGroupProviderUsingAmbientTransaction(fundingGroupProvider);
             }
         }
 
@@ -60,8 +68,19 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 return releasedProviderVersion.ReleasedProviderVersionId;
             }
 
-            _logger.Error($"Provider {providerId} not found in sql context for {channelId}");
-            throw new KeyNotFoundException($"Provider {providerId} not found in sql context for {channelId}");
+            _logger.Error($"GetReleaseProviderVersionId: Provider {providerId} not found in sql context for {channelId}");
+            throw new KeyNotFoundException($"GetReleaseProviderVersionId: Provider {providerId} not found in sql context for {channelId}");
+        }
+
+        private int GetFundingGroupVersionId(string providerId, int channelId)
+        {
+            if (_releaseToChannelSqlMappingContext.FundingGroupVersions.TryGetValue(providerId, out FundingGroupVersion fundingGroupVersion))
+            {
+                return fundingGroupVersion.FundingGroupVersionId;
+            }
+
+            _logger.Error($"GetFundingGroupVersionId: Provider {providerId} not found in sql context for {channelId}");
+            throw new KeyNotFoundException($"GetFundingGroupVersionId: Provider {providerId} not found in sql context for {channelId}");
         }
     }
 }

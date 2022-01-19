@@ -40,6 +40,7 @@ using CalculateFunding.Services.Publishing.Caching.Http;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.Migration;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -610,6 +611,8 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
             builder.AddSingleton<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
             builder.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
+            builder.AddSingleton<ICosmosProducerConsumer<PublishedFundingVersion>, CosmosProducerConsumer<PublishedFundingVersion>>();
+            builder.AddSingleton<ICosmosProducerConsumer<PublishedProviderVersion>, CosmosProducerConsumer<PublishedProviderVersion>>();
 
             builder.AddReleaseManagementServices(Configuration);
         }

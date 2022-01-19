@@ -4,7 +4,6 @@ using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Publishing.FundingManagement;
-using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;

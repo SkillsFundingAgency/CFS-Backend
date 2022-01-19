@@ -28,10 +28,10 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.2" />
-	<PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.2" />
+	<PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.3" />
 	<PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.2" />
 	<PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="6.0.2" />
-    <PackageReference Include="CalculateFunding.Common.Storage" Version="3.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Storage" Version="3.1.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Formatters.Json" Version="2.2.0" />

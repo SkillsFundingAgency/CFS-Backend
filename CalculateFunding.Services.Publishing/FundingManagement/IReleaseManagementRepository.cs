@@ -71,5 +71,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<FundingGroupVersion> CreateFundingGroupVersionUsingAmbientTransaction(FundingGroupVersion fundingGroupVersion);
         Task<FundingGroupVersionVariationReason> CreateFundingGroupVariationReasonUsingAmbientTransaction(FundingGroupVersionVariationReason reason);
         Task<IEnumerable<ReleasedDataAllocationHistory>> GetPublishedProviderTransactionHistory(string specificationId, string providerId);
+        Task<ReleasedProvider> CreateReleasedProvider(ReleasedProvider releasedProvider);
+        Task<ReleasedProviderVersion> CreateReleasedProviderVersion(ReleasedProviderVersion releasedProviderVersion);
+        Task<IEnumerable<ReleasedProvider>> GetReleasedProviders();
+        Task<IEnumerable<ReleasedProviderVersion>> GetReleasedProviderVersions();
+        Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersions();
+        Task<ReleasedProviderChannelVariationReason> CreateReleasedProviderChannelVariationReason(ReleasedProviderChannelVariationReason reason);
+        Task<ReleasedProviderVersionChannel> GetReleasedProviderVersionChannel(int releasedProviderVersionId, int channelId);
+        Task<IEnumerable<FundingGroup>> GetFundingGroups();
+        Task<FundingGroupProvider> CreateFundingGroupProvider(FundingGroupProvider fundingGroupProvider);
+        Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannel(ReleasedProviderVersionChannel providerVersionChannel);
+        Task ClearDatabase();
     }
 }

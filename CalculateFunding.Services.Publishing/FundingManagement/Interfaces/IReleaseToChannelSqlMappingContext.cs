@@ -25,8 +25,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Specification Specification { get; set; }
 
         Dictionary<OrganisationGroupResult, int> FundingGroups { get; set; }
+
+        /// <summary>
+        /// FundingGroupVersions. Key is _providerId_channelId e.g. UKPRN_1
+        /// </summary>
+        Dictionary<string, FundingGroupVersion> FundingGroupVersions { get; set; }
+
         string JobId { get; set; }
+
         Reference Author { get; set; }
+
         string CorrelationId { get; set; }
     }
 }

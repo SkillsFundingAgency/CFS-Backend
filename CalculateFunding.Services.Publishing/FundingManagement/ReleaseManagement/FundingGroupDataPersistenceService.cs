@@ -3,6 +3,7 @@ using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -69,13 +70,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
                 await PersistVariationReasons(variationReasons, pfv, savedFundingGroupVersion);
 
-                FundingGroupProvider fundingGroupProvider = new FundingGroupProvider
+                foreach (string fundingId in pfv.ProviderFundings)
                 {
-                    FundingGroupVersionId = savedFundingGroupVersion.FundingGroupVersionId,
-                    ProviderFundingVersionChannelId = channelId
-                };
-
-                await _releaseManagementRepository.CreateFundingGroupProviderUsingAmbientTransaction(fundingGroupProvider);
+                    string providerId = fundingId.Split("-")[2];
+                    string key = $"{providerId}_{channelId}";
+                    _releaseToChannelSqlMappingContext.FundingGroupVersions.TryAdd(key, savedFundingGroupVersion);
+                }
             }
         }
 

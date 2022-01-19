@@ -13,6 +13,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
         public int FundingGroupVersionId { get; set; }
 
         [Required]
-        public int ProviderFundingVersionChannelId { get; set; }
+        public int ReleasedProviderVersionChannelId { get; set; }
     }
 }

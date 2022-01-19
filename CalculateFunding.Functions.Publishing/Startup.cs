@@ -38,6 +38,7 @@ using CalculateFunding.Services.Publishing.Batches;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.Migration;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
@@ -660,6 +661,9 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
             builder.AddSingleton<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
+            builder.AddSingleton<ICosmosProducerConsumer<PublishedFundingVersion>, CosmosProducerConsumer<PublishedFundingVersion>>();
+            builder.AddSingleton<ICosmosProducerConsumer<PublishedProviderVersion>, CosmosProducerConsumer<PublishedProviderVersion>>();
+
             builder.AddSingleton<IReleaseManagementRepository, ReleaseManagementRepository>((svc) =>
             {
                 ISqlSettings sqlSettings = new SqlSettings();

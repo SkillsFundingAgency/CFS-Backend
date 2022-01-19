@@ -17,6 +17,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             ReleasedProviderVersions = new Dictionary<string, ReleasedProviderVersion>();
             ReleasedProviderVersionChannels = new Dictionary<string, ReleasedProviderVersionChannel>();
             FundingGroups = new Dictionary<OrganisationGroupResult, int>();
+            FundingGroupVersions = new Dictionary<string, FundingGroupVersion>();
         }
 
         public Dictionary<string, ReleasedProvider> ReleasedProviders { get; }
@@ -28,6 +29,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         public Specification Specification { get; set; }
 
         public Dictionary<OrganisationGroupResult, int> FundingGroups { get; set; }
+
+        public Dictionary<string, FundingGroupVersion> FundingGroupVersions { get; set; }
 
         /// <summary>
         /// The job id of the release job

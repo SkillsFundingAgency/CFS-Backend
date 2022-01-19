@@ -1808,7 +1808,21 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 QueryText = @"SELECT *
                                 FROM c
                                 WHERE c.documentType = 'PublishedFundingVersion' 
-                                "
+                                AND c.deleted = false"
+            };
+
+            return _repository.GetFeedIterator(query, batchSize);
+        }
+
+        public ICosmosDbFeedIterator GetReleasedPublishedProviderIterator(int batchSize)
+        {
+            CosmosDbQuery query = new CosmosDbQuery()
+            {
+                QueryText = @"SELECT *
+                                FROM c
+                                WHERE c.documentType = 'PublishedProviderVersion' 
+                                AND c.deleted = false 
+                                AND c.content.status = 'Released'"
             };
 
             return _repository.GetFeedIterator(query, batchSize);

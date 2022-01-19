@@ -9,6 +9,7 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResu
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using SqlGroupingReason = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.GroupingReason;
 
@@ -216,6 +217,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                                         });
         }
 
+        public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersions()
+        {
+            return await QuerySql<FundingGroupVersion>(@"SELECT * FROM FundingGroupVersions");
+        }
+
+        public async Task<IEnumerable<FundingGroup>> GetFundingGroups()
+        {
+            return await QuerySql<FundingGroup>(@"SELECT * FROM FundingGroups");
+        }
+
         public async Task<FundingGroupVersion> CreateFundingGroupVersion(FundingGroupVersion fundingGroupVersion)
         {
             fundingGroupVersion.FundingGroupVersionId = await Insert(fundingGroupVersion);
@@ -247,6 +258,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return reason;
         }
 
+        public async Task<ReleasedProviderChannelVariationReason> CreateReleasedProviderChannelVariationReason(ReleasedProviderChannelVariationReason reason)
+        {
+            reason.ReleasedProviderChannelVariationReasonId = await Insert<ReleasedProviderChannelVariationReason>(reason);
+
+            return reason;
+        }
+
         public async Task<FundingGroupVersionVariationReason> CreateFundingGroupVariationReasonUsingAmbientTransaction(FundingGroupVersionVariationReason reason)
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
@@ -267,6 +285,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         public async Task<IEnumerable<Specification>> GetSpecifications()
         {
             return await QuerySql<Specification>("SELECT * FROM Specifications");
+        }
+
+        public async Task<IEnumerable<ReleasedProvider>> GetReleasedProviders()
+        {
+            return await QuerySql<ReleasedProvider>("SELECT * FROM ReleasedProviders");
+        }
+
+        public async Task<IEnumerable<ReleasedProviderVersion>> GetReleasedProviderVersions()
+        {
+            return await QuerySql<ReleasedProviderVersion>("SELECT * FROM ReleasedProviderVersions");
         }
 
         public async Task<Specification> GetSpecificationById(string id)
@@ -349,6 +377,18 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return releasedProviders;
         }
 
+        public async Task<ReleasedProvider> CreateReleasedProvider(ReleasedProvider releasedProvider)
+        {
+            releasedProvider.ReleasedProviderId = await Insert(releasedProvider);
+            return releasedProvider;
+        }
+
+        public async Task<ReleasedProviderVersion> CreateReleasedProviderVersion(ReleasedProviderVersion releasedProviderVersion)
+        {
+            releasedProviderVersion.ReleasedProviderVersionId = await Insert(releasedProviderVersion);
+            return releasedProviderVersion;
+        }
+
         public async Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannelsUsingAmbientTransaction(ReleasedProviderVersionChannel providerVersionChannel)
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
@@ -365,6 +405,26 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
 
             return providerVersionChannel;
+        }
+
+        public async Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannel(ReleasedProviderVersionChannel providerVersionChannel)
+        {
+            providerVersionChannel.ReleasedProviderVersionChannelId = await Insert(providerVersionChannel);
+            return providerVersionChannel;
+        }
+
+        public async Task<ReleasedProviderVersionChannel> GetReleasedProviderVersionChannel(int releasedProviderVersionId, int channelId)
+        {
+            return await QuerySingleSql<ReleasedProviderVersionChannel>(
+            @$"
+                SELECT *
+                FROM ReleasedProviderVersionChannels RPVC
+                WHERE RPVC.ReleasedProviderVersionId = @{nameof(releasedProviderVersionId)} AND RPVC.ChannelId = @{nameof(channelId)}",
+            new
+            {
+                releasedProviderVersionId,
+                channelId
+            });
         }
 
         public async Task<IEnumerable<ReleasedProviderChannelVariationReason>> CreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(IEnumerable<ReleasedProviderChannelVariationReason> variationReasons)
@@ -475,7 +535,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 				SELECT [FGV].[FundingId]
 				FROM [ReleaseManagement].[dbo].[FundingGroupVersions] FGV
 				INNER JOIN FundingGroupProviders FGP ON FGV.FundingGroupVersionId = FGP.FundingGroupVersionId
-				INNER JOIN ReleasedProviderVersionChannels RPVC ON FGP.ProviderFundingVersionChannelId = RPVC.ReleasedProviderVersionChannelId
+				INNER JOIN ReleasedProviderVersionChannels RPVC ON FGP.ReleasedProviderVersionChannelId = RPVC.ReleasedProviderVersionChannelId
 				INNER JOIN ReleasedProviderVersions RPV ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
 				WHERE RPV.FundingId = @{nameof(publishedProviderVersion)}
 				AND FGV.ChannelId = @{nameof(channelId)}",
@@ -576,6 +636,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return fundingGroupProvider;
         }
 
+        public async Task<FundingGroupProvider> CreateFundingGroupProvider(FundingGroupProvider fundingGroupProvider)
+        {
+            fundingGroupProvider.FundingGroupProviderId = await Insert(fundingGroupProvider);
+            return fundingGroupProvider;
+        }
+
         public async Task<IEnumerable<ReleasedDataAllocationHistory>> GetPublishedProviderTransactionHistory(string specificationId, string providerId)
         {
             return await QuerySql<ReleasedDataAllocationHistory>(
@@ -593,6 +659,25 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 specificationId,
                 providerId,
             });
+        }
+
+        public async Task ClearDatabase()
+        {
+            var deleteTask = Task.Run(() =>
+            {
+                StringBuilder dropSql = new StringBuilder();
+                dropSql.AppendLine("DELETE TABLE [dbo].[FundingGroupProviders];");
+                dropSql.AppendLine("DELETE TABLE [dbo].[FundingGroupVersionVariationReasons];");
+                dropSql.AppendLine("DELETE TABLE [dbo].[ReleasedProviderChannelVariationReasons];");
+                dropSql.AppendLine("DELETE TABLE [dbo].[ReleasedProviderVersionChannels];");
+                dropSql.AppendLine("DELETE TABLE [dbo].[FundingGroupVersions];");
+                dropSql.AppendLine("DELETE TABLE [dbo].[ReleasedProviderVersions];");
+                dropSql.AppendLine("DELETE TABLE [dbo].[FundingGroups];");
+                dropSql.AppendLine("DELETE TABLE [dbo].[ReleasedProviders];");
+                ExecuteNoneQuery(dropSql.ToString());
+            });
+
+            await deleteTask;
         }
     }
 }

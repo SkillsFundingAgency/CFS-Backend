@@ -14,6 +14,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         public Dictionary<string, SqlModels.GroupingReason> GroupingReasons { get; set; }
         public Dictionary<string, VariationReason> VariationReasons { get; set; }
         public Dictionary<string, Specification> Specifications { get; set; }
+        public Dictionary<string, ReleasedProvider> ReleasedProviders { get; set; }
+        public Dictionary<string, ReleasedProviderVersion> ReleasedProviderVersion { get; set; }
         public string JobId { get; set; }
     }
 }

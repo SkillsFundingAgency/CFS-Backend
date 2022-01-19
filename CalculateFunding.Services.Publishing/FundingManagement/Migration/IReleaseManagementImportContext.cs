@@ -18,6 +18,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         public Dictionary<string, Specification> Specifications { get; set; }
 
+        /// <summary>
+        /// Key is providerId
+        /// </summary>
+        public Dictionary<string, ReleasedProvider> ReleasedProviders { get; set; }
+
+        /// <summary>
+        /// Key is fundingId
+        /// </summary>
+        public Dictionary<string, ReleasedProviderVersion> ReleasedProviderVersion { get; set; }
+
         public string JobId { get; set; }
     }
 }
