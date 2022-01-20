@@ -45,6 +45,7 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
         public async Task Run(CloneOptions cloneOptions)
         {
             string specificationId = cloneOptions.SourceSpecificationId;
+            string uniqueId = Guid.NewGuid().ToString();
 
             _logger.Information("Validating configuration.");
             if (! await ValidateConfiguration(cloneOptions))
@@ -78,7 +79,7 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                 FundingPeriodId = targetFundingPeriod.Id,
                 FundingStreamIds = new[] { fundingStreamId },
                 Description = specificationSummary.Description,
-                Name = $"Clone of {specificationSummary.Name} for FundingPeriod {targetFundingPeriod.Id} {Guid.NewGuid()}",
+                Name = $"Clone of {specificationSummary.Name} for FundingPeriod {targetFundingPeriod.Id} {uniqueId}",
                 ProviderSnapshotId = specificationSummary.ProviderSnapshotId,
                 CoreProviderVersionUpdates = specificationSummary.CoreProviderVersionUpdates,
                 ProviderVersionId = specificationSummary.ProviderVersionId,
@@ -140,7 +141,7 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                     CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel = new CreateDefinitionSpecificationRelationshipModel
                     {
                         SpecificationId = cloneSpecificationSummary.Id,
-                        Name = releasedDatasetSpecificationRelationshipViewModel.Name,
+                        Name = $"{releasedDatasetSpecificationRelationshipViewModel.Name} {uniqueId}",
                         Description = releasedDatasetSpecificationRelationshipViewModel.RelationshipDescription,
                         IsSetAsProviderData = releasedDatasetSpecificationRelationshipViewModel.IsProviderData,
                         ConverterEnabled = releasedDatasetSpecificationRelationshipViewModel.ConverterEnabled,
