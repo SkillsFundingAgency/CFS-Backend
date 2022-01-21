@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Caching" Version="3.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Caching" Version="3.1.0" />
     <PackageReference Include="CalculateFunding.Common.Models" Version="3.0.0" />
     <PackageReference Include="FluentValidation" Version="8.6.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
