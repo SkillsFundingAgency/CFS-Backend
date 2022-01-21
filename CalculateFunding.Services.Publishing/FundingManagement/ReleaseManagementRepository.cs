@@ -666,14 +666,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             var deleteTask = Task.Run(() =>
             {
                 StringBuilder dropSql = new StringBuilder();
-                dropSql.AppendLine("DELETE FROM TABLE [dbo].[FundingGroupProviders];");
-                dropSql.AppendLine("DELETE FROM TABLE [dbo].[FundingGroupVersionVariationReasons];");
-                dropSql.AppendLine("DELETE FROM TABLE [dbo].[ReleasedProviderChannelVariationReasons];");
-                dropSql.AppendLine("DELETE FROM TABLE [dbo].[ReleasedProviderVersionChannels];");
-                dropSql.AppendLine("DELETE FROM TABLE [dbo].[FundingGroupVersions];");
-                dropSql.AppendLine("DELETE FROM TABLE [dbo].[ReleasedProviderVersions];");
-                dropSql.AppendLine("DELETE FROM TABLE [dbo].[FundingGroups];");
-                dropSql.AppendLine("DELETE FROM TABLE [dbo].[ReleasedProviders];");
+                dropSql.AppendLine("DELETE FROM [dbo].[FundingGroupProviders];");
+                dropSql.AppendLine("DELETE FROM [dbo].[FundingGroupVersionVariationReasons];");
+                dropSql.AppendLine("DELETE FROM [dbo].[ReleasedProviderChannelVariationReasons];");
+                dropSql.AppendLine("DELETE FROM [dbo].[ReleasedProviderVersionChannels];");
+                dropSql.AppendLine("DELETE FROM [dbo].[FundingGroupVersions];");
+                dropSql.AppendLine("DELETE FROM [dbo].[ReleasedProviderVersions];");
+                dropSql.AppendLine("DELETE FROM [dbo].[FundingGroups];");
+                dropSql.AppendLine("DELETE FROM [dbo].[ReleasedProviders];");
                 ExecuteNoneQuery(dropSql.ToString());
             });
 
