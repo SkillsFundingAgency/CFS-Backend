@@ -550,24 +550,25 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.IsNullOrWhiteSpace(fundingTemplateContent, nameof(fundingTemplateContent));
 
-            JObject parsedFundingTemplate;
+            JsonSerializerSettings serializerSettings = GenerateJsonSerializerSettingsToSupportDeepTemplates();
 
-            try
-            {
-                parsedFundingTemplate = JObject.Parse(fundingTemplateContent);
-            }
-            catch (JsonReaderException jre)
-            {
-                return new PreconditionFailedResult(jre.Message);
-            }
+            TemplateSchemaVersionParseResult result = JsonConvert.DeserializeObject<TemplateSchemaVersionParseResult>(fundingTemplateContent, serializerSettings);
 
-            if (parsedFundingTemplate["schemaVersion"] == null ||
-                string.IsNullOrWhiteSpace(parsedFundingTemplate["schemaVersion"].Value<string>()))
+            if (result == null ||
+                string.IsNullOrWhiteSpace(result.SchemaVersion))
             {
                 return new PreconditionFailedResult("Missing schema version from funding template.");
             }
 
-            return parsedFundingTemplate["schemaVersion"].Value<string>();
+            return result.SchemaVersion;
+        }
+
+        private static JsonSerializerSettings GenerateJsonSerializerSettingsToSupportDeepTemplates()
+        {
+            return new JsonSerializerSettings()
+            {
+                MaxDepth = 1024
+            };
         }
     }
 }
