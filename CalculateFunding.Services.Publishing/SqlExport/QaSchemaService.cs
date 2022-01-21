@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         private readonly ISpecificationsApiClient _specifications;
         private readonly ITemplateMetadataResolver _templateMetadataResolver;
         private readonly ISqlSchemaGenerator _schemaGenerator;
-        private readonly IQaRepository _qaRepository;
+        private readonly IQaRepositoryLocator _qaRepositoryLocator;
         private readonly IProfilingApiClient _profilingClient;
         private readonly ISqlNameGenerator _sqlNames;
         private readonly AsyncPolicy _specificationResilience;
@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             ISpecificationsApiClient specificationsApiClient,
             ITemplateMetadataResolver templateMetadataResolver,
             ISqlSchemaGenerator schemaGenerator,
-            IQaRepository qaRepository,
+            IQaRepositoryLocator qaRepositoryLocator,
             IProfilingApiClient profilingClient,
             ISqlNameGenerator sqlNames,
             IPublishingResiliencePolicies resiliencePolicies)
@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(templateMetadataResolver, nameof(templateMetadataResolver));
             Guard.ArgumentNotNull(schemaGenerator, nameof(schemaGenerator));
-            Guard.ArgumentNotNull(qaRepository, nameof(qaRepository));
+            Guard.ArgumentNotNull(qaRepositoryLocator, nameof(qaRepositoryLocator));
             Guard.ArgumentNotNull(profilingClient, nameof(profilingClient));
             Guard.ArgumentNotNull(sqlNames, nameof(sqlNames));
 
@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             _specifications = specificationsApiClient;
             _templateMetadataResolver = templateMetadataResolver;
             _schemaGenerator = schemaGenerator;
-            _qaRepository = qaRepository;
+            _qaRepositoryLocator = qaRepositoryLocator;
             _profilingClient = profilingClient;
             _sqlNames = sqlNames;
             _specificationResilience = resiliencePolicies.SpecificationsApiClient;
@@ -66,8 +66,10 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             //at the moment it needs a god test with too much setup to make much sense to anyone
         }
 
-        public async Task<SchemaContext> ReCreateTablesForSpecificationAndFundingStream(string specificationId,
-            string fundingStreamId)
+        public async Task<SchemaContext> ReCreateTablesForSpecificationAndFundingStream(
+            string specificationId,
+            string fundingStreamId,
+            SqlExportSource sqlExportSource)
         {
             ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(()
                 => _specifications.GetSpecificationSummaryById(specificationId));
@@ -82,12 +84,14 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             SchemaContext schemaContext = new SchemaContext();
 
-            await EnsureTablesForFundingStream(specification, fundingStreamId, schemaContext);
+            await EnsureTablesForFundingStream(specification, fundingStreamId, schemaContext, sqlExportSource);
 
             return schemaContext;
         }
 
-        public async Task<SchemaContext> EnsureSqlTablesForSpecification(string specificationId)
+        public async Task<SchemaContext> EnsureSqlTablesForSpecification(
+            string specificationId,
+            SqlExportSource sqlExportSource)
         {
             ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(()
                 => _specifications.GetSpecificationSummaryById(specificationId));
@@ -96,17 +100,26 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             SchemaContext schemaContext = new SchemaContext();
 
-            foreach (Reference fundingStream in specification.FundingStreams) await EnsureTablesForFundingStream(specification, fundingStream.Id, schemaContext);
+            foreach (Reference fundingStream in specification.FundingStreams)
+            {
+                await EnsureTablesForFundingStream(specification, fundingStream.Id, schemaContext, sqlExportSource);
+            }
 
             return schemaContext;
         }
 
-        private async Task EnsureTablesForFundingStream(SpecificationSummary specification, string fundingStreamId, SchemaContext schemaContext)
+        private async Task EnsureTablesForFundingStream(
+            SpecificationSummary specification, 
+            string fundingStreamId, 
+            SchemaContext schemaContext,
+            SqlExportSource sqlExportSource)
         {
             // TODO: handle multiple version of the template for fields....
             string fundingPeriodId = specification.FundingPeriod.Id;
 
-            await DropExistingTables(fundingStreamId, fundingPeriodId);
+            IQaRepository qaRepository = _qaRepositoryLocator.GetService(sqlExportSource);
+
+            await DropExistingTables(fundingStreamId, fundingPeriodId, qaRepository);
             
             UniqueTemplateContents templateMetadata = await GetTemplateData(specification, fundingStreamId);
             Dictionary<string, IEnumerable<SqlColumnDefinition>> profilingTables =
@@ -114,25 +127,27 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             string fundingStreamTablePrefix = $"{fundingStreamId}_{fundingPeriodId}";
 
-            EnsureTable($"{fundingStreamTablePrefix}_Funding", GetSqlColumnDefinitionsForFunding(), fundingStreamId, fundingPeriodId);
-            EnsureTable($"{fundingStreamTablePrefix}_Providers", GetSqlColumnDefinitionsForProviderInformation(), fundingStreamId, fundingPeriodId);
+            EnsureTable($"{fundingStreamTablePrefix}_Funding", GetSqlColumnDefinitionsForFunding(), fundingStreamId, fundingPeriodId, qaRepository);
+            EnsureTable($"{fundingStreamTablePrefix}_Providers", GetSqlColumnDefinitionsForProviderInformation(), fundingStreamId, fundingPeriodId, qaRepository);
 
             (IEnumerable<SqlColumnDefinition> informationFundingLineFields,
                 IEnumerable<SqlColumnDefinition> paymentFundingLineFields,
                 IEnumerable<SqlColumnDefinition> calculationFields) = GetUniqueFundingLinesAndCalculationsForFundingStream(templateMetadata);
 
             foreach (KeyValuePair<string, IEnumerable<SqlColumnDefinition>> profileTable in profilingTables)
-                EnsureTable($"{fundingStreamTablePrefix}_Profiles_{profileTable.Key}", profileTable.Value, fundingStreamId, fundingPeriodId);
+                EnsureTable($"{fundingStreamTablePrefix}_Profiles_{profileTable.Key}", profileTable.Value, fundingStreamId, fundingPeriodId, qaRepository);
 
-            EnsureTable($"{fundingStreamTablePrefix}_InformationFundingLines", informationFundingLineFields, fundingStreamId, fundingPeriodId);
-            EnsureTable($"{fundingStreamTablePrefix}_PaymentFundingLines", paymentFundingLineFields, fundingStreamId, fundingPeriodId);
-            EnsureTable($"{fundingStreamTablePrefix}_Calculations", calculationFields, fundingStreamId, fundingPeriodId);
+            EnsureTable($"{fundingStreamTablePrefix}_InformationFundingLines", informationFundingLineFields, fundingStreamId, fundingPeriodId, qaRepository);
+            EnsureTable($"{fundingStreamTablePrefix}_PaymentFundingLines", paymentFundingLineFields, fundingStreamId, fundingPeriodId, qaRepository);
+            EnsureTable($"{fundingStreamTablePrefix}_Calculations", calculationFields, fundingStreamId, fundingPeriodId, qaRepository);
         }
 
-        private async Task DropExistingTables(string fundingStreamId,
-            string fundingPeriodId)
+        private async Task DropExistingTables(
+            string fundingStreamId,
+            string fundingPeriodId,
+            IQaRepository qaRepository)
         {
-            IEnumerable<TableForStreamAndPeriod> tablesToDrop = await _qaRepository.GetTablesForFundingStreamAndPeriod(fundingStreamId, fundingPeriodId);
+            IEnumerable<TableForStreamAndPeriod> tablesToDrop = await qaRepository.GetTablesForFundingStreamAndPeriod(fundingStreamId, fundingPeriodId);
 
             StringBuilder dropSql = new StringBuilder();
 
@@ -145,8 +160,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             {
                 return;
             }
-            
-            _qaRepository.ExecuteSql(dropSql.ToString());
+
+            qaRepository.ExecuteSql(dropSql.ToString());
         }
 
         private async Task<Dictionary<string, IEnumerable<SqlColumnDefinition>>> GenerateProfiling(string fundingStreamId,
@@ -237,11 +252,12 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         
         private void EnsureTable(string tableName, IEnumerable<SqlColumnDefinition> fields,
             string fundingStreamId, 
-            string fundingPeriodId)
+            string fundingPeriodId,
+            IQaRepository qaRepository)
         {
             string sql = _schemaGenerator.GenerateCreateTableSql(tableName, fundingStreamId, fundingPeriodId, fields);
 
-            _qaRepository.ExecuteSql(sql);
+            qaRepository.ExecuteSql(sql);
         }
 
         private async Task<UniqueTemplateContents> GetTemplateData(SpecificationSummary specification, string fundingStreamId)

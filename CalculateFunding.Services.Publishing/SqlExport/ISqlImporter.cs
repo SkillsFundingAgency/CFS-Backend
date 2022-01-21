@@ -6,6 +6,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
     {
         Task ImportData(string specificationId,
             string fundingStreamId,
-            SchemaContext schemaContext);
+            SchemaContext schemaContext,
+            SqlExportSource sqlExportSource);
     }
 }

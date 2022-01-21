@@ -17,5 +17,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         IDataTableBuilder<PublishedProviderVersion> Calculations { get; set; }
         IDictionary<uint, string> CalculationNames { get; set; }
         void AddRows(PublishedProviderVersion dto);
+
+        SqlExportSource SqlExportSource { get; set; }
     }
 }

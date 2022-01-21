@@ -16,30 +16,32 @@ namespace CalculateFunding.Services.Publishing.SqlExport
     {
         private readonly IProducerConsumerFactory _producerConsumerFactory;
         private readonly ISqlImportContextBuilder _sqlImportContextBuilder;
-        private readonly IDataTableImporter _dataTableImporter;
+        private readonly IPublishingDataTableImporterLocator _dataTableImporterLocator;
         private readonly ILogger _logger;
 
         public SqlImporter(IProducerConsumerFactory producerConsumerFactory,
             ISqlImportContextBuilder sqlImportContextBuilder,
-            IDataTableImporter dataTableImporter,
+            IPublishingDataTableImporterLocator dataTableImporterLocator,
             ILogger logger)
         {
             Guard.ArgumentNotNull(producerConsumerFactory, nameof(producerConsumerFactory));
             Guard.ArgumentNotNull(sqlImportContextBuilder, nameof(sqlImportContextBuilder));
-            Guard.ArgumentNotNull(dataTableImporter, nameof(dataTableImporter));
+            Guard.ArgumentNotNull(dataTableImporterLocator, nameof(dataTableImporterLocator));
             Guard.ArgumentNotNull(logger, nameof(logger));
             
             _producerConsumerFactory = producerConsumerFactory;
             _sqlImportContextBuilder = sqlImportContextBuilder;
             _logger = logger;
-            _dataTableImporter = dataTableImporter;
+            _dataTableImporterLocator = dataTableImporterLocator;
         }
 
-        public async Task ImportData(string specificationId,
+        public async Task ImportData(
+            string specificationId,
             string fundingStreamId,
-            SchemaContext schemaContext)
+            SchemaContext schemaContext,
+            SqlExportSource sqlExportSource)
         {
-            ISqlImportContext importContext = await _sqlImportContextBuilder.CreateImportContext(specificationId, fundingStreamId, schemaContext);
+            ISqlImportContext importContext = await _sqlImportContextBuilder.CreateImportContext(specificationId, fundingStreamId, schemaContext, sqlExportSource);
 
             IProducerConsumer producerConsumer = _producerConsumerFactory.CreateProducerConsumer(ProducePublishedProviders,
                 PopulateDataTables,
@@ -48,20 +50,24 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 _logger);
 
             await producerConsumer.Run(importContext);
-            await RunBulkImports(importContext);
+            await RunBulkImports(importContext, sqlExportSource);
         }
 
-        private async Task RunBulkImports(ISqlImportContext importContext)
+        private async Task RunBulkImports(
+            ISqlImportContext importContext,
+            SqlExportSource sqlExportSource)
         {
-            await _dataTableImporter.ImportDataTable(importContext.Funding);
-            await _dataTableImporter.ImportDataTable(importContext.Providers);
-            await _dataTableImporter.ImportDataTable(importContext.Calculations);
-            await _dataTableImporter.ImportDataTable(importContext.PaymentFundingLines);
-            await _dataTableImporter.ImportDataTable(importContext.InformationFundingLines);
+            IDataTableImporter dataTableImporter = _dataTableImporterLocator.GetService(sqlExportSource);
+
+            await dataTableImporter.ImportDataTable(importContext.Funding);
+            await dataTableImporter.ImportDataTable(importContext.Providers);
+            await dataTableImporter.ImportDataTable(importContext.Calculations);
+            await dataTableImporter.ImportDataTable(importContext.PaymentFundingLines);
+            await dataTableImporter.ImportDataTable(importContext.InformationFundingLines);
 
             foreach (IDataTableBuilder<PublishedProviderVersion> paymentFundingLine in importContext.Profiling?.Values ?? ArraySegment<IDataTableBuilder<PublishedProviderVersion>>.Empty)
             {
-                await _dataTableImporter.ImportDataTable(paymentFundingLine);
+                await dataTableImporter.ImportDataTable(paymentFundingLine);
             }
         }
 
@@ -105,7 +111,10 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             foreach (PublishedProvider publishedProvider in publishedProviders)
             {
-                importContext.AddRows(publishedProvider.Current);
+                importContext.AddRows(
+                    importContext.SqlExportSource == SqlExportSource.CurrentPublishedProviderVersion ? 
+                    publishedProvider.Current : 
+                    publishedProvider.Released);
             }
 
             return Task.CompletedTask;

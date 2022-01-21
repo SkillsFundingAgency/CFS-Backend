@@ -40,6 +40,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests
                 { "releaseManagementSql:ConnectionString", "Server=.\\;Initial Catalog=ReleaseManagement;Integrated Security=SSPI" },
                 { "fdzClient:ApiEndpoint", "https://localhost:7109/api/" },
                 { "fdzClient:ApiKey", "Local" },
+                { "rfSql:ConnectionString", "Server=.\\;Initial Catalog=RF;Integrated Security=SSPI" },
             };
         }
 

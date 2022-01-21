@@ -18,7 +18,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
 
         public OnRunReleasedSqlImport(
             ILogger logger,
-            IReleasedSqlImportService importService,
+            ISqlImportService importService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider,
             IConfigurationRefresherProvider refresherProvider,

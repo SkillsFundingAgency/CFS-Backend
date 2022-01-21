@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private Mock<ISqlNameGenerator> _sqlNameGenerator;
         private Mock<ISqlSchemaGenerator> _sqlSchemaGenerator;
         private Mock<IQaRepository> _qa;
+        private Mock<IQaRepositoryLocator> _qaRepoLocator;
         private Mock<IProfilingApiClient> _profiling;
         
         private QaSchemaService _schemaService;
@@ -35,6 +36,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             _sqlSchemaGenerator = new Mock<ISqlSchemaGenerator>();
             _profiling = new Mock<IProfilingApiClient>();
             _qa = new Mock<IQaRepository>();
+            _qaRepoLocator = new Mock<IQaRepositoryLocator>();
+            _qaRepoLocator.Setup(_ => _.GetService(It.IsAny<SqlExportSource>())).Returns(_qa.Object);
 
             _sqlNameGenerator.Setup(_ => _.GenerateIdentifier(It.IsAny<string>()))
                 .Returns<string>(input => input);
@@ -43,7 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 Specifications.Object,
                 TemplateMetadataResolver.Object,
                 _sqlSchemaGenerator.Object,
-                _qa.Object,
+                _qaRepoLocator.Object,
                 _profiling.Object,
                 _sqlNameGenerator.Object,
                 new ResiliencePolicies
@@ -53,8 +56,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 });
         }
 
-        [TestMethod]
-        public async Task CreatesDDLMatchingSpecificationFundingAndReCreatesSchemaObjectsInQaRepository()
+        [DataTestMethod]
+        [DataRow(SqlExportSource.CurrentPublishedProviderVersion)]
+        [DataRow(SqlExportSource.ReleasedPublishedProviderVersion)]
+        public async Task CreatesDDLMatchingSpecificationFundingAndReCreatesSchemaObjectsInQaRepository(SqlExportSource sqlExportSource)
         {
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
@@ -102,7 +107,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             AndTheTemplateMetadataContents(schemaVersion, fundingTemplateContents, templateMetadataContents);
             AndTheProfiling(fundingStreamId, fundingPeriodId, profilePatternOne, profilePatternTwo);
             
-            await WhenTheSchemaIsRecreated(specificationId, fundingStreamId);
+            await WhenTheSchemaIsRecreated(specificationId, fundingStreamId, sqlExportSource);
 
             Dictionary<string, SqlColumnDefinition> providerColumns = new List<SqlColumnDefinition>() {
                 new SqlColumnDefinition
@@ -322,9 +327,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                     col.AllowNulls == _.AllowNulls) == 1);
         }
 
-        private async Task WhenTheSchemaIsRecreated(string specificationId,
-            string fundingStreamId)
-            => await _schemaService.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId);
+        private async Task WhenTheSchemaIsRecreated(
+            string specificationId,
+            string fundingStreamId,
+            SqlExportSource sqlExportSource)
+            => await _schemaService.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId, sqlExportSource);
 
         private FundingStreamPeriodProfilePattern NewFundingStreamPeriodProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)
         {

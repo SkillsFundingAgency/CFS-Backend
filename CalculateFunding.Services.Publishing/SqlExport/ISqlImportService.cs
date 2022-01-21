@@ -10,6 +10,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         Task<IActionResult> QueueSqlImport(string specificationId,
             string fundingStreamId,
             Reference user,
-            string correlationId);
+            string correlationId,
+            SqlExportSource sqlExportSource);
     }
 }

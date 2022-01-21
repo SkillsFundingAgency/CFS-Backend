@@ -27,6 +27,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
         public SchemaContext SchemaContext { get; set; }
 
+        public SqlExportSource SqlExportSource { get; set; }
+
         public void AddRows(PublishedProviderVersion dto)
         {
             Providers.AddRows(dto);

@@ -10,15 +10,12 @@ namespace CalculateFunding.Api.Publishing.Controllers
     public class SqlImportController : ControllerBase
     {
         private readonly ISqlImportService _importService;
-        private readonly IReleasedSqlImportService _releasedImportService;
 
-        public SqlImportController(IReleasedSqlImportService releasedImportService, ISqlImportService importService)
+        public SqlImportController(ISqlImportService importService)
         {
-            Guard.ArgumentNotNull(releasedImportService, nameof(releasedImportService));
             Guard.ArgumentNotNull(importService, nameof(importService));
             
             _importService = importService;
-            _releasedImportService = releasedImportService;
         }
 
         [HttpGet("api/sqlqa/specifications/{specificationId}/funding-streams/{fundingStreamId}/import/queue")]
@@ -27,14 +24,16 @@ namespace CalculateFunding.Api.Publishing.Controllers
             => await _importService.QueueSqlImport(specificationId, 
                 fundingStreamId, 
                 Request.GetUser(), 
-                Request.GetCorrelationId());
+                Request.GetCorrelationId(),
+                SqlExportSource.CurrentPublishedProviderVersion);
 
         [HttpGet("api/sqlqa/specifications/{specificationId}/funding-streams/{fundingStreamId}/released/import/queue")]
         public async Task<IActionResult> QueueReleasedImportDataJob([FromRoute] string specificationId,
             [FromRoute] string fundingStreamId)
-            => await _releasedImportService.QueueSqlImport(specificationId,
+            => await _importService.QueueSqlImport(specificationId,
                 fundingStreamId,
                 Request.GetUser(),
-                Request.GetCorrelationId());
+                Request.GetCorrelationId(),
+                SqlExportSource.ReleasedPublishedProviderVersion);
     }
 }

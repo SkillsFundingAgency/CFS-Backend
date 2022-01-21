@@ -124,10 +124,10 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
             builder.AddScoped<IQaSchemaService, QaSchemaService>();
 
-            builder.AddScoped<IReleasedSqlImportService, ReleasedSqlImportService>();
+            builder.AddScoped<IQaRepositoryLocator, QaRepositoryLocator>();
+            builder.AddScoped<IPublishingDataTableImporterLocator, PublishingDataTableImporterLocator>();
 
-
-            builder.AddScoped<IDataTableImporter, DataTableImporter>((ctx) =>
+            builder.AddScoped<IPublishingDataTableImporter, CurrentDataTableImporter>((ctx) =>
             {
                 ISqlSettings sqlSettings = new SqlSettings();
 
@@ -135,10 +135,21 @@ namespace CalculateFunding.Functions.Publishing
 
                 SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
 
-                return new DataTableImporter(sqlConnectionFactory);
+                return new CurrentDataTableImporter(sqlConnectionFactory);
             });
 
-            builder.AddScoped<IQaRepository, QaRepository>((ctx) =>
+            builder.AddScoped<IPublishingDataTableImporter, ReleasedDataTableImporter>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                config.Bind("rfSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+
+                return new ReleasedDataTableImporter(sqlConnectionFactory);
+            });
+
+            builder.AddScoped<IQaRepository, CurrentQaRepository>((ctx) =>
             {
                 ISqlSettings sqlSettings = new SqlSettings();
 
@@ -147,7 +158,19 @@ namespace CalculateFunding.Functions.Publishing
                 SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
                 SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
 
-                return new QaRepository(sqlConnectionFactory, sqlPolicyFactory);
+                return new CurrentQaRepository(sqlConnectionFactory, sqlPolicyFactory);
+            });
+
+            builder.AddScoped<IQaRepository, ReleasedQaRepository>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                config.Bind("rfSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+                SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
+
+                return new ReleasedQaRepository(sqlConnectionFactory, sqlPolicyFactory);
             });
 
             builder.AddSingleton<ITemplateMetadataResolver>(ctx =>

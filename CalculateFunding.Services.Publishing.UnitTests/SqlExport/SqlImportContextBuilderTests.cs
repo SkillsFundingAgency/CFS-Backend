@@ -38,8 +38,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 });
         }
 
-        [TestMethod]
-        public async Task CreatesContextWithDocumentFeedForFundingStreamAndPeriodAndInitialisedDataTableBuilders()
+        [DataTestMethod]
+        [DataRow(SqlExportSource.CurrentPublishedProviderVersion)]
+        [DataRow(SqlExportSource.ReleasedPublishedProviderVersion)]
+        public async Task CreatesContextWithDocumentFeedForFundingStreamAndPeriodAndInitialisedDataTableBuilders(SqlExportSource sqlExportSource)
         {
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
@@ -73,7 +75,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             AndTheTemplateMetadataContents(schemaVersion, fundingTemplateContents, templateMetadataContents);
             AndTheCosmosDocumentFeed(specificationId, fundingStreamId);
 
-            ISqlImportContext importContext = await WhenTheImportContextIsBuilt(specificationId, fundingStreamId, schemaContext);
+            ISqlImportContext importContext = await WhenTheImportContextIsBuilt(specificationId, fundingStreamId, schemaContext, sqlExportSource);
 
             importContext
                 .Should()
@@ -142,8 +144,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
         private async Task<ISqlImportContext> WhenTheImportContextIsBuilt(string specificationId,
             string fundingStreamId,
-            SchemaContext schemaContext)
-            => await _contextBuilder.CreateImportContext(specificationId, fundingStreamId, schemaContext);
+            SchemaContext schemaContext,
+            SqlExportSource sqlExportSource)
+            => await _contextBuilder.CreateImportContext(specificationId, fundingStreamId, schemaContext, sqlExportSource);
 
         private void AndTheCosmosDocumentFeed(string specificationId,
             string fundingStreamId)

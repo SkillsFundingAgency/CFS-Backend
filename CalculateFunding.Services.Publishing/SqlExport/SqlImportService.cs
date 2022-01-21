@@ -16,6 +16,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
     public class SqlImportService : JobProcessingService, ISqlImportService
     {
         private const string RunSqlImportJob = JobConstants.DefinitionNames.RunSqlImportJob;
+        private const string RunReleasedSqlImportJob = JobConstants.DefinitionNames.RunReleasedSqlImportJob;
+
         private const string SpecificationId = "specification-id";
         private const string FundingStreamId = "funding-stream-id";
 
@@ -35,14 +37,15 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         public async Task<IActionResult> QueueSqlImport(string specificationId,
             string fundingStreamId,
             Reference user,
-            string correlationId)
+            string correlationId,
+            SqlExportSource sqlExportSource)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
             Job job = await QueueJob(new JobCreateModel
             {
-                JobDefinitionId = RunSqlImportJob,
+                JobDefinitionId = sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion ? RunSqlImportJob : RunReleasedSqlImportJob,
                 SpecificationId = specificationId,
                 CorrelationId = correlationId,
                 InvokerUserId = user?.Id,
@@ -74,9 +77,17 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
-            SchemaContext schemaContext = await _schema.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId);
+            SqlExportSource sqlExportSource = 
+                Job.JobDefinitionId == RunSqlImportJob ? 
+                SqlExportSource.CurrentPublishedProviderVersion : 
+                SqlExportSource.ReleasedPublishedProviderVersion;
+
+            SchemaContext schemaContext = await _schema.ReCreateTablesForSpecificationAndFundingStream(
+                specificationId, 
+                fundingStreamId,
+                sqlExportSource);
             
-            await _import.ImportData(specificationId, fundingStreamId, schemaContext);
+            await _import.ImportData(specificationId, fundingStreamId, schemaContext, sqlExportSource);
         }
     }
 }

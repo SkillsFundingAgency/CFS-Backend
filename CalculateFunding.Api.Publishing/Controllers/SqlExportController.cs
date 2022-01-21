@@ -19,7 +19,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         [HttpGet("api/sqlqa/specifications/{specificationId}/ensure-schema")]
         public async Task<IActionResult> EnsureSchemaForSpecification([FromRoute] string specificationId)
         {
-            await _schemaService.EnsureSqlTablesForSpecification(specificationId);
+            await _schemaService.EnsureSqlTablesForSpecification(specificationId, SqlExportSource.CurrentPublishedProviderVersion);
 
             return NoContent();
         }

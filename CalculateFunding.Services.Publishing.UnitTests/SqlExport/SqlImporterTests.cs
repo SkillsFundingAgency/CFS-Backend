@@ -21,7 +21,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private Mock<ICosmosDbFeedIterator> _cosmosFeed;
         private Mock<ISqlImportContext> _importContext;
         private Mock<ISqlImportContextBuilder> _importContextBuilder;
-        private Mock<IDataTableImporter> _dataTableImporter;
+        private Mock<IPublishingDataTableImporter> _dataTableImporter;
+        private Mock<IPublishingDataTableImporterLocator> _publishingDataTableImporterLocator;
 
         private Mock<IDataTableBuilder<PublishedProviderVersion>> _paymentFundingLineDataTableBuilder;
         private Mock<IDataTableBuilder<PublishedProviderVersion>> _informationFundingLineDataTableBuilder;
@@ -39,8 +40,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             _cosmosFeed = new Mock<ICosmosDbFeedIterator>();
             _importContext = new Mock<ISqlImportContext>();
             _importContextBuilder = new Mock<ISqlImportContextBuilder>();
-            _dataTableImporter = new Mock<IDataTableImporter>();
-            
+            _dataTableImporter = new Mock<IPublishingDataTableImporter>();
+            _publishingDataTableImporterLocator = new Mock<IPublishingDataTableImporterLocator>();
+            _publishingDataTableImporterLocator
+                .Setup(_ => _.GetService(It.IsAny<SqlExportSource>()))
+                .Returns(_dataTableImporter.Object);
+
             _fundingLineOneProfilingDataTableBuilder = NewDataTableBuilder();
             _fundingLineTwoProfilingDataTableBuilder = NewDataTableBuilder();
             _paymentFundingLineDataTableBuilder = NewDataTableBuilder();
@@ -74,12 +79,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             
             _sqlImporter = new SqlImporter(new ProducerConsumerFactory(), 
                 _importContextBuilder.Object,
-                _dataTableImporter.Object,
+                _publishingDataTableImporterLocator.Object,
                 Logger.None);
         }
 
-        [TestMethod]
-        public async Task TransformsPagesOfPublishedProviderDocumentsIntoDataTablesAndBulkCopiesTheseToSqlServer()
+        [DataTestMethod]
+        [DataRow(SqlExportSource.CurrentPublishedProviderVersion)]
+        [DataRow(SqlExportSource.ReleasedPublishedProviderVersion)]
+        public async Task TransformsPagesOfPublishedProviderDocumentsIntoDataTablesAndBulkCopiesTheseToSqlServer(SqlExportSource sqlExportSource)
         {
             PublishedProvider[] pageOne = new[]
             {
@@ -103,10 +110,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
 
-            GivenTheImportContextIsCreatedForTheFundingInformation(specificationId, fundingStreamId);
+            GivenTheImportContextIsCreatedForTheFundingInformation(specificationId, fundingStreamId, sqlExportSource);
             AndThePagesOfPublishedProviders(pageOne, pageTwo, pageThree);
 
-            await WhenTheSqlImportRuns(specificationId, fundingStreamId);
+            await WhenTheSqlImportRuns(specificationId, fundingStreamId, sqlExportSource);
             
             ThenThePublishedProviderVersionsWereAddedToTheImportContextRows(pageOne);
             AndThePublishedProviderVersionsWereAddedToTheImportContextRows(pageTwo);
@@ -114,9 +121,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             AndTheImportContextWasBulkInsertedIntoSqlServer();
         }
 
-        private void GivenTheImportContextIsCreatedForTheFundingInformation(string specificationId,
-            string fundingStreamId)
-            => _importContextBuilder.Setup(_ => _.CreateImportContext(specificationId, fundingStreamId, null))
+        private void GivenTheImportContextIsCreatedForTheFundingInformation(
+            string specificationId,
+            string fundingStreamId,
+            SqlExportSource sqlExportSource)
+            => _importContextBuilder.Setup(_ => _.CreateImportContext(specificationId, fundingStreamId, null, sqlExportSource))
                 .ReturnsAsync(_importContext.Object);
         
         private void AndTheImportContextWasBulkInsertedIntoSqlServer()
@@ -142,9 +151,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private void AndThePublishedProviderVersionsWereAddedToTheImportContextRows(IEnumerable<PublishedProvider> publishedProviders)
             => ThenThePublishedProviderVersionsWereAddedToTheImportContextRows(publishedProviders);
         
-        private async Task WhenTheSqlImportRuns(string specificationId,
-            string fundingStreamId)
-            => await _sqlImporter.ImportData(specificationId, fundingStreamId, null);
+        private async Task WhenTheSqlImportRuns(
+            string specificationId,
+            string fundingStreamId,
+            SqlExportSource sqlExportSource)
+            => await _sqlImporter.ImportData(specificationId, fundingStreamId, null, sqlExportSource);
 
         private void AndThePagesOfPublishedProviders(params IEnumerable<PublishedProvider>[] pages)
         {

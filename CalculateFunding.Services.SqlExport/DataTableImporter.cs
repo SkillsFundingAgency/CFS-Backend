@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.SqlExport
             }
 
             await using SqlConnection connection = NewOpenConnection();
-            using SqlBulkCopy bulkCopy = new SqlBulkCopy(connection)
+            using SqlBulkCopy bulkCopy = new(connection)
             {
                 DestinationTableName = dataTableBuilder.TableName,
                 BatchSize = 1000

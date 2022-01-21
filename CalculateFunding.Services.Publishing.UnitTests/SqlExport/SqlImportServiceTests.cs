@@ -41,10 +41,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 Logger.None);
         }
 
-        [TestMethod]
-        public void QueueJobGuardsAgainstMissingSpecificationId()
+        [DataTestMethod]
+        [DataRow(SqlExportSource.CurrentPublishedProviderVersion)]
+        [DataRow(SqlExportSource.ReleasedPublishedProviderVersion)]
+        public void QueueJobGuardsAgainstMissingSpecificationId(SqlExportSource sqlExportSource)
         {
-            Func<Task<IActionResult>> invocation = () => WhenTheImportIsQueued(null, NewRandomString());
+            Func<Task<IActionResult>> invocation = () => WhenTheImportIsQueued(null, NewRandomString(), sqlExportSource);
 
             invocation
                 .Should()
@@ -56,10 +58,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 .Be("specificationId");
         }
 
-        [TestMethod]
-        public void QueueJobGuardsAgainstMissingFundingStreamId()
+        [DataTestMethod]
+        [DataRow(SqlExportSource.CurrentPublishedProviderVersion)]
+        [DataRow(SqlExportSource.ReleasedPublishedProviderVersion)]
+        public void QueueJobGuardsAgainstMissingFundingStreamId(SqlExportSource sqlExportSource)
         {
-            Func<Task<IActionResult>> invocation = () => WhenTheImportIsQueued(NewRandomString(), null);
+            Func<Task<IActionResult>> invocation = () => WhenTheImportIsQueued(NewRandomString(), null, sqlExportSource);
 
             invocation
                 .Should()
@@ -71,20 +75,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 .Be("fundingStreamId");
         }
 
-        [TestMethod]
-        public async Task QueuesRunSqlImportJobs()
+        [DataTestMethod]
+        [DataRow(SqlExportSource.CurrentPublishedProviderVersion)]
+        [DataRow(SqlExportSource.ReleasedPublishedProviderVersion)]
+        public async Task QueuesRunSqlImportJobs(SqlExportSource sqlExportSource)
         {
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
             
-            Job expectedJob = new Job
+            Job expectedJob = new()
             {
                 Id = NewRandomString()
             };
 
-            GivenTheRunSqlImportJob(specificationId, fundingStreamId, expectedJob);
+            GivenTheRunSqlImportJob(specificationId, fundingStreamId, expectedJob, sqlExportSource);
             
-            OkObjectResult result = await WhenTheImportIsQueued(specificationId, fundingStreamId) as OkObjectResult;
+            OkObjectResult result = await WhenTheImportIsQueued(specificationId, fundingStreamId, sqlExportSource) as OkObjectResult;
 
             result?.Value
                 .Should()
@@ -94,17 +100,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 });
         }
 
-        [TestMethod]
-        public async Task JobRunsSchemaGenerationThenImportForSpecificationAndFundingStreamSpecifiedInMessage()
+        [DataTestMethod]
+        [DataRow(SqlExportSource.CurrentPublishedProviderVersion)]
+        [DataRow(SqlExportSource.ReleasedPublishedProviderVersion)]
+        public async Task JobRunsSchemaGenerationThenImportForSpecificationAndFundingStreamSpecifiedInMessage(SqlExportSource sqlExportSource)
         {
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
 
+            _importService.Job = new JobViewModel
+            {
+                JobDefinitionId = sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion ? JobConstants.DefinitionNames.RunSqlImportJob : JobConstants.DefinitionNames.RunReleasedSqlImportJob
+            };
+
             await WhenTheImportIsRun(NewMessage(_ => _.WithUserProperty(SpecificationId, specificationId)
                 .WithUserProperty(FundingStreamId, fundingStreamId)));
             
-            ThenTheSchemaWasReCreated(specificationId, fundingStreamId);
-            AndTheImportWasRun(specificationId, fundingStreamId);
+            ThenTheSchemaWasReCreated(specificationId, fundingStreamId, sqlExportSource);
+            AndTheImportWasRun(specificationId, fundingStreamId, sqlExportSource);
         }
 
         private Message NewMessage(Action<MessageBuilder> setUp = null)
@@ -116,20 +129,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             return messageBuilder.Build();
         }
 
-        private void ThenTheSchemaWasReCreated(string specificationId, 
-            string fundingStreamId)
-            => _schema.Verify(_ => _.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId),
+        private void ThenTheSchemaWasReCreated(
+            string specificationId, 
+            string fundingStreamId,
+            SqlExportSource sqlExportSource)
+            => _schema.Verify(_ => _.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId, sqlExportSource),
                 Times.Once);
 
-        private void AndTheImportWasRun(string specificationId,
-            string fundingStreamId)
-            => _import.Verify(_ => _.ImportData(specificationId, fundingStreamId, null),
-                Times.Once);
-        private void GivenTheRunSqlImportJob(string specificationId,
+        private void AndTheImportWasRun(
+            string specificationId,
             string fundingStreamId,
-            Job job)
+            SqlExportSource sqlExportSource)
+            => _import.Verify(_ => _.ImportData(specificationId, fundingStreamId, null, sqlExportSource),
+                Times.Once);
+
+        private void GivenTheRunSqlImportJob(
+            string specificationId,
+            string fundingStreamId,
+            Job job,
+            SqlExportSource sqlExportSource)
             => _jobs.Setup(_ => _.QueueJob(It.Is<JobCreateModel>(
-                    jcm => jcm.JobDefinitionId == JobConstants.DefinitionNames.RunSqlImportJob &&
+                    jcm => jcm.JobDefinitionId == (sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion ? JobConstants.DefinitionNames.RunSqlImportJob : JobConstants.DefinitionNames.RunReleasedSqlImportJob) &&
                            jcm.SpecificationId == specificationId &&
                            HasProperty(jcm.Properties, SpecificationId, specificationId) &&
                            HasProperty(jcm.Properties, FundingStreamId, fundingStreamId))))
@@ -144,9 +164,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private async Task WhenTheImportIsRun(Message message)
             => await _importService.Process(message);
 
-        private async Task<IActionResult> WhenTheImportIsQueued(string specificationId,
-            string fundingStreamId)
-            => await _importService.QueueSqlImport(specificationId, fundingStreamId, null, null);
+        private async Task<IActionResult> WhenTheImportIsQueued(
+            string specificationId,
+            string fundingStreamId,
+            SqlExportSource sqlExportSource)
+            => await _importService.QueueSqlImport(specificationId, fundingStreamId, null, null, sqlExportSource);
 
         private static string NewRandomString() => new RandomString();
     }

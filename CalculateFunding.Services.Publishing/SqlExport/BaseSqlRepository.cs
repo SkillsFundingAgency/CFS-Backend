@@ -5,10 +5,11 @@ using CalculateFunding.Common.Sql.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
 {
-    public class QaRepository : SqlRepository, IQaRepository
+    public abstract class BaseSqlRepository : SqlRepository, IQaRepository
     {
+        public abstract SqlExportSource SqlExportSource { get; }
 
-        public QaRepository(ISqlConnectionFactory connectionFactory, ISqlPolicyFactory sqlPolicyFactory)
+        public BaseSqlRepository(ISqlConnectionFactory connectionFactory, ISqlPolicyFactory sqlPolicyFactory)
             : base(connectionFactory, sqlPolicyFactory)
         {
         }
@@ -35,5 +36,6 @@ WHERE
                     fundingStreamAndPeriodIds
                 });
         }
+
     }
 }

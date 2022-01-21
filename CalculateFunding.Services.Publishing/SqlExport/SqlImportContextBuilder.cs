@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             Guard.ArgumentNotNull(specifications, nameof(specifications));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
-            
+
             _cosmos = cosmos;
             _policies = policies;
             _templateMetadataResolver = templateMetadataResolver;
@@ -46,11 +46,13 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             _policiesResilience = resiliencePolicies.PoliciesApiClient;
         }
 
-        public async Task<ISqlImportContext> CreateImportContext(string specificationId,
+        public async Task<ISqlImportContext> CreateImportContext(
+            string specificationId,
             string fundingStreamId,
-            SchemaContext schemaContext)
+            SchemaContext schemaContext,
+            SqlExportSource sqlExportSource)
         {
-            ICosmosDbFeedIterator publishedProviderFeed = GetPublishedProviderFeed(specificationId, fundingStreamId);
+            ICosmosDbFeedIterator publishedProviderFeed = GetPublishedProviderFeed(specificationId, fundingStreamId, sqlExportSource);
 
             TemplateMetadataContents template = await GetTemplateMetadataContents(specificationId, fundingStreamId);
 
@@ -68,24 +70,25 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 Funding = new PublishedProviderVersionDataTableBuilder(),
                 InformationFundingLines = new InformationFundingLineDataTableBuilder(),
                 PaymentFundingLines = new PaymentFundingLineDataTableBuilder(),
-                SchemaContext = schemaContext
+                SchemaContext = schemaContext,
+                SqlExportSource = sqlExportSource
             };
         }
 
-        private IDictionary<uint, string> GetCalculationNames(IEnumerable<Calculation> calculations)
+        private static IDictionary<uint, string> GetCalculationNames(IEnumerable<Calculation> calculations)
             => calculations.ToDictionary(_ => _.TemplateCalculationId, _ => _.Name);
 
         private async Task<TemplateMetadataContents> GetTemplateMetadataContents(string specificationId,
             string fundingStreamId)
         {
-            ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(() 
+            ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(()
                 => _specifications.GetSpecificationSummaryById(specificationId));
 
             SpecificationSummary specification = specificationResponse.Content;
 
             string templateVersion = specification.TemplateIds[fundingStreamId];
 
-            ApiResponse<FundingTemplateContents> templateContentsRequest = await _policiesResilience.ExecuteAsync(() 
+            ApiResponse<FundingTemplateContents> templateContentsRequest = await _policiesResilience.ExecuteAsync(()
                 => _policies.GetFundingTemplate(fundingStreamId, specification.FundingPeriod.Id, templateVersion));
 
             FundingTemplateContents fundingTemplateContents = templateContentsRequest.Content;
@@ -98,23 +101,46 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         }
 
         private ICosmosDbFeedIterator GetPublishedProviderFeed(string specificationId,
-            string fundingStreamId)
-            => _cosmos.GetFeedIterator(new CosmosDbQuery
-                {
-                    QueryText = @"SELECT
+            string fundingStreamId,
+            SqlExportSource sqlExportSource)
+            {
+            var queryText = @$"SELECT
                               *
                         FROM publishedProvider p
                         WHERE p.documentType = 'PublishedProvider'
+                        {FilterQuery(sqlExportSource)}
+                        AND p.content.current.fundingStreamId = @fundingStreamId
+                        AND p.content.current.specificationId = @specificationId
+                        AND p.deleted = false";
+
+            return _cosmos.GetFeedIterator(new CosmosDbQuery
+            {
+                QueryText = @$"SELECT
+                              *
+                        FROM publishedProvider p
+                        WHERE p.documentType = 'PublishedProvider'
+                        {FilterQuery(sqlExportSource)}
                         AND p.content.current.fundingStreamId = @fundingStreamId
                         AND p.content.current.specificationId = @specificationId
                         AND p.deleted = false",
-                    Parameters = Parameters(
-                        ("@fundingStreamId", fundingStreamId),
-                        ("@specificationId", specificationId))
-                },
-                100);
+                Parameters = Parameters(
+                      ("@fundingStreamId", fundingStreamId),
+                      ("@specificationId", specificationId))
+            },
+              100);
+            }
 
-        private CosmosDbQueryParameter[] Parameters(params (string Name, object Value)[] parameters)
+        private static CosmosDbQueryParameter[] Parameters(params (string Name, object Value)[] parameters)
             => parameters.Select(_ => new CosmosDbQueryParameter(_.Name, _.Value)).ToArray();
+
+        private static string FilterQuery(SqlExportSource sqlExportSource)
+        {
+            if(sqlExportSource == SqlExportSource.ReleasedPublishedProviderVersion)
+            {
+                return "AND IS_DEFINED(p.content.released)";
+            }
+
+            return string.Empty;
+        }
     }
 }
