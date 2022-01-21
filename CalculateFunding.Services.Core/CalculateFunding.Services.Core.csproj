@@ -14,7 +14,7 @@
     
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="8.0.0" />
     <PackageReference Include="CalculateFunding.Common.ServiceBus" Version="3.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Caching" Version="3.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Caching" Version="3.1.1" />
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="6.0.0" />
     <PackageReference Include="CalculateFunding.Common.Models" Version="3.0.0" />
     <PackageReference Include="CalculateFunding.Common.WebApi" Version="3.0.0" />
