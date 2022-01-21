@@ -37,7 +37,7 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
                 { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
                 { "saSql:ConnectionString", "StorageConnection" },
                 { "releaseManagementSql:ConnectionString", "Server=.\\;Initial Catalog=ReleaseManagement;Integrated Security=SSPI" },
-                { "rfSql:ConnectionString", "Server=.\\;Initial Catalog=RF;Integrated Security=SSPI" },
+                { "releasedSql:ConnectionString", "Server=.\\;Initial Catalog=RF;Integrated Security=SSPI" },
             };
 
             return configData;

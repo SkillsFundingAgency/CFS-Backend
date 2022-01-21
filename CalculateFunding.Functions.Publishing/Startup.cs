@@ -142,7 +142,7 @@ namespace CalculateFunding.Functions.Publishing
             {
                 ISqlSettings sqlSettings = new SqlSettings();
 
-                config.Bind("rfSql", sqlSettings);
+                config.Bind("releasedSql", sqlSettings);
 
                 SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
 
@@ -165,7 +165,7 @@ namespace CalculateFunding.Functions.Publishing
             {
                 ISqlSettings sqlSettings = new SqlSettings();
 
-                config.Bind("rfSql", sqlSettings);
+                config.Bind("releasedSql", sqlSettings);
 
                 SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
                 SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
