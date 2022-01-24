@@ -35,6 +35,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private ConcurrentDictionary<string, PublishedProviderVersion> _publishedProviderVersions = new ConcurrentDictionary<string, PublishedProviderVersion>();
         private ConcurrentDictionary<string, FundingGroupVersion> _fundingGroupVersions = new ConcurrentDictionary<string, FundingGroupVersion>();
         private ConcurrentDictionary<int, ReleasedProvider> _releasedProviders = new ConcurrentDictionary<int, ReleasedProvider>();
+        private ConcurrentDictionary<string, FundingGroup> _fundingGroups = new ConcurrentDictionary<string, FundingGroup>();
         private ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
         private ConcurrentBag<ReleasedProviderChannelVariationReason> _createReleasedProviderChannelVariationReasons = new ConcurrentBag<ReleasedProviderChannelVariationReason>();
         private ConcurrentBag<Task> _blobMigrationTasks = new ConcurrentBag<Task>();
@@ -79,6 +80,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             _lastIds = (await _repo.GetLastIdSummary()).ToDictionary(_ => _.TableName, _ => _.LastId.HasValue ? _.LastId.Value : 0);
 
+            await PopulateFundingGroups();
+
             await _fundingMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications, releasedProviders, releasedProviderVersions,
                 _cosmosRepo.GetPublishedFundingIterator(BatchSize), ProcessPublishedFundingVersions);
@@ -86,6 +89,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await _providerMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications, releasedProviders, releasedProviderVersions,
                 _cosmosRepo.GetReleasedPublishedProviderIterator(BatchSize), ProcessPublishedProviderVersions);
+
+            await PopulateLinkingTables();
 
             FundingGroupVersionVariationReasonsDataTableBuilder fgvvrBuilder = new FundingGroupVersionVariationReasonsDataTableBuilder();
             fgvvrBuilder.AddRows(_createFundingGroupVariationReasons.ToArray());
@@ -96,6 +101,21 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await (_dataTableImporter as IDataTableImporter).ImportDataTable(rpcvrBuilder);
 
             await MigrateBlobs(_blobMigrationTasks);
+        }
+
+        private async Task PopulateFundingGroups()
+        {
+            IEnumerable<FundingGroup> fundingGroups = await _repo.GetFundingGroups();
+            foreach (FundingGroup fundingGroup in fundingGroups)
+            {
+                string key = GetFundingGroupDictionaryKey(fundingGroup.ChannelId, fundingGroup.SpecificationId, fundingGroup.GroupingReasonId, fundingGroup.OrganisationGroupTypeClassification, fundingGroup.OrganisationGroupIdentifierValue);
+                _fundingGroups.AddOrUpdate(key, fundingGroup, (id, existing) => { return fundingGroup; });
+            }
+        }
+
+        private static string GetFundingGroupDictionaryKey(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue)
+        {
+            return $"{channelId}_{specificationId}_{groupingReasonId}_{organisationGroupTypeClassification}_{organisationGroupIdentifierValue}";
         }
 
         protected async Task ProcessPublishedFundingVersions(CancellationToken cancellationToken,
@@ -128,13 +148,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
                 _publishedProviderVersions.AddOrUpdate(providerVersion.ProviderId, providerVersion, (id, existing) => { return providerVersion; });
             }
-
-            await PopulateLinkingTables(ctx);
         }
 
-        private async Task PopulateLinkingTables(IReleaseManagementImportContext ctx)
+        private async Task PopulateLinkingTables()
         {
             IEnumerable<Channel> channels = await _repo.GetChannels();
+
+            Dictionary<string, ReleasedProviderVersion> releasedProviderVersions =
+                (await _repo.GetReleasedProviderVersions()).ToDictionary(_ => _.FundingId, _ => _);
+            Dictionary<string, SqlModels.VariationReason> variationReasons = (await _repo.GetVariationReasons()).ToDictionary(_ => _.VariationReasonCode, _ => _);
 
             List<ReleasedProviderVersionChannel> newReleasedProviderVersionChannels = new List<ReleasedProviderVersionChannel>();
             List<FundingGroupProvider> newFundingGroupProviders = new List<FundingGroupProvider>();
@@ -154,7 +176,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 {
                     FundingGroupVersion fundingGroupVersion = _fundingGroupVersions[fundingId];
 
-                    ReleasedProviderVersion releasedProviderVersion = ctx.ReleasedProviderVersion[fundingId];
+                    ReleasedProviderVersion releasedProviderVersion = releasedProviderVersions[fundingId];
                     ReleasedProvider releasedProvider = _releasedProviders[releasedProviderVersion.ReleasedProviderId];
                     PublishedProviderVersion publishedProviderVersion = _publishedProviderVersions[releasedProvider.ProviderId];
 
@@ -183,7 +205,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     {
                         foreach (CalculateFunding.Models.Publishing.VariationReason variationReason in publishedProviderVersion.VariationReasons)
                         {
-                            if (ctx.VariationReasons.TryGetValue(variationReason.ToString(), out SqlModels.VariationReason value))
+                            if (variationReasons.TryGetValue(variationReason.ToString(), out SqlModels.VariationReason value))
                             {
                                 ReleasedProviderChannelVariationReason reason = new ReleasedProviderChannelVariationReason()
                                 {
@@ -423,7 +445,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             int groupingReasonId = ctx.GroupingReasons[fundingVersion.GroupingReason.ToString()].GroupingReasonId;
 
-            FundingGroup fundingGroup = await _repo.GetFundingGroup(channelId, fundingVersion.SpecificationId, groupingReasonId, fundingVersion.OrganisationGroupTypeClassification, fundingVersion.OrganisationGroupIdentifierValue);
+            string key = GetFundingGroupDictionaryKey(channelId, fundingVersion.SpecificationId, groupingReasonId, fundingVersion.OrganisationGroupTypeClassification, fundingVersion.OrganisationGroupIdentifierValue);
+
+            FundingGroup fundingGroup;
+            _fundingGroups.TryGetValue(key, out fundingGroup);
 
             if (fundingGroup == null)
             {
@@ -441,6 +466,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 };
 
                 fundingGroup = await _repo.CreateFundingGroup(fundingGroup);
+                _fundingGroups.AddOrUpdate(key, fundingGroup, (id, existing) => { return fundingGroup; });
             }
 
             return fundingGroup;
