@@ -35,6 +35,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private ConcurrentDictionary<string, PublishedProviderVersion> _publishedProviderVersions = new ConcurrentDictionary<string, PublishedProviderVersion>();
         private ConcurrentDictionary<string, FundingGroupVersion> _fundingGroupVersions = new ConcurrentDictionary<string, FundingGroupVersion>();
         private ConcurrentDictionary<int, ReleasedProvider> _releasedProviders = new ConcurrentDictionary<int, ReleasedProvider>();
+        private ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
+        private ConcurrentBag<ReleasedProviderChannelVariationReason> _createReleasedProviderChannelVariationReasons = new ConcurrentBag<ReleasedProviderChannelVariationReason>();
         private Dictionary<string, int> _lastIds;
 
         public PublishedFundingReleaseManagementMigrator(IPublishedFundingRepository publishedFundingRepository,
@@ -83,6 +85,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await _providerMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications, releasedProviders, releasedProviderVersions,
                 _cosmosRepo.GetReleasedPublishedProviderIterator(BatchSize), ProcessPublishedProviderVersions);
+
+            FundingGroupVersionVariationReasonsDataTableBuilder fgvvrBuilder = new FundingGroupVersionVariationReasonsDataTableBuilder();
+            fgvvrBuilder.AddRows(_createFundingGroupVariationReasons.ToArray());
+            await (_dataTableImporter as IDataTableImporter).ImportDataTable(fgvvrBuilder);
+
+            ReleasedProviderChannelVariationReasonDataTableBuilder rpcvrBuilder = new ReleasedProviderChannelVariationReasonDataTableBuilder();
+            rpcvrBuilder.AddRows(_createReleasedProviderChannelVariationReasons.ToArray());
+            await (_dataTableImporter as IDataTableImporter).ImportDataTable(rpcvrBuilder);
         }
 
         protected async Task ProcessPublishedFundingVersions(CancellationToken cancellationToken,
@@ -125,11 +135,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             List<ReleasedProviderVersionChannel> newReleasedProviderVersionChannels = new List<ReleasedProviderVersionChannel>();
             List<FundingGroupProvider> newFundingGroupProviders = new List<FundingGroupProvider>();
-            List<ReleasedProviderChannelVariationReason> newReleasedProviderChannelVariationReasons = new List<ReleasedProviderChannelVariationReason>();
 
             ReleasedProviderVersionChannelDataTableBuilder rpvcBuilder = new ReleasedProviderVersionChannelDataTableBuilder();
             FundingGroupProviderDataTableBuilder fgpBuilder = new FundingGroupProviderDataTableBuilder();
-            ReleasedProviderChannelVariationReasonDataTableBuilder rpcvrBuilder = new ReleasedProviderChannelVariationReasonDataTableBuilder();
 
             int nextReleasedProviderVersionChannelId = _lastIds["ReleasedProviderVersionChannels"] + 1;
             int nextFundingGroupProviderId = _lastIds["FundingGroupProviders"] + 1; ;
@@ -181,7 +189,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                                     VariationReasonId = value.VariationReasonId,
                                 };
 
-                                newReleasedProviderChannelVariationReasons.Add(reason);
+                                _createReleasedProviderChannelVariationReasons.Add(reason);
                             }
                             else
                             {
@@ -198,12 +206,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             rpvcBuilder.AddRows(newReleasedProviderVersionChannels.ToArray());
             fgpBuilder.AddRows(newFundingGroupProviders.ToArray());
-            rpcvrBuilder.AddRows(newReleasedProviderChannelVariationReasons.ToArray());
 
             IDataTableImporter importer = _dataTableImporter as IDataTableImporter;
             await importer.ImportDataTable(rpvcBuilder);
             await importer.ImportDataTable(fgpBuilder);
-            await importer.ImportDataTable(rpcvrBuilder);
         }
 
         private async Task GenerateReleasedProvidersAndVersions(PublishedProviderVersion providerVersion, IReleaseManagementImportContext ctx)
@@ -367,15 +373,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             fundingGroupVersion = await _repo.CreateFundingGroupVersion(fundingGroupVersion);
 
-            await PopulateVariationReasonsForFundingGroupVersion(fundingGroupVersion, fundingVersion, ctx);
+            PopulateVariationReasonsForFundingGroupVersion(fundingGroupVersion, fundingVersion, ctx);
 
             return fundingGroupVersion;
         }
 
-        private async Task PopulateVariationReasonsForFundingGroupVersion(FundingGroupVersion fundingGroupVersion, PublishedFundingVersion fundingVersion, IReleaseManagementImportContext ctx)
+        private void PopulateVariationReasonsForFundingGroupVersion(FundingGroupVersion fundingGroupVersion, PublishedFundingVersion fundingVersion, IReleaseManagementImportContext ctx)
         {
-            List<FundingGroupVersionVariationReason> createVariationReasons = new List<FundingGroupVersionVariationReason>();
-
             int nextFundingGroupVersionVariationReasonId = _lastIds["FundingGroupVersionVariationReasons"] + 1;
 
             if (fundingVersion.VariationReasons.AnyWithNullCheck())
@@ -391,14 +395,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                             VariationReasonId = value.VariationReasonId,
                         };
 
-                        createVariationReasons.Add(reason);
+                        _createFundingGroupVariationReasons.Add(reason);
                     }
                 }
             }
 
-            if (fundingGroupVersion.MajorVersion == 1 && !createVariationReasons.Any(_ => _.VariationReasonId == ctx.VariationReasons["FundingUpdated"].VariationReasonId))
+            if (fundingGroupVersion.MajorVersion == 1 && !_createFundingGroupVariationReasons.Any(_ => _.VariationReasonId == ctx.VariationReasons["FundingUpdated"].VariationReasonId))
             {
-                createVariationReasons.Add(new FundingGroupVersionVariationReason()
+                _createFundingGroupVariationReasons.Add(new FundingGroupVersionVariationReason()
                 {
                     FundingGroupVersionVariationReasonId = nextFundingGroupVersionVariationReasonId++,
                     FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
@@ -406,19 +410,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 });
             }
 
-            if (fundingGroupVersion.MajorVersion == 1 && !createVariationReasons.Any(_ => _.VariationReasonId == ctx.VariationReasons["ProfilingUpdated"].VariationReasonId))
+            if (fundingGroupVersion.MajorVersion == 1 && !_createFundingGroupVariationReasons.Any(_ => _.VariationReasonId == ctx.VariationReasons["ProfilingUpdated"].VariationReasonId))
             {
-                createVariationReasons.Add(new FundingGroupVersionVariationReason()
+                _createFundingGroupVariationReasons.Add(new FundingGroupVersionVariationReason()
                 {
                     FundingGroupVersionVariationReasonId = nextFundingGroupVersionVariationReasonId++,
                     FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
                     VariationReasonId = ctx.VariationReasons["ProfilingUpdated"].VariationReasonId,
                 });
             }
-
-            FundingGroupVersionVariationReasonsDataTableBuilder fgvvrBuilder = new FundingGroupVersionVariationReasonsDataTableBuilder();
-            fgvvrBuilder.AddRows(createVariationReasons.ToArray());
-            await (_dataTableImporter as IDataTableImporter).ImportDataTable(fgvvrBuilder);
         }
 
         private async Task<FundingGroup> GetOrGenerateFunding(int channelId, PublishedFundingVersion fundingVersion, IReleaseManagementImportContext ctx)
