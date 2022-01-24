@@ -693,10 +693,10 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
-            builder.AddSingleton<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
-            builder.AddSingleton<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
-            builder.AddSingleton<IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>>();
-            builder.AddSingleton<IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>>();
+            builder.AddScoped<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
+            builder.AddScoped<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
+            builder.AddScoped<IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>>();
+            builder.AddScoped<IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>>();
 
             builder.AddSingleton<IReleaseManagementRepository, ReleaseManagementRepository>((svc) =>
             {

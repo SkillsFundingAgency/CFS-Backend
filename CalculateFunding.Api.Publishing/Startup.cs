@@ -642,11 +642,11 @@ namespace CalculateFunding.Api.Publishing
                 builder.ConfigureSwaggerServices(title: "Publishing Microservice API");
             }
 
-            builder.AddSingleton<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
-            builder.AddSingleton<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
+            builder.AddScoped<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
+            builder.AddScoped<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
             builder.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
-            builder.AddSingleton<IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>>();
-            builder.AddSingleton<IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>>();
+            builder.AddScoped<IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>>();
+            builder.AddScoped<IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>>();
 
             builder.AddReleaseManagementServices(Configuration);
         }
