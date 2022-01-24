@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private ConcurrentDictionary<int, ReleasedProvider> _releasedProviders = new ConcurrentDictionary<int, ReleasedProvider>();
         private ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
         private ConcurrentBag<ReleasedProviderChannelVariationReason> _createReleasedProviderChannelVariationReasons = new ConcurrentBag<ReleasedProviderChannelVariationReason>();
+        private ConcurrentBag<Task> _blobMigrationTasks = new ConcurrentBag<Task>();
         private Dictionary<string, int> _lastIds;
 
         public PublishedFundingReleaseManagementMigrator(IPublishedFundingRepository publishedFundingRepository,
@@ -93,6 +94,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             ReleasedProviderChannelVariationReasonDataTableBuilder rpcvrBuilder = new ReleasedProviderChannelVariationReasonDataTableBuilder();
             rpcvrBuilder.AddRows(_createReleasedProviderChannelVariationReasons.ToArray());
             await (_dataTableImporter as IDataTableImporter).ImportDataTable(rpcvrBuilder);
+
+            await MigrateBlobs(_blobMigrationTasks);
         }
 
         protected async Task ProcessPublishedFundingVersions(CancellationToken cancellationToken,
@@ -198,11 +201,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                         }
                     }
 
-                    blobMigrationTasks.Add(MigrateBlob(publishedProviderVersion, channels.Single(_ => _.ChannelId == fundingGroupVersion.ChannelId).ChannelCode));
+                    _blobMigrationTasks.Add(MigrateBlob(publishedProviderVersion, channels.Single(_ => _.ChannelId == fundingGroupVersion.ChannelId).ChannelCode));
                 }
             }
-
-            await MigrateBlobs(blobMigrationTasks);
 
             rpvcBuilder.AddRows(newReleasedProviderVersionChannels.ToArray());
             fgpBuilder.AddRows(newFundingGroupProviders.ToArray());
@@ -269,7 +270,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             // Generate eligible channels
             IEnumerable<Channel> channels = GetChannelsForExistingFundingVersion(fundingVersion.GroupingReason, ctx.Channels);
-            List<Task> blobMigrationTasks = new List<Task>();
 
             foreach (var channel in channels)
             {
@@ -277,10 +277,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 FundingGroupVersion fundingGroupVersion = await GetOrGenerateFundingGroupVersion(channel, fundingGroup, fundingVersion, ctx);
                 _fundingGroupVersions.AddOrUpdate(fundingGroupVersion.FundingId, fundingGroupVersion, (id, existing) => { return fundingGroupVersion; });
 
-                blobMigrationTasks.Add(MigrateBlob(fundingVersion, channel.ChannelCode));
+                _blobMigrationTasks.Add(MigrateBlob(fundingVersion, channel.ChannelCode));
             }
-
-            await MigrateBlobs(blobMigrationTasks);
         }
 
         private async Task MigrateBlobs(IEnumerable<Task> blobMigrationTasks)
