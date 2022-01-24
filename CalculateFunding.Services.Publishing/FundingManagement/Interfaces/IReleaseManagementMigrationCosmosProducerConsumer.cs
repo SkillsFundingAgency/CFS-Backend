@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
-    public interface ICosmosProducerConsumer<T> where T : IIdentifiable
+    public interface IReleaseManagementMigrationCosmosProducerConsumer<T> where T : IIdentifiable
     {
         Task RunAsync(Dictionary<string, FundingStream> fundingStreams,
             Dictionary<string, FundingPeriod> fundingPeriods,

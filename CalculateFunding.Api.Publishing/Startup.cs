@@ -189,6 +189,17 @@ namespace CalculateFunding.Api.Publishing
                 return new ReleasedDataTableImporter(sqlConnectionFactory);
             });
 
+            builder.AddScoped<IReleaseManagementDataTableImporter, ReleaseManagementDataTableImporter>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                Configuration.Bind("releaseManagementSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+
+                return new ReleaseManagementDataTableImporter(sqlConnectionFactory);
+            });
+
             builder.AddScoped<IQaRepository, CurrentQaRepository>((ctx) =>
             {
                 ISqlSettings sqlSettings = new SqlSettings();
@@ -634,8 +645,8 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
             builder.AddSingleton<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
             builder.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
-            builder.AddSingleton<ICosmosProducerConsumer<PublishedFundingVersion>, CosmosProducerConsumer<PublishedFundingVersion>>();
-            builder.AddSingleton<ICosmosProducerConsumer<PublishedProviderVersion>, CosmosProducerConsumer<PublishedProviderVersion>>();
+            builder.AddSingleton<IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>>();
+            builder.AddSingleton<IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>>();
 
             builder.AddReleaseManagementServices(Configuration);
         }

@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.Migration
 {
-    public class CosmosProducerConsumer<T> : ICosmosProducerConsumer<T> where T : IIdentifiable
+    public class ReleaseManagementMigrationCosmosProducerConsumer<T> : IReleaseManagementMigrationCosmosProducerConsumer<T> where T : IIdentifiable
     {
         private readonly IProducerConsumerFactory _producerConsumerFactory;
         private readonly ILogger _logger;
 
-        public CosmosProducerConsumer(IProducerConsumerFactory producerConsumerFactory, ILogger logger)
+        public ReleaseManagementMigrationCosmosProducerConsumer(IProducerConsumerFactory producerConsumerFactory, ILogger logger)
         {
             _producerConsumerFactory = producerConsumerFactory;
             _logger = logger;

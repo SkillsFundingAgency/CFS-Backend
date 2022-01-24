@@ -2,9 +2,10 @@
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.Migration;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Microsoft.Azure.Storage.Blob;
+using CalculateFunding.Services.SqlExport;
 using Polly;
 using Serilog;
 using System;
@@ -22,21 +23,26 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private readonly IPublishedFundingRepository _cosmosRepo;
         private readonly IReleaseManagementRepository _repo;
-        private readonly ICosmosProducerConsumer<PublishedFundingVersion> _fundingMigrator;
-        private readonly ICosmosProducerConsumer<PublishedProviderVersion> _providerMigrator;
+        private readonly IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion> _fundingMigrator;
+        private readonly IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion> _providerMigrator;
         private readonly IBlobClient _blobClient;
+        private readonly IReleaseManagementDataTableImporter _dataTableImporter;
         private readonly ILogger _logger;
         private readonly AsyncPolicy _blobClientPolicy;
 
         private ConcurrentDictionary<string, PublishedFundingVersion> _publishedFundings = new ConcurrentDictionary<string, PublishedFundingVersion>();
-        private ConcurrentDictionary<string, PublishedProviderVersion> _releasedPublishedProviders = new ConcurrentDictionary<string, PublishedProviderVersion>();
+        private ConcurrentDictionary<string, PublishedProviderVersion> _publishedProviderVersions = new ConcurrentDictionary<string, PublishedProviderVersion>();
+        private ConcurrentDictionary<string, FundingGroupVersion> _fundingGroupVersions = new ConcurrentDictionary<string, FundingGroupVersion>();
+        private ConcurrentDictionary<int, ReleasedProvider> _releasedProviders = new ConcurrentDictionary<int, ReleasedProvider>();
+        private Dictionary<string, int> _lastIds;
 
         public PublishedFundingReleaseManagementMigrator(IPublishedFundingRepository publishedFundingRepository,
             IReleaseManagementRepository releaseManagementRepository,
-            ICosmosProducerConsumer<PublishedFundingVersion> fundingMigrator,
-            ICosmosProducerConsumer<PublishedProviderVersion> providerMigrator,
+            IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion> fundingMigrator,
+            IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion> providerMigrator,
             IBlobClient blobClient,
             IPublishingResiliencePolicies publishingResiliencePolicies,
+            IReleaseManagementDataTableImporter dataTableImporter,
             ILogger logger)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
@@ -44,6 +50,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             Guard.ArgumentNotNull(fundingMigrator, nameof(fundingMigrator));
             Guard.ArgumentNotNull(providerMigrator, nameof(providerMigrator));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
+            Guard.ArgumentNotNull(dataTableImporter, nameof(dataTableImporter));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
@@ -52,6 +59,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             _fundingMigrator = fundingMigrator;
             _providerMigrator = providerMigrator;
             _blobClient = blobClient;
+            _dataTableImporter = dataTableImporter;
             _blobClientPolicy = publishingResiliencePolicies.BlobClient;
             _logger = logger;
         }
@@ -65,6 +73,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             Dictionary<string, ReleasedProvider> releasedProviders,
             Dictionary<string, ReleasedProviderVersion> releasedProviderVersions)
         {
+            _lastIds = (await _repo.GetLastIdSummary()).ToDictionary(_ => _.TableName, _ => _.LastId.HasValue ? _.LastId.Value : 0);
+
             await _fundingMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications, releasedProviders, releasedProviderVersions,
                 _cosmosRepo.GetPublishedFundingIterator(BatchSize), ProcessPublishedFundingVersions);
@@ -102,7 +112,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
                 await GenerateReleasedProvidersAndVersions(providerVersion, ctx);
 
-                _releasedPublishedProviders.AddOrUpdate(providerVersion.ProviderId, providerVersion, (id, existing) => { return providerVersion; });
+                _publishedProviderVersions.AddOrUpdate(providerVersion.ProviderId, providerVersion, (id, existing) => { return providerVersion; });
             }
 
             await PopulateLinkingTables(ctx);
@@ -110,26 +120,33 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private async Task PopulateLinkingTables(IReleaseManagementImportContext ctx)
         {
-            Dictionary<string, FundingGroupVersion> fundingGroupVersions =
-                (await _repo.GetFundingGroupVersions()).ToDictionary(_ => _.FundingId, _ => _);
-
-            Dictionary<int, ReleasedProvider> releasedProviders =
-                (await _repo.GetReleasedProviders()).ToDictionary(_ => _.ReleasedProviderId, _ => _);
-
             IEnumerable<Channel> channels = await _repo.GetChannels();
+
+            List<ReleasedProviderVersionChannel> newReleasedProviderVersionChannels = new List<ReleasedProviderVersionChannel>();
+            List<FundingGroupProvider> newFundingGroupProviders = new List<FundingGroupProvider>();
+            List<ReleasedProviderChannelVariationReason> newReleasedProviderChannelVariationReasons = new List<ReleasedProviderChannelVariationReason>();
+
+            ReleasedProviderVersionChannelDataTableBuilder rpvcBuilder = new ReleasedProviderVersionChannelDataTableBuilder();
+            FundingGroupProviderDataTableBuilder fgpBuilder = new FundingGroupProviderDataTableBuilder();
+            ReleasedProviderChannelVariationReasonDataTableBuilder rpcvrBuilder = new ReleasedProviderChannelVariationReasonDataTableBuilder();
+
+            int nextReleasedProviderVersionChannelId = _lastIds["ReleasedProviderVersionChannels"] + 1;
+            int nextFundingGroupProviderId = _lastIds["FundingGroupProviders"] + 1; ;
+            int nextReleasedProviderChannelVariationReasonsId = _lastIds["ReleasedProviderChannelVariationReasons"] + 1;
 
             foreach (KeyValuePair<string, PublishedFundingVersion> publishedFunding in _publishedFundings)
             {
                 foreach (string fundingId in publishedFunding.Value.ProviderFundings)
                 {
-                    FundingGroupVersion fundingGroupVersion = fundingGroupVersions[fundingId];
+                    FundingGroupVersion fundingGroupVersion = _fundingGroupVersions[fundingId];
 
                     ReleasedProviderVersion releasedProviderVersion = ctx.ReleasedProviderVersion[fundingId];
-                    ReleasedProvider releasedProvider = releasedProviders[releasedProviderVersion.ReleasedProviderId];
-                    PublishedProviderVersion publishedProviderVersion = _releasedPublishedProviders[releasedProvider.ProviderId];
+                    ReleasedProvider releasedProvider = _releasedProviders[releasedProviderVersion.ReleasedProviderId];
+                    PublishedProviderVersion publishedProviderVersion = _publishedProviderVersions[releasedProvider.ProviderId];
 
                     ReleasedProviderVersionChannel releasedProviderVersionChannel = new ReleasedProviderVersionChannel
                     {
+                        ReleasedProviderVersionChannelId = nextReleasedProviderVersionChannelId++,
                         ReleasedProviderVersionId = releasedProviderVersion.ReleasedProviderVersionId,
                         ChannelId = fundingGroupVersion.ChannelId,
                         StatusChangedDate = publishedProviderVersion.Date.UtcDateTime,
@@ -137,17 +154,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                         AuthorName = publishedProviderVersion.Author.Name,
                     };
 
-                    await _repo.CreateReleasedProviderVersionChannel(releasedProviderVersionChannel);
+                    newReleasedProviderVersionChannels.Add(releasedProviderVersionChannel);
 
                     FundingGroupProvider fundingGroupProvider = new FundingGroupProvider
                     {
+                        FundingGroupProviderId = nextFundingGroupProviderId++,
                         FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
                         ReleasedProviderVersionChannelId = releasedProviderVersionChannel.ReleasedProviderVersionChannelId
                     };
 
-                    await _repo.CreateFundingGroupProvider(fundingGroupProvider);
-
-                    await MigrateBlob(publishedProviderVersion, channels.Single(_ => _.ChannelId == fundingGroupVersion.ChannelId).ChannelCode);
+                    newFundingGroupProviders.Add(fundingGroupProvider);
 
                     if (publishedProviderVersion.VariationReasons.AnyWithNullCheck())
                     {
@@ -157,11 +173,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                             {
                                 ReleasedProviderChannelVariationReason reason = new ReleasedProviderChannelVariationReason()
                                 {
+                                    ReleasedProviderChannelVariationReasonId = nextReleasedProviderChannelVariationReasonsId++,
                                     ReleasedProviderVersionChannelId = releasedProviderVersionChannel.ReleasedProviderVersionChannelId,
                                     VariationReasonId = value.VariationReasonId,
                                 };
 
-                                await _repo.CreateReleasedProviderChannelVariationReason(reason);
+                                newReleasedProviderChannelVariationReasons.Add(reason);
                             }
                             else
                             {
@@ -169,8 +186,19 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                             }
                         }
                     }
+
+                    await MigrateBlob(publishedProviderVersion, channels.Single(_ => _.ChannelId == fundingGroupVersion.ChannelId).ChannelCode);
                 }
             }
+
+            rpvcBuilder.AddRows(newReleasedProviderVersionChannels.ToArray());
+            fgpBuilder.AddRows(newFundingGroupProviders.ToArray());
+            rpcvrBuilder.AddRows(newReleasedProviderChannelVariationReasons.ToArray());
+
+            IDataTableImporter importer = _dataTableImporter as IDataTableImporter;
+            await importer.ImportDataTable(rpvcBuilder);
+            await importer.ImportDataTable(fgpBuilder);
+            await importer.ImportDataTable(rpcvrBuilder);
         }
 
         private async Task GenerateReleasedProvidersAndVersions(PublishedProviderVersion providerVersion, IReleaseManagementImportContext ctx)
@@ -187,6 +215,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 releasedProvider = ctx.ReleasedProviders[releasedProviderKey];
             }
+
+            _releasedProviders.AddOrUpdate(releasedProvider.ReleasedProviderId, releasedProvider, (id, existing) => { return releasedProvider; });
 
             if (!ctx.ReleasedProviderVersion.ContainsKey(providerVersion.FundingId))
             {
@@ -233,6 +263,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 FundingGroup fundingGroup = await GetOrGenerateFunding(channel.ChannelId, fundingVersion, ctx);
                 FundingGroupVersion fundingGroupVersion = await GetOrGenerateFundingGroupVersion(channel, fundingGroup, fundingVersion, ctx);
+                _fundingGroupVersions.AddOrUpdate(fundingGroupVersion.FundingId, fundingGroupVersion, (id, existing) => { return fundingGroupVersion; });
+
                 await MigrateBlob(fundingVersion, channel.ChannelCode);
             }
         }
@@ -312,6 +344,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             List<FundingGroupVersionVariationReason> createVariationReasons = new List<FundingGroupVersionVariationReason>();
 
+            int nextFundingGroupVersionVariationReasonId = _lastIds["FundingGroupVersionVariationReasons"] + 1;
+
             if (fundingVersion.VariationReasons.AnyWithNullCheck())
             {
                 foreach (CalculateFunding.Models.Publishing.VariationReason variationReason in fundingVersion.VariationReasons)
@@ -320,6 +354,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     {
                         FundingGroupVersionVariationReason reason = new FundingGroupVersionVariationReason()
                         {
+                            FundingGroupVersionVariationReasonId = nextFundingGroupVersionVariationReasonId++,
                             FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
                             VariationReasonId = value.VariationReasonId,
                         };
@@ -333,6 +368,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 createVariationReasons.Add(new FundingGroupVersionVariationReason()
                 {
+                    FundingGroupVersionVariationReasonId = nextFundingGroupVersionVariationReasonId++,
                     FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
                     VariationReasonId = ctx.VariationReasons["FundingUpdated"].VariationReasonId,
                 });
@@ -342,16 +378,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 createVariationReasons.Add(new FundingGroupVersionVariationReason()
                 {
+                    FundingGroupVersionVariationReasonId = nextFundingGroupVersionVariationReasonId++,
                     FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
                     VariationReasonId = ctx.VariationReasons["ProfilingUpdated"].VariationReasonId,
                 });
             }
 
-            foreach (var reason in createVariationReasons)
-            {
-                await _repo.CreateFundingGroupVariationReason(reason);
-
-            }
+            FundingGroupVersionVariationReasonsDataTableBuilder fgvvrBuilder = new FundingGroupVersionVariationReasonsDataTableBuilder();
+            fgvvrBuilder.AddRows(createVariationReasons.ToArray());
+            await (_dataTableImporter as IDataTableImporter).ImportDataTable(fgvvrBuilder);
         }
 
         private async Task<FundingGroup> GetOrGenerateFunding(int channelId, PublishedFundingVersion fundingVersion, IReleaseManagementImportContext ctx)

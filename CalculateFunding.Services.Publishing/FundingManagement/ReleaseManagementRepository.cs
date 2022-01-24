@@ -679,5 +679,18 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             await deleteTask;
         }
+
+        public async Task<IEnumerable<ReleaseManagementIdSummary>> GetLastIdSummary()
+        {
+            return await QuerySql<ReleaseManagementIdSummary>(@"
+                SELECT 'FundingGroupProviders' AS TableName, MAX([FundingGroupProviderId]) AS LastId FROM [dbo].[FundingGroupProviders]
+                UNION
+                SELECT 'FundingGroupVersionVariationReasons' AS TableName, MAX([FundingGroupVersionVariationReasonId]) AS LastId FROM [dbo].[FundingGroupVersionVariationReasons]
+                UNION
+                SELECT 'ReleasedProviderChannelVariationReasons' AS TableName, MAX([ReleasedProviderChannelVariationReasonId]) AS LastId FROM [dbo].[ReleasedProviderChannelVariationReasons]
+                UNION
+                SELECT 'ReleasedProviderVersionChannels' AS TableName, MAX([ReleasedProviderVersionChannelId]) AS LastId FROM [dbo].[ReleasedProviderVersionChannels]
+            ");
+        }
     }
 }
