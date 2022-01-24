@@ -49,6 +49,7 @@ namespace CalculateFunding.Services.Policy
         private readonly Polly.AsyncPolicy _cacheProviderPolicy;
         private readonly ITemplateMetadataResolver _templateMetadataResolver;
         private readonly ITemplateBuilderService _templateBuilderService;
+        private readonly IFundingSchemaVersionParseService _fundingSchemaVersionParseService;
         private readonly IMapper _mapper;
 
         public FundingTemplateService(
@@ -59,6 +60,7 @@ namespace CalculateFunding.Services.Policy
             ICacheProvider cacheProvider,
             ITemplateMetadataResolver templateMetadataResolver,
             ITemplateBuilderService templateBuilderService,
+            IFundingSchemaVersionParseService fundingSchemaVersionParseService,
             IMapper mapper)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -79,6 +81,7 @@ namespace CalculateFunding.Services.Policy
             _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
             _templateMetadataResolver = templateMetadataResolver;
             _templateBuilderService = templateBuilderService;
+            _fundingSchemaVersionParseService = fundingSchemaVersionParseService;
             _mapper = mapper;
         }
 
@@ -113,7 +116,6 @@ namespace CalculateFunding.Services.Policy
             }
 
             FundingTemplateValidationResult validationResult = await _fundingTemplateValidationService.ValidateFundingTemplate(template, fundingStreamId, fundingPeriodId, templateVersion);
-
             if (!validationResult.IsValid)
             {
                 return validationResult.AsBadRequest();
@@ -491,13 +493,11 @@ namespace CalculateFunding.Services.Policy
 
                 string fundingTemplateContentSourceFile = fundingTemplateContentSourceFileResult.Value;
 
-                ActionResult<string> fundingTemplateValidationResult = GetFundingTemplateSchemaVersion(fundingTemplateContentSourceFile);
-                if (fundingTemplateValidationResult.Result != null)
+                string fundingTemplateSchemaVersion = _fundingSchemaVersionParseService.GetInputTemplateSchemaVersion(fundingTemplateContentSourceFile);
+                if (string.IsNullOrWhiteSpace(fundingTemplateSchemaVersion))
                 {
-                    return fundingTemplateValidationResult.Result;
+                    return new PreconditionFailedResult("Missing schema version from funding template.");
                 }
-
-                string fundingTemplateSchemaVersion = fundingTemplateValidationResult.Value;
 
                 bool templateMetadataGeneratorRetrieved = _templateMetadataResolver.TryGetService(fundingTemplateSchemaVersion, out ITemplateMetadataGenerator templateMetadataGenerator);
                 if (!templateMetadataGeneratorRetrieved)
@@ -543,31 +543,6 @@ namespace CalculateFunding.Services.Policy
             {
                 TemplateFileContents = fundingTemplateContentSourceFile,
                 Metadata = fundingTemplateContentMetadata
-            };
-        }
-
-        private ActionResult<string> GetFundingTemplateSchemaVersion(string fundingTemplateContent)
-        {
-            Guard.IsNullOrWhiteSpace(fundingTemplateContent, nameof(fundingTemplateContent));
-
-            JsonSerializerSettings serializerSettings = GenerateJsonSerializerSettingsToSupportDeepTemplates();
-
-            TemplateSchemaVersionParseResult result = JsonConvert.DeserializeObject<TemplateSchemaVersionParseResult>(fundingTemplateContent, serializerSettings);
-
-            if (result == null ||
-                string.IsNullOrWhiteSpace(result.SchemaVersion))
-            {
-                return new PreconditionFailedResult("Missing schema version from funding template.");
-            }
-
-            return result.SchemaVersion;
-        }
-
-        private static JsonSerializerSettings GenerateJsonSerializerSettingsToSupportDeepTemplates()
-        {
-            return new JsonSerializerSettings()
-            {
-                MaxDepth = 1024
             };
         }
     }

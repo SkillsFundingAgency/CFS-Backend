@@ -820,13 +820,21 @@ namespace CalculateFunding.Services.Policy
             fundingTemplateRepository.GetFundingTemplateVersion(Arg.Is<string>(_ => _.Contains(blobNamePrefix)))
                 .Returns(template);
 
+            IFundingSchemaVersionParseService fundingSchemaVersionParseService = GetFundingSchemaVersionParseService();
+            fundingSchemaVersionParseService
+                .GetInputTemplateSchemaVersion(Arg.Any<string>())
+                .Returns("1.0");
+
             ILogger logger = CreateLogger();
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             FundingTemplateService fundingTemplateService = CreateFundingTemplateService(
                logger,
                fundingTemplateRepository: fundingTemplateRepository,
-               cacheProvider: cacheProvider);
+               cacheProvider: cacheProvider,
+               fundingSchemaVersionParseService: fundingSchemaVersionParseService);
+
+
 
             //Act
             ActionResult<TemplateMetadataDistinctContents> result = await fundingTemplateService.GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
@@ -917,6 +925,7 @@ namespace CalculateFunding.Services.Policy
             ICacheProvider cacheProvider = null,
             ITemplateMetadataResolver templateMetadataResolver = null,
             ITemplateBuilderService templateBuilderService = null,
+            IFundingSchemaVersionParseService fundingSchemaVersionParseService = null,
             IMapper mapper = null)
         {
             if (mapper == null)
@@ -937,8 +946,14 @@ namespace CalculateFunding.Services.Policy
                    cacheProvider ?? CreateCacheProvider(),
                    templateMetadataResolver ?? CreateMetadataResolver(),
                    templateBuilderService ?? CreateTemplateBuilderService(),
+                   fundingSchemaVersionParseService ?? GetFundingSchemaVersionParseService(),
                    mapper
                 );
+        }
+
+        private static IFundingSchemaVersionParseService GetFundingSchemaVersionParseService()
+        {
+            return Substitute.For<IFundingSchemaVersionParseService>();
         }
 
         private static ITemplateMetadataResolver CreateMetadataResolver(string schemaVersion = "1.0", ITemplateMetadataGenerator tempateMetadataGenerator = null)

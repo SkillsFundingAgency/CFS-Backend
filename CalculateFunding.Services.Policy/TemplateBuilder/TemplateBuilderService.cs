@@ -637,7 +637,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         {
             try
             {
-                return (JsonConvert.DeserializeObject<T>(json), null);
+                return (JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings()
+                {
+                    MaxDepth = 1024,
+                }), null);
             }
             catch (Exception ex)
             {

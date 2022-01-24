@@ -88,6 +88,8 @@ namespace CalculateFunding.Functions.Policy
 
             builder.AddSingleton<IValidator<FundingPeriodsJsonModel>, FundingPeriodJsonModelValidator>();
 
+            builder.AddSingleton<IFundingSchemaVersionParseService, FundingSchemaVersionParseService>();
+
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddSingleton<ITemplatesReIndexerService, TemplatesReIndexerService>();
             builder.AddCaching(config);

@@ -113,7 +113,14 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .SchemaVersionExists(Arg.Is(blobName))
                 .Returns(false);
 
-            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(fundingSchemaRepository: fundingSchemaRepository);
+            IFundingSchemaVersionParseService fundingSchemaVersionParseService = GetFundingSchemaVersionParseService();
+            fundingSchemaVersionParseService
+                .GetInputTemplateSchemaVersion(Arg.Any<string>())
+                .Returns("1.0");
+
+            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
+                fundingSchemaRepository: fundingSchemaRepository,
+                fundingSchemaVersionParseService: fundingSchemaVersionParseService);
 
             //Act
             FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "fsid", "fpid", "1.0");
@@ -155,7 +162,14 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .GetFundingSchemaVersion(Arg.Is(blobName))
                 .Returns(fundingSchema);
 
-            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(fundingSchemaRepository: fundingSchemaRepository);
+            IFundingSchemaVersionParseService fundingSchemaVersionParseService = GetFundingSchemaVersionParseService();
+            fundingSchemaVersionParseService
+                .GetInputTemplateSchemaVersion(Arg.Any<string>())
+                .Returns(schemaVersion);
+
+            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
+                fundingSchemaRepository: fundingSchemaRepository,
+                fundingSchemaVersionParseService: fundingSchemaVersionParseService);
 
             //Act
             FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "fsid", "fpid", "1.0");
@@ -207,9 +221,15 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .GetFundingStreamById(Arg.Is("PES"))
                 .Returns(fundingStream);
 
+            IFundingSchemaVersionParseService fundingSchemaVersionParseService = GetFundingSchemaVersionParseService();
+            fundingSchemaVersionParseService
+                .GetInputTemplateSchemaVersion(Arg.Any<string>())
+                .Returns("1.0");
+
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
                 fundingSchemaRepository: fundingSchemaRepository,
-                policyRepository: policyRepository);
+                policyRepository: policyRepository,
+                fundingSchemaVersionParseService: fundingSchemaVersionParseService);
 
             //Act
             FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "PES", "AY-2020", "2.1");
@@ -265,9 +285,15 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .GetFundingPeriodById(Arg.Is("AY-2020"))
                 .Returns(new FundingPeriod());
 
+            IFundingSchemaVersionParseService fundingSchemaVersionParseService = GetFundingSchemaVersionParseService();
+            fundingSchemaVersionParseService
+                .GetInputTemplateSchemaVersion(Arg.Any<string>())
+                .Returns(schemaVersion);
+
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
                 fundingSchemaRepository: fundingSchemaRepository,
-                policyRepository: policyRepository);
+                policyRepository: policyRepository,
+                fundingSchemaVersionParseService: fundingSchemaVersionParseService);
 
             //Act
             FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "PES", "AY-2020", "2.1");
@@ -342,9 +368,15 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .GetFundingPeriodById(Arg.Is("AY-2020"))
                 .Returns(new FundingPeriod());
 
+            IFundingSchemaVersionParseService fundingSchemaVersionParseService = GetFundingSchemaVersionParseService();
+            fundingSchemaVersionParseService
+                .GetInputTemplateSchemaVersion(Arg.Any<string>())
+                .Returns(schemaVersion);
+
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
                 fundingSchemaRepository: fundingSchemaRepository,
-                policyRepository: policyRepository);
+                policyRepository: policyRepository,
+                fundingSchemaVersionParseService: fundingSchemaVersionParseService);
 
             //Act
             FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "XXX", "AY-2020", "56.4");
@@ -383,13 +415,20 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
         private static FundingTemplateValidationService CreateFundingTemplateValidationService(
             IFundingSchemaRepository fundingSchemaRepository = null,
-            IPolicyRepository policyRepository = null)
+            IPolicyRepository policyRepository = null,
+            IFundingSchemaVersionParseService fundingSchemaVersionParseService = null)
         {
             return new FundingTemplateValidationService(
                     fundingSchemaRepository ?? CreateFundingSchemaRepository(),
                     PolicyResiliencePoliciesTestHelper.GenerateTestPolicies(),
-                    policyRepository ?? CreatePolicyRepository()
+                    policyRepository ?? CreatePolicyRepository(),
+                    fundingSchemaVersionParseService ?? GetFundingSchemaVersionParseService()
                 );
+        }
+
+        private static IFundingSchemaVersionParseService GetFundingSchemaVersionParseService()
+        {
+            return Substitute.For<IFundingSchemaVersionParseService>();
         }
 
         private static IFundingSchemaRepository CreateFundingSchemaRepository()

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -23,11 +24,13 @@ namespace CalculateFunding.Services.Policy
         private readonly Polly.AsyncPolicy _fundingSchemaRepositoryPolicy;
         private readonly IPolicyRepository _policyRepository;
         private readonly Polly.AsyncPolicy _policyRepositoryPolicy;
+        private readonly IFundingSchemaVersionParseService _fundingSchemaVersionParseService;
 
         public FundingTemplateValidationService(
             IFundingSchemaRepository fundingSchemaRepository,
             IPolicyResiliencePolicies policyResiliencePolicies,
-            IPolicyRepository policyRepository)
+            IPolicyRepository policyRepository,
+            IFundingSchemaVersionParseService fundingSchemaVersionParseService)
         {
             Guard.ArgumentNotNull(fundingSchemaRepository, nameof(fundingSchemaRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies?.FundingSchemaRepository, nameof(policyResiliencePolicies.FundingSchemaRepository));
@@ -38,6 +41,7 @@ namespace CalculateFunding.Services.Policy
             _fundingSchemaRepositoryPolicy = policyResiliencePolicies.FundingSchemaRepository;
             _policyRepository = policyRepository;
             _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
+            _fundingSchemaVersionParseService = fundingSchemaVersionParseService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -65,33 +69,20 @@ namespace CalculateFunding.Services.Policy
 
             FundingTemplateValidationResult fundingTemplateValidationResult = new FundingTemplateValidationResult()
             {
-                FundingStreamId = fundingStreamId,
                 FundingPeriodId = fundingPeriodId,
-                TemplateVersion = templateVersion
+                FundingStreamId = fundingStreamId,
+                TemplateVersion = templateVersion,
             };
 
-            JObject parsedFundingTemplate;
+            string schemaVersion = _fundingSchemaVersionParseService.GetInputTemplateSchemaVersion(fundingTemplate);
 
-            try
-            {
-                parsedFundingTemplate = JObject.Parse(fundingTemplate);
-            }
-            catch (JsonReaderException jre)
-            {
-                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", jre.Message));
-
-                return fundingTemplateValidationResult;
-            }
-
-            if (parsedFundingTemplate["schemaVersion"] == null ||
-                string.IsNullOrWhiteSpace(parsedFundingTemplate["schemaVersion"].Value<string>()))
+            if (string.IsNullOrWhiteSpace(schemaVersion))
             {
                 fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", "Missing schema version from funding template."));
 
                 return fundingTemplateValidationResult;
             }
 
-            string schemaVersion = parsedFundingTemplate["schemaVersion"].Value<string>();
             fundingTemplateValidationResult.SchemaVersion = schemaVersion;
 
             string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
@@ -105,7 +96,7 @@ namespace CalculateFunding.Services.Policy
                 return fundingTemplateValidationResult;
             }
 
-            await ValidateAgainstSchema(blobName, parsedFundingTemplate, fundingTemplateValidationResult);
+            await ValidateAgainstSchema(blobName, fundingTemplate, fundingTemplateValidationResult);
 
             if (!fundingTemplateValidationResult.IsValid)
             {
@@ -118,20 +109,32 @@ namespace CalculateFunding.Services.Policy
             return fundingTemplateValidationResult;
         }
 
-        private async Task ValidateAgainstSchema(string blobName, JObject parsedFundingTemplate,
+        private async Task ValidateAgainstSchema(string blobName, string fundingTemplate,
             FundingTemplateValidationResult fundingTemplateValidationResult)
         {
             string fundingSchemaJson =
                 await _fundingSchemaRepositoryPolicy.ExecuteAsync(() => _fundingSchemaRepository.GetFundingSchemaVersion(blobName));
-
             JsonSchema fundingSchema = await JsonSchema.FromJsonAsync(fundingSchemaJson);
-            ICollection<ValidationError> validationMessages = fundingSchema.Validate(parsedFundingTemplate);
 
-            if (validationMessages.AnyWithNullCheck())
+            using (StringReader reader = new StringReader(fundingTemplate))
             {
-                foreach (ValidationError message in validationMessages)
+                using (JsonTextReader jsonReader = new JsonTextReader(reader)
                 {
-                    fundingTemplateValidationResult.Errors.Add(new ValidationFailure(message.Property, message.ToString()));
+                    DateParseHandling = DateParseHandling.None,
+                    MaxDepth = 1024
+                })
+                {
+
+                    JToken jsonObject = JToken.ReadFrom(jsonReader);
+
+                    ICollection<ValidationError> validationMessages = fundingSchema.Validate(jsonObject);
+                    if (validationMessages.AnyWithNullCheck())
+                    {
+                        foreach (ValidationError message in validationMessages)
+                        {
+                            fundingTemplateValidationResult.Errors.Add(new ValidationFailure(message.Property, message.ToString()));
+                        }
+                    }
                 }
             }
         }

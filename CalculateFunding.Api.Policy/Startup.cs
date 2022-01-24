@@ -34,6 +34,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 using Polly.Bulkhead;
 using Serilog;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
@@ -209,6 +210,8 @@ namespace CalculateFunding.Api.Policy
             builder.AddSingleton<IValidator<FundingConfiguration>, SaveFundingConfigurationValidator>();
             builder.AddSingleton<IValidator<FundingPeriodsJsonModel>, FundingPeriodJsonModelValidator>();
             builder.AddSingleton<IValidator<FundingDate>, SaveFundingDateValidator>();
+
+            builder.AddSingleton<IFundingSchemaVersionParseService, FundingSchemaVersionParseService>();
 
             RegisterTemplateBuilderComponents(builder);
 
