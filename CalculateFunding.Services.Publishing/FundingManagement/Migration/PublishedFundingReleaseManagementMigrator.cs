@@ -287,9 +287,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 try
                 {
                     await throttle.WaitAsync();
-                    trackedTasks.Add(Task.Run(() =>
+                    trackedTasks.Add(Task.Run(async () =>
                     {
-                        blobMigrationTask.RunSynchronously();
+                        await blobMigrationTask;
                     }));
                 }
                 finally
