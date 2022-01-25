@@ -370,7 +370,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private async Task MigrateBlob(PublishedProviderVersion publishedProviderVersion, string channelCode)
         {
-            string blobName = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.ProviderId}-{publishedProviderVersion.MajorVersion}-{publishedProviderVersion.MinorVersion}.json";
+            string blobName = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.ProviderId}-{publishedProviderVersion.MajorVersion}_{publishedProviderVersion.MinorVersion}.json";
 
             try
             {
