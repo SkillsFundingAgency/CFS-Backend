@@ -43,11 +43,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             await TaskHelper.WhenAllAndThrow(reProfileTasks);
         }
 
-        public virtual bool ReProfileForSameAmountFunc(string fundingLineCode, ReProfileAudit reProfileAudit, int paidToIndex)
+        public virtual bool ReProfileForSameAmountFunc(string fundingLineCode, string profilePatternKey, ReProfileAudit reProfileAudit, int paidToIndex)
         {
             string profileETag = reProfileAudit?.ETag;
 
-            return !string.IsNullOrWhiteSpace(profileETag) && profileETag != VariationContext.ProfilePatterns[fundingLineCode].ETag;
+            return !string.IsNullOrWhiteSpace(profileETag) && profileETag != GetProfilePattern(fundingLineCode, profilePatternKey)?.ETag;
         }
 
         public bool SkipReProfiling(ReProfileRequest reProfileRequest, bool reProfileForSameAmount)
@@ -89,7 +89,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 return;
             }
 
-            (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await BuildReProfileRequest(fundingLineCode, refreshState, priorState , variationApplications, profilePatternKey, reProfileAudit, fundingLine,(fundingLineCode, reProfileAudit, paidIndex) => ReProfileForSameAmountFunc(fundingLineCode, reProfileAudit, paidIndex));
+            (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await BuildReProfileRequest(fundingLineCode, refreshState, priorState , variationApplications, profilePatternKey, reProfileAudit, fundingLine,(fundingLineCode, profilePatternKey, reProfileAudit, paidIndex) => ReProfileForSameAmountFunc(fundingLineCode, profilePatternKey, reProfileAudit, paidIndex));
 
             bool skipReProfiling = SkipReProfiling(ReProfileRequest, ReProfileForSameAmount);
                 
@@ -115,7 +115,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             refreshState.UpdateReProfileAuditETag(new ReProfileAudit
             {
                 FundingLineCode = fundingLineCode,
-                ETag = VariationContext.ProfilePatterns[fundingLineCode].ETag
+                ETag = GetProfilePattern(fundingLineCode, profilePatternKey)?.ETag
             });
 
             if (skipReProfiling)
@@ -143,7 +143,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 refreshState.AddOrUpdateReProfileAudit(new ReProfileAudit
                 {
                     FundingLineCode = fundingLineCode,
-                    ETag = VariationContext.ProfilePatterns[fundingLineCode].ETag,
+                    ETag = GetProfilePattern(fundingLineCode, profilePatternKey)?.ETag,
                     VariationPointerIndex = ReProfileRequest.VariationPointerIndex,
                     StrategyKey = reProfileResponse.StrategyKey
                 });
@@ -160,6 +160,18 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             }
         }
 
+        private FundingStreamPeriodProfilePattern GetProfilePattern(string fundingLineCode, string profilePatternKey)
+        {
+            string combinedProfilePatternKey = string.IsNullOrWhiteSpace(profilePatternKey) ? fundingLineCode : $"{fundingLineCode}-{profilePatternKey}";
+
+            if (VariationContext.ProfilePatterns.AnyWithNullCheck() && VariationContext.ProfilePatterns.ContainsKey(combinedProfilePatternKey))
+            {
+                return VariationContext.ProfilePatterns[combinedProfilePatternKey];
+            }
+
+            return null;
+        }
+
         protected virtual async Task<(ReProfileRequest request, bool shouldExecuteForSameAsKey)> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
@@ -167,7 +179,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             string profilePatternKey,
             ReProfileAudit reProfileAudit,
             FundingLine fundingLine,
-            Func<string, ReProfileAudit, int, bool> reProfileForSameAmountFunc)
+            Func<string, string, ReProfileAudit, int, bool> reProfileForSameAmountFunc)
         {
             (ReProfileRequest reProfileRequest, bool shouldExecuteForSameAsKey) = await variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,

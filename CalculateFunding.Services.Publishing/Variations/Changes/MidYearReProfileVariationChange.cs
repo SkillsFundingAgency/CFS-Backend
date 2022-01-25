@@ -25,9 +25,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         protected override IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLinesWithVariationPointerSet(_strategy);
 
-        public override bool ReProfileForSameAmountFunc(string fundingLineCode, ReProfileAudit reProfileAudit, int paidUpToIndex)
+        public override bool ReProfileForSameAmountFunc(string fundingLineCode, string profilePatternKey, ReProfileAudit reProfileAudit, int paidUpToIndex)
         {
-            bool executeSameAsKey = base.ReProfileForSameAmountFunc(fundingLineCode, reProfileAudit, paidUpToIndex);
+            bool executeSameAsKey = base.ReProfileForSameAmountFunc(fundingLineCode, profilePatternKey, reProfileAudit, paidUpToIndex);
 
             if (!executeSameAsKey)
             {
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             string profilePatternKey,
             ReProfileAudit reProfileAudit,
             FundingLine fundingLine,
-            Func<string, ReProfileAudit, int, bool> reProfileForSameAmountFunc) =>
+            Func<string, string, ReProfileAudit, int, bool> reProfileForSameAmountFunc) =>
             variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
                 refreshState,

@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             string profilePatternKey,
             ReProfileAudit reProfileAudit,
             FundingLine fundingLine,
-            Func<string, ReProfileAudit, int, bool> reProfileForSameAmountFunc) =>
+            Func<string, string, ReProfileAudit, int, bool> reProfileForSameAmountFunc) =>
             variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
                 refreshState,

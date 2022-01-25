@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Publishing.Variations
                 FundingPeriodStartDate = fundingPeriod.StartDate,
                 FundingPeriodEndDate = fundingPeriod.EndDate,
                 PreRefreshState = preRefreshProviderVersion,
-                ProfilePatterns = profilePatterns?.ToDictionary(_ => _.FundingLineId)
+                ProfilePatterns = profilePatterns?.ToDictionary(_ => string.IsNullOrWhiteSpace(_.ProfilePatternKey) ? _.FundingLineId : $"{_.FundingLineId}-{_.ProfilePatternKey}" )
             };
 
             foreach (FundingVariation configuredVariation in variations.OrderBy(_ => _.Order))

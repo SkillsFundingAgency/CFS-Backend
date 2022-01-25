@@ -14,6 +14,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             decimal? fundingLineTotal = null,
             ReProfileAudit reProfileAudit = null,
             MidYearType? midYearType = null,
-            Func<string, ReProfileAudit, int, bool> reProfileForSameAmountFunc = null);
+            Func<string, string, ReProfileAudit, int, bool> reProfileForSameAmountFunc = null);
     }
 }

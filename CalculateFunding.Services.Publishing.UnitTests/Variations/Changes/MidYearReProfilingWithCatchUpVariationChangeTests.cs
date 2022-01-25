@@ -34,12 +34,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             ProfilePeriod firstPeriod = new YearMonthOrderedProfilePeriods(fundingLine).ToArray().First();
             bool catchup = OpenDate == null ? false : OpenDate.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && OpenDate.Year <= firstPeriod.Year;
 
-            VariationContext.ProfilePatterns = (VariationContext.ProfilePatterns?.Values ?? ArraySegment<FundingStreamPeriodProfilePattern>.Empty).Concat((new[] { new FundingStreamPeriodProfilePattern {
-                FundingLineId = fundingLine.FundingLineCode,
-                ETag = eTag
-            } })).ToDictionary(_ => _.FundingLineId);
-
             PublishedProviderVersion publishedProvider = VariationContext.RefreshState;
+            
+            string profilePatternKey = publishedProvider.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLine.FundingLineCode)?.Key;
+
+            VariationContext.ProfilePatterns = (VariationContext.ProfilePatterns?.Values ?? ArraySegment<FundingStreamPeriodProfilePattern>.Empty)
+                .Concat(new[] {
+                    new FundingStreamPeriodProfilePattern {
+                    FundingLineId = fundingLine.FundingLineCode,
+                    ProfilePatternKey = profilePatternKey,
+                    ETag = eTag
+                }
+            }).ToDictionary(_ => string.IsNullOrWhiteSpace(_.ProfilePatternKey) ? _.FundingLineId : $"{_.FundingLineId}-{_.ProfilePatternKey}" );
 
             ReProfileAudit reProfileAudit = new ReProfileAudit
             {
@@ -55,8 +61,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     fundingLine.Value,
                     reProfileAudit,
                     catchup ? MidYearType.OpenerCatchup : MidYearType.Opener,
-                    It.IsAny<Func<string, ReProfileAudit, int, bool>>()))
-                .ReturnsAsync((reProfileRequest, ((MidYearReProfileVariationChange)Change).ReProfileForSameAmountFunc(fundingLine.FundingLineCode, reProfileAudit, reProfileRequest.VariationPointerIndex ?? 2)));
+                    It.IsAny<Func<string, string, ReProfileAudit, int, bool>>()))
+                .ReturnsAsync((reProfileRequest, ((MidYearReProfileVariationChange)Change).ReProfileForSameAmountFunc(fundingLine.FundingLineCode, publishedProvider.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLine.FundingLineCode)?.Key, reProfileAudit, reProfileRequest.VariationPointerIndex ?? 2)));
         }
     }
 }

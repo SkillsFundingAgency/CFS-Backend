@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
             decimal? fundingLineTotal = null,
             ReProfileAudit reProfileAudit = null,
             MidYearType? midYearType = null,
-            Func<string, ReProfileAudit, int, bool> shouldExecuteSameAsKey = null)
+            Func<string, string, ReProfileAudit, int, bool> shouldExecuteSameAsKey = null)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 MidYearType = midYearType,
                 VariationPointerIndex = paidUpToIndex,
                 AlreadyPaidUpToIndex = AlreadyPaidUpToIndex,
-            }, shouldExecuteSameAsKey != null ? shouldExecuteSameAsKey(fundingLineCode, reProfileAudit, paidUpToIndex) : true);
+            }, shouldExecuteSameAsKey != null ? shouldExecuteSameAsKey(fundingLineCode, profilePatternKey, reProfileAudit, paidUpToIndex) : true);
         }
 
         private ProfilePeriod[] GetOrderedProfilePeriodsForFundingLine(string fundingLineCode,
