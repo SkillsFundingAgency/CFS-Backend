@@ -1267,6 +1267,8 @@
 		"parliamentaryConstituencyCode": null,
 		"countryCode": null,
 		"countryName": "UK",
+		"londonRegionCode": null,
+		"londonRegionName": "Outer London",
 		"localGovernmentGroupTypeCode": null,
 		"localGovernmentGroupTypeName": null
 	},

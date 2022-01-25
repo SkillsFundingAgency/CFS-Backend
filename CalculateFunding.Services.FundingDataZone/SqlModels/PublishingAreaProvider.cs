@@ -131,6 +131,12 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
         [Display(Name = "Parliamentary constituency code")]
         public string ParliamentaryConstituencyCode { get; set; }
 
+        [Display(Name = "London Region code")]
+        public string LondonRegionCode { get; set; }
+
+        [Display(Name = "London Region name")]
+        public string LondonRegionName { get; set; }
+
         [Display(Name = "Country code")]
         public string CountryCode { get; set; }
 

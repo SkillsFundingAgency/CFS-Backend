@@ -113,6 +113,12 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         AcademyTrustCode,
 
         /// <summary>
+        /// LondonRegionCode
+        /// </summary>
+        [EnumMember(Value = "LondonRegionCode")]
+        LondonRegionCode,
+
+        /// <summary>
         /// CountryCode
         /// </summary>
         [EnumMember(Value = "CountryCode")]

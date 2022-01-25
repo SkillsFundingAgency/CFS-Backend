@@ -573,6 +573,14 @@ namespace CalculateFunding.Services.CalcEngine
                         property.SetValue(data, providerSummary.ParliamentaryConstituencyCode.EmptyIfNull());
                         break;
 
+                    case "LondonRegionCode":
+                        property.SetValue(data, providerSummary.LondonRegionCode.EmptyIfNull());
+                        break;
+
+                    case "LodonRegionName":
+                        property.SetValue(data, providerSummary.LondonRegionName.EmptyIfNull());
+                        break;
+
                     case "CountryCode":
                         property.SetValue(data, providerSummary.CountryCode.EmptyIfNull());
                         break;

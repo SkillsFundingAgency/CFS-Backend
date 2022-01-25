@@ -51,7 +51,7 @@
     <PackageReference Include="AutoFixture" Version="4.17.0" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="3.0.0" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema11" Version="3.0.0" />
-    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="3.0.1" />
+    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="3.1.0" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="Moq" Version="4.15.2" />

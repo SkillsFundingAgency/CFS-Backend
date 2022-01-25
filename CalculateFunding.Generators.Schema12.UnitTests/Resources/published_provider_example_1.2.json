@@ -54,6 +54,8 @@
       "lowerSuperOutputAreaCode": null,
       "parliamentaryConstituencyName": null,
       "parliamentaryConstituencyCode": null,
+      "londonRegionCode": null,
+      "londonRegionName": "Outer London",
       "countryCode": null,
       "countryName": "UK"
     }

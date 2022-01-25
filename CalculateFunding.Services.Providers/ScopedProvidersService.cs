@@ -392,6 +392,8 @@ namespace CalculateFunding.Services.Providers
                     LowerSuperOutputAreaName = x.LowerSuperOutputAreaName,
                     ParliamentaryConstituencyCode = x.ParliamentaryConstituencyCode,
                     ParliamentaryConstituencyName = x.ParliamentaryConstituencyName,
+                    LondonRegionCode = x.LondonRegionCode,
+                    LondonRegionName = x.LondonRegionName,
                     CountryCode = x.CountryCode,
                     CountryName = x.CountryName,
                     LocalGovernmentGroupTypeCode = x.LocalGovernmentGroupTypeCode,

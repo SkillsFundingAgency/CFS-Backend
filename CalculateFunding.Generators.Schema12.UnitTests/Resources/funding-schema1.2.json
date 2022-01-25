@@ -48,6 +48,7 @@
             "ParliamentaryConstituencyCode",
             "DfeNumber",
             "AcademyTrustCode",
+            "LondonRegionCode",
             "CountryCode",
             "LocalAuthorityClassificationTypeCode"
           ]
@@ -329,6 +330,8 @@
               "LowerSuperOutputAreaNameFieldUpdated",
               "ParliamentaryConstituencyCodeFieldUpdated",
               "ParliamentaryConstituencyNameFieldUpdated",
+              "LondonRegionCodeFieldUpdated",
+              "LondonRegionNameFieldUpdated",
               "CountryCodeFieldUpdated",
               "CountryNameFieldUpdated"
             ]
@@ -631,6 +634,20 @@
             "null"
           ],
           "description": "Parliamentary Constituency Code"
+        },
+        "londonRegionCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "London Region Code "
+        },
+        "londonRegionName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "London Region Name"
         },
         "countryCode": {
           "type": [

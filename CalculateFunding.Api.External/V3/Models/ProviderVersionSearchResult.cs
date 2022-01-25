@@ -53,6 +53,8 @@ namespace CalculateFunding.Api.External.V3.Models
         public string LowerSuperOutputAreaCode { get; set; }
         public string ParliamentaryConstituencyName { get; set; }
         public string ParliamentaryConstituencyCode { get; set; }
+        public string LondonRegionCode { get; set; }
+        public string LondonRegionName { get; set; }
         public string CountryCode { get; set; }
         public string CountryName { get; set; }
         public string LocalGovernmentGroupTypeCode { get; set; }

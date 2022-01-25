@@ -209,6 +209,14 @@ namespace CalculateFunding.Models.Publishing
         [VariationReasonValue(VariationReason.ParliamentaryConstituencyCodeFieldUpdated)]
         public string ParliamentaryConstituencyCode { get; set; }
 
+        [JsonProperty("londonRegionCode")]
+        [VariationReasonValue(VariationReason.LondonRegionCodeFieldUpdated)]
+        public string LondonRegionCode { get; set; }
+
+        [JsonProperty("londonRegionName")]
+        [VariationReasonValue(VariationReason.LondonRegionNameFieldUpdated)]
+        public string LondonRegionName { get; set; }
+
         [JsonProperty("countryCode")]
         [VariationReasonValue(VariationReason.CountryCodeFieldUpdated)]
         public string CountryCode { get; set; }

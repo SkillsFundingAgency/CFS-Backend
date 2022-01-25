@@ -384,6 +384,22 @@
       "facetable": false
     },
     {
+      "name": "londonRegionCode",
+      "type": "Edm.String",
+      "searchable": false,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false
+    },
+    {
+      "name": "londonRegionName",
+      "type": "Edm.String",
+      "searchable": false,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false
+    },
+    {
       "name": "countryCode",
       "type": "Edm.String",
       "searchable": false,

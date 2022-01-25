@@ -170,6 +170,12 @@ namespace CalculateFunding.Models.Providers
         [JsonProperty("parliamentaryConstituencyCode")]
         public string ParliamentaryConstituencyCode { get; set; }
 
+        [JsonProperty("londonRegionCode")]
+        public string LondonRegionCode { get; set; }
+
+        [JsonProperty("londonRegionName")]
+        public string LondonRegionName { get; set; }
+
         [JsonProperty("countryCode")]
         public string CountryCode { get; set; }
 

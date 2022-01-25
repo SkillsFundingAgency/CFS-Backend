@@ -101,6 +101,10 @@ namespace CalculateFunding.Models.FundingDataZone
 
         public string ParliamentaryConstituencyCode { get; set; }
 
+        public string LondonRegionCode { get; set; }
+
+        public string LondonRegionName { get; set; }
+
         public string CountryCode { get; set; }
 
         public string CountryName { get; set; }

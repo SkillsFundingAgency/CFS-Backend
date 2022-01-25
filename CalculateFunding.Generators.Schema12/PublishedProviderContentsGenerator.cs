@@ -122,6 +122,8 @@ namespace CalculateFunding.Generators.Schema12
                         publishedProviderVersion.Provider.LowerSuperOutputAreaCode,
                         publishedProviderVersion.Provider.ParliamentaryConstituencyName,
                         publishedProviderVersion.Provider.ParliamentaryConstituencyCode,
+                        publishedProviderVersion.Provider.LondonRegionCode,
+                        publishedProviderVersion.Provider.LondonRegionName,
                         publishedProviderVersion.Provider.CountryCode,
                         publishedProviderVersion.Provider.CountryName
                     }

@@ -144,6 +144,14 @@ Public Class Provider
     <Description(Description:="The parlimentary constituency code")>
     Public Property ParliamentaryConstituencyCode() As String
 
+    <Field(Id:="LondonRegionCode", Name:="LondonRegionCode")>
+    <Description(Description:="The London region code")>
+    Public Property LondonRegionCode() As String
+
+    <Field(Id:="LondonRegionName", Name:="LondonRegionName")>
+    <Description(Description:="The London region name")>
+    Public Property LondonRegionName() As String
+
     <Field(Id:="CountryCode", Name:="CountryCode")>
     <Description(Description:="The country code")>
     Public Property CountryCode() As String

@@ -245,5 +245,15 @@ namespace CalculateFunding.Models.Publishing
         [SqlConstantId(46)]
         [EnumMember(Value = nameof(FurtherEducationTypeNameUpdated))]
         FurtherEducationTypeNameUpdated,
+
+        [Display(Name = "London Region code updated")]
+        [SqlConstantId(47)]
+        [EnumMember(Value = nameof(LondonRegionCodeFieldUpdated))]
+        LondonRegionCodeFieldUpdated,
+
+        [Display(Name = "London Region name updated")]
+        [SqlConstantId(48)]
+        [EnumMember(Value = nameof(LondonRegionNameFieldUpdated))]
+        LondonRegionNameFieldUpdated,
     }
 }

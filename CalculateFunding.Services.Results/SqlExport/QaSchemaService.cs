@@ -496,6 +496,18 @@ namespace CalculateFunding.Services.Results.SqlExport
                 },
                 new SqlColumnDefinition
                 {
+                    Name = "LondonRegionCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LondonRegionName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
                     Name = "CountryCode",
                     Type = "[varchar](256)",
                     AllowNulls = true

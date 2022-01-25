@@ -115,6 +115,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             yield return VariationExample(_ => _.LowerSuperOutputAreaCode = NewRandomString(), VariationReason.LowerSuperOutputAreaCodeFieldUpdated);
             yield return VariationExample(_ => _.ParliamentaryConstituencyName = NewRandomString(), VariationReason.ParliamentaryConstituencyNameFieldUpdated);
             yield return VariationExample(_ => _.ParliamentaryConstituencyCode = NewRandomString(), VariationReason.ParliamentaryConstituencyCodeFieldUpdated);
+            yield return VariationExample(_ => _.LondonRegionCode = NewRandomString(), VariationReason.LondonRegionCodeFieldUpdated);
+            yield return VariationExample(_ => _.LondonRegionName = NewRandomString(), VariationReason.LondonRegionNameFieldUpdated);
             yield return VariationExample(_ => _.CountryCode = NewRandomString(), VariationReason.CountryCodeFieldUpdated);
             yield return VariationExample(_ => _.CountryName = NewRandomString(), VariationReason.CountryNameFieldUpdated);
             yield return VariationExample(_ => _.PaymentOrganisationIdentifier = NewRandomString(), VariationReason.PaymentOrganisationIdentifierFieldUpdated);
