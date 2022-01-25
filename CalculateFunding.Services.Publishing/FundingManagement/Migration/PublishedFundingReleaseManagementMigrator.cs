@@ -129,8 +129,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 _logger.Information($"Migrating published funding version {fundingVersion.Id}");
 
                 await GenerateFundingGroupsAndVersions(fundingVersion, ctx);
-
-                _publishedFundings.AddOrUpdate(fundingVersion.FundingId, fundingVersion, (id, existing) => { return fundingVersion; });
             }
         }
 
@@ -172,11 +170,24 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             foreach (KeyValuePair<string, PublishedFundingVersion> publishedFunding in _publishedFundings)
             {
+                string channelId = publishedFunding.Key.Split('_')[0];
+
                 foreach (string fundingId in publishedFunding.Value.ProviderFundings)
                 {
-                    FundingGroupVersion fundingGroupVersion = _fundingGroupVersions[fundingId];
+                    _fundingGroupVersions.TryGetValue($"{channelId}_{fundingId}", out FundingGroupVersion fundingGroupVersion);
 
-                    ReleasedProviderVersion releasedProviderVersion = releasedProviderVersions[fundingId];
+                    if (fundingGroupVersion == null)
+                    {
+                        throw new KeyNotFoundException($"FundingGroupVersion not found for fundingId '{fundingId}'. PublishedFundingVersion: {publishedFunding.Value.Id}");
+                    }
+
+                    releasedProviderVersions.TryGetValue(fundingId, out ReleasedProviderVersion releasedProviderVersion);
+
+                    if (releasedProviderVersion == null)
+                    {
+                        throw new KeyNotFoundException($"ReleasedProviderVersion not found for fundingId '{fundingId}'. PublishedFundingVersion: {publishedFunding.Value.Id}");
+                    }
+
                     ReleasedProvider releasedProvider = _releasedProviders[releasedProviderVersion.ReleasedProviderId];
                     PublishedProviderVersion publishedProviderVersion = _publishedProviderVersions[releasedProvider.ProviderId];
 
@@ -297,7 +308,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 FundingGroup fundingGroup = await GetOrGenerateFunding(channel.ChannelId, fundingVersion, ctx);
                 FundingGroupVersion fundingGroupVersion = await GetOrGenerateFundingGroupVersion(channel, fundingGroup, fundingVersion, ctx);
-                _fundingGroupVersions.AddOrUpdate(fundingGroupVersion.FundingId, fundingGroupVersion, (id, existing) => { return fundingGroupVersion; });
+                _fundingGroupVersions.AddOrUpdate($"{channel.ChannelId}_{fundingGroupVersion.FundingId}", fundingGroupVersion, (id, existing) => { return fundingGroupVersion; });
+
+                _publishedFundings.AddOrUpdate($"{channel.ChannelId}_{fundingVersion.FundingId}", fundingVersion, (id, existing) => { return fundingVersion; });
 
                 _blobMigrationTasks.Add(MigrateBlob(fundingVersion, channel.ChannelCode));
             }
