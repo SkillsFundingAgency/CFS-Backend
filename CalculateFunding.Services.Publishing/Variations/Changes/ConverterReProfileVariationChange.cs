@@ -2,6 +2,7 @@
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
@@ -13,17 +14,20 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
         }
 
-        protected override Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
+        protected override Task<(ReProfileRequest, bool)> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
             IApplyProviderVariations variationApplications,
             string profilePatternKey,
-            FundingLine fundingLine) =>
+            ReProfileAudit reProfileAudit,
+            FundingLine fundingLine,
+            Func<string, ReProfileAudit, int, bool> reProfileForSameAmountFunc) =>
             variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
                 refreshState,
-                ProfileConfigurationType.RuleBased,
                 fundingLine.Value,
-                midYearType: MidYearType.Converter);
+                reProfileAudit,
+                midYearType: MidYearType.Converter,
+                reProfileForSameAmountFunc: reProfileForSameAmountFunc);
     }
 }

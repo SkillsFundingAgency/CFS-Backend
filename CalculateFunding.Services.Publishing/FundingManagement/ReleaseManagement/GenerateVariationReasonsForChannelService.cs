@@ -106,6 +106,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                                 variationPointers,
                                 specification.ProviderVersionId,
                                 organisationGroupResults,
+                                specification.FundingStreams.FirstOrDefault()?.Id,
                                 specification.FundingPeriod.Id,
                                 currentState.Current);
 

@@ -76,7 +76,6 @@ namespace CalculateFunding.Api.Profiling.IntegrationTests.ReProfiling
                 .WithFundingLineCode(profilePatternTemplateParameters.FundingLineId)
                 .WithFundingStreamId(profilePatternTemplateParameters.FundingStream)
                 .WithFundingPeriodId(profilePatternTemplateParameters.FundingPeriodId)
-                .WithConfigurationType(ProfileConfigurationType.Custom)
                 .WithFundingValue(currentFundingValue)
                 .WithExistingFundingValue(previousFundingValue)
                 .WithVariationPointerIndex(variationPointer)

@@ -11,12 +11,12 @@ namespace CalculateFunding.Services.Profiling.Tests
         private string _fundingStreamId;
         private decimal? _fundingValue;
         private decimal? _existingFundingLineTotal;
-        private string _forceSameAsKey;
         private IEnumerable<ExistingProfilePeriod> _existingProfilePeriods;
         private string _profilePatternKey;
         private int? _variationPointer;
         private MidYearType? _midYearType;
-        
+        private bool _alreadyPaidUpToIndex;
+
         public ReProfileRequestBuilder WithMidYearCatchup(MidYearType? midYearType)
         {
             _midYearType = midYearType;
@@ -80,9 +80,9 @@ namespace CalculateFunding.Services.Profiling.Tests
             return this;
         }
 
-        public ReProfileRequestBuilder WithForceSameAsKey(string forceSameAsKey)
+        public ReProfileRequestBuilder WithAlreadyPaidUpToIndex(bool alreadyPaidUpToIndex)
         {
-            _forceSameAsKey = forceSameAsKey;
+            _alreadyPaidUpToIndex = alreadyPaidUpToIndex;
 
             return this;
         }
@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Profiling.Tests
                 ExistingPeriods = _existingProfilePeriods,
                 VariationPointerIndex = _variationPointer,
                 MidYearType = _midYearType,
-                ForceSameAsKey = _forceSameAsKey
+                AlreadyPaidUpToIndex = _alreadyPaidUpToIndex
             };
         }
         

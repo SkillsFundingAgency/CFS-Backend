@@ -79,6 +79,7 @@ namespace CalculateFunding.Services.Publishing
             // don't add the published provider to be updated if there are no changes or has errors
             if (!current.HasErrors && HasNoChanges(current))
             {
+                Remove(ActionType.Update, publishedProvider);
                 return;
             }
 
@@ -169,6 +170,14 @@ namespace CalculateFunding.Services.Publishing
             }
 
             Get(actionType)[publishedProvider.Current.ProviderId] = publishedProvider;
+        }
+
+        private void Remove(ActionType actionType, PublishedProvider publishedProvider)
+        {
+            if (Get(actionType).ContainsKey(publishedProvider.Current.ProviderId))
+            {
+                Get(actionType).Remove(publishedProvider.Current.ProviderId);
+            }
         }
 
         private IDictionary<string, PublishedProvider> Get(ActionType actionType)

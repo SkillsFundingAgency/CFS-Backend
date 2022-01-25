@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CalculateFunding.Services.Profiling.ReProfilingStrategies;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Profiling.Models
 {
@@ -40,13 +41,13 @@ namespace CalculateFunding.Services.Profiling.Models
         [JsonProperty("converterFundingStrategyKey")]
         public string ConverterFundingStrategyKey { get; set; }
 
-        public string GetReProfilingStrategyKeyForFundingAmountChange(ReProfileRequest request)
+        public string GetReProfilingStrategyKeyForFundingAmountChange(ReProfileRequest reProfileRequest)
         {
-            if (request.FundingLineTotalChange == 0)
+            if (reProfileRequest.FundingLineTotalChange == 0)
             {
-                return request.ForceSameAsKey != null ? (string)GetType().GetProperty(request.ForceSameAsKey).GetValue(this) : SameAmountStrategyKey;
+                return SameAmountStrategyKey;
             }
-            else if (request.FundingLineTotalChange > 0)
+            else if (reProfileRequest.FundingLineTotalChange > 0)
             {
                 return IncreasedAmountStrategyKey;
             }

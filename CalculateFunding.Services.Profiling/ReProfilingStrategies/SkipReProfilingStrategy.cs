@@ -17,7 +17,10 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
         public ReProfileStrategyResult ReProfile(ReProfileContext context)
         {
-            return new ReProfileStrategyResult { SkipReProfiling = true };
+            return new ReProfileStrategyResult
+            {
+                SkipReProfiling = true
+            };
         }
     }
 }

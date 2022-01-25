@@ -72,6 +72,7 @@ namespace CalculateFunding.Services.Publishing
             string specificationProviderVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
             IEnumerable<string> variances,
+            string fundingStreamId,
             string fundingPeriodId,
             PublishedProviderVersion preRefreshProviderVersion)
         {
@@ -101,6 +102,7 @@ namespace CalculateFunding.Services.Publishing
                 variationPointers,
                 specificationProviderVersionId,
                 organisationGroupResultsData,
+                fundingStreamId,
                 fundingPeriodId,
                 preRefreshProviderVersion,
                 variances);

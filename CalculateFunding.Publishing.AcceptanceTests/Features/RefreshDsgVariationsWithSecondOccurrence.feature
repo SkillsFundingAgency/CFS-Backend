@@ -176,8 +176,8 @@ Background:
 		| ProfilingUpdated         | 3     |
 		| PupilNumberSuccessor     | 4     |
 	And the following profile pattern exists
-		| FundingStreamId | FundingPeriodId |
-		| DSG             | FY-2021         |
+		| FundingLineId	|FundingStreamId | FundingPeriodId |
+		| DSG-002		|DSG             | FY-2021         |
 
 Scenario: When the total allocation increases
 	Given the following variation pointers exist

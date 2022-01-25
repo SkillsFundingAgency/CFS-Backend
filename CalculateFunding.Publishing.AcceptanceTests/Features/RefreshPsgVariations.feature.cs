@@ -1230,9 +1230,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
  testRunner.And("the following profiles exist", ((string)(null)), table1139, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table1140 = new TechTalk.SpecFlow.Table(new string[] {
+                        "FundingLineId",
                         "FundingStreamId",
                         "FundingPeriodId"});
             table1140.AddRow(new string[] {
+                        "TotalAllocation",
                         "PSG",
                         "AY-1920"});
 #line 348

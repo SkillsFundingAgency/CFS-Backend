@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
@@ -163,6 +164,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         protected void AndThereIsNoPreviouslyReleasedVersion()
         {
             VariationContext.PublishedProvider.Released = null;
+        }
+
+        protected void AndTheAffectedFundingLinesForIndicativeToLive(params FundingLine[] fundingLines)
+        {
+            foreach (FundingLine fundingLine in fundingLines)
+            {
+                VariationContext.AddAffectedFundingLineCode("IndicativeToLive", fundingLine.FundingLineCode);
+            }
         }
 
         protected void AndTheRefreshStateFundingLines(params FundingLine[] fundingLines)

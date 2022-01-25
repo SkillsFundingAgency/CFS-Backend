@@ -48,6 +48,9 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("profilePatternKeys")]
         public ICollection<ProfilePatternKey> ProfilePatternKeys { get; set; }
 
+        [JsonProperty("reProfileAudits")]
+        public ICollection<ReProfileAudit> ReProfileAudits { get; set; }
+
         /// <summary>
         /// The custom profile periods used for this provider
         /// in this period and funding stream keyed by funding line
@@ -469,6 +472,35 @@ namespace CalculateFunding.Models.Publishing
             {
                 ProfilePatternKeys ??= new List<ProfilePatternKey>();
                 ProfilePatternKeys.Add(profilePatternKey);
+            }
+        }
+
+        public void UpdateReProfileAuditETag(ReProfileAudit reProfileAudit)
+        {
+            if (ReProfileAudits?.Any(_ => _.FundingLineCode == reProfileAudit.FundingLineCode) == true)
+            {
+                ReProfileAudit reProfileAuditCurrent = ReProfileAudits
+                    .SingleOrDefault(_ => _.FundingLineCode == reProfileAudit.FundingLineCode);
+
+                reProfileAuditCurrent.ETag = reProfileAudit.ETag;
+            }
+        }
+
+        public void AddOrUpdateReProfileAudit(ReProfileAudit reProfileAudit)
+        {
+            if (ReProfileAudits?.Any(_ => _.FundingLineCode == reProfileAudit.FundingLineCode) == true)
+            {
+                ReProfileAudit reProfileAuditCurrent = ReProfileAudits
+                    .SingleOrDefault(_ => _.FundingLineCode == reProfileAudit.FundingLineCode);
+
+                reProfileAuditCurrent.ETag = reProfileAudit.ETag;
+                reProfileAuditCurrent.StrategyKey = reProfileAudit.StrategyKey;
+                reProfileAuditCurrent.VariationPointerIndex = reProfileAudit.VariationPointerIndex;
+            }
+            else
+            {
+                ReProfileAudits ??= new List<ReProfileAudit>();
+                ReProfileAudits.Add(reProfileAudit);
             }
         }
 

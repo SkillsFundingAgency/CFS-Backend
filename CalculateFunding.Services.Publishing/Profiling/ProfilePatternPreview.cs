@@ -12,6 +12,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
 using Polly;
+using ProfilePatternKey = CalculateFunding.Models.Publishing.ProfilePatternKey;
 
 namespace CalculateFunding.Services.Publishing.Profiling
 {
@@ -69,17 +70,11 @@ namespace CalculateFunding.Services.Publishing.Profiling
                     $"There is no released version for Provider: {request.ProviderId}, FundingStream: {request.FundingStreamId} and FundingPeriod: {request.FundingPeriodId}.");
             }
 
-            ReProfileRequest reProfileRequest = await _reProfilingRequestBuilder.BuildReProfileRequest(request.FundingLineCode,
+            (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await _reProfilingRequestBuilder.BuildReProfileRequest(request.FundingLineCode,
                 request.ProfilePatternKey,
-                publishedProviderVersion,
-                request.ConfigurationType);
+                publishedProviderVersion);
 
-            if (reProfileRequest != null)
-            {
-                reProfileRequest.ForceSameAsKey = "IncreasedAmountStrategyKey";
-            }
-
-            ApiResponse<ReProfileResponse> reProfilingApiResponse = await _profilingResilience.ExecuteAsync(() => _profiling.ReProfile(reProfileRequest));
+            ApiResponse<ReProfileResponse> reProfilingApiResponse = await _profilingResilience.ExecuteAsync(() => _profiling.ReProfile(ReProfileRequest));
 
             ReProfileResponse reProfileResponse = reProfilingApiResponse?.Content;
 
@@ -100,7 +95,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 request.FundingStreamId,
                 request.FundingLineCode)).Value;
 
-            ExistingProfilePeriod[] existingProfilePeriods = reProfileRequest.ExistingPeriods.ToArray();
+            ExistingProfilePeriod[] existingProfilePeriods = ReProfileRequest.ExistingPeriods.ToArray();
 
             int isPaidTo = GetIsPaidTo(existingProfilePeriods);
 

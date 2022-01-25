@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
+using ProfilePatternKey = CalculateFunding.Models.Publishing.ProfilePatternKey;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {

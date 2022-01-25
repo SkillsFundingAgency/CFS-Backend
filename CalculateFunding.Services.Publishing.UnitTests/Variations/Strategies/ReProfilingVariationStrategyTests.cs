@@ -187,7 +187,42 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .Should()
                 .BeEmpty();
         }
-        
+
+        [TestMethod]
+        public async Task TracksAllAsAffectedFundingLineCodesAndQueuesMidYearReProfileVariationChangeIfIsIndicativeToLive()
+        {
+            int year = NewRandomNumber();
+            string month = NewRandomMonth();
+
+            GivenTheOtherwiseValidVariationContext(_ =>
+            {
+                _.AllPublishedProviderSnapShots.Clear();
+                _.UpdatedProvider.Status = Publishing.Variations.Strategies.VariationStrategy.Opened;
+            });
+            AndTheAffectedFundingLinesForIndicativeToLive(NewFundingLine(_ => _.WithFundingLineCode(FundingLineCode)
+                    .WithFundingLineType(FundingLineType.Payment)
+                    .WithValue(NewRandomNumber())
+                    .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                        dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithYear(year)
+                                .WithTypeValue(month)
+                                .WithType(ProfilePeriodType.CalendarMonth)
+                                .WithOccurence(0)),
+                            NewProfilePeriod(pp => pp.WithYear(year)
+                                .WithTypeValue(month)
+                                .WithType(ProfilePeriodType.CalendarMonth)
+                                .WithOccurence(1)))))));
+            AndTheVariationPointers(NewVariationPointer(_ => _.WithYear(year)
+                .WithTypeValue(month)
+                .WithOccurence(1)
+                .WithFundingLineId(FundingLineCode)
+                .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
+
+            await WhenTheVariationsAreProcessed();
+
+            ThenTheVariationChangeWasQueued<MidYearReProfileVariationChange>();
+            AndTheAffectedFundingLinesWereTracked(FundingLineCode);
+        }
+
         [TestMethod]
         public async Task TracksAllAsAffectedFundingLineCodesAndQueuesMidYearReProfileVariationChangeIfIsNewOpener()
         {

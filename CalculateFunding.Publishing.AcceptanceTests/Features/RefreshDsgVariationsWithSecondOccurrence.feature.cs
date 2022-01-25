@@ -687,9 +687,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
  testRunner.And("the funding configuration has the following funding variations", ((string)(null)), table954, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table955 = new TechTalk.SpecFlow.Table(new string[] {
+                        "FundingLineId",
                         "FundingStreamId",
                         "FundingPeriodId"});
             table955.AddRow(new string[] {
+                        "DSG-002",
                         "DSG",
                         "FY-2021"});
 #line 178

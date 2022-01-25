@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.OrganisationGroup.Models;
@@ -15,13 +16,18 @@ namespace CalculateFunding.Services.Publishing.Variations
     {
         private readonly IVariationStrategyServiceLocator _variationStrategyServiceLocator;
         private readonly IPoliciesService _policiesService;
+        private readonly IProfilingService _profilingService;
 
-        public ProviderVariationsDetection(IVariationStrategyServiceLocator variationStrategyServiceLocator, IPoliciesService policiesService)
+        public ProviderVariationsDetection(IVariationStrategyServiceLocator variationStrategyServiceLocator,
+            IPoliciesService policiesService,
+            IProfilingService profilingService)
         {
             Guard.ArgumentNotNull(variationStrategyServiceLocator, nameof(variationStrategyServiceLocator));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            Guard.ArgumentNotNull(profilingService, nameof(profilingService));
 
             _policiesService = policiesService;
+            _profilingService = profilingService;
             _variationStrategyServiceLocator = variationStrategyServiceLocator;
         }
 
@@ -34,6 +40,7 @@ namespace CalculateFunding.Services.Publishing.Variations
             IEnumerable<ProfileVariationPointer> variationPointers,
             string providerVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
+            string fundingStreamId,
             string fundingPeriodId,
             PublishedProviderVersion preRefreshProviderVersion,
             IEnumerable<string> variances)
@@ -46,6 +53,7 @@ namespace CalculateFunding.Services.Publishing.Variations
             Guard.ArgumentNotNull(allPublishedProviderSnapShots, nameof(allPublishedProviderSnapShots));
 
             FundingPeriod fundingPeriod = await _policiesService.GetFundingPeriodByConfigurationId(fundingPeriodId);
+            IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = await _profilingService.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId);
 
             ProviderVariationContext providerVariationContext = new ProviderVariationContext(_policiesService)
             {
@@ -61,7 +69,8 @@ namespace CalculateFunding.Services.Publishing.Variations
                 Variances = variances,
                 FundingPeriodStartDate = fundingPeriod.StartDate,
                 FundingPeriodEndDate = fundingPeriod.EndDate,
-                PreRefreshState = preRefreshProviderVersion
+                PreRefreshState = preRefreshProviderVersion,
+                ProfilePatterns = profilePatterns?.ToDictionary(_ => _.FundingLineId)
             };
 
             foreach (FundingVariation configuredVariation in variations.OrderBy(_ => _.Order))

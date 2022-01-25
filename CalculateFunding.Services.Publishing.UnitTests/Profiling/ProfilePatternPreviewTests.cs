@@ -345,7 +345,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             => _reProfilingRequestBuilder.Verify(_ => _.BuildReProfileRequest(request.FundingLineCode,
                     request.ProfilePatternKey,
                     publishedProviderVersion,
-                    request.ConfigurationType,
+                    null,
+                    null,
                     null,
                     null),
                 Times.Once);
@@ -356,10 +357,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             => _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(previewRequest.FundingLineCode,
                     previewRequest.ProfilePatternKey,
                     publishedProviderVersion,
-                    previewRequest.ConfigurationType,
+                    null,
+                    null,
                     null,
                     null))
-                .ReturnsAsync(reProfileRequest);
+                .ReturnsAsync((reProfileRequest, true));
 
         private void AndTheReProfileResponse(ReProfileRequest request,
             ReProfileResponse expectedResponse)

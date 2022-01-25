@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
@@ -98,6 +99,8 @@ namespace CalculateFunding.Services.Publishing.Models
         public PublishedProviderVersion CurrentState => GetPublishedProviderOriginalSnapShot(ProviderId)?.Current;
 
         public PublishedProviderVersion PreRefreshState { get; set; }
+
+        public IReadOnlyDictionary<string, FundingStreamPeriodProfilePattern> ProfilePatterns { get; set; }
 
         public PublishedProvider AddMissingProvider(PublishedProvider missingProvider)
         {

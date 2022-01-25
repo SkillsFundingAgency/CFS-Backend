@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Services.Profiling.ReProfilingStrategies;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
@@ -30,7 +31,19 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             AndTheFundingLinePeriodAmountsShouldBe(expectedAdjustedPeriodValues);
             AndTheCarryOverShouldBe(0);
         }
-        
+
+        [TestMethod]
+        public void SkipsProfilingIfAlreadyPaidToIndex()
+        {
+            Context.Request.AlreadyPaidUpToIndex = true;
+
+            WhenTheFundingLineIsReProfiled();
+
+            Result.SkipReProfiling
+                .Should()
+                .Be(true);
+        }
+
         private static IEnumerable<object[]> StartUpGrantExamples()
         {
             //Example 1 - New provider eligible for SUG Part A opens at the start of the funding year

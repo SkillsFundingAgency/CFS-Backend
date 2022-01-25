@@ -10,6 +10,9 @@ namespace CalculateFunding.Services.Profiling.Tests.Services
         private string _decrease;
         private string _same;
         private string _midYearStrategyKey;
+        private string _midYearCatchupStrategyKey;
+        private string _midYearConverterStrategyKey;
+        private string _midYearClosureStrategyKey;
 
         public ProfilePatternReProfilingConfigurationBuilder WithIsEnabled(bool isEnabled)
         {
@@ -21,6 +24,27 @@ namespace CalculateFunding.Services.Profiling.Tests.Services
         public ProfilePatternReProfilingConfigurationBuilder WithMidYearStrategyKey(string midYearStrategyKey)
         {
             _midYearStrategyKey = midYearStrategyKey;
+
+            return this;
+        }
+
+        public ProfilePatternReProfilingConfigurationBuilder WithMidYearCatchUpStrategyKey(string midYearCatchupStrategyKey)
+        {
+            _midYearCatchupStrategyKey = midYearCatchupStrategyKey;
+
+            return this;
+        }
+
+        public ProfilePatternReProfilingConfigurationBuilder WithMidYearConverterStrategyKey(string midYearConverterStrategyKey)
+        {
+            _midYearConverterStrategyKey = midYearConverterStrategyKey;
+
+            return this;
+        }
+
+        public ProfilePatternReProfilingConfigurationBuilder WithMidYearClosureStrategyKey(string midYearClosureStrategyKey)
+        {
+            _midYearClosureStrategyKey = midYearClosureStrategyKey;
 
             return this;
         }
@@ -55,8 +79,9 @@ namespace CalculateFunding.Services.Profiling.Tests.Services
                 DecreasedAmountStrategyKey = _decrease,
                 IncreasedAmountStrategyKey = _increase,
                 InitialFundingStrategyKey = _midYearStrategyKey,
-                InitialFundingStrategyWithCatchupKey = _midYearStrategyKey,
-                InitialClosureFundingStrategyKey = _midYearStrategyKey
+                InitialFundingStrategyWithCatchupKey = _midYearCatchupStrategyKey,
+                ConverterFundingStrategyKey = _midYearConverterStrategyKey,
+                InitialClosureFundingStrategyKey = _midYearClosureStrategyKey
             };
         }
     }

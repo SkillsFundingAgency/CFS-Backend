@@ -346,8 +346,8 @@ Background: Existing published funding
 		| FY-2021              | CalendarMonth | June      | 2021 | 1          | 10000         |
 		| FY-2021              | CalendarMonth | July      | 2021 | 1          | 10000         |
 	And the following profile pattern exists
-		| FundingStreamId | FundingPeriodId |
-		| PSG | AY-1920 |
+		| FundingLineId		|FundingStreamId | FundingPeriodId |
+		| TotalAllocation	|PSG | AY-1920 |
 
 Scenario: Metadata changed some of the published providers
 	Given the following provider exists within core provider data in provider version 'psg-providers-1.0'

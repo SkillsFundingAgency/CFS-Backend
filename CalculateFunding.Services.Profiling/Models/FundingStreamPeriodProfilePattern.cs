@@ -76,6 +76,12 @@ namespace CalculateFunding.Services.Profiling.Models
         [JsonProperty("reProfilingConfiguration")]
         public ProfilePatternReProfilingConfiguration ReProfilingConfiguration { get; set; }
 
+        [JsonProperty("profileCacheETag")]
+        public string ProfileCacheETag { get; set; }
+
+        [JsonProperty("eTag")]
+        public string ETag => $"{ProfilePattern.AsJson()}-{ReProfilingConfiguration?.SameAmountStrategyKey}{ProfileCacheETag}".ComputeSHA1Hash();
+
         [JsonProperty("id")]
         public string Id => $"{FundingPeriodId}-{FundingStreamId}-{FundingLineId}{ProfilePatternKeyString}";
 

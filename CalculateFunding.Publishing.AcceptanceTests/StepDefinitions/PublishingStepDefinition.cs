@@ -134,8 +134,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _publishFundingStepContext.ProfilingInMemoryClient.FundingStreamPeriodProfilePatterns = table.Rows.Select(
                 row => new Common.ApiClient.Profiling.Models.FundingStreamPeriodProfilePattern
                 {
-                    FundingStreamId = row[0],
-                    FundingPeriodId = row[1]
+                    FundingLineId = row[0],
+                    FundingStreamId = row[1],
+                    FundingPeriodId = row[2]
                 });
         }
 

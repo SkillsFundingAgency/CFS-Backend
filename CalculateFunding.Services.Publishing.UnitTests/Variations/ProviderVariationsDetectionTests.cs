@@ -23,6 +23,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         private ProviderVariationsDetection _factory;
         private IVariationStrategy _variationStrategy;
         private IPoliciesService _policiesService;
+        private IProfilingService _profilingService;
 
         [TestInitialize]
         public void SetUp()
@@ -30,8 +31,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             _variationStrategyServiceLocator = Substitute.For<IVariationStrategyServiceLocator>();
             _variationStrategy = Substitute.For<IVariationStrategy>();
             _policiesService = Substitute.For<IPoliciesService>();
+            _profilingService = Substitute.For<IProfilingService>();
 
-            _factory = new ProviderVariationsDetection(_variationStrategyServiceLocator, _policiesService);
+            _factory = new ProviderVariationsDetection(_variationStrategyServiceLocator, _policiesService, _profilingService);
             
             _variationStrategyServiceLocator
                 .GetService(Arg.Any<string>())
@@ -47,6 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             PublishedProvider existingPublishedProvider = NewPublishedProvider();
             Provider updatedProvider = NewApiProvider();
             string fundingPeriodId = NewRandomString();
+            string fundingStreamId = NewRandomString();
             decimal updatedTotalFunding = new RandomNumberBetween(0, 1000);
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates = new Dictionary<string, PublishedProvider>();
@@ -70,6 +73,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 variationPointers,
                 providerVersionId,
                 organisationGroupResultsData,
+                fundingStreamId,
                 fundingPeriodId,
                 existingPublishedProvider.Current,
                 variances);
@@ -120,6 +124,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             PublishedProvider existingPublishedProvider = NewPublishedProvider();
             Provider updatedProvider = NewApiProvider();
             string fundingPeriod = NewRandomString();
+            string fundingStreamId = NewRandomString();
             decimal updatedTotalFunding = new RandomNumberBetween(0, 1000);
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates = new Dictionary<string, PublishedProvider>();
@@ -160,6 +165,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 variationPointers,
                 providerVersionId,
                 organisationGroupResultsData,
+                fundingStreamId,
                 fundingPeriod,
                 existingPublishedProvider.Current,
                 variances);

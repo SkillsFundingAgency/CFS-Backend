@@ -7,6 +7,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing.Interfaces;
+using ProfilePatternKey = CalculateFunding.Models.Publishing.ProfilePatternKey;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -96,7 +97,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 lock (publishedProviderVersion)
                 {
-                    publishedProviderVersion.SetProfilePatternKey(profilePatternKey.DeepCopy());
+                    publishedProviderVersion.SetProfilePatternKey(profilePatternKey);
                 }
             }
         }

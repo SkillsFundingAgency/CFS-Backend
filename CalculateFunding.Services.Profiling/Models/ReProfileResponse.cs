@@ -12,6 +12,10 @@
 
         public decimal CarryOverAmount { get; set; }
 
+        public int? VariationPointerIndex { get; set; }
+
         public bool SkipReProfiling { get; set; }
+
+        public string StrategyKey { get; set; }
     }
 }

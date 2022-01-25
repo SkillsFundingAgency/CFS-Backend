@@ -31,18 +31,26 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             IEnumerable<string> newOpenerFundingLines = NewOpenerFundingLines(priorState, refreshState);
             IEnumerable<string> fundingLinesWithNewAllocations = FundingLinesWithNewAllocations(priorState, refreshState);
+            IEnumerable<string> indicativeAffectedFundingLines = providerVariationContext.AffectedFundingLineCodes("IndicativeToLive");
 
             if (newOpenerFundingLines.IsNullOrEmpty() &&
-                fundingLinesWithNewAllocations.IsNullOrEmpty())
+                fundingLinesWithNewAllocations.IsNullOrEmpty() &&
+                indicativeAffectedFundingLines.IsNullOrEmpty())
             {
                 return Task.FromResult(false);
             }
 
-            Enumerable.Concat(newOpenerFundingLines ?? ArraySegment<string>.Empty,
-                fundingLinesWithNewAllocations ?? ArraySegment<string>.Empty)
+            Concatenate(newOpenerFundingLines ?? ArraySegment<string>.Empty,
+                fundingLinesWithNewAllocations ?? ArraySegment<string>.Empty,
+                indicativeAffectedFundingLines ?? ArraySegment<string>.Empty)
                 .ForEach(_ => providerVariationContext.AddAffectedFundingLineCode(Name, _));
 
             return Task.FromResult(true);
+        }
+
+        private static IEnumerable<T> Concatenate<T>(params IEnumerable<T>[] lists)
+        {
+            return lists.SelectMany(_ => _);
         }
 
         private IEnumerable<string> NewOpenerFundingLines(PublishedProviderVersion priorState,

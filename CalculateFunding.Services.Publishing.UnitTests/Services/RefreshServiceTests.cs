@@ -192,7 +192,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _batchProfilingService = new Mock<IBatchProfilingService>();
 
             _variationStrategyServiceLocator = new VariationStrategyServiceLocator(variationStrategies);
-            _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator, _policiesService.Object);
+            _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator, _policiesService.Object, _profilingService.Object);
             _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies,
                 _specificationsApiClient.Object,
                 _policiesApiClient.Object,
@@ -1202,7 +1202,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 {
                     new Common.ApiClient.Profiling.Models.FundingStreamPeriodProfilePattern
                     {
-
+                        FundingLineId = NewRandomString()
                     }
                 };
 

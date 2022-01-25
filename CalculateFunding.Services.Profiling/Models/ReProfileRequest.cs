@@ -52,24 +52,21 @@ namespace CalculateFunding.Services.Profiling.Models
         public IEnumerable<ExistingProfilePeriod> AllExistingPeriods { get; set; }
 
         /// <summary>
-        /// Desired configuration type
-        /// </summary>
-        [Required]
-        public ProfileConfigurationType ConfigurationType { get; set; }
-        
-        /// <summary>
         /// Flag indicating whether the re profiling
         /// should use a new opener or new opener catchup if blank then use new allocation strategy
         /// </summary>
         public MidYearType? MidYearType { get; set; }
-        
+
         /// <summary>
         /// The index into the ordered refresh profile periods
         /// to start paying from
         /// </summary>
         public int? VariationPointerIndex { get; set; }
 
-        public string ForceSameAsKey { get; set; }
+        /// <summary>
+        /// A flag used to determine if we are requesting a re-profile which has already happened
+        /// </summary>
+        public bool AlreadyPaidUpToIndex { get; set; }
 
         [JsonIgnore] 
         public decimal FundingLineTotalChange => FundingLineTotal - ExistingFundingLineTotal;

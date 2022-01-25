@@ -45,16 +45,16 @@ namespace CalculateFunding.Services.Profiling.Services
                 return new BadRequestObjectResult("Re-profiling is not enabled or has not been configured");
             }
 
-            IReProfilingStrategy strategy = GetReProfilingStrategy(reProfileRequest, profilePattern);
+            (IReProfilingStrategy Strategy, string StrategyKey) = GetReProfilingStrategy(reProfileRequest, profilePattern);
 
-            if (strategy == null)
+            if (Strategy == null)
             {
                 return new BadRequestObjectResult("Re-profiling is not enabled for this scenario or the strategy was not found");
             }
 
             ReProfileContext context = CreateReProfilingContext(reProfileRequest, profilePattern);
 
-            ReProfileStrategyResult strategyResult = strategy.ReProfile(context);
+            ReProfileStrategyResult strategyResult = Strategy.ReProfile(context);
 
             if (strategyResult.SkipReProfiling)
             {
@@ -69,7 +69,9 @@ namespace CalculateFunding.Services.Profiling.Services
                 DistributionPeriods = strategyResult.DistributionPeriods,
                 ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName,
                 ProfilePatternKey = profilePattern.ProfilePatternKey,
-                CarryOverAmount = strategyResult.CarryOverAmount
+                StrategyKey = StrategyKey,
+                CarryOverAmount = strategyResult.CarryOverAmount,
+                VariationPointerIndex = reProfileRequest.VariationPointerIndex
             };
         }
 
@@ -95,12 +97,12 @@ namespace CalculateFunding.Services.Profiling.Services
             };
         }
 
-        private IReProfilingStrategy GetReProfilingStrategy(ReProfileRequest reProfileRequest,
+        private (IReProfilingStrategy ReProfilingStrategy, string ReProfilingStrategyKey) GetReProfilingStrategy(ReProfileRequest reProfileRequest,
             FundingStreamPeriodProfilePattern profilePattern)
         {
             string key = GetReProfilingStrategyKey(reProfileRequest, profilePattern);
 
-            return _reProfilingStrategyLocator.GetStrategy(key);
+            return (_reProfilingStrategyLocator.GetStrategy(key), key);
         }
 
         private static string GetReProfilingStrategyKey(ReProfileRequest reProfileRequest,

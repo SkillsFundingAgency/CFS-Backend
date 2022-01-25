@@ -15,20 +15,12 @@ namespace CalculateFunding.Api.Profiling.IntegrationTests.ReProfiling
         private string _profilePatternKey;
         private MidYearType? _midYearType;
         private IEnumerable<ExistingProfilePeriod> _existingProfilePeriods;
-        private ProfileConfigurationType? _configurationType;
         private int? _variationPointerIndex;
         private bool _noProfilePatternKey;
 
         public ReProfileRequestBuilder WithVariationPointerIndex(int? variationPointerIndex)
         {
             _variationPointerIndex = variationPointerIndex;
-
-            return this;
-        }
-        
-        public ReProfileRequestBuilder WithConfigurationType(ProfileConfigurationType configurationType)
-        {
-            _configurationType = configurationType;
 
             return this;
         }
@@ -108,7 +100,6 @@ namespace CalculateFunding.Api.Profiling.IntegrationTests.ReProfiling
                 ExistingFundingLineTotal = _existingFundingLineTotal.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue)),
                 MidYearType = _midYearType,
                 ExistingPeriods = _existingProfilePeriods ?? ArraySegment<ExistingProfilePeriod>.Empty,
-                ConfigurationType = _configurationType.GetValueOrDefault(NewRandomEnum<ProfileConfigurationType>()),
                 VariationPointerIndex = _variationPointerIndex
             };
         }

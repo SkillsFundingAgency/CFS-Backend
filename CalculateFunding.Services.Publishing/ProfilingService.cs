@@ -13,6 +13,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
 using Serilog;
+using ProfilePatternKey = CalculateFunding.Models.Publishing.ProfilePatternKey;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -98,9 +99,12 @@ namespace CalculateFunding.Services.Publishing
                     throw new NonRetriableException(errorMessage);
                 }
 
-                if(profilePatternKeysToReturn.All(x => x.FundingLineCode != value.FundingLineCode))
+                if (profilePatternKeysToReturn.All(x => x.FundingLineCode != value.FundingLineCode))
                 {
-                    profilePatternKeysToReturn.Add(new ProfilePatternKey() { FundingLineCode = value.FundingLineCode, Key = providerProfilingResponse.Content.ProfilePatternKey });
+                    profilePatternKeysToReturn.Add(new ProfilePatternKey() { 
+                        FundingLineCode = value.FundingLineCode, 
+                        Key = providerProfilingResponse.Content.ProfilePatternKey
+                    });
                 }
                 
                 AddOrUpdateResponseDictionary(ref response, value.Value, providerProfilingResponse.Content);

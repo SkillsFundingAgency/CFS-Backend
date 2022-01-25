@@ -7,12 +7,15 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Profiling;
+using ProfilePatternKey = CalculateFunding.Models.Publishing.ProfilePatternKey;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class MidYearReProfileVariationChange : ReProfileVariationChange
     {
         private readonly string _strategy;
+
+        protected override bool ShouldPersistReProfileAudit(ReProfileRequest reProfileRequest) => true;
 
         public MidYearReProfileVariationChange(ProviderVariationContext variationContext,
             string strategy) : base(variationContext, strategy)
@@ -21,19 +24,36 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         }
 
         protected override IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLinesWithVariationPointerSet(_strategy);
-        
-        protected override Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
+
+        public override bool ReProfileForSameAmountFunc(string fundingLineCode, ReProfileAudit reProfileAudit, int paidUpToIndex)
+        {
+            bool executeSameAsKey = base.ReProfileForSameAmountFunc(fundingLineCode, reProfileAudit, paidUpToIndex);
+
+            if (!executeSameAsKey)
+            {
+                int? variationPointerIndex = reProfileAudit?.VariationPointerIndex;
+
+                executeSameAsKey = reProfileAudit == null || variationPointerIndex != paidUpToIndex;
+            }
+
+            return executeSameAsKey;
+        }
+
+        protected override Task<(ReProfileRequest, bool)> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
             IApplyProviderVariations variationApplications,
             string profilePatternKey,
-            FundingLine fundingLine) =>
+            ReProfileAudit reProfileAudit,
+            FundingLine fundingLine,
+            Func<string, ReProfileAudit, int, bool> reProfileForSameAmountFunc) =>
             variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
                 refreshState,
-                ProfileConfigurationType.RuleBased,
                 fundingLine.Value,
-                midYearType: GetMidYearType(refreshState.Provider?.DateOpened, fundingLine));
+                reProfileAudit,
+                midYearType: GetMidYearType(refreshState.Provider?.DateOpened, fundingLine),
+                reProfileForSameAmountFunc: reProfileForSameAmountFunc);
 
         private MidYearType GetMidYearType(DateTimeOffset? dateTimeOpened, FundingLine fundingLine)
         {

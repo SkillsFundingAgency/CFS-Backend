@@ -458,6 +458,7 @@ namespace CalculateFunding.Services.Publishing
                         specification.ProviderVersionId,
                         organisationGroupResultsData,
                         variances,
+                        fundingStream.Id,
                         fundingPeriod.Id,
                         preRefreshProviderVersion);
 

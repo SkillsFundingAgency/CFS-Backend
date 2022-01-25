@@ -11207,9 +11207,11 @@ this.ScenarioInitialize(scenarioInfo);
  testRunner.And("the following profiles exist", ((string)(null)), table1015, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1016 = new TechTalk.SpecFlow.Table(new string[] {
+                            "FundingLineId",
                             "FundingStreamId",
                             "FundingPeriodId"});
                 table1016.AddRow(new string[] {
+                            "GAG-001",
                             "GAG",
                             "AC-2021"});
 #line 2882

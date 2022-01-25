@@ -44,10 +44,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             string fundingLineCode,
             string expectedParameterName)
         {
-            Func<Task<ReProfileRequest>> invocation = () => WhenTheReProfileRequestIsBuilt(fundingLineCode,
+            Func<Task<(ReProfileRequest ReProfileRequest, bool ReProfilingForSameAmount)>> invocation = () => WhenTheReProfileRequestIsBuilt(fundingLineCode,
                 NewRandomString(),
-                publishedProviderVersion,
-                ProfileConfigurationType.Custom);
+                publishedProviderVersion);
 
             invocation
                 .Should()
@@ -65,7 +64,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             string fundingLineCode = NewRandomString();
             string profilePattern = NewRandomString();
             decimal fundingLineTotal = NewRandomAmount();
-            ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
 
             PublishedProviderVersion publishedProviderVersion = NewPublisherProviderVersion(pvp => 
                     pvp.WithFundingLines(NewFundingLine(),
@@ -109,17 +107,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     .WithTypeValue("March")
                     .WithPeriodType("CalenderMonth")));
 
-            ReProfileRequest reProfileRequest = await WhenTheReProfileRequestIsBuilt(fundingLineCode,
+            (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await WhenTheReProfileRequestIsBuilt(fundingLineCode,
                 profilePattern,
                 publishedProviderVersion,
-                profileConfigurationType,
                 fundingLineTotal);
-            
-            reProfileRequest
+
+            ReProfileRequest
                 .Should()
                 .BeEquivalentTo(new ReProfileRequest
                 {
-                    ConfigurationType = profileConfigurationType,
                     FundingLineCode = fundingLineCode,
                     ExistingFundingLineTotal = 23 + 24 + 25 + 26,
                     FundingLineTotal = fundingLineTotal,
@@ -164,7 +160,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             string fundingLineCode = NewRandomString();
             string profilePattern = NewRandomString();
             decimal fundingLineTotal = NewRandomAmount();
-            ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
 
             PublishedProviderVersion publishedProviderVersion = NewPublisherProviderVersion(pvp =>
                     pvp.WithFundingLines(NewFundingLine(),
@@ -208,17 +203,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     .WithTypeValue("March")
                     .WithPeriodType("CalenderMonth")));
 
-            ReProfileRequest reProfileRequest = await WhenTheReProfileRequestIsBuilt(fundingLineCode,
+            (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await WhenTheReProfileRequestIsBuilt(fundingLineCode,
                 profilePattern,
                 publishedProviderVersion,
-                profileConfigurationType,
                 fundingLineTotal);
 
-            reProfileRequest
+            ReProfileRequest
                 .Should()
                 .BeEquivalentTo(new ReProfileRequest
                 {
-                    ConfigurationType = profileConfigurationType,
                     FundingLineCode = fundingLineCode,
                     ExistingFundingLineTotal = 23 + 24 + 25 + 26,
                     FundingLineTotal = fundingLineTotal,
@@ -267,7 +260,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             string fundingLineCode = NewRandomString();
             string profilePattern = NewRandomString();
             decimal fundingLineTotal = NewRandomAmount();
-            ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
 
             PublishedProviderVersion publishedProviderVersion = NewPublisherProviderVersion(pvp => 
                     pvp.WithProvider(NewProvider(_ => _.WithStatus(midYearType == MidYearType.Closure ? VariationStrategy.Closed : VariationStrategy.Opened)
@@ -301,18 +293,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                                         .WithTypeValue("April"))
                                     ))))));
 
-            ReProfileRequest reProfileRequest = await WhenTheReProfileRequestIsBuilt(fundingLineCode,
+            (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await WhenTheReProfileRequestIsBuilt(fundingLineCode,
                 profilePattern,
                 publishedProviderVersion,
-                profileConfigurationType,
                 fundingLineTotal,
                 midYearType);
-            
-            reProfileRequest
+
+            ReProfileRequest
                 .Should()
                 .BeEquivalentTo(new ReProfileRequest
                 {
-                    ConfigurationType = profileConfigurationType,
                     FundingPeriodId = publishedProviderVersion.FundingPeriodId,
                     FundingStreamId = publishedProviderVersion.FundingStreamId,
                     FundingLineCode = fundingLineCode,
@@ -352,18 +342,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         }
 
         
-        private async Task<ReProfileRequest> WhenTheReProfileRequestIsBuilt(string fundingLineCode,
+        private async Task<(ReProfileRequest, bool)> WhenTheReProfileRequestIsBuilt(string fundingLineCode,
             string profilePatternKey,
             PublishedProviderVersion publishedProviderVersion,
-            ProfileConfigurationType configurationType,
             decimal? fundingLineTotal = null,
             MidYearType? midYearType = null)
             => await _requestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
                 publishedProviderVersion,
-                configurationType,
                 fundingLineTotal,
-                midYearType);
+                null,
+                midYearType,
+                null);
 
         private void AndTheVariationPointers(string specificationId,
             params ProfileVariationPointer[] variationPointers)
@@ -450,7 +440,5 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private static decimal NewRandomAmount() => new RandomNumberBetween(999, int.MaxValue);
 
         private static DateTimeOffset NewRandomDate() => new RandomDateTime();
-
-        private static ProfileConfigurationType NewRandomProfileConfigurationType() => new RandomEnum<ProfileConfigurationType>();
     }
 }

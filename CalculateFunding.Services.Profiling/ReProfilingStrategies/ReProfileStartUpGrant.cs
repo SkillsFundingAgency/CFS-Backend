@@ -15,6 +15,16 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
         
         public ReProfileStrategyResult ReProfile(ReProfileContext context)
         {
+            // the paid upto index has already been re-profiled and there is no need to re-run
+            // this strategy as this will only happen because of a force
+            if (context.Request.AlreadyPaidUpToIndex)
+            {
+                return new ReProfileStrategyResult
+                {
+                    SkipReProfiling = true
+                };
+            }
+
             IProfilePeriod[] orderedRefreshProfilePeriods = new YearMonthOrderedProfilePeriods<IProfilePeriod>(context.ProfileResult.DeliveryProfilePeriods)
                 .ToArray();
             IExistingProfilePeriod[] orderedExistingProfilePeriods = new YearMonthOrderedProfilePeriods<IExistingProfilePeriod>(context.Request.ExistingPeriods)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,6 +25,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         protected virtual IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLineCodes(_strategy);
 
+        // make sure we only persist the re-profile audit if the fundingline value has changed
+        protected virtual bool ShouldPersistReProfileAudit(ReProfileRequest reProfileRequest) => reProfileRequest?.FundingLineTotal == reProfileRequest?.ExistingFundingLineTotal ? false : true;
+
         protected override async Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
             Guard.IsNotEmpty(VariationContext.AffectedFundingLineCodes(_strategy), nameof(VariationContext.AffectedFundingLineCodes));
@@ -39,6 +43,27 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             await TaskHelper.WhenAllAndThrow(reProfileTasks);
         }
 
+        public virtual bool ReProfileForSameAmountFunc(string fundingLineCode, ReProfileAudit reProfileAudit, int paidToIndex)
+        {
+            string profileETag = reProfileAudit?.ETag;
+
+            return !string.IsNullOrWhiteSpace(profileETag) && profileETag != VariationContext.ProfilePatterns[fundingLineCode].ETag;
+        }
+
+        public bool SkipReProfiling(ReProfileRequest reProfileRequest, bool reProfileForSameAmount)
+        {
+            if (reProfileRequest.VariationPointerIndex > reProfileRequest.ExistingPeriods.Count())
+            {
+                // this will only be the case if we're forcing a refresh on the same variation index
+                // as we increment the variation pointer so that we skip the already paid profile period
+                // but if the variation pointer that we are forcing on is the last profile period then we need
+                // to skip re-profiling
+                return true;
+            }
+
+            return !reProfileForSameAmount && reProfileRequest?.FundingLineTotal == reProfileRequest?.ExistingFundingLineTotal;
+        }
+
         private async Task ReProfileFundingLine(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
@@ -47,7 +72,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
             FundingLine fundingLine = refreshState.FundingLines.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
-            string profilePatternKey =  refreshState.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
+            string profilePatternKey = refreshState.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
+
+            ReProfileAudit reProfileAudit = refreshState.ReProfileAudits?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
             string providerId = refreshState.ProviderId;
             
@@ -62,25 +89,44 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 return;
             }
 
-            ReProfileRequest reProfileRequest = await BuildReProfileRequest(fundingLineCode, refreshState, priorState , variationApplications, profilePatternKey, fundingLine);
+            (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await BuildReProfileRequest(fundingLineCode, refreshState, priorState , variationApplications, profilePatternKey, reProfileAudit, fundingLine,(fundingLineCode, reProfileAudit, paidIndex) => ReProfileForSameAmountFunc(fundingLineCode, reProfileAudit, paidIndex));
 
-            ReProfileResponse reProfileResponse = (await variationApplications.ResiliencePolicies.ProfilingApiClient.ExecuteAsync(()
-                => variationApplications.ProfilingApiClient.ReProfile(reProfileRequest)))?.Content;
+            bool skipReProfiling = SkipReProfiling(ReProfileRequest, ReProfileForSameAmount);
+                
+            ReProfileResponse reProfileResponse = null;
 
-            if (reProfileResponse == null)
+            if (!skipReProfiling)
             {
-                throw new NonRetriableException($"Could not re profile funding line {fundingLineCode} for provider {providerId} with request: {reProfileRequest?.AsJson()}");
+                reProfileResponse = (await variationApplications.ResiliencePolicies.ProfilingApiClient.ExecuteAsync(()
+                => variationApplications.ProfilingApiClient.ReProfile(ReProfileRequest)))?.Content;
+
+                if (reProfileResponse == null)
+                {
+                    throw new NonRetriableException($"Could not re profile funding line {fundingLineCode} for provider {providerId} with request: {ReProfileRequest?.AsJson()}");
+                }
+
+                skipReProfiling = reProfileResponse.SkipReProfiling;
             }
 
-            if (reProfileResponse.SkipReProfiling)
+            // always reset the etag so we don't keep forcing re-profiling
+            // the only time the re-profile tag won't exists is if this is the
+            // first time re-profiling has been called for this funding line
+            // in this case nothing needs to be persisted for the etag 
+            refreshState.UpdateReProfileAuditETag(new ReProfileAudit
+            {
+                FundingLineCode = fundingLineCode,
+                ETag = VariationContext.ProfilePatterns[fundingLineCode].ETag
+            });
+
+            if (skipReProfiling)
             {
                 FundingLine currentFundingLine = currentState.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
-                
+
                 if (currentFundingLine == null)
                 {
                     throw new NonRetriableException($"Could not re profile funding line {fundingLineCode} for provider {providerId} as no current funding line exists");
                 }
-                    
+
                 foreach (DistributionPeriod distributionPeriod in currentFundingLine.DistributionPeriods)
                 {
                     refreshState.UpdateDistributionPeriodForFundingLine(fundingLineCode,
@@ -90,6 +136,17 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 }
 
                 return;
+            } 
+
+            if (ShouldPersistReProfileAudit(ReProfileRequest))
+            {
+                refreshState.AddOrUpdateReProfileAudit(new ReProfileAudit
+                {
+                    FundingLineCode = fundingLineCode,
+                    ETag = VariationContext.ProfilePatterns[fundingLineCode].ETag,
+                    VariationPointerIndex = ReProfileRequest.VariationPointerIndex,
+                    StrategyKey = reProfileResponse.StrategyKey
+                });
             }
 
             IEnumerable<DistributionPeriod> distributionPeriods = variationApplications.ReProfilingResponseMapper.MapReProfileResponseIntoDistributionPeriods(reProfileResponse);
@@ -103,26 +160,23 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             }
         }
 
-        protected virtual async Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
+        protected virtual async Task<(ReProfileRequest request, bool shouldExecuteForSameAsKey)> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
             IApplyProviderVariations variationApplications,
             string profilePatternKey,
-            FundingLine fundingLine)
+            ReProfileAudit reProfileAudit,
+            FundingLine fundingLine,
+            Func<string, ReProfileAudit, int, bool> reProfileForSameAmountFunc)
         {
-
-            ReProfileRequest reProfileRequest = await variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
+            (ReProfileRequest reProfileRequest, bool shouldExecuteForSameAsKey) = await variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
                 priorState,
-                ProfileConfigurationType.RuleBased,
-                fundingLine.Value);
+                fundingLine.Value,
+                reProfileAudit,
+                reProfileForSameAmountFunc: reProfileForSameAmountFunc);
 
-            if (VariationContext.AffectedFundingLineCodes("IndicativeToLive") != null && VariationContext.AffectedFundingLineCodes("IndicativeToLive").Contains(fundingLine.FundingLineCode))
-            {
-                reProfileRequest.ForceSameAsKey = "IncreasedAmountStrategyKey";
-            }
-
-            return reProfileRequest;
+            return (reProfileRequest, shouldExecuteForSameAsKey);
         }
     }
 }

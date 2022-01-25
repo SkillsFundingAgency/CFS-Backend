@@ -19,6 +19,7 @@ using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Services.Publishing.Models;
+using ProfilePatternKey = CalculateFunding.Models.Publishing.ProfilePatternKey;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -185,7 +186,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (ThereArePaidProfilePeriodsOnTheFundingLine(profileVariationPointers))
             {
-                await ReProfileFundingLine(newPublishedProviderVersion, profilePatternKey, fundingLineCode, fundingLine);
+                await ReProfileFundingLine(newPublishedProviderVersion, profilePatternKey?.Key, fundingLineCode, fundingLine);
             }
             else
             {
@@ -194,26 +195,20 @@ namespace CalculateFunding.Services.Publishing
         }
 
         private async Task ReProfileFundingLine(PublishedProviderVersion newPublishedProviderVersion,
-            ProfilePatternKey profilePatternKey,
+            string profilePatternKey,
             string fundingLineCode,
             FundingLine fundingLine)
         {
-            ReProfileRequest reProfileRequest = await _profilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
-                profilePatternKey.Key,
+            (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await _profilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
+                profilePatternKey,
                 newPublishedProviderVersion,
-                ProfileConfigurationType.Custom,
                 fundingLine.Value);
 
-            if (reProfileRequest != null)
-            {
-                reProfileRequest.ForceSameAsKey = "IncreasedAmountStrategyKey";
-            }
-
-            ReProfileResponse reProfileResponse = (await _profilingPolicy.ExecuteAsync(() => _profiling.ReProfile(reProfileRequest)))?.Content;
+            ReProfileResponse reProfileResponse = (await _profilingPolicy.ExecuteAsync(() => _profiling.ReProfile(ReProfileRequest)))?.Content;
 
             if (reProfileResponse == null)
             {
-                string error = $"Unable to re-profile funding line {fundingLineCode} on specification {newPublishedProviderVersion.SpecificationId} with profile pattern {profilePatternKey.Key}";
+                string error = $"Unable to re-profile funding line {fundingLineCode} on specification {newPublishedProviderVersion.SpecificationId} with profile pattern {profilePatternKey}";
 
                 _logger.Error(error);
 

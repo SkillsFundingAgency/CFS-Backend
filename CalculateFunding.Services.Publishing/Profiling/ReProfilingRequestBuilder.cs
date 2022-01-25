@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -11,7 +12,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Variations.Strategies;
 using Polly;
 
 namespace CalculateFunding.Services.Publishing.Profiling
@@ -31,12 +31,13 @@ namespace CalculateFunding.Services.Publishing.Profiling
             _specificationResilience = resiliencePolicies.SpecificationsApiClient;
         }
 
-        public async Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
+        public async Task<(ReProfileRequest, bool)> BuildReProfileRequest(string fundingLineCode,
             string profilePatternKey,
             PublishedProviderVersion publishedProviderVersion,
-            ProfileConfigurationType configurationType,
             decimal? fundingLineTotal = null,
-            MidYearType? midYearType = null)
+            ReProfileAudit reProfileAudit = null,
+            MidYearType? midYearType = null,
+            Func<string, ReProfileAudit, int, bool> shouldExecuteSameAsKey = null)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
@@ -55,14 +56,19 @@ namespace CalculateFunding.Services.Publishing.Profiling
 
             int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine, publishedProviderVersion.ProviderId);
 
+            // if the paid upto index is the same as the last re-profile index
+            bool AlreadyPaidUpToIndex = publishedProviderVersion.ReProfileAudits?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.VariationPointerIndex == paidUpToIndex;
+
+            // if already paid up to index then we need to skip to the next period
+            paidUpToIndex = AlreadyPaidUpToIndex ? paidUpToIndex + 1 : paidUpToIndex;
+
             IEnumerable<ExistingProfilePeriod> existingProfilePeriods = BuildExistingProfilePeriods(orderedProfilePeriodsForFundingLine, paidUpToIndex);
 
             decimal existingFundingLineTotal = orderedProfilePeriodsForFundingLine.Sum(_ => _.ProfiledValue);
-            
-            return new ReProfileRequest
+
+            return (new ReProfileRequest
             {
                 ProfilePatternKey = profilePatternKey,
-                ConfigurationType = configurationType,
                 FundingLineCode = fundingLineCode,
                 FundingPeriodId = publishedProviderVersion.FundingPeriodId,
                 FundingStreamId = publishedProviderVersion.FundingStreamId,
@@ -70,8 +76,9 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 ExistingFundingLineTotal = existingFundingLineTotal,
                 ExistingPeriods = existingProfilePeriods,
                 MidYearType = midYearType,
-                VariationPointerIndex = paidUpToIndex
-            };
+                VariationPointerIndex = paidUpToIndex,
+                AlreadyPaidUpToIndex = AlreadyPaidUpToIndex,
+            }, shouldExecuteSameAsKey != null ? shouldExecuteSameAsKey(fundingLineCode, reProfileAudit, paidUpToIndex) : true);
         }
 
         private ProfilePeriod[] GetOrderedProfilePeriodsForFundingLine(string fundingLineCode,

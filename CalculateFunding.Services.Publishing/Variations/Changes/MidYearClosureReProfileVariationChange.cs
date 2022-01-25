@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using ProfilePatternKey = CalculateFunding.Models.Publishing.ProfilePatternKey;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
@@ -14,17 +16,20 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
         }
 
-        protected override Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
+        protected override Task<(ReProfileRequest, bool)> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
             IApplyProviderVariations variationApplications,
             string profilePatternKey,
-            FundingLine fundingLine) =>
+            ReProfileAudit reProfileAudit,
+            FundingLine fundingLine,
+            Func<string, ReProfileAudit, int, bool> reProfileForSameAmountFunc) =>
             variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
                 priorState,
-                ProfileConfigurationType.RuleBased,
                 fundingLine.Value,
-                MidYearType.Closure);
+                reProfileAudit,
+                midYearType: MidYearType.Closure,
+                reProfileForSameAmountFunc: reProfileForSameAmountFunc);
     }
 }

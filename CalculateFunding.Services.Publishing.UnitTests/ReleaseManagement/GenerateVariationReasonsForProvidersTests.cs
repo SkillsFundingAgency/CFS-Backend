@@ -148,6 +148,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 providerVersionId,
                 organisationGroupResults,
                 providerVariationContext,
+                specificationSummary.FundingStreams.FirstOrDefault()?.Id,
                 specificationSummary.FundingPeriod.Id);
 
             IDictionary<string, IEnumerable<VariationReason>> actual =
@@ -189,6 +190,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             string providerVersionId,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData,
             ProviderVariationContext providerVariationContext,
+            string fundingStreamId,
             string fundingPeriodId,
             IEnumerable<string> variances = null)
         {
@@ -203,6 +205,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     variationPointers,
                     providerVersionId,
                     organisationGroupResultsData,
+                    fundingStreamId,
                     fundingPeriodId,
                     It.IsAny<PublishedProviderVersion>(),
                     variances))

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Profiling.Models;
@@ -118,10 +119,13 @@ namespace CalculateFunding.Services.Profiling.Tests
                 .Be("Re-profiling is not enabled for this scenario or the strategy was not found");
         }
 
-        [TestMethod, Ignore("can't stop this test flickering")]
+        [TestMethod]
         public void GuardsAgainstProfiledAmountsAndCarryOverNotBeingSameAsFundingValueInTheSuppliedRequestAfterReProfiling()
         {
-            ReProfileRequest request = NewReProfileRequest();
+            decimal newFundingTotal = NewRandomTotal();
+
+            ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal + 100)
+                .WithExistingFundingValue(newFundingTotal));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
 
             string key = NewRandomString();
@@ -135,9 +139,10 @@ namespace CalculateFunding.Services.Profiling.Tests
             AndTheReProfilingStrategy(key);
             AndTheProfiling(request, profilePattern, profileResponse);
             AndTheReProfilingStrategyResponse(profileResponse, request, profilePattern, NewReProfileStrategyResult());
-            
-            _service
-                .Awaiting(_ => _.ReProfile(request))
+
+            Func<Task> invocation = async() => await WhenTheFundingLineIsReProfiled(request);
+
+            invocation
                 .Should()
                 .Throw<InvalidOperationException>()
                 .Which
@@ -184,7 +189,8 @@ namespace CalculateFunding.Services.Profiling.Tests
                         new[] { distributionPeriods1 },
                         new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
                         10,
-                        profilePattern
+                        profilePattern,
+                        key
                     )
                 );
         }
@@ -227,7 +233,8 @@ namespace CalculateFunding.Services.Profiling.Tests
                         new[] { distributionPeriods1 },
                         new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
                         10,
-                        profilePattern
+                        profilePattern,
+                        key
                     )
                 );
         }
@@ -236,12 +243,11 @@ namespace CalculateFunding.Services.Profiling.Tests
         public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithSameAmountStrategyIfFundingTheSame()
         {
             decimal newFundingTotal = NewRandomTotal();
+            string key = NewRandomString();
 
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
                 .WithExistingFundingValue(newFundingTotal));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
-
-            string key = NewRandomString();
 
             FundingStreamPeriodProfilePattern profilePattern = NewFundingStreamPeriodProfilePattern(_ =>
                 _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
@@ -270,38 +276,33 @@ namespace CalculateFunding.Services.Profiling.Tests
                         new[] { distributionPeriods1 },
                         new[] { deliveryProfilePeriod1, deliveryProfilePeriod2},
                         10,
-                        profilePattern
+                        profilePattern,
+                        key
                     )
                 );
         }
 
         [TestMethod]
-        public async Task ForcesSameAmountKeyThenReProfilesUsingTheseResultsWithSameAmountStrategyIfFundingTheSame()
+        public async Task ReturnsSkipProfilingResultWithSkipProfilingStrategySetInConfiguration()
         {
-            string key = NewRandomString();
             decimal newFundingTotal = NewRandomTotal();
+            string key = nameof(SkipReProfilingStrategy);
 
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
-                .WithExistingFundingValue(newFundingTotal)
-                .WithForceSameAsKey("IncreasedAmountStrategyKey"));
+                .WithExistingFundingValue(newFundingTotal));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
 
             FundingStreamPeriodProfilePattern profilePattern = NewFundingStreamPeriodProfilePattern(_ =>
                 _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
                     cfg.WithIsEnabled(true)
-                    .WithIncreasedAmountStrategyKey(key))));
+                        .WithSameAmountStrategyKey(key))));
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
             DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
 
             GivenTheProfilePattern(request, profilePattern);
-            AndTheReProfilingStrategy(key);
-            AndTheProfiling(request, profilePattern, profileResponse);
-            AndTheReProfilingStrategyResponse(profileResponse, request, profilePattern, NewReProfileStrategyResult(_ =>
-                _.WithDistributionPeriods(distributionPeriods1)
-                    .WithDeliveryProfilePeriods(deliveryProfilePeriod1, deliveryProfilePeriod2)
-                    .WithCarryOverAmount(10)));
+            AndTheReProfilingStrategy(key, new SkipReProfilingStrategy());
 
             ActionResult<ReProfileResponse> reProfileResponse = await WhenTheFundingLineIsReProfiled(request);
 
@@ -309,20 +310,13 @@ namespace CalculateFunding.Services.Profiling.Tests
                 .Value
                 .Should()
                 .BeEquivalentTo(
-                    GetProfileResponse(
-                        new[] { distributionPeriods1 },
-                        new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
-                        10,
-                        profilePattern
-                    )
+                    new ReProfileResponse { SkipReProfiling = true}
                 );
         }
 
         [TestMethod]
-        [DataRow("ReProfileRemainingFundingForPeriod", MidYearType.Opener)]
-        [DataRow("ReProfileFutureDistributionPeriodsWithAdjustments", MidYearType.OpenerCatchup)]
-        [DataRow("ReProfileFutureDistributionPeriodsWithAdjustments", MidYearType.Closure)]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithMidYearStrategy(string key, MidYearType midYearType)
+        [DynamicData(nameof(ProfilePatternExamples), DynamicDataSourceType.Method)]
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithMidYearStrategy(MidYearType midYearType, string key, FundingStreamPeriodProfilePattern profilePattern)
         {
             decimal newFundingTotal = NewRandomTotal();
 
@@ -330,11 +324,6 @@ namespace CalculateFunding.Services.Profiling.Tests
                 .WithExistingFundingValue(newFundingTotal * -1)
                 .WithMidYearCatchup(midYearType));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
-
-            FundingStreamPeriodProfilePattern profilePattern = NewFundingStreamPeriodProfilePattern(_ =>
-                _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
-                    cfg.WithIsEnabled(true)
-                        .WithMidYearStrategyKey(key))));
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
@@ -358,7 +347,8 @@ namespace CalculateFunding.Services.Profiling.Tests
                         new[] { distributionPeriods1 },
                         new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
                         10,
-                        profilePattern
+                        profilePattern,
+                        key
                     )
                 );
         }
@@ -366,15 +356,17 @@ namespace CalculateFunding.Services.Profiling.Tests
         private ReProfileResponse GetProfileResponse(DistributionPeriods[] distributionPeriods,
             DeliveryProfilePeriod[] deliveryProfilePeriods,
             decimal carryOveramount,
-            FundingStreamPeriodProfilePattern profilePattern)
+            FundingStreamPeriodProfilePattern profilePattern,
+            string strategyKey)
                 => new ReProfileResponse
                         {
                             DistributionPeriods = distributionPeriods,
                             CarryOverAmount = carryOveramount,
                             DeliveryProfilePeriods = deliveryProfilePeriods,
                             ProfilePatternKey = profilePattern.ProfilePatternKey,
-                            ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
-                        };
+                            ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName,
+                            StrategyKey = strategyKey
+                };
 
         private async Task<ActionResult<ReProfileResponse>> WhenTheFundingLineIsReProfiled(ReProfileRequest request)
             => await _service.ReProfile(request);
@@ -414,7 +406,50 @@ namespace CalculateFunding.Services.Profiling.Tests
                     request.FundingLineTotal))
                 .Returns(response);
 
-        private FundingStreamPeriodProfilePattern NewFundingStreamPeriodProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)
+        public static IEnumerable<object[]> ProfilePatternExamples()
+        {
+            yield return new object[]
+            {
+                MidYearType.Opener,
+                "InitialFundingStrategyKey",
+                NewFundingStreamPeriodProfilePattern(_ =>
+                _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
+                    cfg.WithIsEnabled(true)
+                        .WithMidYearStrategyKey("InitialFundingStrategyKey"))))
+            };
+
+            yield return new object[]
+            {
+                MidYearType.OpenerCatchup,
+                "InitialFundingStrategyWithCatchupKey",
+                NewFundingStreamPeriodProfilePattern(_ =>
+                _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
+                    cfg.WithIsEnabled(true)
+                        .WithMidYearCatchUpStrategyKey("InitialFundingStrategyWithCatchupKey"))))
+            };
+
+            yield return new object[]
+            {
+                MidYearType.Converter,
+                "ConverterFundingStrategyKey",
+                NewFundingStreamPeriodProfilePattern(_ =>
+                _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
+                    cfg.WithIsEnabled(true)
+                        .WithMidYearConverterStrategyKey("ConverterFundingStrategyKey"))))
+            };
+
+            yield return new object[]
+            {
+                MidYearType.Closure,
+                "InitialClosureFundingStrategyKey",
+                NewFundingStreamPeriodProfilePattern(_ =>
+                _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
+                    cfg.WithIsEnabled(true)
+                        .WithMidYearClosureStrategyKey("InitialClosureFundingStrategyKey"))))
+            };
+        }
+
+        private static FundingStreamPeriodProfilePattern NewFundingStreamPeriodProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)
         {
             FundingStreamPeriodProfilePatternBuilder profilePatternBuilder = new FundingStreamPeriodProfilePatternBuilder();
 
@@ -423,7 +458,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             return profilePatternBuilder.Build();
         }
 
-        private ProfilePatternReProfilingConfiguration NewProfilePatternReProfilingConfiguration(Action<ProfilePatternReProfilingConfigurationBuilder> setUp = null)
+        private static ProfilePatternReProfilingConfiguration NewProfilePatternReProfilingConfiguration(Action<ProfilePatternReProfilingConfigurationBuilder> setUp = null)
         {
             ProfilePatternReProfilingConfigurationBuilder reProfilingConfigurationBuilder = new ProfilePatternReProfilingConfigurationBuilder();
 

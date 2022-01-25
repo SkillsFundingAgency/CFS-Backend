@@ -382,7 +382,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AndTheReProfileRequest(profilePatternKey.FundingLineCode,
                 profilePatternKey.Key,
                 publishedProvider.Current,
-                ProfileConfigurationType.Custom,
                 fundingLine.Value,
                 reProfileRequest);
             AndTheReProfileResponse(reProfileRequest, reProfileResponse);
@@ -445,17 +444,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private void AndTheReProfileRequest(string fundingLineCode,
             string profilePatternKey,
             PublishedProviderVersion publishedProviderVersion,
-            ProfileConfigurationType configurationType,
             decimal? fundingLineTotal, 
             ReProfileRequest profileRequest)
         {
             _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(fundingLineCode,
                     profilePatternKey,
                     publishedProviderVersion,
-                    configurationType,
                     fundingLineTotal,
+                    null,
+                    null,
                     null))
-                .ReturnsAsync(profileRequest);
+                .ReturnsAsync((profileRequest, true));
         }
         
         private ReProfileRequest NewReProfileRequest() => new ReProfileRequestTestEntityBuilder().Build();
