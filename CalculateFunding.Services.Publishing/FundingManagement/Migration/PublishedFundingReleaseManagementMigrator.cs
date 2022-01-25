@@ -40,6 +40,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private ConcurrentBag<ReleasedProviderChannelVariationReason> _createReleasedProviderChannelVariationReasons = new ConcurrentBag<ReleasedProviderChannelVariationReason>();
         private ConcurrentBag<Task> _blobMigrationTasks = new ConcurrentBag<Task>();
         private Dictionary<string, int> _lastIds;
+        private bool _skipDatabaseCheck = false;
 
         public PublishedFundingReleaseManagementMigrator(IPublishedFundingRepository publishedFundingRepository,
             IReleaseManagementRepository releaseManagementRepository,
@@ -76,8 +77,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             Dictionary<string, SqlModels.VariationReason> variationReasons,
             Dictionary<string, SqlModels.Specification> specifications,
             Dictionary<string, ReleasedProvider> releasedProviders,
-            Dictionary<string, ReleasedProviderVersion> releasedProviderVersions)
+            Dictionary<string, ReleasedProviderVersion> releasedProviderVersions,
+            bool deleteAllData)
         {
+            _skipDatabaseCheck = deleteAllData;
+
             _lastIds = (await _repo.GetLastIdSummary()).ToDictionary(_ => _.TableName, _ => _.LastId.HasValue ? _.LastId.Value : 0);
 
             await PopulateFundingGroups();
@@ -105,6 +109,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private async Task PopulateFundingGroups()
         {
+            if (_skipDatabaseCheck)
+            {
+                return;
+            }
+
             IEnumerable<FundingGroup> fundingGroups = await _repo.GetFundingGroups();
             foreach (FundingGroup fundingGroup in fundingGroups)
             {
@@ -172,20 +181,21 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 string channelId = publishedFunding.Key.Split('_')[0];
 
-                foreach (string fundingId in publishedFunding.Value.ProviderFundings)
+                string fundingVersionFundingId = publishedFunding.Value.FundingId;
+                _fundingGroupVersions.TryGetValue($"{channelId}_{fundingVersionFundingId}", out FundingGroupVersion fundingGroupVersion);
+
+                if (fundingGroupVersion == null)
                 {
-                    _fundingGroupVersions.TryGetValue($"{channelId}_{fundingId}", out FundingGroupVersion fundingGroupVersion);
+                    throw new KeyNotFoundException($"FundingGroupVersion not found for fundingId '{fundingVersionFundingId}'. PublishedFundingVersion: {publishedFunding.Value.Id}");
+                }
 
-                    if (fundingGroupVersion == null)
-                    {
-                        throw new KeyNotFoundException($"FundingGroupVersion not found for fundingId '{fundingId}'. PublishedFundingVersion: {publishedFunding.Value.Id}");
-                    }
-
-                    releasedProviderVersions.TryGetValue(fundingId, out ReleasedProviderVersion releasedProviderVersion);
+                foreach (string providerVersionFundingId in publishedFunding.Value.ProviderFundings)
+                {
+                    releasedProviderVersions.TryGetValue(providerVersionFundingId, out ReleasedProviderVersion releasedProviderVersion);
 
                     if (releasedProviderVersion == null)
                     {
-                        throw new KeyNotFoundException($"ReleasedProviderVersion not found for fundingId '{fundingId}'. PublishedFundingVersion: {publishedFunding.Value.Id}");
+                        throw new KeyNotFoundException($"ReleasedProviderVersion not found for fundingId '{providerVersionFundingId}'. PublishedFundingVersion: {publishedFunding.Value.Id}");
                     }
 
                     ReleasedProvider releasedProvider = _releasedProviders[releasedProviderVersion.ReleasedProviderId];
@@ -378,10 +388,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private async Task<FundingGroupVersion> GetOrGenerateFundingGroupVersion(Channel channel, FundingGroup fundingGroup, PublishedFundingVersion fundingVersion, IReleaseManagementImportContext ctx)
         {
-            FundingGroupVersion existingVersion = await _repo.GetFundingGroupVersion(fundingGroup.FundingGroupId, fundingVersion.MajorVersion);
-            if (existingVersion != null)
+            if (!_skipDatabaseCheck)
             {
-                return existingVersion;
+                FundingGroupVersion existingVersion = await _repo.GetFundingGroupVersion(fundingGroup.FundingGroupId, fundingVersion.MajorVersion);
+                if (existingVersion != null)
+                {
+                    return existingVersion;
+                }
             }
 
             FundingGroupVersion fundingGroupVersion = new FundingGroupVersion()

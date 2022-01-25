@@ -147,7 +147,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await PopulateReleasedProviders();
             await PopulateReleasedProviderVersions();
 
-            await PopulateFundingAndProviders();
+            await PopulateFundingAndProviders(deleteAllData);
 
             return new OkResult();
         }
@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             _releasedProviderVersions = new Dictionary<string, SqlModels.ReleasedProviderVersion>(existingReleasedProviderVersions.ToDictionary(_ => _.FundingId));
         }
 
-        private async Task PopulateFundingAndProviders()
+        private async Task PopulateFundingAndProviders(bool deleteAllData)
         {
             await _fundingMigrator.Migrate(_fundingStreams,
                                            _fundingPeriods,
@@ -202,7 +202,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                                            _variationReasons,
                                            _specifications,
                                            _releasedProviders,
-                                           _releasedProviderVersions);
+                                           _releasedProviderVersions,
+                                           deleteAllData);
         }
 
 
