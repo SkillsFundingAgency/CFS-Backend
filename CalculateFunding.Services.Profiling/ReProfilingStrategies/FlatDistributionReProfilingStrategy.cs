@@ -88,12 +88,15 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             ReProfileRequest,
             IProfilePeriod[]> DistributeRemaingBalance)
         {
-            if ((context.Request.MidYearType == MidYearType.Opener || 
+            if (context.Request.MidYearType == MidYearType.Opener || 
                 context.Request.MidYearType == MidYearType.OpenerCatchup ||
-                context.Request.MidYearType == MidYearType.Converter) &&
-                !context.Request.AlreadyPaidUpToIndex)
+                context.Request.MidYearType == MidYearType.Converter)
             {
-                ZeroPaidProfilePeriodValues(variationPointerIndex, orderedRefreshProfilePeriods, orderedExistingProfilePeriods);
+                ZeroPaidProfilePeriodValues(context.Request.AlreadyPaidUpToIndex ?
+                        variationPointerIndex - 1 : 
+                        variationPointerIndex,
+                    orderedRefreshProfilePeriods,
+                    orderedExistingProfilePeriods);
             }
             else
             {
