@@ -92,9 +92,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 context.Request.MidYearType == MidYearType.OpenerCatchup ||
                 context.Request.MidYearType == MidYearType.Converter)
             {
-                ZeroPaidProfilePeriodValues(context.Request.AlreadyPaidUpToIndex ?
-                        variationPointerIndex - 1 : 
-                        variationPointerIndex,
+                ZeroPaidProfilePeriodValues(variationPointerIndex,
                     orderedRefreshProfilePeriods,
                     orderedExistingProfilePeriods);
             }

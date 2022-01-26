@@ -24,6 +24,10 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 orderedExistingProfilePeriods,
                 context);
 
+            variationPointerIndex = context.Request.AlreadyPaidUpToIndex ?
+                        variationPointerIndex - 1 : 
+                        variationPointerIndex;
+
             return FlatDistribution(context,
                 orderedRefreshProfilePeriods,
                 orderedExistingProfilePeriods,

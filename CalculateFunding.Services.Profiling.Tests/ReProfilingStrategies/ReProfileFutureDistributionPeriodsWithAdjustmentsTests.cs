@@ -333,11 +333,11 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             yield return new object[]
             {
                 4,
-                NewDecimals(0, 0, 0, 3862.25M, 3862.25M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
-                NewDecimals(0, 0, 0, 3862.25M, 3862.25M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
+                NewDecimals(0, 0, 0, 3862.30M, 3862.20M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
+                NewDecimals(0, 0, 0, 3862.30M, 3862.20M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
                 15448.99M,
                 15448.99M,
-                NewDecimals(0, 0, 0, 3862.25M, 3862.25M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
+                NewDecimals(0, 0, 0, 3862.30M, 3862.20M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
                 0M,
                 MidYearType.Opener,
                 true
