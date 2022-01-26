@@ -4,13 +4,16 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public abstract class VariationChange : IVariationChange
     {
         private readonly string _strategyName;
-        protected VariationChange(ProviderVariationContext variationContext, string strategyName)
+
+        protected VariationChange(ProviderVariationContext variationContext,
+            string strategyName)
         {
             Guard.ArgumentNotNull(variationContext, nameof(variationContext));
             Guard.IsNullOrWhiteSpace(strategyName, nameof(strategyName));

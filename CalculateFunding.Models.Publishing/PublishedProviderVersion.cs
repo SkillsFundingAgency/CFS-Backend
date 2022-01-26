@@ -46,10 +46,10 @@ namespace CalculateFunding.Models.Publishing
         /// in this period and funding stream keyed by funding line
         /// </summary>
         [JsonProperty("profilePatternKeys")]
-        public ICollection<ProfilePatternKey> ProfilePatternKeys { get; set; }
+        public IEnumerable<ProfilePatternKey> ProfilePatternKeys { get; set; }
 
         [JsonProperty("reProfileAudits")]
-        public ICollection<ReProfileAudit> ReProfileAudits { get; set; }
+        public IEnumerable<ReProfileAudit> ReProfileAudits { get; set; }
 
         /// <summary>
         /// The custom profile periods used for this provider
@@ -234,7 +234,7 @@ namespace CalculateFunding.Models.Publishing
         /// Collection of profiling audits for each funding line profile updates
         /// </summary>
         [JsonProperty("profilingAudits")]
-        public ICollection<ProfilingAudit> ProfilingAudits { get; set; }
+        public IEnumerable<ProfilingAudit> ProfilingAudits { get; set; }
         
         /// <summary>
         /// Indicates whether the allocations for this version
@@ -322,17 +322,18 @@ namespace CalculateFunding.Models.Publishing
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
             Guard.ArgumentNotNull(user, nameof(user));
 
-            ProfilingAudits ??= new List<ProfilingAudit>();
+            ProfilingAudits ??= ArraySegment<ProfilingAudit>.Empty;
 
             ProfilingAudit profilingAudit = ProfilingAudits.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
             if (profilingAudit == null)
             {
-                ProfilingAudits.Add(new ProfilingAudit
-                {
-                    FundingLineCode = fundingLineCode,
-                    User = user,
-                    Date = DateTime.UtcNow
+                ProfilingAudits = ProfilingAudits.Concat(new[] {new ProfilingAudit
+                    {
+                        FundingLineCode = fundingLineCode,
+                        User = user,
+                        Date = DateTime.UtcNow
+                    }
                 });
             }
             else
@@ -348,7 +349,7 @@ namespace CalculateFunding.Models.Publishing
         {
             DistributionPeriod distributionPeriod = GetDistributionPeriod(fundingLineCode, distributionPeriodId);
 
-            CustomProfiles ??= new List<FundingLineProfileOverrides>();
+            CustomProfiles ??= ArraySegment<FundingLineProfileOverrides>.Empty;
 
             FundingLineProfileOverrides customProfile = CustomProfiles.SingleOrDefault(_ =>
                 _.FundingLineCode == fundingLineCode);
@@ -470,8 +471,8 @@ namespace CalculateFunding.Models.Publishing
             }
             else
             {
-                ProfilePatternKeys ??= new List<ProfilePatternKey>();
-                ProfilePatternKeys.Add(profilePatternKey);
+                ProfilePatternKeys ??= ArraySegment<ProfilePatternKey>.Empty;
+                ProfilePatternKeys = ProfilePatternKeys.Concat(new[] { profilePatternKey });
             }
         }
 
@@ -500,8 +501,8 @@ namespace CalculateFunding.Models.Publishing
             }
             else
             {
-                ReProfileAudits ??= new List<ReProfileAudit>();
-                ReProfileAudits.Add(reProfileAudit);
+                ReProfileAudits ??= ArraySegment<ReProfileAudit>.Empty;
+                ReProfileAudits = ReProfileAudits.Concat(new[] { reProfileAudit });
             }
         }
 
