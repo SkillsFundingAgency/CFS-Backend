@@ -20,9 +20,11 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             decimal[] originalPeriodValues,
             decimal[] newTheoreticalPeriodValues,
             decimal[] profilePattern,
-            decimal[] expectedAdjustedPeriodValues)
+            decimal[] expectedAdjustedPeriodValues,
+            bool alreadyPaidUptoIndex)
         {
             Context.Request.MidYearType = Models.MidYearType.Opener;
+            Context.Request.AlreadyPaidUpToIndex = alreadyPaidUptoIndex;
 
             GivenTheLatestProfiling(AsLatestProfiling(newTheoreticalPeriodValues));
             AndTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
@@ -172,6 +174,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100),
                 NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
                 NewDecimals(0, 0, 0, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.43M, 1571.42M),
+                false
             };
             yield return new object[]
             {
@@ -180,6 +183,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(950, 950, 950, 950, 950, 950, 950, 950, 950, 950),
                 NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
                 NewDecimals(0, 0, 0, 0, 0, 0, 2375, 2375, 2375, 2375),
+                false
             };
             yield return new object[]
             {
@@ -188,6 +192,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(800, 800, 800, 800, 800, 800, 800, 800, 800, 800),
                 NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M),
                 NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 8000),
+                false
             };
             yield return new object[]
             {
@@ -196,6 +201,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(0, 0, 800, 0, 0, 800, 0, 0, 0, 800),
                 NewDecimals(0M, 0M, 1M, 0M, 0M, 1M, 0M, 0M, 0M, 1M),
                 NewDecimals(0, 0, 0, 0, 0, 1200, 0, 0, 0, 1200),
+                false
             };
             yield return new object[]
             {
@@ -204,6 +210,18 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(0, 0, 800, 0, 0, 800, 0, 0, 0, 800),
                 NewDecimals(0M, 0M, 1M, 0M, 0M, 1M, 0M, 0M, 0M, 1M),
                 NewDecimals(0, 0, 0, 0, 0, 1200, 0, 0, 0, 1200),
+                false
+            };
+            //  1619
+            //      Mid year SSF / College to Academy converter - Three payment profile - 1 default payment month in the past
+            yield return new object[]
+            {
+                9,
+                NewDecimals(0, 13958.64M, 0, 0, 0, 0, 0, 0, 13958.64M, 13959.05M, 0, 0),
+                NewDecimals(0, 9305.90M, 0, 0, 0, 0, 0, 0, 9305.90M, 9305.89M, 0, 0),
+                NewDecimals(0M, 1M, 0M, 0M, 0M, 0M, 0M, 0M, 1M, 1M, 0, 0),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 13958.85M, 13958.84M, 0, 0),
+                true
             };
             // Example 32
             //  1619
@@ -215,6 +233,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(0, 9305.90M, 0, 0, 0, 0, 0, 0, 9305.90M, 9305.89M, 0, 0),
                 NewDecimals(0M, 1M, 0M, 0M, 0M, 0M, 0M, 0M, 1M, 1M, 0, 0),
                 NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 13958.85M, 13958.84M, 0, 0),
+                false
             };
         }
     }

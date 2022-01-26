@@ -33,6 +33,18 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             return finalPaidProfilePeriod == null ? 0 : Array.IndexOf(orderedExistingProfilePeriods, finalPaidProfilePeriod) + 1;    
         }
 
+        protected int GetAlreadyPaidUptoIndex(ReProfileContext context, int variationPointerIndex)
+        {
+            if ((context.Request.MidYearType == MidYearType.Opener ||
+                context.Request.MidYearType == MidYearType.OpenerCatchup ||
+                context.Request.MidYearType == MidYearType.Converter) && context.Request.AlreadyPaidUpToIndex)
+            {
+                return variationPointerIndex - 1;
+            }
+
+            return variationPointerIndex;
+        }
+
         protected static void ZeroPaidProfilePeriodValues(int variationPointerIndex,
             IProfilePeriod[] orderedRefreshProfilePeriods,
             IProfilePeriod[] orderedExistingProfilePeriods = null)
