@@ -6,6 +6,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
@@ -124,6 +125,32 @@ namespace CalculateFunding.Services.Calcs.Validators
             ICalculationsRepository calculationsRepository = CreateCalculationRepository();
             calculationsRepository
                 .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .Returns(calculationWithSameName);
+
+            CalculationEditModelValidator validator = CreateValidator(calculationRepository: calculationsRepository);
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public async Task ValidateAsync_WhenCalculationSourceCodeNameAlreadyExists_ValidIsFalse()
+        {
+            //Arrange
+            CalculationEditModel model = CreateModel();
+            string sourceCodeName = new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(model.Name);
+
+            Calculation calculationWithSameName = new Calculation();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationRepository();
+            calculationsRepository
+                .GetCalculationBySpecificationIdAndCalculationSourceCodeName(Arg.Is(model.SpecificationId), Arg.Is(sourceCodeName))
                 .Returns(calculationWithSameName);
 
             CalculationEditModelValidator validator = CreateValidator(calculationRepository: calculationsRepository);

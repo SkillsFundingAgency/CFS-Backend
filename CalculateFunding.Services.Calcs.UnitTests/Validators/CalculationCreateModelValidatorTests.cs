@@ -7,6 +7,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
@@ -187,7 +188,37 @@ namespace CalculateFunding.Services.Calcs.Validators
             result.Errors
               .Should()
               .Contain(_ => _.ErrorMessage == "A calculation already exists with the name: 'test calc' for this specification");
-        }       
+        }
+
+        [TestMethod]
+        public async Task ValidateAsync_WhenCalculationSourceCodeNameAlreadyExists_ValidIsFalse()
+        {
+            //Arrange
+            CalculationCreateModel model = CreateModel();
+            string sourceCodeName = new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(model.Name);
+
+            Calculation calculationWithSameName = new Calculation();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationRepository();
+            calculationsRepository
+                .GetCalculationBySpecificationIdAndCalculationSourceCodeName(Arg.Is(model.SpecificationId), Arg.Is(sourceCodeName))
+                .Returns(calculationWithSameName);
+
+            CalculationCreateModelValidator validator = CreateValidator(calculationRepository: calculationsRepository);
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result.Errors
+              .Should()
+              .Contain(_ => _.ErrorMessage == $"A calculation already exists with the source code name: '{sourceCodeName}' for this specification");
+        }
 
         [TestMethod]
         public async Task ValidateAsync_WhenSpecificationCanNotBeFound_ValidIsFalse()

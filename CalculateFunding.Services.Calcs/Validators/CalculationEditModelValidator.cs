@@ -2,6 +2,7 @@
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
@@ -55,6 +56,21 @@ namespace CalculateFunding.Services.Calcs.Validators
                      }
                  }
              });
+
+            RuleFor(model => model.Name)
+              .Custom((name, context) =>
+              {
+                  CalculationEditModel calculationEditModel = context.ParentContext.InstanceToValidate as CalculationEditModel;
+                  if (!string.IsNullOrWhiteSpace(calculationEditModel.SpecificationId))
+                  {
+                      string sourceCodeName = new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(calculationEditModel.Name);
+
+                      Calculation calculation = _calculationRepository.GetCalculationBySpecificationIdAndCalculationSourceCodeName(calculationEditModel.SpecificationId, sourceCodeName).Result;
+
+                      if (calculation != null && calculation.Id != calculationEditModel.CalculationId)
+                          context.AddFailure($"A calculation already exists with the source code name: '{sourceCodeName}' for this specification");
+                  }
+              });
 
             RuleFor(model => model.SourceCode)
              .Custom((sc, context) =>
