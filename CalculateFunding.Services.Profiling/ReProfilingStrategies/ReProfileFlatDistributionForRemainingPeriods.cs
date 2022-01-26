@@ -24,9 +24,12 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 orderedExistingProfilePeriods,
                 context);
 
-            variationPointerIndex = context.Request.AlreadyPaidUpToIndex ?
-                        variationPointerIndex - 1 : 
-                        variationPointerIndex;
+            if ((context.Request.MidYearType == MidYearType.Opener ||
+                context.Request.MidYearType == MidYearType.OpenerCatchup ||
+                context.Request.MidYearType == MidYearType.Converter) && context.Request.AlreadyPaidUpToIndex)
+            {
+                variationPointerIndex = variationPointerIndex - 1;
+            }
 
             return FlatDistribution(context,
                 orderedRefreshProfilePeriods,

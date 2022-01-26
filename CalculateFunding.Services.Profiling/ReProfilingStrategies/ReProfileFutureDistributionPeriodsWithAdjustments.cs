@@ -28,9 +28,12 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
             int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
 
-            variationPointerIndex = context.Request.AlreadyPaidUpToIndex ?
-                        variationPointerIndex - 1 :
-                        variationPointerIndex;
+            if ((context.Request.MidYearType == MidYearType.Opener ||
+                context.Request.MidYearType == MidYearType.OpenerCatchup ||
+                context.Request.MidYearType == MidYearType.Converter) && context.Request.AlreadyPaidUpToIndex)
+            {
+                variationPointerIndex = variationPointerIndex - 1;
+            }
 
             if (context.Request.MidYearType == MidYearType.OpenerCatchup || 
                 context.Request.MidYearType == MidYearType.Opener || 
