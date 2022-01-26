@@ -145,7 +145,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                     FundingLineCode = fundingLineCode,
                     ETag = GetProfilePattern(fundingLineCode, profilePatternKey)?.ETag,
                     VariationPointerIndex = ReProfileRequest.VariationPointerIndex,
-                    StrategyKey = reProfileResponse.StrategyKey
+                    StrategyConfigKey = reProfileResponse.StrategyConfigKey,
+                    Strategy = reProfileResponse.Strategy
                 });
             }
 

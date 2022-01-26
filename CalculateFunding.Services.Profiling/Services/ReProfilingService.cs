@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Profiling.Services
                 return new BadRequestObjectResult("Re-profiling is not enabled or has not been configured");
             }
 
-            (IReProfilingStrategy Strategy, string StrategyKey) = GetReProfilingStrategy(reProfileRequest, profilePattern);
+            (IReProfilingStrategy Strategy, string StrategyConfigKey) = GetReProfilingStrategy(reProfileRequest, profilePattern);
 
             if (Strategy == null)
             {
@@ -69,7 +69,8 @@ namespace CalculateFunding.Services.Profiling.Services
                 DistributionPeriods = strategyResult.DistributionPeriods,
                 ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName,
                 ProfilePatternKey = profilePattern.ProfilePatternKey,
-                StrategyKey = StrategyKey,
+                Strategy = Strategy.StrategyKey,
+                StrategyConfigKey = StrategyConfigKey,
                 CarryOverAmount = strategyResult.CarryOverAmount,
                 VariationPointerIndex = reProfileRequest.VariationPointerIndex
             };
@@ -97,15 +98,15 @@ namespace CalculateFunding.Services.Profiling.Services
             };
         }
 
-        private (IReProfilingStrategy ReProfilingStrategy, string ReProfilingStrategyKey) GetReProfilingStrategy(ReProfileRequest reProfileRequest,
+        private (IReProfilingStrategy ReProfilingStrategy, string ReProfilingStrategyConfigKey) GetReProfilingStrategy(ReProfileRequest reProfileRequest,
             FundingStreamPeriodProfilePattern profilePattern)
         {
-            string key = GetReProfilingStrategyKey(reProfileRequest, profilePattern);
+            (string key, string strategyConfigKey)  = GetReProfilingStrategyKey(reProfileRequest, profilePattern);
 
-            return (_reProfilingStrategyLocator.GetStrategy(key), key);
+            return (_reProfilingStrategyLocator.GetStrategy(key), strategyConfigKey);
         }
 
-        private static string GetReProfilingStrategyKey(ReProfileRequest reProfileRequest,
+        private static (string strategy, string strategyConfigKey) GetReProfilingStrategyKey(ReProfileRequest reProfileRequest,
             FundingStreamPeriodProfilePattern profilePattern) => reProfileRequest.MidYearType switch
             {
                 null => profilePattern.GetReProfilingStrategyKeyForFundingAmountChange(reProfileRequest),

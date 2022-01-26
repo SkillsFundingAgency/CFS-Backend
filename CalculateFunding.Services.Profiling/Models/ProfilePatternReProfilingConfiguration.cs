@@ -41,19 +41,19 @@ namespace CalculateFunding.Services.Profiling.Models
         [JsonProperty("converterFundingStrategyKey")]
         public string ConverterFundingStrategyKey { get; set; }
 
-        public string GetReProfilingStrategyKeyForFundingAmountChange(ReProfileRequest reProfileRequest)
+        public (string strategy, string strategyConfigKey) GetReProfilingStrategyKeyForFundingAmountChange(ReProfileRequest reProfileRequest)
         {
             if (reProfileRequest.FundingLineTotalChange == 0)
             {
-                return SameAmountStrategyKey;
+                return (SameAmountStrategyKey, nameof(SameAmountStrategyKey));
             }
             else if (reProfileRequest.FundingLineTotalChange > 0)
             {
-                return IncreasedAmountStrategyKey;
+                return (IncreasedAmountStrategyKey, nameof(IncreasedAmountStrategyKey));
             }
             else
             {
-                return DecreasedAmountStrategyKey;
+                return (DecreasedAmountStrategyKey, nameof(DecreasedAmountStrategyKey));
             }
         }
     }

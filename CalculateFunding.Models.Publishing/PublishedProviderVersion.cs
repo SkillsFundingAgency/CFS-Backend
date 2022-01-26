@@ -494,7 +494,8 @@ namespace CalculateFunding.Models.Publishing
                     .SingleOrDefault(_ => _.FundingLineCode == reProfileAudit.FundingLineCode);
 
                 reProfileAuditCurrent.ETag = reProfileAudit.ETag;
-                reProfileAuditCurrent.StrategyKey = reProfileAudit.StrategyKey;
+                reProfileAuditCurrent.StrategyConfigKey = reProfileAudit.StrategyConfigKey;
+                reProfileAuditCurrent.Strategy = reProfileAudit.Strategy;
                 reProfileAuditCurrent.VariationPointerIndex = reProfileAudit.VariationPointerIndex;
             }
             else

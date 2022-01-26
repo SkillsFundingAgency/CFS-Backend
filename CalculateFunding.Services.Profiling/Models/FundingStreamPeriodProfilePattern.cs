@@ -87,19 +87,19 @@ namespace CalculateFunding.Services.Profiling.Models
 
         private string ProfilePatternKeyString => ProfilePatternKey.IsNullOrEmpty() ? null : $"-{ProfilePatternKey}";
 
-        public string GetReProfilingStrategyKeyForInitialFunding()
-            => ReProfilingConfiguration?.InitialFundingStrategyKey;
+        public (string strategy, string strategyConfigKey) GetReProfilingStrategyKeyForInitialFunding()
+            => (ReProfilingConfiguration?.InitialFundingStrategyKey, nameof(ProfilePatternReProfilingConfiguration.InitialFundingStrategyKey)) ;
 
-        public string GetReProfilingStrategyKeyForInitialFundingWithCatchup()
-            => ReProfilingConfiguration?.InitialFundingStrategyWithCatchupKey;
+        public (string strategy, string strategyConfigKey) GetReProfilingStrategyKeyForInitialFundingWithCatchup()
+            => (ReProfilingConfiguration?.InitialFundingStrategyWithCatchupKey, nameof(ProfilePatternReProfilingConfiguration.InitialFundingStrategyWithCatchupKey));
         
-        public string GetReProfilingStrategyKeyForInitialClosureFunding()
-            => ReProfilingConfiguration?.InitialClosureFundingStrategyKey;
+        public (string strategy, string strategyConfigKey) GetReProfilingStrategyKeyForInitialClosureFunding()
+            => (ReProfilingConfiguration?.InitialClosureFundingStrategyKey, nameof(ProfilePatternReProfilingConfiguration.InitialClosureFundingStrategyKey)) ;
 
-        public string GetReProfilingStrategyKeyForConverterFunding()
-            => ReProfilingConfiguration?.ConverterFundingStrategyKey;
+        public (string strategy, string strategyConfigKey) GetReProfilingStrategyKeyForConverterFunding()
+            => (ReProfilingConfiguration?.ConverterFundingStrategyKey, nameof(ProfilePatternReProfilingConfiguration.ConverterFundingStrategyKey)) ;
 
-        public string GetReProfilingStrategyKeyForFundingAmountChange(ReProfileRequest request)
-            => ReProfilingConfiguration?.GetReProfilingStrategyKeyForFundingAmountChange(request);
+        public (string strategy, string strategyConfigKey) GetReProfilingStrategyKeyForFundingAmountChange(ReProfileRequest request)
+            => ReProfilingConfiguration?.GetReProfilingStrategyKeyForFundingAmountChange(request) ?? (null, null);
     }
 }

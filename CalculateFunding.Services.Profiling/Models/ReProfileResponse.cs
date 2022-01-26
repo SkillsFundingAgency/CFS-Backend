@@ -16,6 +16,8 @@
 
         public bool SkipReProfiling { get; set; }
 
-        public string StrategyKey { get; set; }
+        public string StrategyConfigKey { get; set; }
+
+        public string Strategy { get; set; }
     }
 }

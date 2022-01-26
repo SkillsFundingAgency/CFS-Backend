@@ -12,7 +12,9 @@ namespace CalculateFunding.Models.Publishing
 
         public string ETag { get; set; }
 
-        public string StrategyKey { get; set; }
+        public string StrategyConfigKey { get; set; }
+
+        public string Strategy { get; set; }
 
         public int? VariationPointerIndex { get; set; }
 
@@ -23,7 +25,7 @@ namespace CalculateFunding.Models.Publishing
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(FundingLineCode, ETag, StrategyKey, VariationPointerIndex);
+            return HashCode.Combine(FundingLineCode, ETag, StrategyConfigKey, Strategy, VariationPointerIndex);
         }
     }
 }
