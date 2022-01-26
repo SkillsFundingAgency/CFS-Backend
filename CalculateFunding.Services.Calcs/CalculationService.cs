@@ -635,7 +635,7 @@ namespace CalculateFunding.Services.Calcs
                     ApplySystemAllowedEditsToCalculation(calculationEditModel, calculationVersion);
                 }
 
-                if(calculation.Name != calculationVersion.Name && calculation.Current.CalculationType == CalculationType.Additional)
+                if (calculation.Name != calculationVersion.Name && calculation.Current.CalculationType == CalculationType.Additional)
                 {
                     ApiResponse<IEnumerable<GraphModels.Entity<GraphModels.Calculation>>> relatedEntitiesResponse = await _graphApiClient.GetAllEntitiesRelatedToCalculation(calculationId);
 

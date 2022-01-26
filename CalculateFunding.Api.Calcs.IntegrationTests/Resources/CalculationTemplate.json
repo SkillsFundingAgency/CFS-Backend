@@ -1,0 +1,36 @@
+{
+  "id": "<ID>",
+  "documentType": "Calculation",
+  "content": {
+    "specificationId": "<SPECIFICATIONID>",
+    "current": {
+      "id": "<ID>_version_1",
+      "entityId": "<ID>",
+      "sourceCode": "return 0",
+      "calculationId": "<ID>",
+      "calculationType": "<CALCULATIONTYPE>",
+      "sourceCodeName": "<SOURCECODENAME>",
+      "name": "<NAME>",
+      "namespace": "Template",
+      "wasTemplateCalculation": false,
+      "valueType": "<CALCULATIONVALUETYPE>",
+      "description": null,
+      "dataType": "<CALCULATIONDATATYPE>",
+      "allowedEnumTypeValues": [],
+      "version": 1,
+      "date": "<NOW>",
+      "author": {
+        "id": "unknown",
+        "name": "unknown"
+      },
+      "comment": null,
+      "publishStatus": "Updated"
+    },
+    "fundingStreamId": "<FUNDINGSTREAMID>",
+    "name": "<NAME>",
+    "id": "<ID>"
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}

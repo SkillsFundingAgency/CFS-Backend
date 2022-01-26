@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-
-namespace CalculateFunding.Services.CodeGeneration
+﻿namespace CalculateFunding.Services.CodeGeneration
 {
     public static class CodeGenerationConstants
     {

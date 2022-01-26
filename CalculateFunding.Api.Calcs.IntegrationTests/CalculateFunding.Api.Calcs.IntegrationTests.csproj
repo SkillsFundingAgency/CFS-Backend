@@ -7,12 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Resources\CalculationTemplate.json" />
       <None Remove="Resources\FundingTemplateTemplate.json" />
       <None Remove="Resources\SpecificationTemplate.json" />
       <None Remove="Resources\TemplateMappingsTemplate.json" />
     </ItemGroup>
 
     <ItemGroup>
+      <EmbeddedResource Include="Resources\CalculationTemplate.json" />
       <EmbeddedResource Include="Resources\FundingTemplateTemplate.json" />
       <EmbeddedResource Include="Resources\SpecificationTemplate.json" />
       <EmbeddedResource Include="Resources\TemplateMappingsTemplate.json" />
