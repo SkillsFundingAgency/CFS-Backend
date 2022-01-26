@@ -94,7 +94,9 @@ namespace CalculateFunding.Models.Publishing
         [EnumMember(Value = nameof(GovernmentOfficeRegionNameFieldUpdated))]
         GovernmentOfficeRegionNameFieldUpdated,
 
+        [Display(Name = "District code updated")]
         [EnumMember(Value = nameof(DistrictCodeFieldUpdated))]
+        [SqlConstantId(49)]
         DistrictCodeFieldUpdated,
 
         [Display(Name = "District name updated")]
@@ -227,8 +229,10 @@ namespace CalculateFunding.Models.Publishing
         [EnumMember(Value = nameof(FundingSchemaUpdated))]
         FundingSchemaUpdated,
 
-        [EnumMember(Value = nameof(DistributionProfileUpdated))]
         [Obsolete]
+        [Display(Name = "Distribution profile updated")]
+        [EnumMember(Value = nameof(DistributionProfileUpdated))]
+        [SqlConstantId(50)]
         DistributionProfileUpdated,
 
         [Display(Name = "Provider changed from indicative to live")]
