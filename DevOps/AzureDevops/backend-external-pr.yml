@@ -105,6 +105,13 @@ steps:
      cfsClient:ApiEndpoint: $(cfsClientApiEndpoint)
      policiesClient:ApiEndpoint: $(policiesClientApiEndpoint)
      policiesClient:ApiKey: $(svcapipolicy)
+     providerProfilingAzureBearerTokenOptions:ClientId: $(providerProfilingAzureBearerTokenOptionsClientId) 
+     providerProfilingAzureBearerTokenOptions:ClientSecret: $(providerProfilingAzureBearerTokenClientSecret)
+     providerProfilingAzureBearerTokenOptions:GrantType : 'client_credentials'
+     providerProfilingAzureBearerTokenOptions:Scope: $(providerProfilingAzureBearerTokenOptionsScope)
+     providerProfilingAzureBearerTokenOptions:Url: $(providerProfilingAzureBearerTokenOptionsUrl)
+     providerProfilingClient:ApiEndpoint: $(providerProfilingClientApiEndpoint)
+     providerProfilingClient:ApiKey: $(svcapiprofiling)
      providersClient:ApiEndpoint: $(providersClientApiEndpoint)
      providersClient:ApiKey: $(svcapiproviders)
 

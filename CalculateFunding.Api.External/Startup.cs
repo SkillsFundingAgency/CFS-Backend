@@ -6,6 +6,7 @@ using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Api.External.V4.IoC;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Profiling;
 using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
@@ -267,6 +268,9 @@ namespace CalculateFunding.Api.External
             builder
                .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
 
+            builder.AddSingleton<IProfilingService, ProfilingService>()
+                .AddSingleton<IHealthChecker, ProfilingService>();
+
             builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.External");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.External");
@@ -290,6 +294,7 @@ namespace CalculateFunding.Api.External
                     PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     ReleaseManagementRepository = Polly.Policy.NoOpAsync(), // TODO: Add SQL policies
+                    ProfilingApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 
@@ -318,6 +323,7 @@ namespace CalculateFunding.Api.External
 
             builder.AddAuthenticatedHealthCheckMiddleware();
             builder.AddPoliciesInterServiceClient(Configuration);
+            builder.AddProfilingInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddFundingDataServiceInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);

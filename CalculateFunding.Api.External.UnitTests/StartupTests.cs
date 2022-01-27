@@ -19,6 +19,7 @@ namespace CalculateFunding.Api.External.UnitTests
                 { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
                 { "AzureStorageSettings:ConnectionString", "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AccountKey=dGVzdA==;EndpointSuffix=core.windows.net" },
+                { "providerProfilingClient:ApiEndpoint", "https://localhost:5001/api" },
                 { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
                 { "providersClient:ApiKey", "Local" },
                 { "releaseManagementSql:ConnectionString", "Server=.\\;Initial Catalog=ReleaseManagement;Integrated Security=SSPI" },
