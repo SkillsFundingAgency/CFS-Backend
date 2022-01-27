@@ -150,13 +150,13 @@ namespace CalculateFunding.Services.Providers
 
                 _logger.Information($"Triggering Update Specification Provider Version for funding stream ID: {latestProviderSnapshot.FundingStreamCode}. " +
                                $"Current provider snapshot ID: {latestProviderSnapshot.ProviderSnapshotId}");
+            }
 
-                IEnumerable<SpecificationSummary> specificationSummaries = await GetSpecificationsWithProviderVersionUpdatesAsUseLatest(latestProviderSnapshot.FundingStreamCode);
+            IEnumerable<SpecificationSummary> specificationSummaries = await GetSpecificationsWithProviderVersionUpdatesAsUseLatest(latestProviderSnapshot.FundingStreamCode, latestProviderSnapshot.ProviderSnapshotId);
 
-                if (specificationSummaries.AnyWithNullCheck())
-                {
-                    await EditSpecifications(latestProviderSnapshot, specificationSummaries);
-                }
+            if (specificationSummaries.AnyWithNullCheck())
+            {
+                await EditSpecifications(latestProviderSnapshot, specificationSummaries);
             }
         }
 
@@ -185,7 +185,7 @@ namespace CalculateFunding.Services.Providers
             return providerSnapshotResponse.Content;
         }
 
-        private async Task<IEnumerable<SpecificationSummary>> GetSpecificationsWithProviderVersionUpdatesAsUseLatest(string fundingStreamId)
+        private async Task<IEnumerable<SpecificationSummary>> GetSpecificationsWithProviderVersionUpdatesAsUseLatest(string fundingStreamId, int? providerSnapShotId)
         {
             ApiResponse<IEnumerable<SpecificationSummary>> specificationsWithProviderVersionUpdateResponse =
                 await _specificationsApiClientPolicy.ExecuteAsync(() =>
@@ -205,7 +205,7 @@ namespace CalculateFunding.Services.Providers
                 throw new NonRetriableException(errorMessage);
             }
 
-            return specificationsWithProviderVersionUpdateResponse.Content.Where(_ => _.FundingStreams.Any(fs => fs.Id == fundingStreamId));
+            return specificationsWithProviderVersionUpdateResponse.Content.Where(_ => _.FundingStreams.Any(fs => fs.Id == fundingStreamId) && _.ProviderSnapshotId != providerSnapShotId);
         }
 
         private async Task EditSpecifications(

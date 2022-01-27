@@ -27,6 +27,8 @@ namespace CalculateFunding.Api.Providers.UnitTests
                 { "datasetsClient:ApiKey", "Local" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
                 { "jobsClient:ApiKey", "Local" },
+                { "fdzClient:ApiEndpoint", "https://localhost:7109/api/" },
+                { "fdzClient:ApiKey", "Local" },
                 { "AzureStorageSettings:ConnectionString", "StorageConnection" }
             };
 

@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.Requests;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Providers.Interfaces;
@@ -28,11 +31,13 @@ namespace CalculateFunding.Services.Providers
         private readonly IValidator<SetFundingStreamCurrentProviderVersionRequest> _setCurrentRequestValidator;
         private readonly AsyncPolicy _providerVersionMetadataPolicy;
         private readonly AsyncPolicy _providerVersionSearchPolicy;
+        private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
 
         public FundingStreamProviderVersionService(IProviderVersionsMetadataRepository providerVersionMetadata,
             IProviderVersionService providerVersionService,
             IProviderVersionSearchService providerVersionSearch,
+            IJobManagement jobManagement,
             IValidator<SetFundingStreamCurrentProviderVersionRequest> setCurrentRequestValidator,
             IProvidersResiliencePolicies resiliencePolicies,
             ILogger logger,
@@ -41,6 +46,7 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(providerVersionMetadata, nameof(providerVersionMetadata));
             Guard.ArgumentNotNull(providerVersionService, nameof(providerVersionService));
             Guard.ArgumentNotNull(providerVersionSearch, nameof(providerVersionSearch));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderVersionMetadataRepository, nameof(resiliencePolicies.ProviderVersionMetadataRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderVersionsSearchRepository, nameof(resiliencePolicies.ProviderVersionsSearchRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -53,6 +59,7 @@ namespace CalculateFunding.Services.Providers
             _providerVersionSearch = providerVersionSearch;
             _setCurrentRequestValidator = setCurrentRequestValidator;
             _providerVersionService = providerVersionService;
+            _jobManagement = jobManagement;
             _mapper = mapper;
         }
 
@@ -79,7 +86,8 @@ namespace CalculateFunding.Services.Providers
             ValidationResult validationResult = await _setCurrentRequestValidator.ValidateAsync(new SetFundingStreamCurrentProviderVersionRequest
             {
                 FundingStreamId = fundingStreamId,
-                ProviderVersionId = providerVersionId
+                ProviderVersionId = providerVersionId,
+                ProviderSnapshotId = providerSnapshotId
             });
 
             if (!validationResult.IsValid)
@@ -96,7 +104,28 @@ namespace CalculateFunding.Services.Providers
                 ProviderVersionId = providerVersionId,
                 ProviderSnapshotId = providerSnapshotId
             }));
-            
+
+            if (providerSnapshotId != null)
+            {
+                // need to queue a job to set existing specifications
+                await _jobManagement.QueueJob(new JobCreateModel()
+                {
+                    Trigger = new Trigger
+                    {
+                        EntityId = fundingStreamId,
+                        EntityType = "FundingStream",
+                        Message = "Tracking latest snapshot"
+                    },
+                    JobDefinitionId = JobConstants.DefinitionNames.TrackLatestJob,
+                    CorrelationId = Guid.NewGuid().ToString(),
+                    Properties = new Dictionary<string, string>
+                            {
+                                {"fundingstream-id", fundingStreamId},
+                                {"providersnapshot-id", providerSnapshotId.ToString()},
+                            }
+                });
+            }
+
             return new NoContentResult();
         }
 

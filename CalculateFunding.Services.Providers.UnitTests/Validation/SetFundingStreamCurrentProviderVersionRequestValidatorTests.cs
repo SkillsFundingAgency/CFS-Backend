@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.FundingDataZone;
+using CalculateFunding.Common.ApiClient.FundingDataZone.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
@@ -23,8 +26,10 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
     {
         private Mock<IPoliciesApiClient> _policies;
         private Mock<IProviderVersionsMetadataRepository> _providerVersions;
+        private Mock<IFundingDataZoneApiClient> _fundingDataZoneApiClient;
         private string _existingFundingStreamId;
         private string _existingProviderVersionId;
+        private int _existingProviderSnapShotId;
 
         private SetFundingStreamCurrentProviderVersionRequestValidator _validator;
 
@@ -33,22 +38,36 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
         {
             _policies = new Mock<IPoliciesApiClient>();
             _providerVersions = new Mock<IProviderVersionsMetadataRepository>();
+            _fundingDataZoneApiClient = new Mock<IFundingDataZoneApiClient>();
 
             _validator = new SetFundingStreamCurrentProviderVersionRequestValidator(_providerVersions.Object,
                 _policies.Object,
+                _fundingDataZoneApiClient.Object,
                 new ProvidersResiliencePolicies
                 {
                     PoliciesApiClient = Policy.NoOpAsync(),
-                    ProviderVersionMetadataRepository = Policy.NoOpAsync()
+                    ProviderVersionMetadataRepository = Policy.NoOpAsync(),
+                    FundingDataZoneApiClient = Policy.NoOpAsync()
                 });
 
+            
+
             _existingFundingStreamId = NewRandomString();
-            _existingProviderVersionId = NewRandomString();
+            _existingProviderSnapShotId = 1;
+
+            ProviderSnapshot providerSnapShot = new ProviderSnapshot {
+                FundingStreamCode = _existingFundingStreamId,
+                ProviderSnapshotId = _existingProviderSnapShotId
+            };
+
+            _existingProviderVersionId = providerSnapShot.ProviderVersionId;
 
             _policies.Setup(_ => _.GetFundingStreamById(_existingFundingStreamId))
                 .ReturnsAsync(new ApiResponse<FundingStream>(HttpStatusCode.OK, new FundingStream()));
             _providerVersions.Setup(_ => _.GetProviderVersionMetadata(_existingProviderVersionId))
                 .ReturnsAsync(new ProviderVersionMetadata());
+            _fundingDataZoneApiClient.Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreams())
+                .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, new[] { providerSnapShot }));
         }
 
         [TestMethod]
@@ -56,11 +75,13 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
         {
             ValidationResult validationResult = await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ =>
                 _.WithFundingStreamId(null)
-                    .WithProviderVersionId(null)));
+                    .WithProviderVersionId(null)
+                    .WithProviderSnapId(null)));
 
             ThenTheValidationResultsAre(validationResult,
                 ("FundingStreamId", "'Funding Stream Id' must not be empty."),
-                ("ProviderVersionId", "'Provider Version Id' must not be empty."));
+                ("ProviderVersionId", "'Provider Version Id' must not be empty.")
+            );
         }
 
         [TestMethod]
@@ -71,11 +92,13 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
 
             ValidationResult validationResult = await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ =>
                 _.WithFundingStreamId(missingFundingStreamId)
-                    .WithProviderVersionId(missingProviderVersionId)));
+                    .WithProviderVersionId(missingProviderVersionId)
+                    .WithProviderSnapId(null)));
 
             ThenTheValidationResultsAre(validationResult,
                 ("FundingStreamId", $"No funding stream located with Id {missingFundingStreamId}"),
-                ("ProviderVersionId", $"No provider version located with Id {missingProviderVersionId}"));
+                ("ProviderVersionId", $"No provider version located with Id {missingProviderVersionId}")
+            );
         }
 
         [TestMethod]
@@ -94,7 +117,8 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
         {
             SetFundingStreamCurrentProviderVersionRequestBuilder requestBuilder = new SetFundingStreamCurrentProviderVersionRequestBuilder()
                 .WithFundingStreamId(_existingFundingStreamId)
-                .WithProviderVersionId(_existingProviderVersionId);
+                .WithProviderVersionId(_existingProviderVersionId)
+                .WithProviderSnapId(_existingProviderSnapShotId);
 
             overrides?.Invoke(requestBuilder);
 

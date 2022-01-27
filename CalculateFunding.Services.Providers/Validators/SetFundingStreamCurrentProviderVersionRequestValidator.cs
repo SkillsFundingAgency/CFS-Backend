@@ -1,3 +1,5 @@
+using CalculateFunding.Common.ApiClient.FundingDataZone;
+using CalculateFunding.Common.ApiClient.FundingDataZone.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
@@ -7,6 +9,9 @@ using CalculateFunding.Models.Providers.Requests;
 using CalculateFunding.Services.Providers.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Providers.Validators
 {
@@ -14,12 +19,14 @@ namespace CalculateFunding.Services.Providers.Validators
     {
         public SetFundingStreamCurrentProviderVersionRequestValidator(IProviderVersionsMetadataRepository providerVersions,
             IPoliciesApiClient policiesApiClient,
+            IFundingDataZoneApiClient fundingDataZoneApiClient,
             IProvidersResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(providerVersions, nameof(providerVersions));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderVersionMetadataRepository, nameof(resiliencePolicies.ProviderVersionMetadataRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.FundingDataZoneApiClient, nameof(resiliencePolicies.FundingDataZoneApiClient));
             
             RuleFor(_ => _.FundingStreamId)
                 .Cascade(CascadeMode.StopOnFirstFailure)
@@ -52,6 +59,41 @@ namespace CalculateFunding.Services.Providers.Validators
                     {
                         context.AddFailure(new ValidationFailure("ProviderVersionId", 
                             $"No provider version located with Id {providerVersionId}"));
+                    }
+                });
+
+            RuleFor(_ => _.ProviderSnapshotId)
+                .Cascade(CascadeMode.StopOnFirstFailure)
+                .CustomAsync(async (providerSnapshotId,
+                    context,
+                    cancellationToken) =>
+                {
+                    if (providerSnapshotId != null)
+                    {
+                        ApiResponse<IEnumerable<ProviderSnapshot>> providerSnapshotsResponse = await resiliencePolicies.FundingDataZoneApiClient.ExecuteAsync(() =>
+                            fundingDataZoneApiClient.GetLatestProviderSnapshotsForAllFundingStreams());
+
+                        if (providerSnapshotsResponse?.Content == null)
+                        {
+                            context.AddFailure(new ValidationFailure("ProviderSnapshotId",
+                                $"No provider snapshots located"));
+                        }
+
+                        SetFundingStreamCurrentProviderVersionRequest fundingStreamCurrentProviderVersionRequest = context.ParentContext.InstanceToValidate as SetFundingStreamCurrentProviderVersionRequest;
+
+                        ProviderSnapshot latestProviderSnapshot = providerSnapshotsResponse?.Content.FirstOrDefault(x => x.FundingStreamCode == fundingStreamCurrentProviderVersionRequest.FundingStreamId);
+
+                        if (latestProviderSnapshot?.ProviderVersionId != fundingStreamCurrentProviderVersionRequest.ProviderVersionId)
+                        {
+                            context.AddFailure(new ValidationFailure("ProviderSnapshotId",
+                                $"Unable to set current to version as it is not currently the latest snapshot provider version"));
+                        }
+
+                        if (latestProviderSnapshot?.ProviderSnapshotId !=  providerSnapshotId)
+                        {
+                            context.AddFailure(new ValidationFailure("ProviderSnapshotId",
+                                $"Unable to set current to version as the version doesn't match the snap shot"));
+                        }
                     }
                 });
         }

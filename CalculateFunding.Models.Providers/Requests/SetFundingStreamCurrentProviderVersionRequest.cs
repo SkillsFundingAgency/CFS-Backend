@@ -5,5 +5,7 @@ namespace CalculateFunding.Models.Providers.Requests
         public string FundingStreamId { get; set; }
         
         public string ProviderVersionId { get; set; }
+
+        public int? ProviderSnapshotId { get; set; }
     }
 }

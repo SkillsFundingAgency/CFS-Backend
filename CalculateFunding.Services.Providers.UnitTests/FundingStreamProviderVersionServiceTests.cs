@@ -18,6 +18,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
 using Serilog.Core;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
@@ -28,6 +31,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private Mock<IProviderVersionsMetadataRepository> _providerVersionsMetadata;
         private Mock<IProviderVersionService> _providerVersionsService;
         private Mock<IProviderVersionSearchService> _providerVersionsSearch;
+        private Mock<IJobManagement> _jobManagement;
         private Mock<IValidator<SetFundingStreamCurrentProviderVersionRequest>> _setRequestValidation;
         private IMapper _mapper;
 
@@ -37,6 +41,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _providerVersionsMetadata = new Mock<IProviderVersionsMetadataRepository>();
             _providerVersionsService = new Mock<IProviderVersionService>();
             _providerVersionsSearch = new Mock<IProviderVersionSearchService>();
+            _jobManagement = new Mock<IJobManagement>();
             _setRequestValidation = new Mock<IValidator<SetFundingStreamCurrentProviderVersionRequest>>();
             MapperConfiguration mappingConfig = new MapperConfiguration(c => { c.AddProfile<ProviderVersionsMappingProfile>(); });
             _mapper = mappingConfig.CreateMapper();
@@ -44,6 +49,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _service = new FundingStreamProviderVersionService(_providerVersionsMetadata.Object,
                 _providerVersionsService.Object,
                 _providerVersionsSearch.Object,
+                _jobManagement.Object,
                 _setRequestValidation.Object,
                 new ProvidersResiliencePolicies
                 {
@@ -136,6 +142,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .BeOfType<NoContentResult>();
 
             AndTheCurrentProviderVersionWasUpserted(fundingStreamId, providerVersionId, providerSnapshotId);
+            AndTheJobWasQueued(JobConstants.DefinitionNames.TrackLatestJob);
+        }
+
+        private void AndTheJobWasQueued(string jobDefinition)
+        {
+            _jobManagement.Verify(_ => _.QueueJob(It.Is<JobCreateModel>(jc => jc.JobDefinitionId == jobDefinition)), Times.Once);
         }
 
         [TestMethod]
