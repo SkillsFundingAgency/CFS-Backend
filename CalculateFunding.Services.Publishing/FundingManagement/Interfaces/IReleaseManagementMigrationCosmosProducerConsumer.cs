@@ -16,8 +16,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
             Dictionary<string, SqlModels.GroupingReason> groupingReasons,
             Dictionary<string, VariationReason> variationReasons,
             Dictionary<string, Specification> specifications,
-            Dictionary<string, ReleasedProvider> releasedProviders,
-            Dictionary<string, ReleasedProviderVersion> releasedProviderVersions,
             ICosmosDbFeedIterator cosmosDbFeedIterator,
             Func<CancellationToken, dynamic, ArraySegment<T>, Task> consumer);
     }

@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.SqlExport
             _sqlConnectionFactory = sqlConnectionFactory;
         }
 
-        public async Task ImportDataTable<T>(IDataTableBuilder<T> dataTableBuilder)
+        public async Task ImportDataTable<T>(IDataTableBuilder<T> dataTableBuilder, SqlBulkCopyOptions sqlBulkCopyOptions = SqlBulkCopyOptions.Default)
         {
             if (dataTableBuilder.HasNoData)
             {
@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.SqlExport
             }
 
             await using SqlConnection connection = NewOpenConnection();
-            using SqlBulkCopy bulkCopy = new(connection)
+            using SqlBulkCopy bulkCopy = new(connection, sqlBulkCopyOptions, null)
             {
                 DestinationTableName = dataTableBuilder.TableName,
                 BatchSize = 1000

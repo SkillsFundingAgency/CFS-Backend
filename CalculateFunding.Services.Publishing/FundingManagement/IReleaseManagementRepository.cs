@@ -82,6 +82,5 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<FundingGroupProvider> CreateFundingGroupProvider(FundingGroupProvider fundingGroupProvider);
         Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannel(ReleasedProviderVersionChannel providerVersionChannel);
         Task ClearDatabase();
-        Task<IEnumerable<ReleaseManagementIdSummary>> GetLastIdSummary();
     }
 }

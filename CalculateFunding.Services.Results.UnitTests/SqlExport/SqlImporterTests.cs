@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
@@ -109,12 +110,12 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 
         private void AndTheImportContextWasBulkInsertedIntoSqlServer()
         {
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_calculationRunDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_providerSummariesDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_paymentFundingLineDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_informationFundingLineDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_templateCalculationsDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_additionalCalculationsDataTableBuilder.Object));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_calculationRunDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_providerSummariesDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_paymentFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_informationFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_templateCalculationsDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_additionalCalculationsDataTableBuilder.Object, SqlBulkCopyOptions.Default));
         }
 
         private void ThenTheProviderResultsWereAddedToTheImportContextRows(IEnumerable<ProviderResult> providerResults)

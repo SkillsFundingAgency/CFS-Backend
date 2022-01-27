@@ -41,8 +41,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private Dictionary<string, SqlModels.FundingStream> _fundingStreams;
         private Dictionary<string, SqlModels.GroupingReason> _groupingReasons;
         private Dictionary<string, SqlModels.VariationReason> _variationReasons;
-        private Dictionary<string, SqlModels.ReleasedProvider> _releasedProviders;
-        private Dictionary<string, SqlModels.ReleasedProviderVersion> _releasedProviderVersions;
 
         private IPublishedFundingReleaseManagementMigrator _fundingMigrator;
         private Dictionary<string, SqlModels.Specification> _specifications;
@@ -73,8 +71,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         public async Task<IActionResult> QueueReleaseManagementDataMigrationJob(Reference author,
             string correlationId,
-            string[] fundingStreamIds = null,
-            bool deleteAllDataBeforeMigration = false)
+            string[] fundingStreamIds = null)
         {
             IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(new string[] {
                     JobConstants.DefinitionNames.ReleaseManagementDataMigrationJob
@@ -94,8 +91,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 MessageBody = JsonExtensions.AsJson(fundingStreamIds),
                 Properties = new Dictionary<string, string>
                 {
-                    {MigrationKey, MigrationKeyValue},
-                    {DeleteAllDataBeforeMigrationKey, deleteAllDataBeforeMigration.ToString()},
+                    {MigrationKey, MigrationKeyValue}
                 },
                 Trigger = new Trigger
                 {
@@ -113,12 +109,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         public override async Task Process(Message message)
         {
             string[] fundingStreamIds = message.GetPayloadAsInstanceOf<string[]>();
-            bool deleteAllData = bool.Parse(message.GetUserProperty<string>(DeleteAllDataBeforeMigrationKey));
 
-            await PopulateReferenceData(fundingStreamIds, deleteAllData);
+            await PopulateReferenceData(fundingStreamIds);
         }
 
-        public async Task<IActionResult> PopulateReferenceData(string[] fundingStreamIds, bool deleteAllData)
+        public async Task<IActionResult> PopulateReferenceData(string[] fundingStreamIds)
         {
             ApiResponse<IEnumerable<SpecificationSummary>> publishedSpecificationsRequest = await _specsClientPolicy.ExecuteAsync(() => _specsClient.GetSpecificationsSelectedForFunding());
 
@@ -134,20 +129,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 return new OkResult();
             }
 
-            if (deleteAllData)
-            {
-                await ClearDatabase();
-            }
+            await ClearDatabase();
 
             await PopulateGroupingReasons();
             await PopulateVariationReasons();
             await PopulateChannels();
             await PopulateFundingStreamsAndPeriods(publishedSpecifications);
             await PopulateSpecifications(publishedSpecifications);
-            await PopulateReleasedProviders();
-            await PopulateReleasedProviderVersions();
 
-            await PopulateFundingAndProviders(deleteAllData);
+            await PopulateFundingAndProviders();
 
             return new OkResult();
         }
@@ -181,29 +171,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
         }
 
-        private async Task PopulateReleasedProviders()
-        {
-            IEnumerable<SqlModels.ReleasedProvider> existingReleasedProviders = await _repo.GetReleasedProviders();
-            _releasedProviders = new Dictionary<string, SqlModels.ReleasedProvider>(existingReleasedProviders.ToDictionary(_ => $"{_.ProviderId}_{_.SpecificationId}"));
-        }
-
-        private async Task PopulateReleasedProviderVersions()
-        {
-            IEnumerable<SqlModels.ReleasedProviderVersion> existingReleasedProviderVersions = await _repo.GetReleasedProviderVersions();
-            _releasedProviderVersions = new Dictionary<string, SqlModels.ReleasedProviderVersion>(existingReleasedProviderVersions.ToDictionary(_ => _.FundingId));
-        }
-
-        private async Task PopulateFundingAndProviders(bool deleteAllData)
+        private async Task PopulateFundingAndProviders()
         {
             await _fundingMigrator.Migrate(_fundingStreams,
                                            _fundingPeriods,
                                            _channels,
                                            _groupingReasons,
                                            _variationReasons,
-                                           _specifications,
-                                           _releasedProviders,
-                                           _releasedProviderVersions,
-                                           deleteAllData);
+                                           _specifications);
         }
 
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
@@ -130,13 +131,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         
         private void AndTheImportContextWasBulkInsertedIntoSqlServer()
         {
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_calculationDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_informationFundingLineDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_paymentFundingLineDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingLineOneProfilingDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingLineTwoProfilingDataTableBuilder.Object));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_publishedProviderVersionDataTableBuilder.Object));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_calculationDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_informationFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_paymentFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingLineOneProfilingDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingLineTwoProfilingDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_publishedProviderVersionDataTableBuilder.Object, SqlBulkCopyOptions.Default));
         }
         
         private void ThenThePublishedProviderVersionsWereAddedToTheImportContextRows(IEnumerable<PublishedProvider> publishedProviders)
