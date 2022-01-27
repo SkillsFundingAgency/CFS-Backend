@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
@@ -501,8 +502,12 @@ namespace CalculateFunding.Models.Publishing
             }
             else
             {
-                ReProfileAudits ??= ArraySegment<ReProfileAudit>.Empty;
-                ReProfileAudits = ReProfileAudits.Concat(new[] { reProfileAudit });
+                if (!(ReProfileAudits is ConcurrentBag<ReProfileAudit>))
+                {
+                    ReProfileAudits = new ConcurrentBag<ReProfileAudit>(ReProfileAudits ?? ArraySegment<ReProfileAudit>.Empty);
+                }
+
+                (ReProfileAudits as ConcurrentBag<ReProfileAudit>).Add(reProfileAudit);
             }
         }
 
