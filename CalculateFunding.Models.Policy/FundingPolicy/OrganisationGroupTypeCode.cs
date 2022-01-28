@@ -123,6 +123,11 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         /// <summary>
         /// Alternative Provision
         /// </summary>
-        AlternativeProvision
+        AlternativeProvision,
+
+        /// <summary>
+        /// London Region
+        /// </summary>
+        LondonRegion,
     }
 }
