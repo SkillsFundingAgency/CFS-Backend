@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             await _fundingMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications,
-                _cosmosRepo.GetPublishedFundingIterator(CosmosBatchSize), ProcessPublishedFundingVersions);;
+                _cosmosRepo.GetPublishedFundingIterator(CosmosBatchSize), ProcessPublishedFundingVersions);
 
             FundingGroupDataTableBuilder fundingGroupsBuilder = new FundingGroupDataTableBuilder();
             fundingGroupsBuilder.AddRows(_createFundingGroups.ToArray());
@@ -506,34 +506,32 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private async Task MigrateBlobs()
         {
-            SemaphoreSlim throttle = new SemaphoreSlim(10, 10);
-            List<Task> trackedTasks = new List<Task>();
+            SemaphoreSlim throttle = new SemaphoreSlim(10);
+            List<Task> trackedTasks = new List<Task>(_blobsToMigrate.Count);
 
             foreach (BlobToMigrate blob in _blobsToMigrate)
             {
-                try
+                await throttle.WaitAsync();
+
+                trackedTasks.Add(Task.Run(async () =>
                 {
-                    await throttle.WaitAsync();
-                    trackedTasks.Add(Task.Run(async () =>
+                    try
                     {
-                        try
-                        {
-                            await _blobClient.StartCopyFromUriAsync(blob.SourceContainer, blob.SourceFileName, blob.TargetContainer, blob.TargetFileName);
-                        }
-                        catch (Exception ex)
-                        {
-                            string errorMessage = $"Failed to copy blob '{blob.SourceFileName}' to new {blob.TargetContainer}";
+                        await _blobClient.StartCopyFromUriAsync(blob.SourceContainer, blob.SourceFileName, blob.TargetContainer, blob.TargetFileName);
+                    }
+                    catch (Exception ex)
+                    {
+                        string errorMessage = $"Failed to copy blob '{blob.SourceFileName}' to new {blob.TargetContainer}";
 
-                            _logger.Error(ex, errorMessage);
+                        _logger.Error(ex, errorMessage);
 
-                            throw new Exception(errorMessage, ex);
-                        }
-                    }));
-                }
-                finally
-                {
-                    throttle.Release();
-                }
+                        throw new Exception(errorMessage, ex);
+                    }
+                    finally
+                    {
+                        throttle.Release();
+                    }
+                }));
             }
 
             await TaskHelper.WhenAllAndThrow(trackedTasks.ToArray());
@@ -545,7 +543,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             const string targetContainer = "releasedgroups";
             string sourceBlobName = $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.GroupingReason}-{publishedFundingVersion.OrganisationGroupTypeCode}-{publishedFundingVersion.OrganisationGroupIdentifierValue}-{publishedFundingVersion.MajorVersion}_{publishedFundingVersion.MinorVersion}.json";
             string targetBlobName = $"{channelCode}/{sourceBlobName}";
-            
+
             _blobsToMigrate.Add(new BlobToMigrate(sourceContainer, sourceBlobName, targetContainer, targetBlobName));
         }
 
