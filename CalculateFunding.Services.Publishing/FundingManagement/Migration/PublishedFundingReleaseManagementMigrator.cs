@@ -75,7 +75,23 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
         private ConcurrentBag<ReleasedProvider> _createReleasedProviders = new ConcurrentBag<ReleasedProvider>();
         private ConcurrentBag<ReleasedProviderVersion> _createReleasedProviderVersions = new ConcurrentBag<ReleasedProviderVersion>();
-        private ConcurrentBag<Task> _blobMigrationTasks = new ConcurrentBag<Task>();
+        private ConcurrentBag<BlobToMigrate> _blobsToMigrate = new ConcurrentBag<BlobToMigrate>();
+
+        private class BlobToMigrate
+        {
+            public BlobToMigrate(string sourceContainer, string sourceFileName, string targetContainer, string targetFileName)
+            {
+                SourceContainer = sourceContainer;
+                SourceFileName = sourceFileName;
+                TargetContainer = targetContainer;
+                TargetFileName = targetFileName;
+            }
+
+            public string SourceContainer { get; }
+            public string SourceFileName { get; }
+            public string TargetContainer { get; }
+            public string TargetFileName { get; }
+        }
 
         public PublishedFundingReleaseManagementMigrator(IPublishedFundingRepository publishedFundingRepository,
             IReleaseManagementRepository releaseManagementRepository,
@@ -149,7 +165,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             await PopulateLinkingTables(channels, variationReasons);
 
-            await MigrateBlobs(_blobMigrationTasks);
+            await MigrateBlobs();
         }
 
         private static string GetFundingGroupDictionaryKey(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue)
@@ -179,7 +195,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 FundingGroup fundingGroup = CreateFundingGroup(channel.ChannelId, fundingVersion, ctx);
                 GenerateFundingGroupVersion(channel, fundingGroup, fundingVersion, ctx);
 
-                _blobMigrationTasks.Add(MigrateBlob(fundingVersion, channel.ChannelCode));
+                MigrateBlob(fundingVersion, channel.ChannelCode);
             }
         }
 
@@ -402,12 +418,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             List<FundingGroupProvider> createFundingGroupProviders = new List<FundingGroupProvider>();
             List<ReleasedProviderChannelVariationReason> createReleasedProviderChannelVariationReasons = new List<ReleasedProviderChannelVariationReason>();
 
-            ReleasedProviderVersionChannelDataTableBuilder releasedChannelBuilder = new ReleasedProviderVersionChannelDataTableBuilder();
-            FundingGroupProviderDataTableBuilder fundingGroupProviderBuilder = new FundingGroupProviderDataTableBuilder();
-            ReleasedProviderChannelVariationReasonDataTableBuilder providerVariationReasonsBuilder = new ReleasedProviderChannelVariationReasonDataTableBuilder();
-
-            List<Task> blobMigrationTasks = new List<Task>();
-
             foreach (KeyValuePair<string, PublishedFundingVersion> publishedFunding in _publishedFundingVersions)
             {
                 string channelId = publishedFunding.Key.Split('_')[0];
@@ -475,11 +485,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                         }
                     }
 
-                    _blobMigrationTasks.Add(MigrateBlob(publishedProviderVersion, channels.Values.Single(_ => _.ChannelId == fundingGroupVersion.ChannelId).ChannelCode));
+                    MigrateBlob(publishedProviderVersion, channels.Values.Single(_ => _.ChannelId == fundingGroupVersion.ChannelId).ChannelCode);
                 }
             }
 
             IDataTableImporter importer = _dataTableImporter as IDataTableImporter;
+
+            ReleasedProviderVersionChannelDataTableBuilder releasedChannelBuilder = new ReleasedProviderVersionChannelDataTableBuilder();
+            ReleasedProviderChannelVariationReasonDataTableBuilder providerVariationReasonsBuilder = new ReleasedProviderChannelVariationReasonDataTableBuilder();
+            FundingGroupProviderDataTableBuilder fundingGroupProviderBuilder = new FundingGroupProviderDataTableBuilder();
 
             releasedChannelBuilder.AddRows(createReleasedProviderVersionChannels.ToArray());
             _logger.Information($"Importing {createReleasedProviderVersionChannels.Count} ReleasedProviderVersionChannels");
@@ -494,19 +508,30 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await importer.ImportDataTable(providerVariationReasonsBuilder, SqlBulkCopyOptions.KeepIdentity);
         }
 
-        private async Task MigrateBlobs(IEnumerable<Task> blobMigrationTasks)
+        private async Task MigrateBlobs()
         {
-            SemaphoreSlim throttle = new SemaphoreSlim(50);
+            SemaphoreSlim throttle = new SemaphoreSlim(10, 10);
             List<Task> trackedTasks = new List<Task>();
 
-            foreach (Task blobMigrationTask in blobMigrationTasks)
+            foreach (BlobToMigrate blob in _blobsToMigrate)
             {
                 try
                 {
                     await throttle.WaitAsync();
                     trackedTasks.Add(Task.Run(async () =>
                     {
-                        await blobMigrationTask;
+                        try
+                        {
+                            await _blobClient.StartCopyFromUriAsync(blob.SourceContainer, blob.SourceFileName, blob.TargetContainer, blob.TargetFileName);
+                        }
+                        catch (Exception ex)
+                        {
+                            string errorMessage = $"Failed to copy blob '{blob.SourceFileName}' to new {blob.TargetContainer}";
+
+                            _logger.Error(ex, errorMessage);
+
+                            throw new Exception(errorMessage, ex);
+                        }
                     }));
                 }
                 finally
@@ -518,40 +543,24 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await TaskHelper.WhenAllAndThrow(trackedTasks.ToArray());
         }
 
-        private async Task MigrateBlob(PublishedFundingVersion publishedFundingVersion, string channelCode)
+        private void MigrateBlob(PublishedFundingVersion publishedFundingVersion, string channelCode)
         {
-            string blobName = $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.GroupingReason}-{publishedFundingVersion.OrganisationGroupTypeCode}-{publishedFundingVersion.OrganisationGroupIdentifierValue}-{publishedFundingVersion.MajorVersion}_{publishedFundingVersion.MinorVersion}.json";
-
-            try
-            {
-                await _blobClient.StartCopyFromUriAsync("publishedfunding", blobName, "releasedgroups", $"{channelCode}/{blobName}");
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = $"Failed to copy blob '{blobName}' to new container";
-
-                _logger.Error(ex, errorMessage);
-
-                throw new Exception(errorMessage, ex);
-            }
+            string sourceContainer = "publishedfunding";
+            string targetContainer = "releasedgroups";
+            string sourceBlobName = $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.GroupingReason}-{publishedFundingVersion.OrganisationGroupTypeCode}-{publishedFundingVersion.OrganisationGroupIdentifierValue}-{publishedFundingVersion.MajorVersion}_{publishedFundingVersion.MinorVersion}.json";
+            string targetBlobName = $"{channelCode}/{sourceBlobName}";
+            
+            _blobsToMigrate.Add(new BlobToMigrate(sourceContainer, targetContainer, sourceBlobName, targetBlobName));
         }
 
-        private async Task MigrateBlob(PublishedProviderVersion publishedProviderVersion, string channelCode)
+        private void MigrateBlob(PublishedProviderVersion publishedProviderVersion, string channelCode)
         {
-            string blobName = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.ProviderId}-{publishedProviderVersion.MajorVersion}_{publishedProviderVersion.MinorVersion}.json";
+            string sourceContainer = "publishedproviderversions";
+            string targetContainer = "releasedproviders";
+            string sourceBlobName = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.ProviderId}-{publishedProviderVersion.MajorVersion}_{publishedProviderVersion.MinorVersion}.json";
+            string targetBlobName = $"{channelCode}/{sourceBlobName}";
 
-            try
-            {
-                await _blobClient.StartCopyFromUriAsync("publishedproviderversions", blobName, "releasedproviders", $"{channelCode}/{blobName}");
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = $"Failed to copy blob '{blobName}' to new container";
-
-                _logger.Error(ex, errorMessage);
-
-                throw new Exception(errorMessage, ex);
-            }
+            _blobsToMigrate.Add(new BlobToMigrate(sourceContainer, sourceBlobName, targetContainer, targetBlobName));
         }
     }
 }
