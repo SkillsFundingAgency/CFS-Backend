@@ -44,38 +44,38 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         /// <summary>
         /// Key is "{channelId}_{Funding.FundingId}"
         /// </summary>
-        private ConcurrentDictionary<string, PublishedFundingVersion> _publishedFundingVersions = new ConcurrentDictionary<string, PublishedFundingVersion>();
+        private readonly ConcurrentDictionary<string, PublishedFundingVersion> _publishedFundingVersions = new ConcurrentDictionary<string, PublishedFundingVersion>();
         /// <summary>
         /// Key is "{providerId}"
         /// </summary>
-        private ConcurrentDictionary<string, PublishedProviderVersion> _publishedProviderVersions = new ConcurrentDictionary<string, PublishedProviderVersion>();
+        private readonly ConcurrentDictionary<string, PublishedProviderVersion> _publishedProviderVersions = new ConcurrentDictionary<string, PublishedProviderVersion>();
         /// <summary>
         /// Key is "{channelId}_{Funding.FundingId}"
         /// </summary>
-        private ConcurrentDictionary<string, FundingGroupVersion> _fundingGroupVersions = new ConcurrentDictionary<string, FundingGroupVersion>();
+        private readonly ConcurrentDictionary<string, FundingGroupVersion> _fundingGroupVersions = new ConcurrentDictionary<string, FundingGroupVersion>();
         /// <summary>
         /// Key is "{releasedProviderId}"
         /// </summary>
-        private ConcurrentDictionary<int, ReleasedProvider> _releasedProvidersById = new ConcurrentDictionary<int, ReleasedProvider>();
+        private readonly ConcurrentDictionary<int, ReleasedProvider> _releasedProvidersById = new ConcurrentDictionary<int, ReleasedProvider>();
         /// <summary>
         /// Key is "{providerId}_{specificationId}"
         /// </summary>
-        private ConcurrentDictionary<string, ReleasedProvider> _releasedProviders = new ConcurrentDictionary<string, ReleasedProvider>();
+        private readonly ConcurrentDictionary<string, ReleasedProvider> _releasedProviders = new ConcurrentDictionary<string, ReleasedProvider>();
         /// <summary>
         /// Key is "{Provider.FundingId}"
         /// </summary>
-        private ConcurrentDictionary<string, ReleasedProviderVersion> _releasedProviderVersions = new ConcurrentDictionary<string, ReleasedProviderVersion>();
+        private readonly ConcurrentDictionary<string, ReleasedProviderVersion> _releasedProviderVersions = new ConcurrentDictionary<string, ReleasedProviderVersion>();
         /// <summary>
         /// Key is "{channelId}_{specificationId}_{groupingReasonId}_{organisationGroupTypeClassification}_{organisationGroupIdentifierValue}"
         /// </summary>
-        private ConcurrentDictionary<string, FundingGroup> _fundingGroups = new ConcurrentDictionary<string, FundingGroup>();
+        private readonly ConcurrentDictionary<string, FundingGroup> _fundingGroups = new ConcurrentDictionary<string, FundingGroup>();
 
-        private ConcurrentBag<FundingGroup> _createFundingGroups = new ConcurrentBag<FundingGroup>();
-        private ConcurrentBag<FundingGroupVersion> _createFundingGroupVersions = new ConcurrentBag<FundingGroupVersion>();
-        private ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
-        private ConcurrentBag<ReleasedProvider> _createReleasedProviders = new ConcurrentBag<ReleasedProvider>();
-        private ConcurrentBag<ReleasedProviderVersion> _createReleasedProviderVersions = new ConcurrentBag<ReleasedProviderVersion>();
-        private ConcurrentBag<BlobToMigrate> _blobsToMigrate = new ConcurrentBag<BlobToMigrate>();
+        private readonly ConcurrentBag<FundingGroup> _createFundingGroups = new ConcurrentBag<FundingGroup>();
+        private readonly ConcurrentBag<FundingGroupVersion> _createFundingGroupVersions = new ConcurrentBag<FundingGroupVersion>();
+        private readonly ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
+        private readonly ConcurrentBag<ReleasedProvider> _createReleasedProviders = new ConcurrentBag<ReleasedProvider>();
+        private readonly ConcurrentBag<ReleasedProviderVersion> _createReleasedProviderVersions = new ConcurrentBag<ReleasedProviderVersion>();
+        private readonly ConcurrentBag<BlobToMigrate> _blobsToMigrate = new ConcurrentBag<BlobToMigrate>();
 
         private class BlobToMigrate
         {
@@ -232,8 +232,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             string key = GetFundingGroupDictionaryKey(channelId, fundingVersion.SpecificationId, groupingReasonId, fundingVersion.OrganisationGroupTypeClassification, fundingVersion.OrganisationGroupIdentifierValue);
 
-            FundingGroup fundingGroup;
-            _fundingGroups.TryGetValue(key, out fundingGroup);
+            _fundingGroups.TryGetValue(key, out var fundingGroup);
 
             if (fundingGroup == null)
             {
@@ -254,7 +253,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 Interlocked.Increment(ref _nextFundingGroupId);
 
                 _createFundingGroups.Add(fundingGroup);
-                _fundingGroups.AddOrUpdate(key, fundingGroup, (id, existing) => { return fundingGroup; });
+                _fundingGroups.AddOrUpdate(key, fundingGroup, (id, existing) => fundingGroup);
             }
 
             return fundingGroup;
@@ -369,25 +368,22 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private ReleasedProvider CreateReleasedProvider(PublishedProviderVersion providerVersion, string releasedProviderKey)
         {
-            ReleasedProvider releasedProvider;
+            _releasedProviders.TryGetValue(releasedProviderKey, out var releasedProvider);
 
-            _releasedProviders.TryGetValue(releasedProviderKey, out releasedProvider);
+            if (releasedProvider != null) return releasedProvider;
 
-            if (releasedProvider == null)
+            releasedProvider = new ReleasedProvider
             {
-                releasedProvider = new ReleasedProvider
-                {
-                    ReleasedProviderId = _nextReleasedProviderId,
-                    SpecificationId = providerVersion.SpecificationId,
-                    ProviderId = providerVersion.ProviderId
-                };
+                ReleasedProviderId = _nextReleasedProviderId,
+                SpecificationId = providerVersion.SpecificationId,
+                ProviderId = providerVersion.ProviderId
+            };
 
-                Interlocked.Increment(ref _nextReleasedProviderId);
+            Interlocked.Increment(ref _nextReleasedProviderId);
 
-                _createReleasedProviders.Add(releasedProvider);
-                _releasedProviders.AddOrUpdate(releasedProviderKey, releasedProvider, (id, existing) => { return releasedProvider; });
-                _releasedProvidersById.AddOrUpdate(releasedProvider.ReleasedProviderId, releasedProvider, (id, existing) => { return releasedProvider; });
-            }
+            _createReleasedProviders.Add(releasedProvider);
+            _releasedProviders.AddOrUpdate(releasedProviderKey, releasedProvider, (id, existing) => releasedProvider);
+            _releasedProvidersById.AddOrUpdate(releasedProvider.ReleasedProviderId, releasedProvider, (id, existing) => releasedProvider);
 
             return releasedProvider;
         }
@@ -407,7 +403,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             Interlocked.Increment(ref _nextReleasedProviderVersionId);
 
             _createReleasedProviderVersions.Add(releasedProviderVersion);
-            _releasedProviderVersions.AddOrUpdate(releasedProviderVersion.FundingId, releasedProviderVersion, (id, existing) => { return releasedProviderVersion; });
+            _releasedProviderVersions.AddOrUpdate(releasedProviderVersion.FundingId, releasedProviderVersion, (id, existing) => releasedProviderVersion);
 
             return releasedProviderVersion;
         }
@@ -545,18 +541,18 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private void MigrateBlob(PublishedFundingVersion publishedFundingVersion, string channelCode)
         {
-            string sourceContainer = "publishedfunding";
-            string targetContainer = "releasedgroups";
+            const string sourceContainer = "publishedfunding";
+            const string targetContainer = "releasedgroups";
             string sourceBlobName = $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.GroupingReason}-{publishedFundingVersion.OrganisationGroupTypeCode}-{publishedFundingVersion.OrganisationGroupIdentifierValue}-{publishedFundingVersion.MajorVersion}_{publishedFundingVersion.MinorVersion}.json";
             string targetBlobName = $"{channelCode}/{sourceBlobName}";
             
-            _blobsToMigrate.Add(new BlobToMigrate(sourceContainer, targetContainer, sourceBlobName, targetBlobName));
+            _blobsToMigrate.Add(new BlobToMigrate(sourceContainer, sourceBlobName, targetContainer, targetBlobName));
         }
 
         private void MigrateBlob(PublishedProviderVersion publishedProviderVersion, string channelCode)
         {
-            string sourceContainer = "publishedproviderversions";
-            string targetContainer = "releasedproviders";
+            const string sourceContainer = "publishedproviderversions";
+            const string targetContainer = "releasedproviders";
             string sourceBlobName = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.ProviderId}-{publishedProviderVersion.MajorVersion}_{publishedProviderVersion.MinorVersion}.json";
             string targetBlobName = $"{channelCode}/{sourceBlobName}";
 
