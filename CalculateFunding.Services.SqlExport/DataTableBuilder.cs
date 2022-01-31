@@ -9,6 +9,8 @@ namespace CalculateFunding.Services.SqlExport
 
         private readonly object dataTableLock = new object();
 
+        private int dataTableColumnGetCount;
+
         public DataTable DataTable { get; set; }
 
         public string TableName { get; protected set; }
@@ -53,20 +55,23 @@ namespace CalculateFunding.Services.SqlExport
 
         protected void EnsureDataTableExists(TDto dto)
         {
-            if (DataTable != null && DataTable.Columns.Count > 0)
+            if (DataTable != null && DataTable.Columns.Count > 0 && DataTable.Columns.Count == dataTableColumnGetCount)
             {
                 return;
             }
 
             lock (this)
             {
-                if (DataTable != null && DataTable.Columns.Count > 0)
+                if (DataTable != null && DataTable.Columns.Count > 0 && DataTable.Columns.Count == dataTableColumnGetCount)
                 {
                     return;
                 }
                 
                 DataTable = new DataTable();
-                DataTable.Columns.AddRange(GetDataColumns(dto));
+                DataColumn[] dataColumns = GetDataColumns(dto);
+                dataTableColumnGetCount = dataColumns.Length;
+
+                DataTable.Columns.AddRange(dataColumns);
             }
         }
 
