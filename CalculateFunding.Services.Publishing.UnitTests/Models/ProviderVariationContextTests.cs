@@ -4,6 +4,7 @@ using CalculateFunding.Services.Publishing.Models;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Models
 {
@@ -13,12 +14,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Models
         private ProviderVariationContext _variationContext;
         private Mock<IApplyProviderVariations> _applyProviderVariations;
         private Mock<IPoliciesService> _policiesService;
+        private Mock<ILogger> _logger;
         
         [TestInitialize]
         public void SetUp()
         {
             _policiesService = new Mock<IPoliciesService>();
-            _variationContext = new ProviderVariationContext(_policiesService.Object);
+            _logger = new Mock<ILogger>();
+            _variationContext = new ProviderVariationContext(_policiesService.Object, _logger.Object);
 
             _applyProviderVariations = new Mock<IApplyProviderVariations>();
         }

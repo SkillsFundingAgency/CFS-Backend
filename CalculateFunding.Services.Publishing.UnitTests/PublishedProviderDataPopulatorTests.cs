@@ -32,12 +32,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ILogger _logger;
         private PublishedProviderDataPopulator _publishedProviderDataPopulator;
         private string _templateVersion;
+        private IEnumerable<ReProfileAudit> _reProfileAudits;
 
         [TestInitialize]
         public void SetUp()
         {
             _templateVersion = NewRandomString();
             _publishedProviderVersion = CreateProviderVersion(_templateVersion);
+            _reProfileAudits = _publishedProviderVersion.ReProfileAudits.DeepCopy();
             _generatedProviderResult = CreateGeneratedProviderResult();
             _provider = CreateProvider();
             _publishedProviderVersionForMapping = (PublishedProviderVersion)_publishedProviderVersion.Clone();
@@ -168,13 +170,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public void UpdatePublishedProvider_GivenFundingLineChanges_ReturnsFalse()
+        public void UpdatePublishedProvider_GivenReProfileAuditChanges_ReturnsTrue()
+        {
+            _publishedProviderVersion.ReProfileAudits.First().ETag = "New ETag";
+
+            (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
+
+            result
+                .Should()
+                .BeTrue();
+
+            _logger
+                 .Received(1)
+                 .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"ReProfileAudit:{_reProfileAudits.First().FundingLineCode}\"]");
+        }
+
+        [TestMethod]
+        public void UpdatePublishedProvider_GivenFundingLineChanges_ReturnsTrue()
         {
             _generatedProviderResult.FundingLines.First().Name = "New Name";
 
             (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
-
-            //NB - test title says should return false but assertion is returns true
 
             result
                 .Should()
@@ -186,13 +202,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public void UpdatePublishedProvider_GivenCalculationChanges_ReturnsFalse()
+        public void UpdatePublishedProvider_GivenCalculationChanges_ReturnsTrue()
         {
             _generatedProviderResult.Calculations.First().Value = 56;
 
             (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
-
-            //NB - test title says should return false but assertion is returns true
 
             result
                 .Should()
@@ -220,13 +234,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public void UpdatePublishedProvider_GivenReferenceDataChanges_ReturnsFalse()
+        public void UpdatePublishedProvider_GivenReferenceDataChanges_ReturnsTrue()
         {
             _generatedProviderResult.ReferenceData.First().Value = 56;
 
             (bool result, IEnumerable<string> variances) = WhenThePublishedProviderIsUpdated();
-
-            //NB - test title says should return false but assertion is returns true
 
             result
                 .Should()
@@ -243,7 +255,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _generatedProviderResult,
                 _provider,
                 _templateVersion,
-                false);
+                false,
+                _reProfileAudits);
         }
 
         private static string NewRandomString() => new RandomString();
@@ -319,12 +332,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private static PublishedProviderVersion CreateProviderVersion(string templateVersion = null)
         {
+            IEnumerable<FundingLine> fundingLines = CreateFundingLines();
             return new PublishedProviderVersion
             {
-                FundingLines = CreateFundingLines(),
+                FundingLines = fundingLines,
                 Calculations = CreateCalculations(),
                 ReferenceData = CreateReferenceData(),
                 TotalFunding = 5050000,
+                ReProfileAudits = fundingLines.Select(_ => new ReProfileAudit { ETag = "ETag", FundingLineCode = _.FundingLineCode }),
                 Provider = new Provider
                 {
                     ProviderId = "12345678",

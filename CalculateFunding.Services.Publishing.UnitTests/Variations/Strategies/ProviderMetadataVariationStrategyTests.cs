@@ -13,6 +13,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
@@ -20,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
     public class ProviderMetadataVariationStrategyTests
     {
         private Mock<IPoliciesService> _policiesService;
+        private Mock<ILogger> _logger;
 
         private ProviderMetadataVariationStrategy _metadataVariationStrategy;
 
@@ -27,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         public void SetUp()
         {
             _policiesService = new Mock<IPoliciesService>();
-
+            _logger = new Mock<ILogger>();
             _metadataVariationStrategy = new ProviderMetadataVariationStrategy();
         }
 
@@ -72,6 +74,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                         pp.WithReleased(NewPublishedProviderVersion(ppv =>
                             ppv.WithProvider(priorState)))))
                     .WithPoliciesService(_policiesService.Object)
+                    .WithLogger(_logger.Object)
                     .WithCurrentState(ProviderCopy(priorState, differences)));
 
             _policiesService.Setup(x => x.GetTemplateMetadataContents(variationContext.ReleasedState.FundingStreamId,

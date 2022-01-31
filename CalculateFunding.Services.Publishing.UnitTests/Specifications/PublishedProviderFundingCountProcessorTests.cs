@@ -130,8 +130,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Should()
                 .BeEquivalentTo(new[]
                 {
-                    new PublishedProivderFundingStreamFunding() { FundingStreamId = fundingStreamId1, TotalFunding = totalFunding1 + totalFunding3},
-                    new PublishedProivderFundingStreamFunding() { FundingStreamId = fundingStreamId2, TotalFunding = totalFunding2}
+                    new PublishedProviderFundingStreamFunding() { FundingStreamId = fundingStreamId1, TotalFunding = totalFunding1 + totalFunding3},
+                    new PublishedProviderFundingStreamFunding() { FundingStreamId = fundingStreamId2, TotalFunding = totalFunding2}
                 });
 
             actualFundingCount

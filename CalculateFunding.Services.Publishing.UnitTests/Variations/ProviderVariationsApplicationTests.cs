@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NSubstitute;
 using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 {
@@ -170,12 +171,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         }
 
         private static IPoliciesService _policiesService = Substitute.For<IPoliciesService>();
-        private static ProviderVariationContext NewVariationContext() => Substitute.ForPartsOf<ProviderVariationContext>(_policiesService);
+        private static ILogger _logger = Substitute.For<ILogger>();
+        private static ProviderVariationContext NewVariationContext() => Substitute.ForPartsOf<ProviderVariationContext>(_policiesService, _logger);
 
         private static ProviderVariationContext NewVariationContext(Action<ProviderVariationContextBuilder> setUp)
         {
             ProviderVariationContextBuilder variationContextBuilder = new ProviderVariationContextBuilder();
-            variationContextBuilder.WithPoliciesService(_policiesService);
+            variationContextBuilder.WithPoliciesService(_policiesService)
+                .WithLogger(_logger);
 
             setUp(variationContextBuilder);
             

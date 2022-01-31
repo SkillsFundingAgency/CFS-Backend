@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     {
         protected override string Strategy => "MidYearClosureReProfiling";
 
+        protected override string ChangeName => "Mid year closure re-profile variation change";
+
         protected override MidYearType MidYearTypeValue => MidYearType.Closure;
 
         protected override PublishedProviderVersion ReProfilePublishedProvider => PriorState;

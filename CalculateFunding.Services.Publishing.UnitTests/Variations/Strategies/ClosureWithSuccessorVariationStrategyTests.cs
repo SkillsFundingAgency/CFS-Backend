@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Variations;
@@ -15,7 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         [TestInitialize]
         public void SetUp()
         {
-            VariationName = "Closure with Successor";
+            VariationName = "ClosureWithSuccessor";
             
             ClosureVariationStrategy = new ClosureWithSuccessorVariationStrategy(ProviderService.Object);
         }
@@ -48,10 +49,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
             await WhenTheVariationsAreProcessed();
 
-            VariationContext
-                .ErrorMessages
+            IEnumerable<string> errorFieldValues = GetFieldValues(VariationContext.ErrorMessages.First());
+
+            errorFieldValues
+                .First()
                 .Should()
-                .BeEquivalentTo($"Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding for provider with id:{VariationContext.RefreshState.ProviderId}");
+                .Be(VariationContext.ProviderId);
+
+            errorFieldValues
+                .Skip(1)
+                .First()
+                .Should()
+                .Be("Unable to apply strategy 'ClosureWithSuccessor'");
+            
+
+            errorFieldValues
+                .Skip(2)
+                .First()
+                .Should()
+                .Be($"Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding for provider with id:{VariationContext.RefreshState.ProviderId}");
 
             VariationContext
                 .QueuedChanges
@@ -97,6 +113,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .QueuedChanges
                 .Should()
                 .BeEmpty();
+        }
+
+        private IEnumerable<string> GetFieldValues(string errorRow)
+        {
+            return errorRow
+                .Split("\",\"")
+                .Select(_ =>
+                    _.Replace("\"", "")
+                );
         }
     }
 }

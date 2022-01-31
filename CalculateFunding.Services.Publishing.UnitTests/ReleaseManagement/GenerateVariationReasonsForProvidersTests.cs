@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using VariationReason = CalculateFunding.Models.Publishing.VariationReason;
 using System.Linq;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 {
@@ -31,6 +32,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private Mock<IProviderService> _providerService;
         private Mock<ISpecificationService> _specificationService;
         private Mock<IPoliciesService> _policiesService;
+        private Mock<ILogger> _logger;
 
         private GenerateVariationReasonsForChannelService _generateVariationReasonsForChannelService;
 
@@ -44,6 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _providerService = new Mock<IProviderService>();
             _specificationService = new Mock<ISpecificationService>();
             _policiesService = new Mock<IPoliciesService>();
+            _logger = new Mock<ILogger>();
 
             _generateVariationReasonsForChannelService = new GenerateVariationReasonsForChannelService(
                 _detectProviderVariations.Object,
@@ -136,7 +139,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GetOrLoadProvider(providerIdOne, majorVersionTwo, previousReleasedMajorVersion);
 
             VariationReason variationReason = VariationReason.AuthorityFieldUpdated;
-            ProviderVariationContext providerVariationContext = NewProviderVariationContext(_ => _.WithVariationReasons(variationReason).WithPoliciesService(_policiesService.Object));
+            ProviderVariationContext providerVariationContext = NewProviderVariationContext(_ => _.WithVariationReasons(variationReason)
+                .WithPoliciesService(_policiesService.Object)
+                .WithLogger(_logger.Object));
 
             CreateRequiredVariationChanges(
                 previousReleasedMajorVersion,

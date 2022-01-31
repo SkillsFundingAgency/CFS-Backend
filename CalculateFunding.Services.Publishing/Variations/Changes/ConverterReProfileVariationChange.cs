@@ -9,6 +9,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class ConverterReProfileVariationChange : MidYearReProfileVariationChange
     {
+        protected override string ChangeName => "Converter re-profile variation change";
+
         public ConverterReProfileVariationChange(ProviderVariationContext variationContext,
             string strategy) : base(variationContext, strategy)
         {

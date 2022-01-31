@@ -46,7 +46,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         {
             if (providerVariationContext.UpdatedTotalFunding != providerVariationContext.PriorState.TotalFunding)
             {
-                providerVariationContext.RecordErrors($"Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding for provider with id:{providerVariationContext.ProviderId}");
+                RecordError(providerVariationContext,
+                    $"Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding for provider with id:{providerVariationContext.ProviderId}");
 
                 return false;
             }
@@ -55,7 +56,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if (successor == null)
             {
-                providerVariationContext.RecordErrors($"Unable to run Closure with Successor variation as could not locate or create a successor provider with id:{_successorId}");
+                RecordError(providerVariationContext,
+                    $"Could not locate or create a successor provider with id:{_successorId}");
 
                 return false;
             }

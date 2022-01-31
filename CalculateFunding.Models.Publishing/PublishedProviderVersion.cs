@@ -50,7 +50,18 @@ namespace CalculateFunding.Models.Publishing
         public IEnumerable<ProfilePatternKey> ProfilePatternKeys { get; set; }
 
         [JsonProperty("reProfileAudits")]
-        public IEnumerable<ReProfileAudit> ReProfileAudits { get; set; }
+        public IEnumerable<ReProfileAudit> ReProfileAudits {
+            get
+            {
+                return _reProfileAudit ??= new ConcurrentBag<ReProfileAudit>();
+            }
+            set
+            {
+                _reProfileAudit = new ConcurrentBag<ReProfileAudit>(value ?? ArraySegment<ReProfileAudit>.Empty);
+            }
+        }
+
+        private ConcurrentBag<ReProfileAudit> _reProfileAudit;
 
         /// <summary>
         /// The custom profile periods used for this provider
@@ -479,7 +490,7 @@ namespace CalculateFunding.Models.Publishing
 
         public void UpdateReProfileAuditETag(ReProfileAudit reProfileAudit)
         {
-            if (ReProfileAudits?.Any(_ => _.FundingLineCode == reProfileAudit.FundingLineCode) == true)
+            if (ReProfileAudits.Any(_ => _.FundingLineCode == reProfileAudit.FundingLineCode) == true)
             {
                 ReProfileAudit reProfileAuditCurrent = ReProfileAudits
                     .SingleOrDefault(_ => _.FundingLineCode == reProfileAudit.FundingLineCode);
@@ -490,7 +501,7 @@ namespace CalculateFunding.Models.Publishing
 
         public void AddOrUpdateReProfileAudit(ReProfileAudit reProfileAudit)
         {
-            if (ReProfileAudits?.Any(_ => _.FundingLineCode == reProfileAudit.FundingLineCode) == true)
+            if (ReProfileAudits.Any(_ => _.FundingLineCode == reProfileAudit.FundingLineCode) == true)
             {
                 ReProfileAudit reProfileAuditCurrent = ReProfileAudits
                     .SingleOrDefault(_ => _.FundingLineCode == reProfileAudit.FundingLineCode);
@@ -502,11 +513,6 @@ namespace CalculateFunding.Models.Publishing
             }
             else
             {
-                if (!(ReProfileAudits is ConcurrentBag<ReProfileAudit>))
-                {
-                    ReProfileAudits = new ConcurrentBag<ReProfileAudit>(ReProfileAudits ?? ArraySegment<ReProfileAudit>.Empty);
-                }
-
                 (ReProfileAudits as ConcurrentBag<ReProfileAudit>).Add(reProfileAudit);
             }
         }

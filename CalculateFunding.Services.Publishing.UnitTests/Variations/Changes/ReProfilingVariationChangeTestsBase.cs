@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
@@ -28,8 +29,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         private Mock<IReProfilingResponseMapper> _reProfilingResponseMapper;
         private Mock<IProfilingApiClient> _profilingApiClient;
+        private const string DoubleQuotes = "&quot;&quot;";
 
         protected abstract string Strategy { get; }
+        protected abstract string ChangeName { get; }
 
         protected DateTimeOffset ProfileDate => DateTime.Now;
 
@@ -60,9 +63,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .Should()
                 .Be(true);
 
-            VariationContext.ErrorMessages.First()
+            IEnumerable<string> errorFieldValues = GetFieldValues(VariationContext.ErrorMessages.First());
+
+            errorFieldValues
+                .First()
                 .Should()
-                .Be($"Unable to {Strategy} for provider id {VariationContext.ProviderId}. {argumentNullException.Message}");
+                .Be(VariationContext.ProviderId);
+            
+            errorFieldValues
+                .Skip(1)
+                .First()
+                .Should()
+                .Be($"Unable to apply '{ChangeName}' for '{Strategy}'");
+            
+            errorFieldValues
+                .Skip(2)
+                .First()
+                .Should()
+                .Be(argumentNullException.Message);
         }
 
         [TestMethod]
@@ -106,9 +124,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     .Should()
                     .Be(true);
 
-            VariationContext.ErrorMessages.First()
-                    .Should()
-                    .Be($"Unable to {Strategy} for provider id {VariationContext.ProviderId}. Could not re profile funding line {fundingLineOne.FundingLineCode} for provider {RefreshState.ProviderId} with request: {reProfileRequestOne?.AsJson()}");
+            IEnumerable<string> errorFieldValues = GetFieldValues(VariationContext.ErrorMessages.First());
+            
+            errorFieldValues
+                .First()
+                .Should()
+                .Be(VariationContext.ProviderId);
+
+            errorFieldValues
+                .Skip(1)
+                .First()
+                .Should()
+                .Be($"Unable to apply '{ChangeName}' for '{Strategy}'");
+
+            errorFieldValues
+                .Skip(2)
+                .First()
+                .Should()
+                .Be($"Could not re profile funding line '{fundingLineOne.FundingLineCode}' with request: '{reProfileRequestOne.AsJson().Replace("\"","\"\"")}'");
         }
 
         [TestMethod]
@@ -154,10 +187,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     .Should()
                     .Be(true);
 
-            VariationContext.ErrorMessages.First()
-                    .Should()
-                    .Be($"Unable to {Strategy} for provider id {VariationContext.ProviderId}. Could not re profile funding line {fundingLineOne.FundingLineCode} for provider {RefreshState.ProviderId} as no current funding line exists");
+            IEnumerable<string> errorFieldValues = GetFieldValues(VariationContext.ErrorMessages.First());
 
+            errorFieldValues
+                .First()
+                .Should()
+                .Be(VariationContext.ProviderId);
+
+            errorFieldValues
+                .Skip(1)
+                .First()
+                .Should()
+                .Be($"Unable to apply '{ChangeName}' for '{Strategy}'");
+
+            errorFieldValues
+                .Skip(2)
+                .First()
+                .Should()
+                .Be($"Could not re profile funding line '{fundingLineOne.FundingLineCode}' as no current funding line exists");
         }
 
         [TestMethod]
@@ -425,5 +472,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         private int NewRandomNumberBetween(int min,
             int max) => new RandomNumberBetween(min, max);
+
+        private IEnumerable<string> GetFieldValues(string errorRow)
+        {
+            return errorRow
+                .Replace("\"\"", DoubleQuotes)
+                .Split("\",\"")
+                .Select(_ =>
+                    _.Replace("\"", "")
+                    .Replace(DoubleQuotes, "\"\"")
+                );
+        }
     }
 }

@@ -11,6 +11,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class MidYearClosureReProfileVariationChange : MidYearReProfileVariationChange
     {
+        protected override string ChangeName => "Mid year closure re-profile variation change";
+
         public MidYearClosureReProfileVariationChange(ProviderVariationContext variationContext,
             string strategy) : base(variationContext, strategy)
         {

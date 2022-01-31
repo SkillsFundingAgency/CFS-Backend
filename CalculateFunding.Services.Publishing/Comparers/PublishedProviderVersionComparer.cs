@@ -76,6 +76,20 @@ namespace CalculateFunding.Services.Publishing.Comparers
                 equals = false;
             }
 
+            (bool equal, ReProfileAudit reference) hasReProfileAuditChanges = CompareEnumerable(x.ReProfileAudits, 
+                y.ReProfileAudits, 
+                (xr, yr) => xr.ETag == yr.ETag && 
+                            xr.FundingLineCode == yr.FundingLineCode && 
+                            xr.VariationPointerIndex == yr.VariationPointerIndex &&
+                            xr.StrategyConfigKey == yr.StrategyConfigKey &&
+                            xr.Strategy == yr.Strategy);
+
+            if (!hasReProfileAuditChanges.equal)
+            {
+                _variances.Add($"ReProfileAudit:{hasReProfileAuditChanges.reference?.FundingLineCode}");
+                equals = false;
+            }
+
             if (x.TemplateVersion != y.TemplateVersion)
             {
                 _variances.Add($"TemplateVersion: {x.TemplateVersion} != {y.TemplateVersion}");

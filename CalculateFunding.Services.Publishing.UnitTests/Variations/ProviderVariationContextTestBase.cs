@@ -11,6 +11,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 {
@@ -18,6 +19,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
     {
         protected ProviderVariationContext VariationContext;
         protected IPoliciesService _policiesService;
+        protected ILogger _logger;
         private int _queuedChangeIndex;
 
         [TestInitialize]
@@ -25,6 +27,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         {
             _queuedChangeIndex = 0;
             _policiesService = Substitute.For<IPoliciesService>();
+            _logger = Substitute.For<ILogger>();
             VariationContext = NewVariationContext();
         }
 
@@ -39,6 +42,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 
             ProviderVariationContextBuilder variationContextBuilder = new ProviderVariationContextBuilder()
                 .WithPoliciesService(_policiesService)
+                .WithLogger(_logger)
                 .WithPublishedProvider(NewPublishedProvider(_ => _
                     .WithReleased(NewPublishedProviderVersion(ppv => ppv
                         .WithTotalFunding(totalFunding)

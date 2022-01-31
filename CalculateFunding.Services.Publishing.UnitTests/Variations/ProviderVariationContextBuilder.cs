@@ -6,6 +6,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Tests.Common.Helpers;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 {
@@ -16,6 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         private decimal? _updatedTotalFunding;
         private IEnumerable<string> _errors;
         private IPoliciesService _policiesService;
+        private ILogger _logger;
         private IDictionary<string, PublishedProviderSnapShots> _allPublishedProviderSnapshots;
         private ICollection<VariationReason> _variationReasons;
 
@@ -54,6 +56,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             return this;
         }
 
+        public ProviderVariationContextBuilder WithLogger(ILogger logger)
+        {
+            _logger = logger;
+
+            return this;
+        }
+
         public ProviderVariationContextBuilder WithAllPublishedProviderSnapShots(IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapshots)
         {
             _allPublishedProviderSnapshots = allPublishedProviderSnapshots;
@@ -70,7 +79,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 
         public ProviderVariationContext Build()
         {
-            ProviderVariationContext providerVariationContext = new ProviderVariationContext(_policiesService)
+            ProviderVariationContext providerVariationContext = new ProviderVariationContext(_policiesService, _logger)
             {
                 UpdatedProvider = _currentState,
                 PublishedProvider = _publishedProvider,

@@ -7,6 +7,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     public class ReProfilingVariationChangeTests : ReProfilingVariationChangeTestsBase
     {
         protected override string Strategy => "ReProfiling";
+        protected override string ChangeName => "Re-profiling variation change";
 
         [TestInitialize]
         public void SetUp()

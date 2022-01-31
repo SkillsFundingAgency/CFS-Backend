@@ -9,6 +9,7 @@ using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.Variations
 {
@@ -17,18 +18,22 @@ namespace CalculateFunding.Services.Publishing.Variations
         private readonly IVariationStrategyServiceLocator _variationStrategyServiceLocator;
         private readonly IPoliciesService _policiesService;
         private readonly IProfilingService _profilingService;
+        private readonly ILogger _logger;
 
         public ProviderVariationsDetection(IVariationStrategyServiceLocator variationStrategyServiceLocator,
             IPoliciesService policiesService,
-            IProfilingService profilingService)
+            IProfilingService profilingService,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(variationStrategyServiceLocator, nameof(variationStrategyServiceLocator));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
             _policiesService = policiesService;
             _profilingService = profilingService;
             _variationStrategyServiceLocator = variationStrategyServiceLocator;
+            _logger = logger;
         }
 
         public async Task<ProviderVariationContext> CreateRequiredVariationChanges(PublishedProvider existingPublishedProvider,
@@ -55,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.Variations
             FundingPeriod fundingPeriod = await _policiesService.GetFundingPeriodByConfigurationId(fundingPeriodId);
             IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = await _profilingService.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId);
 
-            ProviderVariationContext providerVariationContext = new ProviderVariationContext(_policiesService)
+            ProviderVariationContext providerVariationContext = new ProviderVariationContext(_policiesService, _logger)
             {
                 PublishedProvider = existingPublishedProvider,
                 UpdatedProvider = provider,

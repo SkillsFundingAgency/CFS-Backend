@@ -13,6 +13,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 {
@@ -24,6 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         private IVariationStrategy _variationStrategy;
         private IPoliciesService _policiesService;
         private IProfilingService _profilingService;
+        private ILogger _logger;
 
         [TestInitialize]
         public void SetUp()
@@ -32,8 +34,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             _variationStrategy = Substitute.For<IVariationStrategy>();
             _policiesService = Substitute.For<IPoliciesService>();
             _profilingService = Substitute.For<IProfilingService>();
+            _logger = Substitute.For<ILogger>();
 
-            _factory = new ProviderVariationsDetection(_variationStrategyServiceLocator, _policiesService, _profilingService);
+            _factory = new ProviderVariationsDetection(_variationStrategyServiceLocator, _policiesService, _profilingService, _logger);
             
             _variationStrategyServiceLocator
                 .GetService(Arg.Any<string>())

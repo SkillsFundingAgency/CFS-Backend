@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     {
         protected override string Strategy => "ConverterReProfiling";
 
+        protected override string ChangeName => "Converter re-profile variation change";
+
         protected override MidYearType MidYearTypeValue => MidYearType.Converter;
 
         [TestInitialize]

@@ -8,6 +8,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class ZeroAllProfiles : VariationChange
     {
+        protected override string ChangeName => "Zero all profiles";
+
         public ZeroAllProfiles(ProviderVariationContext variationContext, string strategyName)
             : base(variationContext, strategyName)
         {

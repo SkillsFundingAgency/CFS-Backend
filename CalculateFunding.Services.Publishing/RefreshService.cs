@@ -422,7 +422,8 @@ namespace CalculateFunding.Services.Publishing
                         generatedProviderResult,
                         scopedProviders[providerId],
                         specification.TemplateIds[fundingStream.Id],
-                        _refreshStateService.IsNewProvider(publishedProvider.Value));
+                        _refreshStateService.IsNewProvider(publishedProvider.Value),
+                        publishedProviderVersion.ReProfileAudits);
 
                     // need to set indicative flag here as we only copy the provider in the above code unless it's a new provider
                     if (publishedProviderVersion.SetIsIndicative(indicativeStatus))

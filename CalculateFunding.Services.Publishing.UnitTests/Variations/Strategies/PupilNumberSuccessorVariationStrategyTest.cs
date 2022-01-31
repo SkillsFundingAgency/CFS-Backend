@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         [TestInitialize]
         public void SetUp()
         {
-            VariationName = "Pupil Number Successor";
+            VariationName = "PupilNumberSuccessor";
             
             ClosureVariationStrategy = new PupilNumberSuccessorVariationStrategy(ProviderService.Object);
         }

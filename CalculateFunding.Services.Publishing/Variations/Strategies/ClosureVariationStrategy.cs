@@ -28,7 +28,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if (providerVariationContext.UpdatedTotalFunding != priorState.TotalFunding)
             {
-                providerVariationContext.RecordErrors("Unable to run Closure variation as TotalFunding has changed during the refresh funding");
+                RecordError(providerVariationContext, 
+                    "Unable to run Closure variation as TotalFunding has changed during the refresh funding");
 
                 return Task.FromResult(false);
             }

@@ -7,7 +7,7 @@ namespace CalculateFunding.Models.Publishing
     {
         public PublishedProviderFundingCount()
         {
-            FundingStreamsFundings = Enumerable.Empty<PublishedProivderFundingStreamFunding>();
+            FundingStreamsFundings = Enumerable.Empty<PublishedProviderFundingStreamFunding>();
             ProviderTypes = Enumerable.Empty<ProviderTypeSubType>();
             LocalAuthorities = Enumerable.Empty<string>();
         }
@@ -19,7 +19,7 @@ namespace CalculateFunding.Models.Publishing
         public int ProviderTypesCount => ProviderTypes.Count();
         public IEnumerable<string> LocalAuthorities { get; set; }
         public int LocalAuthoritiesCount => LocalAuthorities.Count();
-        public IEnumerable<PublishedProivderFundingStreamFunding> FundingStreamsFundings { get; set;}
+        public IEnumerable<PublishedProviderFundingStreamFunding> FundingStreamsFundings { get; set;}
         public decimal? TotalFunding { get; set; }
         public decimal? PaidProvidersTotalFunding { get; set; }
         public decimal? IndicativeProviderTotalFunding { get; set; }

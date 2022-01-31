@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -16,6 +18,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
     public class ReProfileVariationChange : VariationChange
     {
         private readonly string _strategy;
+
+        protected override string ChangeName => "Re-profiling variation change";
 
         public ReProfileVariationChange(ProviderVariationContext variationContext,
             string strategy) : base(variationContext, strategy)
@@ -102,7 +106,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
                 if (reProfileResponse == null)
                 {
-                    throw new NonRetriableException($"Could not re profile funding line {fundingLineCode} for provider {providerId} with request: {ReProfileRequest?.AsJson()}");
+                    throw new NonRetriableException(@$"Could not re profile funding line '{fundingLineCode}' with request: '{ReProfileRequest?.AsJson().Replace("\"", "\"\"")}'");
                 }
 
                 skipReProfiling = reProfileResponse.SkipReProfiling;
@@ -124,7 +128,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
                 if (currentFundingLine == null)
                 {
-                    throw new NonRetriableException($"Could not re profile funding line {fundingLineCode} for provider {providerId} as no current funding line exists");
+                    throw new NonRetriableException($"Could not re profile funding line '{fundingLineCode}' as no current funding line exists");
                 }
 
                 foreach (DistributionPeriod distributionPeriod in currentFundingLine.DistributionPeriods)

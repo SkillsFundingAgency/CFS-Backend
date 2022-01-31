@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Models;
@@ -11,9 +12,16 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class AdjustDsgProfilesForUnderOverPaymentChange : ProfileVariationPointerChange
     {
+        private readonly string _strategyName;
+
+        protected override string ChangeName => "Adjust profiles for dsg total allocation";
+
         public AdjustDsgProfilesForUnderOverPaymentChange(ProviderVariationContext variationContext, string strategyName) 
-            : base(variationContext, "adjust profiles for dsg total allocation", strategyName)
+            : base(variationContext, strategyName)
         {
+            Guard.IsNullOrWhiteSpace(strategyName, nameof(strategyName));
+
+            _strategyName = strategyName;
         }
 
         protected override void MakeAdjustmentsFromProfileVariationPointer(ProfileVariationPointer variationPointer)
@@ -34,7 +42,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             
             if (latestFundingLine == null || previousFundingLine == null)
             {
-                RecordErrors($"Did not locate all funding lines for variation pointer with fundingLineId {fundingLineId}");
+                RecordError(error:$"Did not locate all funding lines for variation pointer with fundingLineId '{fundingLineId}'");
                
                 return;
             }

@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -11,6 +13,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
     public abstract class VariationChange : IVariationChange
     {
         private readonly string _strategyName;
+
+        protected abstract string ChangeName { get; }
 
         protected VariationChange(ProviderVariationContext variationContext,
             string strategyName)
@@ -43,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             }
             catch (Exception exception)
             {
-                RecordErrors($"Unable to {_strategyName} for provider id {VariationContext.ProviderId}. {exception.Message}");
+                RecordError(exception);
             }
 
             variationsApplication.AddPublishedProviderToUpdate(VariationContext.PublishedProvider);
@@ -57,9 +61,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         protected abstract Task ApplyChanges(IApplyProviderVariations variationsApplications);
 
-        protected void RecordErrors(params string[] error)
+        protected void RecordError(Exception exception = null, string error = null)
         {
-            VariationContext.RecordErrors(error);
+            VariationContext.LogError($"Unable to apply '{ChangeName}' for '{_strategyName}' on provider id '{VariationContext.ProviderId}'{error}", exception);
+            VariationContext.RecordError(VariationContext.ProviderId, $"Unable to apply '{ChangeName}' for '{_strategyName}'", error, exception?.Message);
         }
     }
 }

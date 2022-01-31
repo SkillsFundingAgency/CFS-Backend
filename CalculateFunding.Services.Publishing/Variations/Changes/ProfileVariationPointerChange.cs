@@ -13,34 +13,27 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public abstract class ProfileVariationPointerChange : VariationChange
     {
-        private readonly string _changeName;
+        private readonly string _strategyName;
 
-        protected ProfileVariationPointerChange(ProviderVariationContext variationContext, string changeName, string strategyName)
+        protected ProfileVariationPointerChange(ProviderVariationContext variationContext, string strategyName)
             : base(variationContext, strategyName)
         {
-            Guard.IsNullOrWhiteSpace(changeName, nameof(changeName));
+            Guard.IsNullOrWhiteSpace(strategyName, nameof(strategyName));
 
-            _changeName = changeName;
+            _strategyName = strategyName;
         }
 
         protected override Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
-            try
-            {
-                IEnumerable<ProfileVariationPointer> variationPointers = VariationContext.VariationPointers;
+            IEnumerable<ProfileVariationPointer> variationPointers = VariationContext.VariationPointers;
 
-                if (!variationPointers.IsNullOrEmpty())
-                {
-                    foreach (ProfileVariationPointer variationPointer in variationPointers)
-                    {
-                        AddAffectedFundingLine(variationPointer.FundingLineId);
-                        MakeAdjustmentsFromProfileVariationPointer(variationPointer);
-                    }
-                }
-            }
-            catch (Exception exception)
+            if (!variationPointers.IsNullOrEmpty())
             {
-                RecordErrors($"Unable to {_changeName} for provider id {VariationContext.ProviderId}. {exception.Message}");
+                foreach (ProfileVariationPointer variationPointer in variationPointers)
+                {
+                    AddAffectedFundingLine(variationPointer.FundingLineId);
+                    MakeAdjustmentsFromProfileVariationPointer(variationPointer);
+                }
             }
             
             return Task.CompletedTask;

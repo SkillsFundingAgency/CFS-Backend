@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Publishing.Variations.Changes;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
@@ -52,15 +54,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
             await WhenTheVariationsAreProcessed();
 
-            VariationContext
-                .ErrorMessages
+            IEnumerable<string> errorFieldValues = GetFieldValues(VariationContext.ErrorMessages.First());
+
+            errorFieldValues
+                .First()
                 .Should()
-                .BeEquivalentTo("Unable to run Closure variation as TotalFunding has changed during the refresh funding");
+                .Be(VariationContext.ProviderId);
+
+            errorFieldValues
+                .Skip(1)
+                .First()
+                .Should()
+                .Be("Unable to apply strategy 'Closure'");
+
+
+            errorFieldValues
+                .Skip(2)
+                .First()
+                .Should()
+                .Be("Unable to run Closure variation as TotalFunding has changed during the refresh funding");
 
             VariationContext
                 .QueuedChanges
                 .Should()
                 .BeEmpty();
+        }
+
+        private IEnumerable<string> GetFieldValues(string errorRow)
+        {
+            return errorRow
+                .Split("\",\"")
+                .Select(_ =>
+                    _.Replace("\"", "")
+                );
         }
     }
 }

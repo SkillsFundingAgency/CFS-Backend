@@ -192,7 +192,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _batchProfilingService = new Mock<IBatchProfilingService>();
 
             _variationStrategyServiceLocator = new VariationStrategyServiceLocator(variationStrategies);
-            _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator, _policiesService.Object, _profilingService.Object);
+            _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator, _policiesService.Object, _profilingService.Object, _logger.Object);
             _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies,
                 _specificationsApiClient.Object,
                 _policiesApiClient.Object,

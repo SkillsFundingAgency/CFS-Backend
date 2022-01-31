@@ -35,6 +35,15 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             providerVariationContext.ApplicableVariations.Add(Name);
         }
 
+        protected void RecordError(ProviderVariationContext context, string error)
+        {
+            context.LogError($"Unable to apply strategy '{Name}' on provider id '{context.ProviderId}'{error}");
+            context.RecordError(context.ProviderId,
+                    $"Unable to apply strategy '{Name}'",
+                    error);
+
+        }
+
         protected abstract Task<bool> Execute(ProviderVariationContext providerVariationContext);
     }
 }

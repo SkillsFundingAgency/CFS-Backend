@@ -20,6 +20,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class MovePupilNumbersToSuccessorChange : VariationChange
     {
+        protected override string ChangeName => "Move pupil numbers to successor change";
+
         public MovePupilNumbersToSuccessorChange(ProviderVariationContext variationContext, string strategyName)
             : base(variationContext, strategyName)
         {

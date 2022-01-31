@@ -9,6 +9,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class ReAdjustFundingValuesForProfileValuesChange : VariationChange
     {
+        protected override string ChangeName => "Re-adjust funding values for profile values change";
+
         public ReAdjustFundingValuesForProfileValuesChange(ProviderVariationContext variationContext, string strategyName) : base(variationContext, strategyName)
         {
         }

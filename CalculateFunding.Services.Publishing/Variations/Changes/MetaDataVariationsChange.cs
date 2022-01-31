@@ -7,6 +7,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class MetaDataVariationsChange : VariationChange
     {
+        protected override string ChangeName => "Metadata variations change";
+
         public MetaDataVariationsChange(ProviderVariationContext variationContext, string strategyName)
             : base(variationContext, strategyName)
         {

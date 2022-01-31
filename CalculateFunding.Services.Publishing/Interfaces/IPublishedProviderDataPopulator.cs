@@ -14,11 +14,13 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         /// <param name="generatedProviderResult">Generated funding lines, calculations and reference data</param>
         /// <param name="provider">Core provider information</param>
         /// <param name="templateVersion">The template version used for the specification and provider</param>
+        /// <param name="reProfileAudits">Re-profile audits to check against</param>
         /// <returns>True when the PublishedProviderVersion has been updated, false if not</returns>
         (bool changed, IEnumerable<string> variances) UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion,
             GeneratedProviderResult generatedProviderResult,
             Provider provider,
             string templateVersion,
-            bool isNewProvider);
+            bool isNewProvider,
+            IEnumerable<ReProfileAudit> reProfileAudits);
     }
 }

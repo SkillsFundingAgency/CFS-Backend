@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                     IndicativeProviderTotalFunding = _fundings.Where(_ => _.IsIndicative).Sum(_ => _.TotalFunding.GetValueOrDefault()),
                     ProviderTypes = _fundings.Select(_ => _.ProviderTypeSubType).Distinct().ToArray(),
                     FundingStreamsFundings = _fundings.GroupBy(fundingStream => fundingStream.FundingStreamId)
-                        .Select(fundingStream => new PublishedProivderFundingStreamFunding
+                        .Select(fundingStream => new PublishedProviderFundingStreamFunding
                         {
                             FundingStreamId = fundingStream.Key,
                             TotalFunding = fundingStream.Sum(_ =>

@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
     {
         private readonly string _strategy;
 
+        protected override string ChangeName => "Mid year re-profile variation change";
+
         protected override bool ShouldPersistReProfileAudit(ReProfileRequest reProfileRequest) => true;
 
         public MidYearReProfileVariationChange(ProviderVariationContext variationContext,

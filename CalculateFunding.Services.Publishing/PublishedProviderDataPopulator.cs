@@ -37,12 +37,14 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="provider">Core provider information</param>
         /// <param name="templateVersion">The template version used for the specification and provider</param>
         /// <param name="isNewProvider">flag indicating whether this a new provider</param>
+        /// <param name="reProfileAudits">Re-profile audits to check against</param>
         /// <returns>True when the PublishedProviderVersion has been updated, false if not</returns>
         public (bool changed, IEnumerable<string> variances) UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion,
             GeneratedProviderResult generatedProviderResult,
             Provider provider,
             string templateVersion,
-            bool isNewProvider)
+            bool isNewProvider,
+            IEnumerable<ReProfileAudit> reProfileAudits)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
@@ -60,7 +62,8 @@ namespace CalculateFunding.Services.Publishing
             PublishedProviderVersion providerVersionGenerated = new PublishedProviderVersion
             {
                 TemplateVersion = templateVersion,
-                Provider = mappedProvider
+                Provider = mappedProvider,
+                ReProfileAudits = reProfileAudits
             };
 
             // if there are no calculations to action then there is nothing to compare against or to override

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
@@ -49,11 +51,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Successor = successorId);
             
             await WhenTheVariationsAreProcessed();
-            
-            VariationContext
-                .ErrorMessages
+
+            IEnumerable<string> errorFieldValues = GetFieldValues(VariationContext.ErrorMessages.First());
+
+            errorFieldValues
+                .First()
                 .Should()
-                .BeEquivalentTo($"Unable to run {VariationName} variation as could not locate or create a successor provider with id:{successorId}");
+                .Be(VariationContext.ProviderId);
+
+            errorFieldValues
+                .Skip(1)
+                .First()
+                .Should()
+                .Be($"Unable to apply strategy '{VariationName}'");
+
+
+            errorFieldValues
+                .Skip(2)
+                .First()
+                .Should()
+                .Be($"Could not locate or create a successor provider with id:{successorId}");
 
             VariationContext
                 .QueuedChanges
@@ -66,6 +83,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             VariationContext.Successor.Current.Predecessors
                 .Should()
                 .BeEquivalentTo(successorId);
+        }
+        private IEnumerable<string> GetFieldValues(string errorRow)
+        {
+            return errorRow
+                .Split("\",\"")
+                .Select(_ =>
+                    _.Replace("\"", "")
+                );
         }
     }
 }

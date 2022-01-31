@@ -13,6 +13,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Variations;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.Models
 {
@@ -20,12 +21,17 @@ namespace CalculateFunding.Services.Publishing.Models
     public class ProviderVariationContext
     {
         private readonly IPoliciesService _policiesService;
+        private readonly ILogger _logger;
         private readonly Queue<IVariationChange> _variationChanges = new Queue<IVariationChange>();
 
-        public ProviderVariationContext(IPoliciesService policiesService)
+        public ProviderVariationContext(IPoliciesService policiesService,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+
             _policiesService = policiesService;
+            _logger = logger;
             OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
         }
 
@@ -147,9 +153,20 @@ namespace CalculateFunding.Services.Publishing.Models
             VariationReasons.AddRange(variationReasons.Except(VariationReasons));
         }
 
-        public void RecordErrors(params string[] errors)
+        public void RecordError(params string[] error)
         {
-            ErrorMessages.AddRange(errors);
+            ErrorMessages.Add(error.Where(_ => _ != null).Select(_ => $"\"{_}\"").Join(","));
+        }
+
+        public void LogError(string error, Exception exception = null)
+        {
+            if (exception == null)
+            {
+                _logger.Error(error);
+                return;
+            }
+
+            _logger.Error(exception, error);
         }
         
         /// <summary>

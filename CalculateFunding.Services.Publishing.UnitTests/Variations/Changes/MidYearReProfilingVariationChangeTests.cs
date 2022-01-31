@@ -16,6 +16,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     {
         protected override string Strategy => "MidYearReProfiling";
 
+        protected override string ChangeName => "Mid year re-profile variation change";
+
         protected DateTimeOffset OpenDate => ProfileDate.AddMonths(1);
 
         protected virtual MidYearType MidYearTypeValue => MidYearType.Opener;

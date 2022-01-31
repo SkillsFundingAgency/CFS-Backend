@@ -46,8 +46,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if (successor == null)
             {
-                providerVariationContext.RecordErrors(
-                    $"Unable to run Pupil Number Successor variation as could not locate or create a successor provider with id:{_successorId}");
+                RecordError(providerVariationContext,
+                    $"Could not locate or create a successor provider with id:{_successorId}");
 
                 return false;
             }
