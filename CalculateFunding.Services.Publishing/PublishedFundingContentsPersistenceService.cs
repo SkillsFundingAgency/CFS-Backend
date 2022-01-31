@@ -13,14 +13,14 @@ using Polly;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishedFundingContentsPersistanceService : IPublishedFundingContentsPersistanceService
+    public class PublishedFundingContentsPersistenceService : IPublishedFundingContentsPersistenceService
     {
         private readonly IPublishedFundingContentsGeneratorResolver _publishedFundingContentsGeneratorResolver;
         private readonly IBlobClient _blobClient;
         private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
 
-        public PublishedFundingContentsPersistanceService(
+        public PublishedFundingContentsPersistenceService(
             IPublishedFundingContentsGeneratorResolver publishedFundingContentsGeneratorResolver,
             IBlobClient blobClient,
             IPublishingResiliencePolicies publishingResiliencePolicies, 

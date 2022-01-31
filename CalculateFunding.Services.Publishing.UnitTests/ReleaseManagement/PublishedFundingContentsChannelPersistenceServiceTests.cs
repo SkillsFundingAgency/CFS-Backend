@@ -19,9 +19,9 @@ using System.Threading.Tasks;
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 {
     [TestClass]
-    public class PublishedFundingContentsChannelPersistanceServiceTests
+    public class PublishedFundingContentsChannelPersistenceServiceTests
     {
-        private IPublishedFundingContentsChannelPersistanceService _publishedFundingContentsChannelPersistanceService;
+        private IPublishedFundingContentsChannelPersistenceService _publishedFundingContentsChannelPersistenceService;
         private ILogger _logger;
         private IPublishedProviderChannelVersionService _publishedProviderChannelVersionService;
         private IPoliciesService _policiesService;
@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
             _publishedFundingContentsGeneratorResolver = Substitute.For<IPublishedFundingContentsGeneratorResolver>();
 
-            _publishedFundingContentsChannelPersistanceService = new PublishedFundingContentsChannelPersistanceService(
+            _publishedFundingContentsChannelPersistenceService = new PublishedFundingContentsChannelPersistenceService(
                 _logger,
                 _publishedFundingContentsGeneratorResolver,
                 _blobClient,
@@ -99,7 +99,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
 
             // Act
-            await _publishedFundingContentsChannelPersistanceService.SavePublishedFundingContents(
+            await _publishedFundingContentsChannelPersistenceService.SavePublishedFundingContents(
                 publishedFundingVersions, channel);
 
 

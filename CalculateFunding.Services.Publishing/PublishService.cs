@@ -34,8 +34,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly ICalculationsApiClient _calculationsApiClient;
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
         private readonly IPublishedFundingGenerator _publishedFundingGenerator;
-        private readonly IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
-        private readonly IPublishedProviderContentPersistanceService _publishedProviderContentsPersistanceService;
+        private readonly IPublishedFundingContentsPersistenceService _publishedFundingContentsPersistenceService;
+        private readonly IPublishedProviderContentPersistenceService _publishedProviderContentsPersistenceService;
         private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
@@ -56,8 +56,8 @@ namespace CalculateFunding.Services.Publishing
             IPublishedFundingChangeDetectorService publishedFundingChangeDetectorService,
             IPublishedFundingGenerator publishedFundingGenerator,
             IPublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver,
-            IPublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService,
-            IPublishedProviderContentPersistanceService publishedProviderContentsPersistanceService,
+            IPublishedFundingContentsPersistenceService publishedFundingContentsPersistenceService,
+            IPublishedProviderContentPersistenceService publishedProviderContentsPersistenceService,
             IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IProviderService providerService,
             ISearchRepository<PublishedFundingIndex> publishedFundingSearchRepository,
@@ -79,8 +79,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedFundingChangeDetectorService, nameof(publishedFundingChangeDetectorService));
             Guard.ArgumentNotNull(publishedFundingGenerator, nameof(publishedFundingGenerator));
             Guard.ArgumentNotNull(publishedFundingGenerator, nameof(publishedProviderContentsGeneratorResolver));
-            Guard.ArgumentNotNull(publishedFundingContentsPersistanceService, nameof(publishedFundingContentsPersistanceService));
-            Guard.ArgumentNotNull(publishedProviderContentsPersistanceService, nameof(publishedProviderContentsPersistanceService));
+            Guard.ArgumentNotNull(publishedFundingContentsPersistenceService, nameof(publishedFundingContentsPersistenceService));
+            Guard.ArgumentNotNull(publishedProviderContentsPersistenceService, nameof(publishedProviderContentsPersistenceService));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingSearchRepository, nameof(publishedFundingSearchRepository));
             Guard.ArgumentNotNull(providerService, nameof(providerService));
@@ -101,8 +101,8 @@ namespace CalculateFunding.Services.Publishing
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
             _publishedFundingGenerator = publishedFundingGenerator;
             _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
-            _publishedFundingContentsPersistanceService = publishedFundingContentsPersistanceService;
-            _publishedProviderContentsPersistanceService = publishedProviderContentsPersistanceService;
+            _publishedFundingContentsPersistenceService = publishedFundingContentsPersistenceService;
+            _publishedProviderContentsPersistenceService = publishedProviderContentsPersistenceService;
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingSearchRepository = publishedFundingSearchRepository;
             _logger = logger;
@@ -306,7 +306,7 @@ namespace CalculateFunding.Services.Publishing
 
                 // Save contents to blob storage and search for the feed
                 _logger.Information($"Saving published funding contents");
-                await _publishedFundingContentsPersistanceService.SavePublishedFundingContents(publishedFundingToSave.Select(_ => _.PublishedFundingVersion),
+                await _publishedFundingContentsPersistenceService.SavePublishedFundingContents(publishedFundingToSave.Select(_ => _.PublishedFundingVersion),
                     publishedFundingInput.TemplateMetadataContents);
                 _logger.Information($"Finished saving published funding contents");
 
@@ -314,7 +314,7 @@ namespace CalculateFunding.Services.Publishing
                 {
                     // Generate contents JSON for provider and save to blob storage
                     IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(publishedFundingInput.TemplateMetadataContents.SchemaVersion);
-                    await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(publishedFundingInput.TemplateMetadataContents, templateMapping,
+                    await _publishedProviderContentsPersistenceService.SavePublishedProviderContents(publishedFundingInput.TemplateMetadataContents, templateMapping,
                         selectedPublishedProviders, generator);
                 }
 

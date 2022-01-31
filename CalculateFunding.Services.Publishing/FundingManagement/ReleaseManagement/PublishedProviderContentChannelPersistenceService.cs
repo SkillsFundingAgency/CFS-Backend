@@ -19,7 +19,7 @@ using VariationReason = CalculateFunding.Models.Publishing.VariationReason;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
 {
-    public class PublishedProviderContentChannelPersistanceService : IPublishedProviderContentChannelPersistanceService
+    public class PublishedProviderContentChannelPersistenceService : IPublishedProviderContentChannelPersistenceService
     {
         private readonly ILogger _logger;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly ICalculationsService _calculationsService;
         private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
 
-        public PublishedProviderContentChannelPersistanceService(
+        public PublishedProviderContentChannelPersistenceService(
             ILogger logger,
             IPublishingEngineOptions publishingEngineOptions,
             IPublishedProviderChannelVersionService publishedProviderChannelVersionService,

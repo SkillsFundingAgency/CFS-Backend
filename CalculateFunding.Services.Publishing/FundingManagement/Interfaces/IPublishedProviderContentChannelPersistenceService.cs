@@ -7,7 +7,7 @@ using VariationReason = CalculateFunding.Models.Publishing.VariationReason;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
-    public interface IPublishedProviderContentChannelPersistanceService
+    public interface IPublishedProviderContentChannelPersistenceService
     {
         Task SavePublishedProviderVariationReasonContents(
             SpecificationSummary specification,

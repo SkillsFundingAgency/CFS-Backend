@@ -14,9 +14,9 @@ using NSubstitute;
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     [TestClass]
-    public class PublishedFundingContentsPersistanceServiceTests
+    public class PublishedFundingContentsPersistenceServiceTests
     {
-        private PublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
+        private PublishedFundingContentsPersistenceService _publishedFundingContentsPersistenceService;
         private IBlobClient _blobClient;
         private const string _fundingStream = "stream1";
         private const string _schema = "1.0";
@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             publishedFundingContentsGeneratorResolver.GetService(Arg.Is(_schema))
                 .Returns(_publishedFundingContentsGenerator);
 
-            _publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(
+            _publishedFundingContentsPersistenceService = new PublishedFundingContentsPersistenceService(
                 publishedFundingContentsGeneratorResolver, 
                 _blobClient, PublishingResilienceTestHelper.GenerateTestPolicies(), 
                 new PublishingEngineOptions(configuration));
@@ -131,7 +131,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private async Task WhenPublishedFundingContentsSaved()
         {
-            await _publishedFundingContentsPersistanceService.SavePublishedFundingContents(new List<PublishedFundingVersion> { _publishedFundingVersion }, _templateMetadataContents);
+            await _publishedFundingContentsPersistenceService.SavePublishedFundingContents(new List<PublishedFundingVersion> { _publishedFundingVersion }, _templateMetadataContents);
         }
 
         private PublishedFundingVersion NewPublishedFundingVersion(Action<PublishedFundingVersionBuilder> setUp = null)

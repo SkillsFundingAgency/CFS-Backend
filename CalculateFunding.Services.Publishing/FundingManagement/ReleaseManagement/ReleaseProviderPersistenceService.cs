@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
 {
-    public class ReleaseProviderPersistanceService : IReleaseProviderPersistanceService
+    public class ReleaseProviderPersistenceService : IReleaseProviderPersistenceService
     {
         private readonly IReleaseToChannelSqlMappingContext _releaseToChannelSqlMappingContext;
         private readonly IReleaseManagementRepository _releaseManagementRepository;
 
-        public ReleaseProviderPersistanceService(IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext,
+        public ReleaseProviderPersistenceService(IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext,
                 IReleaseManagementRepository releaseManagementRepository)
         {
             Guard.ArgumentNotNull(releaseToChannelSqlMappingContext, nameof(releaseToChannelSqlMappingContext));

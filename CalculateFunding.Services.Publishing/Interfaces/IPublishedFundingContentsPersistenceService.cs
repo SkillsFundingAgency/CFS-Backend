@@ -5,7 +5,7 @@ using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IPublishedFundingContentsPersistanceService
+    public interface IPublishedFundingContentsPersistenceService
     {
         Task SavePublishedFundingContents(IEnumerable<PublishedFundingVersion> publishedFundingToSave, TemplateMetadataContents templateMetadataContents);
     }

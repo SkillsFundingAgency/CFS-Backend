@@ -41,7 +41,7 @@ namespace CalculateFunding.Models.Calcs
         /// <summary>
         /// Used for putting description in the built assembly, this gets populated only when being called from this scenario.
         /// This value shouldn't be stored in CosmosDB
-        /// The same models are used for persistance and input to the calculation engine
+        /// The same models are used for persistence and input to the calculation engine
         /// </summary>
         [JsonProperty("description")]
         public string Description { get; set; }

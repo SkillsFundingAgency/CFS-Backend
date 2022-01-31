@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
-    public interface IReleaseProviderPersistanceService
+    public interface IReleaseProviderPersistenceService
     {
         Task<IEnumerable<ReleasedProvider>> ReleaseProviders(IEnumerable<string> providers, string specificationId);
     }

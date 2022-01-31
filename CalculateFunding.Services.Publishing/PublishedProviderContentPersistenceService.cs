@@ -14,7 +14,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishedProviderContentPersistanceService : IPublishedProviderContentPersistanceService
+    public class PublishedProviderContentPersistenceService : IPublishedProviderContentPersistenceService
     {
         private readonly ILogger _logger;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
 
-        public PublishedProviderContentPersistanceService(
+        public PublishedProviderContentPersistenceService(
             IPublishedProviderVersionService publishedProviderVersionService,
             IPublishedProviderVersioningService publishedProviderVersioningService,
             IPublishedProviderIndexerService publishedProviderIndexerService,

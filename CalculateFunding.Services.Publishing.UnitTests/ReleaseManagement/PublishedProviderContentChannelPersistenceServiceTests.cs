@@ -21,9 +21,9 @@ using VariationReason = CalculateFunding.Models.Publishing.VariationReason;
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 {
     [TestClass]
-    public class PublishedProviderContentChannelPersistanceServiceTests
+    public class PublishedProviderContentChannelPersistenceServiceTests
     {
-        private IPublishedProviderContentChannelPersistanceService _publishedProviderContentChannelPersistanceService;
+        private IPublishedProviderContentChannelPersistenceService _publishedProviderContentChannelPersistenceService;
         private ILogger _logger;
         private IPublishedProviderChannelVersionService _publishedProviderChannelVersionService;
         private IPoliciesService _policiesService;
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _calculationsService = Substitute.For<ICalculationsService>();
             _publishedProviderContentsGeneratorResolver = Substitute.For<IPublishedProviderContentsGeneratorResolver>();
 
-            _publishedProviderContentChannelPersistanceService = new PublishedProviderContentChannelPersistanceService(
+            _publishedProviderContentChannelPersistenceService = new PublishedProviderContentChannelPersistenceService(
                 _logger,
                 new PublishingEngineOptions(configuration),
                 _publishedProviderChannelVersionService,
@@ -101,7 +101,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Throws(new Exception(exceptionMessage));
 
             // Act
-            Func<Task> invocation = async () => await _publishedProviderContentChannelPersistanceService.SavePublishedProviderContents(
+            Func<Task> invocation = async () => await _publishedProviderContentChannelPersistenceService.SavePublishedProviderContents(
                 templateMapping, publishedProviderVersions, channel);
 
             // Assert
@@ -146,7 +146,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Returns("contents");
 
             // Act
-            await _publishedProviderContentChannelPersistanceService.SavePublishedProviderContents(
+            await _publishedProviderContentChannelPersistenceService.SavePublishedProviderContents(
                 templateMapping, publishedProviderVersions, channel);
 
             // Assert
@@ -213,7 +213,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Returns("contents");
 
             // Act
-            await _publishedProviderContentChannelPersistanceService.SavePublishedProviderVariationReasonContents(
+            await _publishedProviderContentChannelPersistenceService.SavePublishedProviderVariationReasonContents(
                 specificationSummary, publishedProviderVersions, channel, variationReasonsForProviders);
 
             // Assert
@@ -278,7 +278,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Returns("contents");
 
             // Act
-            await _publishedProviderContentChannelPersistanceService.SavePublishedProviderVariationReasonContents(
+            await _publishedProviderContentChannelPersistenceService.SavePublishedProviderVariationReasonContents(
                 specificationSummary, publishedProviderVersions, channel, variationReasonsForProviders);
 
             // Assert

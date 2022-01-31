@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IReleaseProvidersToChannelsService, ReleaseProvidersToChannelsService>();
             builder.AddScoped<IChannelReleaseService, ChannelReleaseService>();
             builder.AddScoped<IProviderVersionToChannelReleaseService, ProviderVersionToChannelReleaseService>();
-            builder.AddScoped<IReleaseProviderPersistanceService, ReleaseProviderPersistanceService>();
+            builder.AddScoped<IReleaseProviderPersistenceService, ReleaseProviderPersistenceService>();
             builder.AddScoped<IReleaseToChannelSqlMappingContext, ReleaseToChannelSqlMappingContext>();
             builder.AddScoped<IProviderVersionReleaseService, ProviderVersionReleaseService>();
             builder.AddScoped<IReleaseManagementSpecificationService, ReleaseManagementSpecificationService>();
@@ -66,8 +66,8 @@ namespace CalculateFunding.Services.Publishing.IoC
                 return new PublishedProviderChannelVersionService(logger, blobClient, resiliencePolicies);
             });
 
-            builder.AddScoped<IPublishedProviderContentChannelPersistanceService, PublishedProviderContentChannelPersistanceService>();
-            builder.AddSingleton<IPublishedFundingContentsChannelPersistanceService>((ctx) =>
+            builder.AddScoped<IPublishedProviderContentChannelPersistenceService, PublishedProviderContentChannelPersistenceService>();
+            builder.AddSingleton<IPublishedFundingContentsChannelPersistenceService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
 
@@ -84,7 +84,7 @@ namespace CalculateFunding.Services.Publishing.IoC
                 IPoliciesService policiesService = ctx.GetService<IPoliciesService>();
                 ILogger logger = ctx.GetService<ILogger>();
 
-                return new PublishedFundingContentsChannelPersistanceService(logger, resolver, blobClient, resiliencePolicies, engineOptions, policiesService);
+                return new PublishedFundingContentsChannelPersistenceService(logger, resolver, blobClient, resiliencePolicies, engineOptions, policiesService);
             });
 
             builder.AddScoped<IFundingGroupService, FundingGroupService>();

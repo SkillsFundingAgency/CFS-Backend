@@ -17,7 +17,7 @@ using CalculateFunding.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
 {
-    public class PublishedFundingContentsChannelPersistanceService : IPublishedFundingContentsChannelPersistanceService
+    public class PublishedFundingContentsChannelPersistenceService : IPublishedFundingContentsChannelPersistenceService
     {
         private readonly ILogger _logger;
         private readonly IPublishedFundingContentsGeneratorResolver _publishedFundingContentsGeneratorResolver;
@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IPublishingEngineOptions _publishingEngineOptions;
         private readonly IPoliciesService _policiesService;
 
-        public PublishedFundingContentsChannelPersistanceService(
+        public PublishedFundingContentsChannelPersistenceService(
             ILogger logger,
             IPublishedFundingContentsGeneratorResolver publishedFundingContentsGeneratorResolver,
             IBlobClient blobClient,

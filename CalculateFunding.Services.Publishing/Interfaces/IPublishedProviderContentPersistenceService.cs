@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IPublishedProviderContentPersistanceService
+    public interface IPublishedProviderContentPersistenceService
     {
         Task SavePublishedProviderContents(TemplateMetadataContents templateMetadataContents, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<PublishedProvider> publishedProvidersToUpdate, IPublishedProviderContentsGenerator generator, bool publishAll = false);
     }

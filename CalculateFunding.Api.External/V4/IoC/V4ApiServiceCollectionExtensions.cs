@@ -254,8 +254,8 @@ namespace CalculateFunding.Api.External.V4.IoC
             });
 
             builder.AddSingleton<ICalculationsService, CalculationsService>();
-            builder.AddScoped<IPublishedProviderContentChannelPersistanceService, PublishedProviderContentChannelPersistanceService>();
-            builder.AddScoped<IPublishedFundingContentsChannelPersistanceService>((ctx) =>
+            builder.AddScoped<IPublishedProviderContentChannelPersistenceService, PublishedProviderContentChannelPersistenceService>();
+            builder.AddScoped<IPublishedFundingContentsChannelPersistenceService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
 
@@ -275,7 +275,7 @@ namespace CalculateFunding.Api.External.V4.IoC
 
                 IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
 
-                return new PublishedFundingContentsChannelPersistanceService(logger,
+                return new PublishedFundingContentsChannelPersistenceService(logger,
                     publishedFundingContentsGeneratorResolver,
                     blobClient,
                     publishingResiliencePolicies,

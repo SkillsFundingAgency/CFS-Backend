@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
     [TestClass]
     public class ReleaseProviderPersistenceServiceTests
     {
-        private ReleaseProviderPersistanceService _service;
+        private ReleaseProviderPersistenceService _service;
         private Mock<IReleaseToChannelSqlMappingContext> _releaseToChannelSqlMappingContext;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private IEnumerable<string> _providers;
@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseToChannelSqlMappingContext = new Mock<IReleaseToChannelSqlMappingContext>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _releaseToChannelSqlMappingContext.SetupGet(_ => _.ReleasedProviders).Returns(new Dictionary<string, ReleasedProvider>());
-            _service = new ReleaseProviderPersistanceService(_releaseToChannelSqlMappingContext.Object,
+            _service = new ReleaseProviderPersistenceService(_releaseToChannelSqlMappingContext.Object,
                 _releaseManagementRepository.Object);
         }
 

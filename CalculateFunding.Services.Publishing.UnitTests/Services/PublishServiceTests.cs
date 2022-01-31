@@ -50,8 +50,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IPublishedFundingChangeDetectorService _publishedFundingChangeDetectorService;
         private IPublishedFundingGenerator _publishedFundingGenerator;
         private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
-        private IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
-        private IPublishedProviderContentPersistanceService _publishedProviderContentsPersistanceService;
+        private IPublishedFundingContentsPersistenceService _publishedFundingContentsPersistenceService;
+        private IPublishedProviderContentPersistenceService _publishedProviderContentsPersistenceService;
         private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
         private ICalculationsApiClient _calculationsApiClient;
@@ -112,8 +112,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingChangeDetectorService = Substitute.For<IPublishedFundingChangeDetectorService>();
             _publishedFundingGenerator = Substitute.For<IPublishedFundingGenerator>();
             _publishedProviderContentsGeneratorResolver = Substitute.For<IPublishedProviderContentsGeneratorResolver>();
-            _publishedFundingContentsPersistanceService = Substitute.For<IPublishedFundingContentsPersistanceService>();
-            _publishedProviderContentsPersistanceService = Substitute.For<IPublishedProviderContentPersistanceService>();
+            _publishedFundingContentsPersistenceService = Substitute.For<IPublishedFundingContentsPersistenceService>();
+            _publishedProviderContentsPersistenceService = Substitute.For<IPublishedProviderContentPersistenceService>();
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedFundingSearchRepository = Substitute.For<ISearchRepository<PublishedFundingIndex>>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
@@ -153,8 +153,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedFundingChangeDetectorService,
                 _publishedFundingGenerator,
                 _publishedProviderContentsGeneratorResolver,
-                _publishedFundingContentsPersistanceService,
-                _publishedProviderContentsPersistanceService,
+                _publishedFundingContentsPersistenceService,
+                _publishedProviderContentsPersistenceService,
                 _publishedProviderStatusUpdateService,
                 _providerService,
                 _publishedFundingSearchRepository,

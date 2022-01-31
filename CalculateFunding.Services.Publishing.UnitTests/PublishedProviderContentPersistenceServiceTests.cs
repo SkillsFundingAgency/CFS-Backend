@@ -15,9 +15,9 @@ using NSubstitute.ExceptionExtensions;
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     [TestClass]
-    public class PublishedProviderContentPersistanceServiceTests
+    public class PublishedProviderContentPersistenceServiceTests
     {
-        private IPublishedProviderContentPersistanceService _publishedProviderContentPersistanceService;
+        private IPublishedProviderContentPersistenceService _publishedProviderContentPersistenceService;
 
         private ILogger _logger;
         private IPublishedProviderVersionService _publishedProviderVersionService;
@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
             IConfiguration configuration = Substitute.For<IConfiguration>();
 
-            _publishedProviderContentPersistanceService = new PublishedProviderContentPersistanceService(
+            _publishedProviderContentPersistenceService = new PublishedProviderContentPersistenceService(
                 _publishedProviderVersionService,
                 _publishedProviderVersioningService,
                 _publishedProviderIndexerService,
@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             publishedProvidersToUpdate.Add(publishedProvider);
 
             // Act
-            Func<Task> invocation = async () => await _publishedProviderContentPersistanceService.SavePublishedProviderContents(
+            Func<Task> invocation = async () => await _publishedProviderContentPersistenceService.SavePublishedProviderContents(
                 templateMetadataContents, templateMapping, publishedProvidersToUpdate, publishedProviderContentsGenerator);
 
             // Assert
@@ -112,7 +112,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Throws(new Exception(exceptionMessage));
 
             // Act
-            Func<Task> invocation = async () => await _publishedProviderContentPersistanceService.SavePublishedProviderContents(
+            Func<Task> invocation = async () => await _publishedProviderContentPersistenceService.SavePublishedProviderContents(
                 templateMetadataContents, templateMapping, publishedProvidersToUpdate, publishedProviderContentsGenerator);
 
             // Assert
@@ -150,7 +150,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Throws(new Exception(exceptionMessage));
 
             // Act
-            Func<Task> invocation = async () => await _publishedProviderContentPersistanceService.SavePublishedProviderContents(
+            Func<Task> invocation = async () => await _publishedProviderContentPersistenceService.SavePublishedProviderContents(
                 templateMetadataContents, templateMapping, publishedProvidersToUpdate, publishedProviderContentsGenerator);
 
             // Assert
@@ -183,7 +183,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Returns("contents");
 
             // Act
-            await _publishedProviderContentPersistanceService.SavePublishedProviderContents(
+            await _publishedProviderContentPersistenceService.SavePublishedProviderContents(
                 templateMetadataContents, templateMapping, publishedProvidersToUpdate, publishedProviderContentsGenerator);
 
             // Assert

@@ -44,8 +44,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IPublishedFundingChangeDetectorService _publishedFundingChangeDetectorService;
         private IPublishedFundingGenerator _publishedFundingGenerator;
         private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
-        private IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
-        private IPublishedProviderContentPersistanceService _publishedProviderContentsPersistanceService;
+        private IPublishedFundingContentsPersistenceService _publishedFundingContentsPersistenceService;
+        private IPublishedProviderContentPersistenceService _publishedProviderContentsPersistenceService;
         private ICalculationsApiClient _calculationsApiClient;
         private IProviderService _providerService;
         private IJobManagement _jobManagement;
@@ -98,8 +98,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingChangeDetectorService = Substitute.For<IPublishedFundingChangeDetectorService>();
             _publishedFundingGenerator = Substitute.For<IPublishedFundingGenerator>();
             _publishedProviderContentsGeneratorResolver = Substitute.For<IPublishedProviderContentsGeneratorResolver>();
-            _publishedFundingContentsPersistanceService = Substitute.For<IPublishedFundingContentsPersistanceService>();
-            _publishedProviderContentsPersistanceService = Substitute.For<IPublishedProviderContentPersistanceService>();
+            _publishedFundingContentsPersistenceService = Substitute.For<IPublishedFundingContentsPersistenceService>();
+            _publishedProviderContentsPersistenceService = Substitute.For<IPublishedProviderContentPersistenceService>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
             _providerService = Substitute.For<IProviderService>();
             _jobManagement = Substitute.For<IJobManagement>();
@@ -131,8 +131,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _logger,
                 _specificationService,
                 _providerService,
-                _publishedFundingContentsPersistanceService,
-                _publishedProviderContentsPersistanceService,
+                _publishedFundingContentsPersistenceService,
+                _publishedProviderContentsPersistenceService,
                 _publishingResiliencePolicies,
                 _publishedFundingDataService,
                 _policiesService,
@@ -182,7 +182,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void ThenPublishedFundingSaved()
         {
-            _publishedFundingContentsPersistanceService
+            _publishedFundingContentsPersistenceService
                 .Received(1)
                 .SavePublishedFundingContents(
                     Arg.Is<IEnumerable<PublishedFundingVersion>>(
@@ -195,7 +195,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void ThenPublishedProvidersSaved(IEnumerable<string> providers = null)
         {
             providers ??= _publishedProviders.Select(_ => _.Id);
-            _publishedProviderContentsPersistanceService
+            _publishedProviderContentsPersistenceService
                 .Received(1)
                 .SavePublishedProviderContents(
                     Arg.Is(_templateMetadataContents),

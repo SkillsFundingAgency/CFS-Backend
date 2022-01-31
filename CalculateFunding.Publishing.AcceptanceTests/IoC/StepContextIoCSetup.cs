@@ -313,12 +313,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderDataPopulator, IPublishedProviderDataPopulator>();
             RegisterTypeAs<PublishedProviderExclusionCheck, IPublishProviderExclusionCheck>();
             RegisterTypeAs<PublishedProviderVersioningService, IPublishedProviderVersioningService>();
-            RegisterTypeAs<PublishedProviderContentPersistanceService, IPublishedProviderContentPersistanceService>();
-            RegisterTypeAs<PublishedFundingContentsPersistanceService, IPublishedFundingContentsPersistanceService>();
+            RegisterTypeAs<PublishedProviderContentPersistenceService, IPublishedProviderContentPersistenceService>();
+            RegisterTypeAs<PublishedFundingContentsPersistenceService, IPublishedFundingContentsPersistenceService>();
             RegisterTypeAs<PublishedFundingCsvJobsService, IPublishedFundingCsvJobsService>();
 
             RegisterTypeAs<PublishedProviderChannelVersionService, IPublishedProviderChannelVersionService>();
-            RegisterTypeAs<PublishedProviderContentChannelPersistanceService, IPublishedProviderContentChannelPersistanceService>();
+            RegisterTypeAs<PublishedProviderContentChannelPersistenceService, IPublishedProviderContentChannelPersistenceService>();
 
             RegisterTypeAs<OrganisationGroupService, IOrganisationGroupService>();
             RegisterTypeAs<VariationErrorRecorder, IRecordVariationErrors>();

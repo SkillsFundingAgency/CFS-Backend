@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IPublishProviderExclusionCheck, PublishedProviderExclusionCheck>();
             serviceCollection.AddSingleton<IFundingLineValueOverride, FundingLineValueOverride>();
             serviceCollection.AddSingleton<IPublishedFundingDataService, PublishedFundingDataService>();
-            serviceCollection.AddSingleton<IPublishedProviderContentPersistanceService, PublishedProviderContentPersistanceService>();
+            serviceCollection.AddSingleton<IPublishedProviderContentPersistenceService, PublishedProviderContentPersistenceService>();
             serviceCollection.AddSingleton<ICreateRefreshFundingJobs, RefreshFundingJobCreation>();
             serviceCollection.AddSingleton<ICreateApproveAllFundingJobs, ApproveAllFundingJobCreation>();
             serviceCollection.AddSingleton<ICreateApproveBatchFundingJobs, ApproveBatchFundingJobCreation>();
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Publishing.IoC
 
             serviceCollection.AddSingleton(searchSettings);
             serviceCollection.AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
-            serviceCollection.AddSingleton<IPublishedFundingContentsPersistanceService>((ctx) =>
+            serviceCollection.AddSingleton<IPublishedFundingContentsPersistenceService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
 
@@ -109,7 +109,7 @@ namespace CalculateFunding.Services.Publishing.IoC
 
                 IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
 
-                return new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver,
+                return new PublishedFundingContentsPersistenceService(publishedFundingContentsGeneratorResolver,
                     blobClient,
                     publishingResiliencePolicies,
                     ctx.GetService<IPublishingEngineOptions>());

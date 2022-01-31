@@ -399,8 +399,8 @@ namespace CalculateFunding.Api.External
 
                 return resolver;
             });
-            builder.AddSingleton<IPublishedProviderContentPersistanceService, PublishedProviderContentPersistanceService>();
-            builder.AddSingleton<IPublishedFundingContentsPersistanceService>((ctx) =>
+            builder.AddSingleton<IPublishedProviderContentPersistenceService, PublishedProviderContentPersistenceService>();
+            builder.AddSingleton<IPublishedFundingContentsPersistenceService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
 
@@ -418,7 +418,7 @@ namespace CalculateFunding.Api.External
 
                 IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
 
-                return new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver,
+                return new PublishedFundingContentsPersistenceService(publishedFundingContentsGeneratorResolver,
                     blobClient,
                     publishingResiliencePolicies,
                     ctx.GetService<IPublishingEngineOptions>());

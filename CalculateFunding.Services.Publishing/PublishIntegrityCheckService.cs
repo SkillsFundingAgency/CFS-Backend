@@ -25,8 +25,8 @@ namespace CalculateFunding.Services.Publishing
     public class PublishIntegrityCheckService : JobProcessingService, IPublishIntegrityCheckService
     {
         private readonly ILogger _logger;
-        private readonly IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
-        private readonly IPublishedProviderContentPersistanceService _publishedProviderContentsPersistanceService;
+        private readonly IPublishedFundingContentsPersistenceService _publishedFundingContentsPersistenceService;
+        private readonly IPublishedProviderContentPersistenceService _publishedProviderContentsPersistenceService;
         private readonly ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
         private readonly AsyncPolicy _publishedIndexSearchResiliencePolicy;
         private readonly ISpecificationService _specificationService;
@@ -43,8 +43,8 @@ namespace CalculateFunding.Services.Publishing
             ILogger logger,
             ISpecificationService specificationService,
             IProviderService providerService,
-            IPublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService,
-            IPublishedProviderContentPersistanceService publishedProviderContentsPersistanceService,
+            IPublishedFundingContentsPersistenceService publishedFundingContentsPersistenceService,
+            IPublishedProviderContentPersistenceService publishedProviderContentsPersistenceService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
             IPublishedFundingDataService publishedFundingDataService,
             IPoliciesService policiesService,
@@ -56,8 +56,8 @@ namespace CalculateFunding.Services.Publishing
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
-            Guard.ArgumentNotNull(publishedFundingContentsPersistanceService, nameof(publishedFundingContentsPersistanceService));
-            Guard.ArgumentNotNull(publishedProviderContentsPersistanceService, nameof(publishedProviderContentsPersistanceService));
+            Guard.ArgumentNotNull(publishedFundingContentsPersistenceService, nameof(publishedFundingContentsPersistenceService));
+            Guard.ArgumentNotNull(publishedProviderContentsPersistenceService, nameof(publishedProviderContentsPersistenceService));
             Guard.ArgumentNotNull(providerService, nameof(providerService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
@@ -74,8 +74,8 @@ namespace CalculateFunding.Services.Publishing
             _calculationsApiClient = calculationsApiClient;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _specificationService = specificationService;
-            _publishedFundingContentsPersistanceService = publishedFundingContentsPersistanceService;
-            _publishedProviderContentsPersistanceService = publishedProviderContentsPersistanceService;
+            _publishedFundingContentsPersistenceService = publishedFundingContentsPersistenceService;
+            _publishedProviderContentsPersistenceService = publishedProviderContentsPersistenceService;
             _providerService = providerService;
             _publishedFundingDataService = publishedFundingDataService;
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
@@ -90,21 +90,19 @@ namespace CalculateFunding.Services.Publishing
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            Reference author = message.GetUserDetails();
-
             string specificationId = message.UserProperties["specification-id"] as string;
             bool publishAll = false;
 
             if (message.UserProperties.ContainsKey("publish-all"))
             {
-                publishAll = bool.Parse(message.UserProperties["publish-all"].ToString());
+                publishAll = bool.Parse(message.UserProperties["publish-all"].ToString() ?? string.Empty);
             }
 
             IEnumerable<string> batchProviders = null;
 
             if (message.UserProperties.ContainsKey("providers-batch"))
             {
-                batchProviders = JsonExtensions.AsPoco<IEnumerable<string>>(message.UserProperties["providers-batch"].ToString());
+                batchProviders = message.UserProperties["providers-batch"].ToString().AsPoco<IEnumerable<string>>();
             }
 
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
@@ -143,13 +141,13 @@ namespace CalculateFunding.Services.Publishing
 
                 // Save contents to blob storage and search for the feed
                 _logger.Information($"Saving published funding contents");
-                await _publishedFundingContentsPersistanceService.SavePublishedFundingContents(publishedFundingVersions,
+                await _publishedFundingContentsPersistenceService.SavePublishedFundingContents(publishedFundingVersions,
                     templateMetadataContents);
                 _logger.Information($"Finished saving published funding contents");
 
                 // Generate contents JSON for provider and save to blob storage
                 IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
-                await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(templateMetadataContents, templateMapping,
+                await _publishedProviderContentsPersistenceService.SavePublishedProviderContents(templateMetadataContents, templateMapping,
                     selectedPublishedProviders, generator, publishAll);
             }
 
