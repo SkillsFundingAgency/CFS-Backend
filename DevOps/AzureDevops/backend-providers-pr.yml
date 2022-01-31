@@ -57,7 +57,7 @@ steps:
        azureSubscription: $(azureSubscription)
        overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -enableExceptionMessages "false" -FUNCTIONS_EXTENSION_VERSION $(FUNCTIONS_EXTENSION_VERSION_Net6) -apiHostingPlanName $(apiHostingPlanNamePR) -functionHostingPlanName $(functionHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -applicationInsightsName $(applicationInsightsName) -sharedLogStorageName $(sharedLogStorageName) -searchName $(searchName) -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -azureAdTenantId $(azureAdTenantId) -azureAdAudienceExternal $(azureAdAudienceExternal) -spiClientApiEndpoint $(spiClientApiEndpoint) -spiAzureBearerTokenOptionsUrl $(spiAzureBearerTokenOptionsUrl) -spiAzureBearerTokenOptionsGrantType $(spiAzureBearerTokenOptionsGrantType) -spiAzureBearerTokenOptionsScope $(spiAzureBearerTokenOptionsScope) -spiAzureBearerTokenOptionsClientId $(spiAzureBearerTokenOptionsClientId)'
 
- - template: templates\standard-service-pr-ci-build-prinfra-noModelsTests.yml
+ - template: templates\standard-service-pr-ci-build-prinfra.yml
    parameters:
      ProjectName: ${{ variables.ProjectName }}
      ServiceName: ${{ variables.ServiceName }} 
