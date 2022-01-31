@@ -55,7 +55,7 @@ steps:
        azureSubscription: $(azureSubscription)
        overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -apiHostingPlanName $(apiHostingPlanNamePR) -sharedLogStorageName $(sharedLogStorageName) -enableExceptionMessages "false" -FUNCTIONS_EXTENSION_VERSION $(FUNCTIONS_EXTENSION_VERSION_net6) -calcEngineHostingPlanName $(calcEngineHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -searchName $(searchName) -enableNewProviderCalculationResultsIndex $(EnableNewProviderCalculationResultsIndex) -enableUseFieldDefinitionIdsInSourceDatasets $(EnableUseFieldDefinitionIdsInSourceDatasets) -ProviderBatchSize "300" -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -applicationInsightsName $(applicationInsightsName)'
 
- - template: templates\standard-service-pr-ci-build-prinfra-noModelsTests.yml
+ - template: templates\standard-service-pr-ci-build-prinfra.yml
    parameters:
      ProjectName: ${{ variables.ProjectName }}
      ServiceName: ${{ variables.ServiceName }} 
