@@ -57,7 +57,7 @@ steps:
        azureSubscription: $(azureSubscription)
        overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -enableExceptionMessages "false" -FUNCTIONS_EXTENSION_VERSION "~4" -functionHostingPlanName $(functionHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -applicationInsightsName $(applicationInsightsName)'
 
- - template: templates\standard-service-pr-ci-build-prinfra-nosrvtests.yml
+ - template: templates\standard-service-pr-ci-build-prinfra.yml
    parameters:
      ProjectName: ${{ variables.ProjectName }}
      ServiceName: ${{ variables.ServiceName }} 
