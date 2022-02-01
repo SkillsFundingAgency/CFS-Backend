@@ -130,8 +130,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string fundingLineCode2 = NewRandomString();
             string fundingLineCode3 = NewRandomString();
 
-            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProfilePatternKeys(
-                    NewProfilePatternKey(pk => pk.WithFundingLineCode(fundingLineCode1)))
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv
+                .WithCustomProfiles(new FundingLineProfileOverrides { FundingLineCode = fundingLineCode1 })
                 .WithFundingStreamId("fs1")
                 .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                         .WithName("fl1")

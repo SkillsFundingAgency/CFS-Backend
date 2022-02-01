@@ -28,6 +28,9 @@ namespace CalculateFunding.Services.Publishing.Errors
 
         protected override Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
         {
+            // this error checker checks all published providers in scope regardless of
+            // whether it has been updated during refresh this is to make sure that any custom
+            // profiling which has happened before a fundingline value change are flagged as errors
             ErrorCheck errorCheck = new ErrorCheck();
 
             PublishedProviderVersion publishedProviderVersion = publishedProvider.Current;

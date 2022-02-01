@@ -24,6 +24,8 @@ namespace CalculateFunding.Services.Publishing.Errors
 
         public virtual bool IsPostVariationCheck => false;
 
+        public virtual int RunningOrder => -1;
+
         public abstract string Name { get; }
 
         public abstract bool IsPreVariationCheck { get; }
@@ -47,6 +49,8 @@ namespace CalculateFunding.Services.Publishing.Errors
         }
 
         protected bool ClearErrors(PublishedProviderVersion publishedProviderVersion) => (publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == ProviderErrorType)>0) ? true : false;
+
+        protected bool ClearErrors(PublishedProviderVersion publishedProviderVersion, string fundingLineCode) => (publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == ProviderErrorType && _.FundingLineCode == fundingLineCode) > 0) ? true : false;
 
         protected abstract Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext);
 

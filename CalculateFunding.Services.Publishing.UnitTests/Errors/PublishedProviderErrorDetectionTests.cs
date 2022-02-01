@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Models.Publishing;
@@ -5,6 +7,7 @@ using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -17,6 +20,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         private Mock<IDetectPublishedProviderErrors> _detectorTwo;
         private Mock<IDetectPublishedProviderErrors> _detectorThree;
         private Mock<IDetectPublishedProviderErrors> _detectorFour;
+        private Mock<IDetectPublishedProviderErrors> _detectorFive;
 
         private PublishedProviderErrorDetection _errorDetection;
         private IErrorDetectionStrategyLocator _errorDetectionStrategyLocator;
@@ -29,7 +33,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             _detectorTwo = NewDetectorMock(false, true, false, false);
             _detectorThree = NewDetectorMock(false, false, true, false);
             _detectorFour = NewDetectorMock(false, true, true, true);
-            
+            _detectorFive = NewDetectorMock(false, true, true, true);
+
             _publishedProvidersContext = new PublishedProvidersContext
             {
                 FundingConfiguration = new FundingConfiguration
@@ -49,9 +54,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 _detectorTwo.Object,
                 _detectorThree.Object,
                 _detectorFour.Object,
+                _detectorFive.Object
             });
 
             _errorDetection = new PublishedProviderErrorDetection(_errorDetectionStrategyLocator);
+        }
+
+        [TestMethod]
+        public async Task ErrorDetectorsReturnedInCorrectOrder()
+        {
+            _detectorFive.SetupGet(_ => _.RunningOrder).Returns(1);
+
+            IEnumerable<IDetectPublishedProviderErrors> errorDetectors = _errorDetectionStrategyLocator.GetErrorDetectorsForAllFundingConfigurations();
+
+            errorDetectors
+                .First()
+                .Should()
+                .Be(_detectorFive.Object);
         }
 
         [TestMethod]
@@ -70,6 +89,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         [TestMethod]
         public async Task ApplyRefreshPostVariationErrorDetectionDelegatesToEachConfiguredPostVariationErrorDetector()
         {
+            _detectorFive.SetupGet(_ => _.RunningOrder).Returns(1);
+
             PublishedProvider publishedProvider = NewPublishedProvider();
             
             await _errorDetection.ApplyRefreshPostVariationsErrorDetection(publishedProvider, _publishedProvidersContext);

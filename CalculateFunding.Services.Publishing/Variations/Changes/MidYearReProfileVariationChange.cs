@@ -7,7 +7,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Profiling;
-using ProfilePatternKey = CalculateFunding.Models.Publishing.ProfilePatternKey;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {

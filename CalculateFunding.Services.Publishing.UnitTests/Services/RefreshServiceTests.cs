@@ -387,7 +387,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedProviderStatusUpdateService
                 .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1
                         && _.Single().Current.ProviderId == providerId
-                        && _.Single().Current.Errors.AnyWithNullCheck()),
+                        && _.Single().Current.Errors.Where(_ => !_.Type.Equals(PublishedProviderErrorType.NoApplicableVariation) &&
+                        !_.Type.Equals(PublishedProviderErrorType.NoApplicableProfilingUpdateVariation) &&
+                        !_.Type.Equals(PublishedProviderErrorType.ProfilingConsistencyCheckFailure)).AnyWithNullCheck()),
                     It.IsAny<Reference>(),
                     PublishedProviderStatus.Updated,
                     JobId,
@@ -470,7 +472,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedProviderStatusUpdateService
                 .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1
                         && _.Single().Current.ProviderId == providerId
-                        && _.Single().Current.Errors.Single().Type.Equals(PublishedProviderErrorType.NoApplicableVariation)),
+                        && _.Single().Current.Errors.Any(_ => _.Type.Equals(PublishedProviderErrorType.NoApplicableVariation))),
                     It.IsAny<Reference>(),
                     PublishedProviderStatus.Updated,
                     JobId,

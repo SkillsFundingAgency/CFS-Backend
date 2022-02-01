@@ -5,7 +5,6 @@ using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using ProfilePatternKey = CalculateFunding.Models.Publishing.ProfilePatternKey;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {

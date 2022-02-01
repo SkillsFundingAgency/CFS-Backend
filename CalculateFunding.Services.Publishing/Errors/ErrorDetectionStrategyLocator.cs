@@ -31,6 +31,7 @@ namespace CalculateFunding.Services.Publishing.Errors
         }
 
         public IEnumerable<IDetectPublishedProviderErrors> GetErrorDetectorsForAllFundingConfigurations() 
-            => _detectorStrategies.Values.Where(_ => _.IsForAllFundingConfigurations);
+            => _detectorStrategies.Values.Where(_ => _.IsForAllFundingConfigurations)
+                .OrderByDescending(_ => _.RunningOrder);
     }
 }

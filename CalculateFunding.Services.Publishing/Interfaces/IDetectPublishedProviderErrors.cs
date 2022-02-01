@@ -11,6 +11,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         bool IsPreVariationCheck { get; }
 
         bool IsPostVariationCheck { get; }
+
+        int RunningOrder { get; }
         
         bool IsAssignProfilePatternCheck { get; }
 

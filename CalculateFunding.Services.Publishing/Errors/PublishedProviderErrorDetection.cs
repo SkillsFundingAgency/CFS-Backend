@@ -49,8 +49,9 @@ namespace CalculateFunding.Services.Publishing.Errors
 
         private IEnumerable<IDetectPublishedProviderErrors> GetErrorDetectorsForFundingConfiguration(PublishedProvidersContext context)
         {
-            return context.FundingConfiguration?.ErrorDetectors?.Select(_ => _errorDetectorLocator.GetErrorDetectorByName(_))
-                .Concat(_errorDetectorLocator.GetErrorDetectorsForAllFundingConfigurations());
+            return _errorDetectorLocator.GetErrorDetectorsForAllFundingConfigurations()
+                .Concat(context.FundingConfiguration?.ErrorDetectors?.Select(_ => _errorDetectorLocator.GetErrorDetectorByName(_)) ?? ArraySegment<IDetectPublishedProviderErrors>.Empty)
+                .OrderByDescending(_ => _.RunningOrder);
         }
 
         private async Task<bool> ProcessPublishedProviderWithErrorDetectors(PublishedProvider publishedProvider,

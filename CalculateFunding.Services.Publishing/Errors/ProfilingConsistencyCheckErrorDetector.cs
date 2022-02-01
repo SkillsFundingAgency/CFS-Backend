@@ -28,17 +28,22 @@ namespace CalculateFunding.Services.Publishing.Errors
             ErrorCheck errorCheck = new ErrorCheck();
 
             PublishedProviderVersion publishedProviderVersion = publishedProvider.Current;
-            
+
+            // we check that all updated providers which have funding lines without a value
+            // don't have any distribution periods set
             ProcessPaymentFundingLinesWithoutValues(publishedProviderVersion, errorCheck);
-            ProcessPaymentFundingLinesWithValues(publishedProviderVersion, errorCheck);
             
+            // we check that all updated providers which have a funding line value that the
+            // distribution periods add up to this amount
+            ProcessPaymentFundingLinesWithValues(publishedProviderVersion, errorCheck);
+
             return Task.FromResult(errorCheck);
         }
 
         private void ProcessPaymentFundingLinesWithValues(PublishedProviderVersion publishedProviderVersion,
             ErrorCheck errorCheck)
         {
-            foreach (FundingLine fundingLine in publishedProviderVersion.PaymentFundingLinesWithValues.Except(publishedProviderVersion.CustomPaymentFundingLines))
+            foreach (FundingLine fundingLine in publishedProviderVersion.PaymentFundingLinesWithValues)
             {
                 CheckFundingLineProfilingConsistency(publishedProviderVersion, fundingLine, errorCheck);
             }    
@@ -109,7 +114,7 @@ namespace CalculateFunding.Services.Publishing.Errors
         private void ProcessPaymentFundingLinesWithoutValues(PublishedProviderVersion publishedProviderVersion,
             ErrorCheck errorCheck)
         {
-            foreach (FundingLine fundingLine in publishedProviderVersion.PaymentFundingLinesWithoutValues.Except(publishedProviderVersion.CustomPaymentFundingLines))
+            foreach (FundingLine fundingLine in publishedProviderVersion.PaymentFundingLinesWithoutValues)
             {
                 int distributionPeriodCount = (fundingLine.DistributionPeriods?.Count()).GetValueOrDefault();
                 

@@ -44,17 +44,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string fundingLineCode2 = NewRandomString();
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv
+                .WithProfilePatternKeys(NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode1)))
                 .WithFundingStreamId("fs1")
-                .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
-                        .WithValue(null)
-                        .WithFundingLineCode(fundingLineCode1)
-                        .WithDistributionPeriods(NewDistributionPeriod(dp =>
-                            dp.WithProfilePeriods(
-                                NewProfilePeriod(pp =>
-                                    pp.WithAmount(10)))))),
-                    NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
-                        .WithFundingLineCode(fundingLineCode2)
-                        .WithValue(null))))));
+                    .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
+                            .WithValue(null)
+                            .WithFundingLineCode(fundingLineCode1)
+                            .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithProfilePeriods(
+                                    NewProfilePeriod(pp =>
+                                        pp.WithAmount(10)))))),
+                        NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
+                            .WithFundingLineCode(fundingLineCode2)
+                            .WithValue(null))))));
 
             await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
 
@@ -82,6 +83,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string fundingLineCode2 = NewRandomString();
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv
+                .WithProfilePatternKeys(NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode1)))
                 .WithFundingStreamId("fs1")
                 .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                         .WithValue(200M)
@@ -130,6 +132,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string distributionPeriod2 = NewRandomString();
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv
+                .WithProfilePatternKeys(NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode2)))
                 .WithFundingStreamId("fs1")
                 .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                         .WithValue(201M)
@@ -180,7 +183,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string fundingLineCode2 = NewRandomString();
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv
-                .WithProfilePatternKeys(NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineCode1)))
+                .WithCustomProfiles(new FundingLineProfileOverrides { FundingLineCode = fundingLineCode1 })
                 .WithFundingStreamId("fs1")
                 .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                         .WithValue(null)
@@ -191,7 +194,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                                     pp.WithAmount(10)))))),
                     NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                         .WithFundingLineCode(fundingLineCode2)
-                        .WithValue(null))))));
+                        .WithValue(null)))))); ;
 
             await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
 

@@ -21,6 +21,8 @@ namespace CalculateFunding.Services.Publishing.Errors
 
         public override bool IsForAllFundingConfigurations => true;
 
+        public override int RunningOrder => 1;
+
         public override string Name => nameof(NoApplicableProfilingUpdateVariationErrorDetector);
 
         protected override Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
@@ -38,6 +40,7 @@ namespace CalculateFunding.Services.Publishing.Errors
             // custom profiles then it will always be updated also we only require a variation strategy if the
             // provider has previously been released
             if (publishedProvider.Released != null &&
+                providerVariationContext != null &&
                 providerVariationContext.VariationPointers.AnyWithNullCheck() &&
                 !providerVariationContext.ApplicableVariations.AnyWithNullCheck(_ => _ == "DistributionProfile"))
             {
