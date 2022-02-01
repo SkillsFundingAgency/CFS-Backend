@@ -57,7 +57,11 @@ namespace CalculateFunding.Services.Publishing.Profiling
             int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine, publishedProviderVersion.ProviderId);
 
             // if the paid upto index is the same as the last re-profile index
-            bool AlreadyPaidUpToIndex = publishedProviderVersion.ReProfileAudits?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.VariationPointerIndex == paidUpToIndex;
+            bool AlreadyPaidUpToIndex = reProfileAudit?.VariationPointerIndex == paidUpToIndex;
+
+            // we need to do this check first as the check determines whether to run re-profile
+            // for the same amount of funding and variation pointer index
+            bool shouldExecuteSameAs = shouldExecuteSameAsKey != null ? shouldExecuteSameAsKey(fundingLineCode, profilePatternKey, reProfileAudit, paidUpToIndex) : true;
 
             // if already paid up to index then we need to skip to the next period
             paidUpToIndex = AlreadyPaidUpToIndex ? paidUpToIndex + 1 : paidUpToIndex;
@@ -78,7 +82,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 MidYearType = midYearType,
                 VariationPointerIndex = paidUpToIndex,
                 AlreadyPaidUpToIndex = AlreadyPaidUpToIndex,
-            }, shouldExecuteSameAsKey != null ? shouldExecuteSameAsKey(fundingLineCode, profilePatternKey, reProfileAudit, paidUpToIndex) : true);
+            }, shouldExecuteSameAs);
         }
 
         private ProfilePeriod[] GetOrderedProfilePeriodsForFundingLine(string fundingLineCode,

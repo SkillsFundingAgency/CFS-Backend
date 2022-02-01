@@ -31,6 +31,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<PublishedProviderError> _errors;
         private IEnumerable<ProfilingCarryOver> _carryOvers;
         private IEnumerable<ProfilingAudit> _profilingAudits;
+        private IEnumerable<ReProfileAudit> _reProfileAudits;
         private bool _isIndicative;
 
         public PublishedProviderVersionBuilder WithProfilingAudits(params ProfilingAudit[] profilingAudits)
@@ -194,6 +195,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public PublishedProviderVersionBuilder WithReProfileAudits(params ReProfileAudit[] reProfileAudits)
+        {
+            _reProfileAudits = reProfileAudits;
+
+            return this;
+        }
+
         public PublishedProviderVersion Build()
         {
             return new PublishedProviderVersion
@@ -220,6 +228,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Errors = _errors?.ToList(),
                 CarryOvers = _carryOvers?.ToList(),
                 ProfilingAudits = _profilingAudits?.ToList(),
+                ReProfileAudits = _reProfileAudits?.ToList(),
                 IsIndicative = _isIndicative
             };
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
@@ -250,11 +251,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         }
 
         [TestMethod]
-        [DataRow(MidYearType.Converter)]
-        [DataRow(MidYearType.Opener)]
-        [DataRow(MidYearType.OpenerCatchup)]
-        [DataRow(MidYearType.Closure)]
-        public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers(MidYearType midYearType)
+        [DataRow(MidYearType.Converter, 1)]
+        [DataRow(MidYearType.Opener, 1)]
+        [DataRow(MidYearType.Opener, 0)]
+        [DataRow(MidYearType.OpenerCatchup, 1)]
+        [DataRow(MidYearType.Closure, 1)]
+        public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers(MidYearType midYearType, int variationPointerOccurrence)
         {
             string providerId = NewRandomString();
             string fundingLineCode = NewRandomString();
@@ -264,6 +266,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             PublishedProviderVersion publishedProviderVersion = NewPublisherProviderVersion(pvp => 
                     pvp.WithProvider(NewProvider(_ => _.WithStatus(midYearType == MidYearType.Closure ? VariationStrategy.Closed : VariationStrategy.Opened)
                         .WithReasonEstablishmentOpened(midYearType == MidYearType.Converter ? VariationStrategy.AcademyConverter : VariationStrategy.Opened)))
+                        .WithReProfileAudits(new[] { new ReProfileAudit { FundingLineCode = fundingLineCode, VariationPointerIndex = 0 } })
                         .WithFundingLines(NewFundingLine(),
                         NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCode)
                             .WithDistributionPeriods(NewDistributionPeriod(dp =>
@@ -293,11 +296,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                                         .WithTypeValue("April"))
                                     ))))));
 
+            AndTheVariationPointers(publishedProviderVersion.SpecificationId, NewProfileVariationPointer(_ => _.WithFundingLineId(fundingLineCode)
+                    .WithFundingStreamId(publishedProviderVersion.FundingStreamId)
+                    .WithOccurence(variationPointerOccurrence)
+                    .WithYear(2021)
+                    .WithTypeValue("January")
+                    .WithPeriodType("CalenderMonth")));
+
             (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await WhenTheReProfileRequestIsBuilt(fundingLineCode,
                 profilePattern,
                 publishedProviderVersion,
                 fundingLineTotal,
-                midYearType);
+                midYearType,
+                publishedProviderVersion.ReProfileAudits.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode));
 
             ReProfileRequest
                 .Should()
@@ -310,12 +321,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     FundingLineTotal = fundingLineTotal,
                     ProfilePatternKey = profilePattern,
                     MidYearType = midYearType,
-                    VariationPointerIndex = 0,
+                    VariationPointerIndex = 1,
+                    AlreadyPaidUpToIndex = variationPointerOccurrence == 0 ? true : false,
                     ExistingPeriods = new []
                     {
                         NewExististingProfilePeriod(_ => _.WithOccurrence(0)
                             .WithDistributionPeriod("dp1")
-                            .WithValue(null)
+                            .WithValue(23)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("January")
                             .WithYear(2021)),
@@ -346,12 +358,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             string profilePatternKey,
             PublishedProviderVersion publishedProviderVersion,
             decimal? fundingLineTotal = null,
-            MidYearType? midYearType = null)
+            MidYearType? midYearType = null,
+            ReProfileAudit? reProfileAudit = null)
             => await _requestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
                 publishedProviderVersion,
                 fundingLineTotal,
-                null,
+                reProfileAudit,
                 midYearType,
                 null);
 
