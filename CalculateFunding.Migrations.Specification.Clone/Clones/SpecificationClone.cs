@@ -141,7 +141,7 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                     CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel = new CreateDefinitionSpecificationRelationshipModel
                     {
                         SpecificationId = cloneSpecificationSummary.Id,
-                        Name = $"{releasedDatasetSpecificationRelationshipViewModel.Name} {uniqueId}",
+                        Name = $"{releasedDatasetSpecificationRelationshipViewModel.Name}",
                         Description = releasedDatasetSpecificationRelationshipViewModel.RelationshipDescription,
                         IsSetAsProviderData = releasedDatasetSpecificationRelationshipViewModel.IsProviderData,
                         ConverterEnabled = releasedDatasetSpecificationRelationshipViewModel.ConverterEnabled,

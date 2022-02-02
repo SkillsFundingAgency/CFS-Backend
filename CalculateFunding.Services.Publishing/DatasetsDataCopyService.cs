@@ -88,7 +88,7 @@ namespace CalculateFunding.Services.Publishing
                         DefinitionId = relationship.Definition?.Id,
                         Filename = $"{relationship.Name}.xlsx",
                         Description = relationship.RelationshipDescription,
-                        Name = $"{relationship.Name}-{specificationId}",
+                        Name = $"{relationship.Name}-{relationship.TargetSpecificationId ?? specificationId}",
                         FundingStreamId = specificationSummary.FundingStreams?.First().Id,
                         RowCount = excelDataItems.Count
                     };

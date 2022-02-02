@@ -1004,6 +1004,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 Id = relationship.Id,
                 Name = relationship.Name,
+                TargetSpecificationId = relationshipVersion.Specification?.Id,
                 RelationshipDescription = relationshipVersion.Description,
                 IsProviderData = relationshipVersion.IsSetAsProviderData,
                 LastUpdatedAuthor = relationshipVersion.Author,

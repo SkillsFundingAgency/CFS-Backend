@@ -13,6 +13,8 @@ namespace CalculateFunding.Models.Datasets.ViewModels
 
         public string DatasetId { get; set; }
 
+        public string TargetSpecificationId { get; set; }
+
         public bool ConverterEligible { get; set; }
 
         public bool ConverterEnabled { get; set; }

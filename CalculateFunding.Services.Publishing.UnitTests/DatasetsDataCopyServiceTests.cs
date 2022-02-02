@@ -305,8 +305,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AssertThatRelationshipUpdatedWithNewDatasetVersion(relationshipId, datasetId, datasetVersionVersion);
         }
 
-        [TestMethod]
-        public async Task Process_GivenValidProvidersData_AndNoDatasetExists_ShouldCreateNewDatasetVersionAndUpdateTheRelationshipWithNewDatasetVersion_And_CreateDataset()
+        [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task Process_GivenValidProvidersData_AndNoDatasetExists_ShouldCreateNewDatasetVersionAndUpdateTheRelationshipWithNewDatasetVersion_And_CreateDataset(bool hasTargetSpecificationId)
         {
             // Arrange
             string specificationId = NewRandomString();
@@ -315,6 +317,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string templateId = NewRandomString();
             string relationshipId = NewRandomString();
             string relationshipName = NewRandomString().Substring(0, 30); // Used for excel worksheet name
+            string targetSpecificationId = hasTargetSpecificationId ? NewRandomString() : null;
 
             string Ukprn1 = NewRandomString();
             string Ukprn2 = NewRandomString();
@@ -343,6 +346,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 NewDatasetSpecificationRelationshipViewModel(_ =>
                 _.WithId(relationshipId)
                  .WithName(relationshipName)
+                 .WithTargetSpecificationId(targetSpecificationId)
                  .WithPublishedSpecificationConfiguration(NewPublishedSpecificationConfiguration(c => c
                                     .WithFundingLines(
                                         NewPublishedSpecificationItem(f => f.WithName(fundingLine1).WithTemplateId(fundingLineTemplateId1)),
@@ -411,7 +415,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AndPublishProvidersForSpecification(specificationId, publishedProviders);
             AndSuccessfulUploadOfDatasetFile(datasetVersionResponse);
             AndAssignDatasetVersionToRelationship(datasetId, relationshipId, datasetVersionVersion);
-            GivenDatasetCreateAndPersistNewDataset(relationshipName, specificationId, datasetVersionResponse);
+            GivenDatasetCreateAndPersistNewDataset(relationshipName, targetSpecificationId ?? specificationId, datasetVersionResponse);
 
             // Act
             await _service.Process(message);
@@ -420,7 +424,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AssertRelationshipsRetrievedBySpecificationId(specificationId);
             AssertSpecificationSummaryRetrievedBySpecificationId(specificationId);
             AssertPublishedProvidersForSpecificationRetrievedForBatchProcessing(specificationId);
-            AssertCreateAndPersistNewDatasetHasBeenCalled(relationshipName, specificationId);
+            AssertCreateAndPersistNewDatasetHasBeenCalled(relationshipName, targetSpecificationId ?? specificationId);
             AssertDatasetFileUpload(datasetVersionResponse);
             AssertThatRelationshipUpdatedWithNewDatasetVersion(relationshipId, datasetId, datasetVersionVersion);
         }

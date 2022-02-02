@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _datasetId;
         private DateTimeOffset? _lastUpdatedDate;
         private string _name;
+        private string _targetSpecificationId;
         private PublishedSpecificationConfiguration _publishedSpecificationConfiguration;
         private string _id;
 
@@ -24,6 +25,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public DatasetSpecificationRelationshipViewModelBuilder WithName(string name)
         {
             _name = name;
+
+            return this;
+        }
+
+        public DatasetSpecificationRelationshipViewModelBuilder WithTargetSpecificationId(string specificationId)
+        {
+            _targetSpecificationId = specificationId;
 
             return this;
         }
@@ -57,6 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 LastUpdatedDate = _lastUpdatedDate,
                 Id = _id,
                 Name = _name,
+                TargetSpecificationId = _targetSpecificationId,
                 PublishedSpecificationConfiguration = _publishedSpecificationConfiguration
             };
         }
