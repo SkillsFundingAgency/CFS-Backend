@@ -61,12 +61,70 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             {
                 _.AllPublishedProviderSnapShots.Clear();
                 _.UpdatedProvider.Status = Publishing.Variations.Strategies.VariationStrategy.Opened;
-                _.RefreshState.Provider = NewProvider(_ => _.WithDateOpened(openedDate));
-                _.RefreshState.Provider.ReasonEstablishmentOpened = Publishing.Variations.Strategies.VariationStrategy.AcademyConverter;
+                _.RefreshState.Provider = NewProvider(_ => _.WithDateOpened(openedDate)
+                                                            .WithReasonEstablishmentOpened(Publishing.Variations.Strategies.VariationStrategy.AcademyConverter));
                 _.FundingPeriodStartDate = openedDate.AddMonths(-1);
                 _.FundingPeriodEndDate = openedDate.AddMonths(1);
                 _.RefreshState.Provider.Predecessors = new[] { NewProvider().ProviderId };
             });
+
+            AndTheRefreshStateFundingLines(NewFundingLine(),
+                NewFundingLine(_ => _.WithFundingLineCode(FundingLineCode)
+                    .WithFundingLineType(FundingLineType.Payment)
+                    .WithValue(NewRandomNumber())
+                    .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                        dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithYear(year)
+                                .WithTypeValue(month)
+                                .WithType(ProfilePeriodType.CalendarMonth)
+                                .WithOccurence(0)),
+                            NewProfilePeriod(pp => pp.WithYear(year)
+                                .WithTypeValue(month)
+                                .WithType(ProfilePeriodType.CalendarMonth)
+                                .WithOccurence(1)))))));
+            AndTheVariationPointers(NewVariationPointer(_ => _.WithYear(year)
+                .WithTypeValue(month)
+                .WithOccurence(1)
+                .WithFundingLineId(FundingLineCode)
+                .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())));
+
+            await WhenTheVariationsAreProcessed();
+
+            ThenTheVariationChangeWasQueued<ConverterReProfileVariationChange>();
+            AndTheAffectedFundingLinesWereTracked(FundingLineCode);
+        }
+
+        [TestMethod]
+        public async Task TracksAllAsAffectedFundingLineCodesAndQueuesConverterReProfileVariationChangeIfIsNewConverterOpenerAndIndicativeToLive()
+        {
+            int year = NewRandomNumber();
+            string month = NewRandomMonth();
+            DateTimeOffset openedDate = DateTime.Now;
+            Provider provider = NewProvider(_ => _.WithDateOpened(openedDate)
+                .WithReasonEstablishmentOpened(Publishing.Variations.Strategies.VariationStrategy.AcademyConverter));
+
+            GivenTheOtherwiseValidVariationContext(_ =>
+            {
+                _.AllPublishedProviderSnapShots.Clear();
+                _.UpdatedProvider.Status = Publishing.Variations.Strategies.VariationStrategy.Opened;
+                _.RefreshState.Provider = provider;
+                _.RefreshState.ProviderId = provider.ProviderId;
+                _.AddAffectedFundingLineCode("IndicativeToLive", FundingLineCode);
+                _.FundingPeriodStartDate = openedDate.AddMonths(-1);
+                _.FundingPeriodEndDate = openedDate.AddMonths(1);
+                _.RefreshState.Provider.Predecessors = new[] { NewProvider().ProviderId };
+            });
+
+            GivenThePublishedProviderOriginalSnapshot(provider.ProviderId,
+                new Publishing.Variations.PublishedProviderSnapShots(
+                    NewPublishedProvider(_ =>
+                        _.WithReleased(
+                            NewPublishedProviderVersion(ppv =>
+                                ppv.WithProviderId(provider.ProviderId)
+                            )
+                        )
+                    )
+                )
+            );
             AndTheRefreshStateFundingLines(NewFundingLine(),
                 NewFundingLine(_ => _.WithFundingLineCode(FundingLineCode)
                     .WithFundingLineType(FundingLineType.Payment)

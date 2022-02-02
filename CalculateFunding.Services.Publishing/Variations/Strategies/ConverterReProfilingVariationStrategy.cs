@@ -24,40 +24,55 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
             PublishedProviderVersion refreshState = providerVariationContext.RefreshState;
 
-            if (priorState != null ||
-                providerVariationContext.UpdatedProvider.Status == Closed ||
-                VariationPointersNotSet(providerVariationContext))
+            if (providerVariationContext.UpdatedProvider.Status == Closed ||
+                VariationPointersNotSet(providerVariationContext) ||
+                !refreshState.IsConverter(providerVariationContext.FundingPeriodStartDate,
+                    providerVariationContext.FundingPeriodEndDate,
+                    AcademyConverter))
             {
                 return Task.FromResult(false);
             }
 
             IEnumerable<string> inYearConverterFundingLines = InYearConverterFundingLines(providerVariationContext.FundingPeriodStartDate,
                 providerVariationContext.FundingPeriodEndDate,
-                refreshState);
+                refreshState,
+                priorState);
 
-            if (inYearConverterFundingLines.IsNullOrEmpty())
+            IEnumerable<string> indicativeAffectedFundingLines = providerVariationContext.AffectedFundingLineCodes("IndicativeToLive");
+
+            if (inYearConverterFundingLines.IsNullOrEmpty() && indicativeAffectedFundingLines.IsNullOrEmpty())
             {
                 return Task.FromResult(false);
             }
 
-            inYearConverterFundingLines.ForEach(_ => providerVariationContext.AddAffectedFundingLineCode(Name, _));
+            Concatenate(inYearConverterFundingLines ?? ArraySegment<string>.Empty,
+                        indicativeAffectedFundingLines ?? ArraySegment<string>.Empty)
+                        .ForEach(_ => providerVariationContext.AddAffectedFundingLineCode(Name, _));
 
             return Task.FromResult(true);
         }
 
+        private static IEnumerable<T> Concatenate<T>(params IEnumerable<T>[] lists)
+        {
+            return lists.SelectMany(_ => _);
+        }
+
         private IEnumerable<string> InYearConverterFundingLines(DateTimeOffset fundingPeriodStartDate,
             DateTimeOffset fundingPeriodEndDate,
-            PublishedProviderVersion refreshState)
+            PublishedProviderVersion refreshState,
+            PublishedProviderVersion priorState)
         {
             List<string> fundingLines = new List<string>();
 
-            if (refreshState.IsConverter(fundingPeriodStartDate, fundingPeriodEndDate, AcademyConverter))
+            if(priorState!=null)
             {
-                // we only need to re-profile an opener if it has a none zero value
-                foreach (FundingLine fundingLine in refreshState.PaymentFundingLinesWithValues.Where(_ => _.Value != 0))
-                {
-                    fundingLines.Add(fundingLine.FundingLineCode);
-                }
+                return null;
+            }
+            
+            // we only need to re-profile an opener if it has a none zero value
+            foreach (FundingLine fundingLine in refreshState.PaymentFundingLinesWithValues.Where(_ => _.Value != 0))
+            {
+                fundingLines.Add(fundingLine.FundingLineCode);
             }
 
             return fundingLines;
