@@ -7,7 +7,6 @@ using CalculateFunding.Services.Publishing.FundingManagement.Migration;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.SqlExport;
-using Polly;
 using Serilog;
 using System;
 using System.Collections.Concurrent;
@@ -22,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
     public class PublishedFundingReleaseManagementMigrator : IPublishedFundingReleaseManagementMigrator
     {
         private const int CosmosBatchSize = 100;
+        private const int BlobClientThrottleCount = 50;
 
         private int _nextFundingGroupId = 1;
         private int _nextFundingGroupVersionId = 1;
@@ -33,13 +33,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private int _nextFundingGroupProviderId = 1;
 
         private readonly IPublishedFundingRepository _cosmosRepo;
-        private readonly IReleaseManagementRepository _repo;
         private readonly IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion> _fundingMigrator;
         private readonly IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion> _providerMigrator;
         private readonly IBlobClient _blobClient;
         private readonly IReleaseManagementDataTableImporter _dataTableImporter;
         private readonly ILogger _logger;
-        private readonly AsyncPolicy _blobClientPolicy;
 
         /// <summary>
         /// Key is "{channelId}_{Funding.FundingId}"
@@ -94,30 +92,24 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         }
 
         public PublishedFundingReleaseManagementMigrator(IPublishedFundingRepository publishedFundingRepository,
-            IReleaseManagementRepository releaseManagementRepository,
             IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion> fundingMigrator,
             IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion> providerMigrator,
             IBlobClient blobClient,
-            IPublishingResiliencePolicies publishingResiliencePolicies,
             IReleaseManagementDataTableImporter dataTableImporter,
             ILogger logger)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
-            Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(fundingMigrator, nameof(fundingMigrator));
             Guard.ArgumentNotNull(providerMigrator, nameof(providerMigrator));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(dataTableImporter, nameof(dataTableImporter));
-            Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _cosmosRepo = publishedFundingRepository;
-            _repo = releaseManagementRepository;
             _fundingMigrator = fundingMigrator;
             _providerMigrator = providerMigrator;
             _blobClient = blobClient;
             _dataTableImporter = dataTableImporter;
-            _blobClientPolicy = publishingResiliencePolicies.BlobClient;
             _logger = logger;
         }
 
@@ -506,7 +498,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private async Task MigrateBlobs()
         {
-            SemaphoreSlim throttle = new SemaphoreSlim(10);
+            SemaphoreSlim throttle = new SemaphoreSlim(BlobClientThrottleCount);
             List<Task> trackedTasks = new List<Task>(_blobsToMigrate.Count);
 
             foreach (BlobToMigrate blob in _blobsToMigrate)

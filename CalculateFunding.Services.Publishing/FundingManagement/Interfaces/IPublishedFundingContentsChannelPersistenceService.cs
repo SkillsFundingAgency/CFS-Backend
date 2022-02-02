@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
     public interface IPublishedFundingContentsChannelPersistenceService
     {
         Task SavePublishedFundingContents(
-            IEnumerable<PublishedFundingVersion> publishedFundingToSave,
+            IEnumerable<PublishedFundingVersion> publishedFundingVersionsToSave,
             Channel channel);
     }
 }

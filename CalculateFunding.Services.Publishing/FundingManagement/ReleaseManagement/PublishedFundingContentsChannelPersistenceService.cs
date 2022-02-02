@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         }
 
         public async Task SavePublishedFundingContents(
-            IEnumerable<PublishedFundingVersion> publishedFundingToSave,
+            IEnumerable<PublishedFundingVersion> publishedFundingVersionsToSave,
             Channel channel)
         {
             _logger.Information("Saving published funding contents");
@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.SavePublishedFundingContentsConcurrencyCount);
-            foreach (PublishedFundingVersion publishedFundingVersion in publishedFundingToSave)
+            foreach (PublishedFundingVersion publishedFundingVersion in publishedFundingVersionsToSave)
             {
                 await throttler.WaitAsync();
                 allTasks.Add(
@@ -103,7 +103,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
         }
 
-        private string GetBlobName(PublishedFundingVersion publishedFundingVersion, Channel channel)
+        public static string GetBlobName(PublishedFundingVersion publishedFundingVersion, Channel channel)
         {
             return $"{channel.ChannelCode}/{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.GroupingReason}-{publishedFundingVersion.OrganisationGroupTypeCode}-{publishedFundingVersion.OrganisationGroupIdentifierValue}-{publishedFundingVersion.MajorVersion}_{publishedFundingVersion.MinorVersion}.json";
         }
@@ -124,7 +124,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             }
         }
 
-        private IDictionary<string, string> GetMetadata(PublishedFundingVersion publishedFundingVersion)
+        private static IDictionary<string, string> GetMetadata(PublishedFundingVersion publishedFundingVersion)
         {
             return new Dictionary<string, string>
             {

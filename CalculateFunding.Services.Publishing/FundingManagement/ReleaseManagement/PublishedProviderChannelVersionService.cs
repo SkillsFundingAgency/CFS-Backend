@@ -52,16 +52,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         }
 
         public async Task SavePublishedProviderVersionBody(
-            string publishedProviderVersionId,
+            string publishedProviderVersionFundingId,
             string publishedProviderVersionBody,
             string specificationId,
             string channelCode)
         {
-            Guard.IsNullOrWhiteSpace(publishedProviderVersionId, nameof(publishedProviderVersionId));
+            Guard.IsNullOrWhiteSpace(publishedProviderVersionFundingId, nameof(publishedProviderVersionFundingId));
             Guard.IsNullOrWhiteSpace(publishedProviderVersionBody, nameof(publishedProviderVersionBody));
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            string blobName = $"{channelCode}/{publishedProviderVersionId}.json";
+            string blobName = GetBlobName(publishedProviderVersionFundingId, channelCode);
 
             try
             {
@@ -77,6 +77,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
                 throw new Exception(errorMessage, ex);
             }
+        }
+
+        public static string GetBlobName(string publishedProviderVersionFundingId, string channelCode)
+        {
+            return $"{channelCode}/{publishedProviderVersionFundingId}.json";
         }
 
         private async Task UploadBlob(ICloudBlob blob, string contents, IDictionary<string, string> metadata)

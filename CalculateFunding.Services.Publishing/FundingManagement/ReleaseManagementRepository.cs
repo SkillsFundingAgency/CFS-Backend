@@ -587,7 +587,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
 				INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
 				INNER JOIN FundingGroupProviders FGP ON FGV.FundingGroupVersionId = FGV.FundingGroupVersionId
-				INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.FundingGroupVersionId = FGP.FundingGroupVersionId
+                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionChannelId = FGP.ReleasedProviderVersionChannelId
 				INNER JOIN ReleasedProviderVersions RPV ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
 				INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
 				INNER JOIN GroupingReasons GR ON GR.GroupingReasonId = FGV.GroupingReasonId 
@@ -678,6 +678,66 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             });
 
             await deleteTask;
+        }
+
+        public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionsBySpecificationId(string specificationId)
+        {
+            return await QuerySql<FundingGroupVersion>($@"
+                SELECT *
+                FROM FundingGroupVersions FGV
+                INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
+                WHERE FG.SpecificationId =  {nameof(specificationId)}",
+                new
+                {
+                    specificationId
+                });
+        }
+
+        public async Task<IEnumerable<FundingGroupVersion>> GetLatestFundingGroupVersionsBySpecificationId(string specificationId)
+        {
+            return await QuerySql<FundingGroupVersion>($@"
+                SELECT FGV.*
+                FROM FundingGroupVersions FGV
+                INNER JOIN 
+                (SELECT FundingGroupId, MAX(MajorVersion) AS LatestVersion FROM FundingGroupVersions 
+                GROUP BY FundingGroupId) LatestFundingGroupVersion ON FGV.FundingGroupId = LatestFundingGroupVersion.FundingGroupId AND FGV.MajorVersion = LatestFundingGroupVersion.LatestVersion
+                INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
+				WHERE FG.SpecificationId =  {nameof(specificationId)}",
+                new
+                {
+                    specificationId
+                });
+        }
+
+        public async Task<IEnumerable<ReleasedProviderSummary>> GetReleasedProviderSummaryBySpecificationId(string specificationId)
+        {
+            return await QuerySql<ReleasedProviderSummary>($@"
+                SELECT RPVC.ChannelId, RP.ProviderId, RPV.FundingId
+                FROM ReleasedProviderVersionChannels RPVC
+                INNER JOIN ReleasedProviderVersions RPV ON RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
+                INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+                WHERE RP.SpecificationId =  {nameof(specificationId)}",
+                new
+                {
+                    specificationId
+                });
+        }
+
+        public async Task<IEnumerable<ReleasedProviderSummary>> GetLatestReleasedProviderSummaryBySpecificationId(string specificationId)
+        {
+            return await QuerySql<ReleasedProviderSummary>($@"
+                SELECT RPVC.ChannelId, RP.ProviderId, RPV.FundingId
+                FROM ReleasedProviderVersionChannels RPVC
+                INNER JOIN ReleasedProviderVersions RPV ON RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
+                INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+                INNER JOIN 
+                (SELECT ReleasedProviderId, MAX(MajorVersion) AS LatestVersion FROM ReleasedProviderVersions 
+                GROUP BY ReleasedProviderId) LatestReleasedProviderVersion ON RPV.ReleasedProviderId = LatestReleasedProviderVersion.ReleasedProviderId AND RPV.MajorVersion = LatestReleasedProviderVersion.LatestVersion
+                WHERE RP.SpecificationId = {nameof(specificationId)}",
+                new
+                {
+                    specificationId
+                });
         }
     }
 }

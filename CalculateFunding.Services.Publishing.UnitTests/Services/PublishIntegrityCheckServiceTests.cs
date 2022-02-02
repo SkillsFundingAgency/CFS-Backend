@@ -26,10 +26,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Storage;
+using CalculateFunding.Generators.OrganisationGroup.Enums;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
+using Microsoft.FeatureManagement;
 using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using VariationReason = CalculateFunding.Models.Publishing.VariationReason;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
@@ -67,12 +74,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IPublishedFundingVersionDataService _publishedFundingVersionDataService;
         private IJobsRunning _jobsRunning;
         private ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
+        private IBlobClient _blobClient;
+        private IFeatureManagerSnapshot _featureManager;
+        private IReleaseManagementRepository _releaseManagementRepository;
+        private IPublishedProviderContentChannelPersistenceService _publishedProviderContentChannelPersistenceService;
+        private IPublishedFundingContentsChannelPersistenceService _publishedFundingContentsChannelPersistenceService;
+        private IPublishedFundingRepository _publishedFundingRepository;
 
         private const string SpecificationId = "SpecificationId";
         private const string FundingPeriodId = "AY-2020";
         private const string JobId = "JobId";
         private const string FundingStreamId = "PSG";
         private const string CorrelationId = "CorrelationId";
+        private const int ContractingChannelId = 1;
+        private const int StatementChannelId = 2;
 
         private string _publishedProviderId;
         private string[] _publishedProviderIds;
@@ -117,6 +132,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishedFundingVersionDataService = Substitute.For<IPublishedFundingVersionDataService>();
             _publishedFundingSearchRepository = Substitute.For<ISearchRepository<PublishedFundingIndex>>();
+            _blobClient = Substitute.For<IBlobClient>();
+            _featureManager = Substitute.For<IFeatureManagerSnapshot>();
+            _releaseManagementRepository = Substitute.For<IReleaseManagementRepository>();
+            _publishedProviderContentChannelPersistenceService =
+                Substitute.For<IPublishedProviderContentChannelPersistenceService>();
+            _publishedFundingContentsChannelPersistenceService =
+                Substitute.For<IPublishedFundingContentsChannelPersistenceService>();
+            _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
 
             _publishedFundingService = new PublishedFundingService(_publishedFundingDataService,
                 _publishingResiliencePolicies,
@@ -140,12 +163,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedFundingService,
                 _publishedProviderContentsGeneratorResolver,
                 _publishedFundingSearchRepository,
-                _publishedFundingVersionDataService
+                _publishedFundingVersionDataService,
+                _releaseManagementRepository,
+                _featureManager,
+                _blobClient,
+                _publishedProviderContentChannelPersistenceService,
+                _publishedFundingContentsChannelPersistenceService,
+                _publishedFundingRepository
             );
         }
 
         [TestMethod]
-        public async Task Run_PersistsProviderFundingAndPublishedProviders()
+        public async Task Run_PersistsProviderFundingAndPublishedProviders_Legacy()
         {
             GivenJobCanBeProcessed();
             AndSpecification();
@@ -163,7 +192,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task Run_PersistsProviderFundingAndPublishedProvidersForBatch()
+        public async Task Run_PersistsProviderFundingAndPublishedProvidersForBatch_Legacy()
         {
             GivenJobCanBeProcessed();
             AndSpecification();
@@ -177,34 +206,110 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             ThenPublishedFundingSaved();
 
-            ThenPublishedProvidersSaved(_publishedProviderIds);
+            ThenPublishedProvidersSaved(providers: _publishedProviderIds);
         }
 
-        private void ThenPublishedFundingSaved()
+        [TestMethod]
+        public async Task Run_PersistsProviderFundingAndPublishedProviders()
         {
-            _publishedFundingContentsPersistenceService
-                .Received(1)
-                .SavePublishedFundingContents(
-                    Arg.Is<IEnumerable<PublishedFundingVersion>>(
-                        _ => _.All(ppv => _publishedProviders.ToDictionary(pp => pp.Id)
-                              .ContainsKey(ppv.Id))),
-                    Arg.Is(_templateMetadataContents)
-                );
+            GivenJobCanBeProcessed();
+            AndNewReleaseManagement();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndPublishedProviders();
+            AndTemplateMapping();
+            AndGeneratePublishedFunding();
+
+            await WhenPublishIntegrityCheckMessageReceivedWithJobId();
+
+            ThenPublishedFundingSaved(isLegacy: false);
+
+            ThenPublishedProvidersSaved(isLegacy: false);
         }
 
-        private void ThenPublishedProvidersSaved(IEnumerable<string> providers = null)
+        [TestMethod]
+        public async Task Run_PersistsProviderFundingAndPublishedProvidersForBatch()
         {
-            providers ??= _publishedProviders.Select(_ => _.Id);
-            _publishedProviderContentsPersistenceService
-                .Received(1)
-                .SavePublishedProviderContents(
-                    Arg.Is(_templateMetadataContents),
-                    Arg.Is(_templateMapping),
-                    Arg.Is<IEnumerable<PublishedProvider>>(
-                        _ => _.All(ppv => providers.ToDictionary(_ => _)
-                              .ContainsKey(ppv.Id))),
-                    Arg.Any<IPublishedProviderContentsGenerator>()
-                );
+            GivenJobCanBeProcessed();
+            AndNewReleaseManagement();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndPublishedProviders();
+            AndTemplateMapping();
+            AndGeneratePublishedFunding();
+
+            await WhenPublishIntegrityCheckMessageReceivedWithJobIdAndBatchedProviders(BuildPublishProvidersRequest(_ => _.WithProviders(_publishedProviderIds)));
+
+            ThenPublishedFundingSaved(isLegacy: false);
+
+            ThenPublishedProvidersSaved(isLegacy: false, providers: _publishedProviderIds);
+        }
+
+        private void AndNewReleaseManagement()
+        {
+            _featureManager.IsEnabledAsync(Arg.Is<string>("EnableReleaseManagementBackend"))
+                .Returns(true);
+
+            _releaseManagementRepository.GetChannels()
+                .Returns(new List<Channel>
+                {
+                    new Channel { ChannelId = ContractingChannelId, ChannelCode = "Contracting", ChannelName = "Contracting" },
+                    new Channel { ChannelId = StatementChannelId, ChannelCode = "Statement", ChannelName = "Statement" }
+                });
+        }
+
+        private void ThenPublishedFundingSaved(bool isLegacy = true)
+        {
+            if (isLegacy)
+            {
+                _publishedFundingContentsPersistenceService
+                    .Received(1)
+                    .SavePublishedFundingContents(
+                        Arg.Is<IEnumerable<PublishedFundingVersion>>(
+                            _ => _.Count() == _publishedProviders.Count()),
+                        Arg.Is(_templateMetadataContents)
+                    );
+            }
+            else
+            {
+                _publishedFundingContentsChannelPersistenceService
+                    .Received(1)
+                    .SavePublishedFundingContents(
+                        Arg.Is<IEnumerable<PublishedFundingVersion>>(
+                            _ => _.Count() == _publishedProviders.Count()),
+                        Arg.Is<Channel>(_ => _.ChannelId == ContractingChannelId));
+            }
+        }
+
+        private void ThenPublishedProvidersSaved(bool isLegacy = true, IEnumerable<string> providers = null)
+        {
+            if (isLegacy)
+            {
+                providers ??= _publishedProviders.Select(_ => _.Id);
+                _publishedProviderContentsPersistenceService
+                    .Received(1)
+                    .SavePublishedProviderContents(
+                        Arg.Is(_templateMetadataContents),
+                        Arg.Is(_templateMapping),
+                        Arg.Is<IEnumerable<PublishedProvider>>(
+                            _ => _.All(ppv => providers.ToDictionary(_ => _)
+                                .ContainsKey(ppv.Id))),
+                        Arg.Any<IPublishedProviderContentsGenerator>()
+                    );
+            }
+            else
+            {
+                providers ??= _publishedProviders.Select(_ => _.Id);
+                _publishedProviderContentChannelPersistenceService
+                    .Received(1)
+                    .SavePublishedProviderContents(
+                        Arg.Is(_templateMapping),
+                        Arg.Is<IEnumerable<PublishedProviderVersion>>(
+                            _ => _.Count() == providers.Count()),
+                        Arg.Is<Channel>(_ => _.ChannelId == ContractingChannelId));
+            }
         }
 
         private void GivenJobCanBeProcessed()
@@ -271,7 +376,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         
         private void AndPublishedProviders()
         {
-            Provider[] providers = new[] { NewProvider(), 
+            Provider[] providers = new[] { NewProvider(_ => _.WithProviderId(_publishedProviderId)), 
                 NewProvider(), 
                 NewProvider()
             };
@@ -293,7 +398,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                                     .WithValue(_calculationTemplateIds[1].Value)),
                                 NewFundingCalculation(fc => fc.WithTemplateCalculationId(_calculationTemplateIds[2].TemplateCalculationId)
                                     .WithValue(_calculationTemplateIds[2].Value)))
-                            .WithPublishedProviderStatus(PublishedProviderStatus.Approved)
+                            .WithPublishedProviderStatus(PublishedProviderStatus.Released)
                             .WithVariationReasons(new[] { VariationReason.AuthorityFieldUpdated })
                             )))).ToList();
 
@@ -302,6 +407,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                                                          _specificationSummary)
                 .Returns((_publishedProviders.ToDictionary(_ => _.Current.ProviderId),
                                                            _publishedProviders.ToDictionary(_ => _.Current.ProviderId)));
+
+            _releaseManagementRepository.GetReleasedProviderSummaryBySpecificationId(Arg.Is<string>(SpecificationId))
+                .Returns(_publishedProviders
+                    .Select(_ => _.Current)
+                    .Select(_ => new ReleasedProviderSummary
+                    {
+                        ChannelId = ContractingChannelId,
+                        FundingId = _.FundingId,
+                        ProviderId = _.ProviderId
+                    })
+                    .ToList());
+
+            _releaseManagementRepository.GetLatestReleasedProviderSummaryBySpecificationId(Arg.Is<string>(SpecificationId))
+                .Returns(_publishedProviders
+                    .Select(_ => _.Current)
+                    .Select(_ => new ReleasedProviderSummary
+                    {
+                        ChannelId = ContractingChannelId,
+                        FundingId = _.FundingId,
+                        ProviderId = _.ProviderId
+                    })
+                    .ToList());
+
+            _publishedFundingRepository.GetPublishedProviderVersions(Arg.Is<string>(FundingStreamId),
+                    Arg.Is<string>(FundingPeriodId), Arg.Any<string>())
+                .Returns(_publishedProviders
+                    .Select(_ => _.Current)
+                    .ToList());
         }
 
         private FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
@@ -361,7 +494,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void AndGeneratePublishedFunding()
         {
             IEnumerable<PublishedFundingVersion> publishedFundingVersions = _publishedProviders.Select(_ =>
-                NewPublishedFundingVersion(pfv => pfv.WithSpecificationId(SpecificationId)))
+                NewPublishedFundingVersion(pfv =>
+                    pfv.WithSpecificationId(SpecificationId)
+                        .WithFundingStreamId(FundingStreamId)
+                        .WithFundingPeriod(new PublishedFundingPeriod { Id = FundingPeriodId })
+                        .WithGroupReason(CalculateFunding.Models.Publishing.GroupingReason.Contracting)
+                        .WithOrganisationGroupIdentifierValue("value")
+                        .WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.AcademyTrust)
+                        .WithMajor(1)
+                        .WithMinor(0)
+                    ))
                 .ToList();
 
             IEnumerable<(PublishedFunding, PublishedFundingVersion)> publishedFunding = publishedFundingVersions.Select(_ =>
@@ -373,6 +515,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Arg.Is<PublishedFundingInput>(_ => _.SpecificationId == SpecificationId),
                     Arg.Is<ICollection<PublishedProvider>>(_ => _.All(pp => _publishedProviders.Select(pp => pp.Current.ProviderId).Contains(pp.Current.ProviderId))))
                 .Returns(publishedFunding);
+
+            _publishedFundingVersionDataService.GetPublishedFundingVersion(Arg.Is<string>(FundingStreamId), Arg.Is<string>(FundingPeriodId))
+                .Returns(publishedFunding.Select(_ => _.Item2).ToList());
+
+            _publishedFundingDataService
+                .GetCurrentPublishedFunding(Arg.Is<string>(FundingStreamId), Arg.Is<string>(FundingPeriodId))
+                .Returns(publishedFunding.Select(_ => _.Item1).ToList());
+
+            IEnumerable<FundingGroupVersion> fundingGroupVersions = publishedFunding
+                .Select(_ => _.Item2)
+                .Select(_ => new FundingGroupVersion
+                {
+                    FundingId = _.FundingId,
+                    ChannelId = ContractingChannelId
+                }
+                ).ToList();
+
+            _releaseManagementRepository.GetFundingGroupVersionsBySpecificationId(Arg.Is<string>(SpecificationId))
+                .Returns(fundingGroupVersions);
+
+            _releaseManagementRepository.GetLatestFundingGroupVersionsBySpecificationId(Arg.Is<string>(SpecificationId))
+                .Returns(fundingGroupVersions);
         }
 
         private void AndCalculationResultsBySpecificationId()
