@@ -155,6 +155,10 @@ namespace CalculateFunding.Services.DataImporter
                         rowResult.Fields.Add(fieldDefinition.Name, parsedDecimal);
                         break;
 
+                    case FieldType.NullableOfBoolean:
+                        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<string>().TryParseBoolean());
+                        break;
+
                     case FieldType.NullableOfInteger:
                         dataCell.GetValue<string>().TryParseNullable(out int? parsedInt);
                         rowResult.Fields.Add(fieldDefinition.Name, parsedInt);

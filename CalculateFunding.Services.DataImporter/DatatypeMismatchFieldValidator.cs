@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.DataImporter
 			    fieldDefinition.Type == FieldType.Decimal && field.Value.ToString().TryParseDecimal() != null ||
                 fieldDefinition.Type == FieldType.NullableOfDecimal && field.Value.ToString().TryParseNullable(out decimal? parsedDecimal) ||
                 fieldDefinition.Type == FieldType.NullableOfInteger && field.Value.ToString().TryParseNullable(out int? parsedInt) ||
+                fieldDefinition.Type == FieldType.NullableOfBoolean && field.Value.ToString().TryParseBoolean() != null ||
                 fieldDefinition.Type == FieldType.DateTime && field.Value.ToString().TryParseDateTime() != null ||
 				fieldDefinition.Type == FieldType.String && !string.IsNullOrEmpty(field.Value?.ToString()))
 			{
