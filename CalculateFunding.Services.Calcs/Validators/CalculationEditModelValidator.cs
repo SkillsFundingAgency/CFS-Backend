@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Calcs.Validators
     {
         private readonly IPreviewService _previewService;
         private readonly ICalculationsRepository _calculationRepository;
+        private readonly char[] CalculationNameNotAllowedCharacters = new[] { '\"' };
 
         public CalculationEditModelValidator(
             IPreviewService previewService,
@@ -44,17 +45,25 @@ namespace CalculateFunding.Services.Calcs.Validators
                  if (string.IsNullOrWhiteSpace(calculationEditModel.Name))
                  {
                      context.AddFailure("Null or empty calculation name provided.");
+                     return;
                  }
-                 else
-                 {
-                     if (!string.IsNullOrWhiteSpace(calculationEditModel.SpecificationId))
-                     {
-                         Calculation calculation = _calculationRepository.GetCalculationBySpecificationIdAndCalculationName(calculationEditModel.SpecificationId, calculationEditModel.Name).Result;
 
-                         if (calculation != null && calculation.Id != calculationEditModel.CalculationId)
-                             context.AddFailure($"A calculation already exists with the name: '{calculationEditModel.Name}' for this specification");
+                 foreach (char calculationNameNotAllowedCharacter in CalculationNameNotAllowedCharacters)
+                 {
+                     if (calculationEditModel.Name.Contains(calculationNameNotAllowedCharacter))
+                     {
+                         context.AddFailure($"Calculation name contains not allowed character: '{calculationNameNotAllowedCharacter}'");
+                         return;
                      }
                  }
+
+                if (!string.IsNullOrWhiteSpace(calculationEditModel.SpecificationId))
+                {
+                    Calculation calculation = _calculationRepository.GetCalculationBySpecificationIdAndCalculationName(calculationEditModel.SpecificationId, calculationEditModel.Name).Result;
+
+                     if (calculation != null && calculation.Id != calculationEditModel.CalculationId)
+                         context.AddFailure($"A calculation already exists with the name: '{calculationEditModel.Name}' for this specification");
+                }
              });
 
             RuleFor(model => model.Name)

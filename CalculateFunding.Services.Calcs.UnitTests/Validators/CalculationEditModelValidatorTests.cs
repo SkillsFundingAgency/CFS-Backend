@@ -114,6 +114,30 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .BeFalse();
         }
 
+        [DataTestMethod]
+        [DataRow("\"")]
+        public async Task ValidateAsync_WhenCalculationNameContainsNotAllowedCharacters_ValidIsFalse(string calculationNameNotAllowedCharacter)
+        {
+            //Arrange
+            CalculationEditModel model = CreateModel();
+            model.Name += calculationNameNotAllowedCharacter;
+
+            CalculationEditModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result.Errors
+              .Should()
+              .Contain(_ => _.ErrorMessage == $"Calculation name contains not allowed character: '{calculationNameNotAllowedCharacter}'");
+        }
+
         [TestMethod]
         public async Task ValidateAsync_WhenCalculationNameAlreadyExists_ValidIsFalse()
         {

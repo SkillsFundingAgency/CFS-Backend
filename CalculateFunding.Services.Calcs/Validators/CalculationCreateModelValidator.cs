@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         private readonly IPreviewService _previewService;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
+        private readonly char[] CalculationNameNotAllowedCharacters = new[] { '\"' };  
 
         public CalculationCreateModelValidator(
             ICalculationsRepository calculationRepository,
@@ -56,16 +57,24 @@ namespace CalculateFunding.Services.Calcs.Validators
                   if (string.IsNullOrWhiteSpace(calculationCreateModel.Name))
                   {
                       context.AddFailure("Null or empty calculation name provided.");
+                      return;
                   }
-                  else
-                  {
-                      if (!string.IsNullOrWhiteSpace(calculationCreateModel.SpecificationId))
-                      {
-                          Calculation calculation = _calculationRepository.GetCalculationBySpecificationIdAndCalculationName(calculationCreateModel.SpecificationId, calculationCreateModel.Name).Result;
 
-                          if (calculation != null)
-                              context.AddFailure($"A calculation already exists with the name: '{calculationCreateModel.Name}' for this specification");
+                  foreach (char calculationNameNotAllowedCharacter in CalculationNameNotAllowedCharacters)
+                  {
+                      if (calculationCreateModel.Name.Contains(calculationNameNotAllowedCharacter))
+                      {
+                          context.AddFailure($"Calculation name contains not allowed character: '{calculationNameNotAllowedCharacter}'");
+                          return;
                       }
+                  }
+
+                  if (!string.IsNullOrWhiteSpace(calculationCreateModel.SpecificationId))
+                  {
+                      Calculation calculation = _calculationRepository.GetCalculationBySpecificationIdAndCalculationName(calculationCreateModel.SpecificationId, calculationCreateModel.Name).Result;
+
+                      if (calculation != null)
+                          context.AddFailure($"A calculation already exists with the name: '{calculationCreateModel.Name}' for this specification");
                   }
               });
 
