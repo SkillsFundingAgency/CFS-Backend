@@ -47,7 +47,7 @@ steps:
        ServiceName: ${{ variables.ServiceName }}
        ResourceGroup: $(ResourceGroup)
        azureSubscription: $(azureSubscription)
-       overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -sqlServerName "$(sqlServerName)" -logAnalyticsWorkspaceName "$(logAnalyticsWorkspaceName)" -fdzDatabaseSku "S0" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -apiHostingPlanName $(apiHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -applicationInsightsName $(applicationInsightsName) -sharedLogStorageName $(sharedLogStorageName) -fdzDatabaseName $(fdzDatabaseName)'
+       overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -sqlServerName "$(sqlServerName)" -logAnalyticsWorkspaceName "$(logAnalyticsWorkspaceName)" -fdzDatabaseSku "S0" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -apiHostingPlanName $(apiHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -applicationInsightsName $(applicationInsightsName) -sharedLogStorageName $(sharedLogStorageName) -fdzDatabaseName $(fdzDatabaseName) -logAnalyticsWorkspaceName $(logAnalyticsWorkspaceName)'
 
  - template: templates\standard-service-pr-ci-build-prinfra.yml
    parameters:
