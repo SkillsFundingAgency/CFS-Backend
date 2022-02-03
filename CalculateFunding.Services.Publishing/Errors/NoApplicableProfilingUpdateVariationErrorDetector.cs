@@ -58,13 +58,14 @@ namespace CalculateFunding.Services.Publishing.Errors
                     else
                     {
                         string fundingLineCode = _.FundingLineCode;
-                        string errorMessage = $"Post Profiling and Variations - No applicable variation strategy executed for profiling update against funding line {fundingLineCode}.";
 
                         FundingLine currentFundingLine = providerVariationContext
                                                     .PreRefreshState
                                                     .FundingLines
                                                     .First(fl =>
                                                         fl.FundingLineCode == _.FundingLineCode);
+
+                        string errorMessage = $"Post Profiling and Variations - No applicable variation strategy executed for profiling update from £{GetValueOrExcluded(currentFundingLine.Value)} to £{GetValueOrExcluded(_.Value)} against funding line {fundingLineCode}.";
 
                         // only add the error if the funding line values don't match
                         if (_.Value != currentFundingLine.Value)
@@ -95,6 +96,11 @@ namespace CalculateFunding.Services.Publishing.Errors
             }
 
             return Task.FromResult(errorCheck);
+        }
+
+        private static string GetValueOrExcluded(decimal? currentFundingLineValue)
+        {
+            return currentFundingLineValue == null ? "Excluded" : currentFundingLineValue.GetValueOrDefault().ToString();
         }
     }
 }

@@ -431,7 +431,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _publishedProviderStatusUpdateService
-                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.AnyWithNullCheck() && _.First(p => p.Current.ProviderId == providerId).Current.Errors.Any(_ => _.Type == PublishedProviderErrorType.NoApplicableProfilingUpdateVariation)),
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => 
+                        _.AnyWithNullCheck() && 
+                        _.First(p => 
+                            p.Current.ProviderId == providerId).Current.Errors.Any(_ => 
+                                _.Type == PublishedProviderErrorType.NoApplicableProfilingUpdateVariation && 
+                                _.SummaryErrorMessage == $"Post Profiling and Variations - No applicable variation strategy executed for profiling update from £9.0 to £7 against funding line {_.FundingLineCode}."
+                            )
+                    ),
                     It.IsAny<Reference>(),
                     PublishedProviderStatus.Updated,
                     JobId,
