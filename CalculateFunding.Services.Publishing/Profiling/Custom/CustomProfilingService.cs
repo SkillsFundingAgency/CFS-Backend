@@ -25,6 +25,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
         private readonly AsyncPolicy _publishedFundingResilience;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly IPublishedProviderStatusUpdateService _publishedProviderVersionCreation;
+        private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly IValidator<ApplyCustomProfileRequest> _requestValidation;
         private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private readonly ILogger _logger;
@@ -43,7 +44,8 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             ISpecificationService specificationService,
             IOrganisationGroupService organisationGroupService,
             IPoliciesService policiesService,
-            IProviderService providerService)
+            IProviderService providerService,
+            IPublishedProviderIndexerService publishedProviderIndexerService)
         {
             Guard.ArgumentNotNull(requestValidation, nameof(requestValidation));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
@@ -57,6 +59,8 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             Guard.ArgumentNotNull(organisationGroupService, nameof(organisationGroupService));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(providerService, nameof(providerService));
+            Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
+
 
             _publishedProviderVersionCreation = publishedProviderStatusUpdateService;
             _requestValidation = requestValidation;
@@ -68,6 +72,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             _organisationGroupService = organisationGroupService;
             _policiesService = policiesService;
             _providerService = providerService;
+            _publishedProviderIndexerService = publishedProviderIndexerService;
         }
 
         public async Task<IActionResult> ApplyCustomProfile(
@@ -133,9 +138,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             currentProviderVersion.AddProfilingAudit(fundingLineCode, author);
 
             // reset profiling errors
-            currentProviderVersion.ResetErrors(_ => 
-                _.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch || 
-                _.Type == PublishedProviderErrorType.ProfilingConsistencyCheckFailure);
+            currentProviderVersion.ResetErrors(_ => _.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch);
             
             await _publishedProviderVersionCreation.UpdatePublishedProviderStatus(new[] { publishedProvider },
                 author,
@@ -146,6 +149,8 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                 },
                 correlationId: correlationId,
                 force: true);
+
+            await _publishedProviderIndexerService.IndexPublishedProvider(currentProviderVersion);
 
             _logger.Information(
                 $"Successfully applied custom profiling {request.CustomProfileName} to published provider {publishedProviderId}");

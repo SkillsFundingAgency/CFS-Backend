@@ -510,7 +510,9 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IDetectPublishedProviderErrors, NoApplicableProfilingUpdateVariationErrorDetector>()
                 .AddSingleton<IProfilingService, ProfilingService>()
                 .AddSingleton<IHealthChecker, ProfilingService>()
-                .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
+                .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>() 
+                .AddSingleton<IPublishedProviderIndexerService, PublishedProviderIndexerService>();
+
 
             builder.AddSingleton<IAvailableFundingLinePeriodsService, AvailableFundingLinePeriodsService>();
 

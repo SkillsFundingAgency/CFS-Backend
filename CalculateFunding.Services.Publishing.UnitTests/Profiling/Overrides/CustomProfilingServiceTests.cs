@@ -36,6 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         private Mock<IOrganisationGroupService> _organisationGroupService;
         private Mock<IPoliciesService> _policiesService;
         private Mock<IProviderService> _providerService;
+        private Mock<IPublishedProviderIndexerService> _publishedProviderIndexerService;
 
 
         private readonly string CorrelationId = "123";
@@ -52,6 +53,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             _organisationGroupService = new Mock<IOrganisationGroupService>();
             _policiesService = new Mock<IPoliciesService>();
             _providerService = new Mock<IProviderService>();
+            _publishedProviderIndexerService = new Mock<IPublishedProviderIndexerService>();
 
             _service = new CustomProfilingService(_publishedProviderVersionCreation.Object,
                 _validator.Object,
@@ -66,7 +68,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 _specificationService.Object,
                 _organisationGroupService.Object,
                 _policiesService.Object,
-                _providerService.Object
+                _providerService.Object,
+                _publishedProviderIndexerService.Object
                 );
         }
 
@@ -593,6 +596,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             AndProfilingAuditUpdatedForFundingLines(publishedProvider, new[] { fundingLineOne }, author);
             AndErrorsAreCleared(publishedProvider);
             AndPublishCsvReportsJobCreated();
+            AndThePublishedProviderIsIndex(publishedProvider);
         }
 
         private void AndErrorsAreCleared(PublishedProvider publishedProvider)
@@ -740,6 +744,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 CorrelationId,
                 It.IsAny<Reference>()), Times.Once);
         }
+
+        private void AndThePublishedProviderIsIndex(PublishedProvider publishedProvider) =>
+            _publishedProviderIndexerService.Verify(_ => _.IndexPublishedProvider(publishedProvider.Current), Times.Once);
 
         private ValidationResult NewValidationResult(Action<ValidationResultBuilder> setUp = null)
         {
