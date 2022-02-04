@@ -26,14 +26,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
         }
 
-        public async Task ReleaseFundingGroupData(IEnumerable<(PublishedFundingVersion, OrganisationGroupResult)> fundingGroupData, int channelId)
+        public async Task<IEnumerable<FundingGroupVersion>> ReleaseFundingGroupData(IEnumerable<(PublishedFundingVersion, OrganisationGroupResult)> fundingGroupData, int channelId)
         {
             IEnumerable<SqlModels.GroupingReason> groupingReasons = await _releaseManagementRepository.GetGroupingReasons();
             IEnumerable<FundingStream> fundingStreams = await _releaseManagementRepository.GetFundingStreams();
             IEnumerable<FundingPeriod> fundingPeriods = await _releaseManagementRepository.GetFundingPeriods();
-            IEnumerable<SqlModels.VariationReason> variationReasons = await _releaseManagementRepository.GetVariationReasons();
+            Dictionary<string, SqlModels.VariationReason> variationReasons = (await _releaseManagementRepository.GetVariationReasons()).ToDictionary(_=>_.VariationReasonCode);
 
             List<FundingGroupVersion> fundingGroupVersions = new List<FundingGroupVersion>();
+
             foreach ((PublishedFundingVersion, OrganisationGroupResult) fundingGroupDataItem in fundingGroupData)
             {
                 if (!_releaseToChannelSqlMappingContext.FundingGroups.TryGetValue(fundingGroupDataItem.Item2, out int fundingGroupId))
@@ -43,6 +44,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 }
 
                 PublishedFundingVersion pfv = fundingGroupDataItem.Item1;
+
+                if (string.IsNullOrWhiteSpace(pfv.FundingId))
+                {
+                    throw new InvalidOperationException("Funding ID is null or emtpy");
+                }
+
                 FundingGroupVersion fundingGroupVersion = new FundingGroupVersion
                 {
                     FundingGroupId = fundingGroupId,
@@ -70,23 +77,28 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
                 await PersistVariationReasons(variationReasons, pfv, savedFundingGroupVersion);
 
-                foreach (string fundingId in pfv.ProviderFundings)
+                if (!_releaseToChannelSqlMappingContext.FundingGroupVersions.TryGetValue(channelId, out Dictionary<string, FundingGroupVersion> fundingGroupVersionsForChannel))
                 {
-                    string providerId = fundingId.Split("-")[2];
-                    string key = $"{providerId}_{channelId}";
-                    _releaseToChannelSqlMappingContext.FundingGroupVersions.TryAdd(key, savedFundingGroupVersion);
+                    fundingGroupVersionsForChannel = new Dictionary<string, FundingGroupVersion>();
+                    _releaseToChannelSqlMappingContext.FundingGroupVersions.Add(channelId, fundingGroupVersionsForChannel);
                 }
+
+                _releaseToChannelSqlMappingContext.FundingGroupVersions[channelId].Add(pfv.FundingId, savedFundingGroupVersion);
+
+                fundingGroupVersions.Add(savedFundingGroupVersion);
             }
+
+            return fundingGroupVersions;
         }
 
-        private async Task PersistVariationReasons(IEnumerable<SqlModels.VariationReason> variationReasons, PublishedFundingVersion pfv, FundingGroupVersion savedFundingGroupVersion)
+        private async Task PersistVariationReasons(Dictionary<string, SqlModels.VariationReason> variationReasons, PublishedFundingVersion pfv, FundingGroupVersion savedFundingGroupVersion)
         {
             foreach (CalculateFunding.Models.Publishing.VariationReason variationReason in pfv.VariationReasons)
             {
                 FundingGroupVersionVariationReason fgvvr = new FundingGroupVersionVariationReason
                 {
                     FundingGroupVersionId = savedFundingGroupVersion.FundingGroupVersionId,
-                    FundingGroupVersionVariationReasonId = variationReasons.Single(_ => _.VariationReasonCode == variationReason.ToString()).VariationReasonId
+                    VariationReasonId = variationReasons[variationReason.ToString()].VariationReasonId
                 };
 
                 await _releaseManagementRepository.CreateFundingGroupVariationReasonUsingAmbientTransaction(fgvvr);

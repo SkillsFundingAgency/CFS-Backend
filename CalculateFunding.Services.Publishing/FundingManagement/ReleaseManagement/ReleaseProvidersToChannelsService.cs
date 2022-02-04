@@ -114,19 +114,28 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             _releaseManagementRepository.InitialiseTransaction();
 
-            SetReleaseContext(message);
-
+            string jobId = Job?.Id;
+            Reference author = message.GetUserDetails();
+            string correlationId = message.GetCorrelationId();
             string specificationId = message.GetUserProperty<string>("specification-id");
+
             ReleaseProvidersToChannelRequest model = message.GetPayloadAsInstanceOf<ReleaseProvidersToChannelRequest>();
 
-            await ReleaseProviderVersions(specificationId, model);
+            await ReleaseProviderVersions(specificationId,
+                                          model,
+                                          jobId,
+                                          correlationId,
+                                          author);
 
             _releaseManagementRepository.Commit();
         }
 
         public async Task ReleaseProviderVersions(
             string specificationId,
-            ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest)
+            ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest,
+            string jobId,
+            string correlationId,
+            Reference author)
         {
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
             if (specification == null)
@@ -154,6 +163,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             _logger.Information("Prerequisites for publish passed");
 
+            _releaseToChannelSqlMappingContext.JobId = jobId;
+            _releaseToChannelSqlMappingContext.Author = author;
+            _releaseToChannelSqlMappingContext.CorrelationId = correlationId;
+
             await _releaseManagementSpecificationService.EnsureReleaseManagementSpecification(specification);
 
             string fundingStreamId = specification.FundingStreams.First().Id;
@@ -167,7 +180,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             await LoadGivenProvidersFromFundingApprovals(releaseProvidersToChannelRequest);
 
             IEnumerable<string> providerIdsReleased = await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(specification);
-            
+
             await RefreshLoadContextWithProvidersApprovedNowReleased(providerIdsReleased);
 
             foreach (KeyValuePair<string, SqlModels.Channel> channel in channels)
@@ -175,13 +188,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 await _channelReleaseService.ReleaseProvidersForChannel(
                     channel.Value, fundingConfiguration, specification, releaseProvidersToChannelRequest.ProviderIds);
             }
-        }
-
-        private void SetReleaseContext(Message message)
-        {
-            _releaseToChannelSqlMappingContext.JobId = Job?.Id;
-            _releaseToChannelSqlMappingContext.Author = message.GetUserDetails();
-            _releaseToChannelSqlMappingContext.CorrelationId = message.GetCorrelationId();
         }
 
         private async Task RefreshLoadContextWithProvidersApprovedNowReleased(IEnumerable<string> providerIdsReleased)

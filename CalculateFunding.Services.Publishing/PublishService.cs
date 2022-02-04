@@ -151,12 +151,23 @@ namespace CalculateFunding.Services.Publishing
                 publishedProviderIdsRequest = message.GetPayloadAsInstanceOf<PublishedProviderIdsRequest>();
             }
 
-            await PublishProviderFundingResults(batched, author, correlationId, specification, publishedProviderIdsRequest);
+            await PublishProviderFundingResults(batched,
+                                                author,
+                                                Job.Id,
+                                                correlationId,
+                                                specification,
+                                                publishedProviderIdsRequest);
         }
 
-        public async Task PublishProviderFundingResults(bool batched, Reference author, string correlationId, SpecificationSummary specification, PublishedProviderIdsRequest publishedProviderIdsRequest)
+        public async Task PublishProviderFundingResults(bool batched,
+                                                        Reference author,
+                                                        string jobId,
+                                                        string correlationId,
+                                                        SpecificationSummary specification,
+                                                        PublishedProviderIdsRequest publishedProviderIdsRequest)
         {
             Guard.ArgumentNotNull(author, nameof(author));
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
             Guard.IsNullOrWhiteSpace(correlationId, nameof(correlationId));
             Guard.ArgumentNotNull(specification, nameof(specification));
 
@@ -169,7 +180,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 await PublishFundingStream(fundingStream,
                     specification,
-                    Job.Id,
+                    jobId,
                     author,
                     correlationId,
                     batched ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders,

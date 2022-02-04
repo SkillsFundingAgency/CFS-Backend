@@ -10,8 +10,8 @@
     <PackageReference Include="CalculateFunding.Common.ApiClient.FundingDataZone" Version="3.1.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="7.1.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="7.1.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.2" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="6.0.1" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.3" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="6.0.2" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="8.0.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="3.0.0" />
 	<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />

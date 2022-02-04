@@ -42,11 +42,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             {
                 PublishedProviderIdsRequest publishedProviderIdsRequest = new PublishedProviderIdsRequest()
                 {
-                    PublishedProviderIds = providersToRelease.Select(_ => _.Current.ProviderId),
+                    PublishedProviderIds = providersToRelease.Select(_ => _.Current.PublishedProviderId),
                 };
 
-                await _publishService.PublishProviderFundingResults(
-                    true, _releaseToChannelSqlMappingContext.Author, _releaseToChannelSqlMappingContext.CorrelationId, specification, publishedProviderIdsRequest);
+                await _publishService.PublishProviderFundingResults(true,
+                                                                    _releaseToChannelSqlMappingContext.Author,
+                                                                    _releaseToChannelSqlMappingContext.JobId,
+                                                                    _releaseToChannelSqlMappingContext.CorrelationId,
+                                                                    specification,
+                                                                    publishedProviderIdsRequest);
             }
 
             return providersToRelease.Select(_ => _.Current.ProviderId);

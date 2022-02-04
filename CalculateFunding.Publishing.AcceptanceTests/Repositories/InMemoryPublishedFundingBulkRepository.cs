@@ -83,9 +83,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(publishedProviders.AsEnumerable());
         }
 
-        public Task<IEnumerable<PublishedProvider>> TryGetPublishedProvidersByProviderId(IEnumerable<string> providerIds, string fundingStreamId, string fundingPeriodId)
+        public  Task<IEnumerable<PublishedProvider>> TryGetPublishedProvidersByProviderId(IEnumerable<string> providerIds, string fundingStreamId, string fundingPeriodId)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_repo.PublishedProviders
+                .SelectMany(c => c.Value)
+                .Where(_ => _.Value.Current.FundingStreamId == fundingStreamId 
+                && _.Value.Current.FundingPeriodId == fundingPeriodId 
+                && providerIds.Contains(_.Value.Current.ProviderId)).Select(p=>p.Value));
         }
 
         public Task UpsertPublishedFundings(

@@ -22,7 +22,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IValidator<ChannelRequest> _channelValidator;
 
         public ChannelsService(IReleaseManagementRepository releaseManagementRepository,
-            IValidator<ChannelRequest> channelValidator, IMapper mapper, ILogger logger)
+                               IValidator<ChannelRequest> channelValidator,
+                               IMapper mapper,
+                               ILogger logger)
         {
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(channelValidator, nameof(channelValidator));

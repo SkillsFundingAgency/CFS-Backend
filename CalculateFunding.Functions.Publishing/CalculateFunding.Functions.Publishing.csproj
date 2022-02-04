@@ -15,7 +15,7 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Profiling" Version="3.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="5.0.2" /> 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.3" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="4.2.1" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.2.0" />

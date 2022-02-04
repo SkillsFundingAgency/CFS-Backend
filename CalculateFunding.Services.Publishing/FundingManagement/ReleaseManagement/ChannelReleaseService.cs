@@ -25,6 +25,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IGenerateVariationReasonsForChannelService _generateVariationReasonsForChannelService;
         private readonly IPublishedProviderContentChannelPersistenceService _publishedProviderContentChannelPersistenceService;
         private readonly IPublishedFundingContentsChannelPersistenceService _publishedFundingContentsChannelPersistenceService;
+        private readonly IFundingGroupProviderPersistenceService _fundingGroupProviderPersistenceService;
         private readonly IFundingGroupService _fundingGroupService;
         private readonly IFundingGroupDataGenerator _fundingGroupDataGenerator;
         private readonly IFundingGroupDataPersistenceService _fundingGroupDataPersistenceService;
@@ -40,6 +41,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IGenerateVariationReasonsForChannelService generateVariationReasonsForChannelService,
             IPublishedProviderContentChannelPersistenceService publishedProviderContentChannelPersistenceService,
             IPublishedFundingContentsChannelPersistenceService publishedFundingContentsChannelPersistenceService,
+            IFundingGroupProviderPersistenceService fundingGroupProviderPersistenceService,
             IFundingGroupService fundingGroupService,
             IFundingGroupDataGenerator fundingGroupDataGenerator,
             IFundingGroupDataPersistenceService fundingGroupDataPersistenceService)
@@ -55,6 +57,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(publishedProviderContentChannelPersistenceService, nameof(publishedProviderContentChannelPersistenceService));
             Guard.ArgumentNotNull(publishedFundingContentsChannelPersistenceService, nameof(publishedFundingContentsChannelPersistenceService));
             Guard.ArgumentNotNull(fundingGroupService, nameof(fundingGroupService));
+            Guard.ArgumentNotNull(fundingGroupProviderPersistenceService, nameof(fundingGroupProviderPersistenceService));
             Guard.ArgumentNotNull(fundingGroupDataGenerator, nameof(fundingGroupDataGenerator));
             Guard.ArgumentNotNull(fundingGroupDataPersistenceService, nameof(fundingGroupDataPersistenceService));
 
@@ -68,6 +71,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _generateVariationReasonsForChannelService = generateVariationReasonsForChannelService;
             _publishedProviderContentChannelPersistenceService = publishedProviderContentChannelPersistenceService;
             _publishedFundingContentsChannelPersistenceService = publishedFundingContentsChannelPersistenceService;
+            _fundingGroupProviderPersistenceService = fundingGroupProviderPersistenceService;
             _fundingGroupService = fundingGroupService;
             _fundingGroupDataGenerator = fundingGroupDataGenerator;
             _fundingGroupDataPersistenceService = fundingGroupDataPersistenceService;
@@ -81,9 +85,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         /// <param name="specification">The specification</param>
         /// <param name="batchPublishedProviderIds">The batch of published provider ids to release</param>
         /// <returns></returns>
-        public async Task ReleaseProvidersForChannel(Channel channel, 
-            FundingConfiguration fundingConfiguration, 
-            SpecificationSummary specification, 
+        public async Task ReleaseProvidersForChannel(Channel channel,
+            FundingConfiguration fundingConfiguration,
+            SpecificationSummary specification,
             IEnumerable<string> batchPublishedProviderIds)
         {
             Guard.ArgumentNotNull(channel, nameof(channel));
@@ -98,14 +102,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 fundingConfiguration)
                 .ToDictionary(_ => _.ProviderId);
 
-            IEnumerable<OrganisationGroupResult> allOrganisationGroups = 
-                await _channelOrganisationGroupGeneratorService.GenerateOrganisationGroups(channel, 
-                    fundingConfiguration, 
-                    specification, 
+            IEnumerable<OrganisationGroupResult> allOrganisationGroups =
+                await _channelOrganisationGroupGeneratorService.GenerateOrganisationGroups(channel,
+                    fundingConfiguration,
+                    specification,
                     providersToRelease.Values);
 
-            IEnumerable<OrganisationGroupResult> organisationGroupsToCreate = 
-                await _channelOrganisationGroupChangeDetector.DetermineFundingGroupsToCreateBasedOnProviderVersions(allOrganisationGroups, 
+            IEnumerable<OrganisationGroupResult> organisationGroupsToCreate =
+                await _channelOrganisationGroupChangeDetector.DetermineFundingGroupsToCreateBasedOnProviderVersions(allOrganisationGroups,
                     specification,
                     channel);
 
@@ -116,7 +120,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 await _fundingGroupDataGenerator.Generate(
                     organisationGroupsToCreate, specification, channel, batchPublishedProviderIds);
 
-            await _fundingGroupDataPersistenceService.ReleaseFundingGroupData(fundingGroupData, channel.ChannelId);
+            IEnumerable<FundingGroupVersion> fundingGroupVersionsCreated = await _fundingGroupDataPersistenceService.ReleaseFundingGroupData(fundingGroupData, channel.ChannelId);
 
             IEnumerable<PublishedProviderVersion> providersInGroupsToRelease = organisationGroupsToCreate
                 .SelectMany(_ => _.Providers)
@@ -133,16 +137,19 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 specification.Id);
 
             await _providerVersionToChannelReleaseService.ReleaseProviderVersionChannel(
-                releasedProviders,
+                providersToRelease.Values.Select(_=>_.ProviderId),
                 channel.ChannelId,
                 DateTime.UtcNow);
-            
+
             IDictionary<string, IEnumerable<VariationReason>> variationReasonsForProviders = await _generateVariationReasonsForChannelService.GenerateVariationReasonsForProviders(
                 batchPublishedProviderIds,
                 channel,
                 specification,
                 fundingConfiguration,
                 allOrganisationGroups.GroupByProviderId());
+
+            // FundingGroupProviders needs to be released here. All funding groups created + latest versions of provider Ids
+            await _fundingGroupProviderPersistenceService.PersistFundingGroupProviders(channel.ChannelId, fundingGroupData, providersInGroupsToRelease);
 
             await _publishedProviderContentChannelPersistenceService
                 .SavePublishedProviderVariationReasonContents(specification, providersInGroupsToRelease, channel, variationReasonsForProviders);

@@ -31,7 +31,6 @@ namespace CalculateFunding.Services.Publishing
 
         public virtual async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
         {
-            Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             SpecificationSummary specification = prereqObject as SpecificationSummary;
             Guard.ArgumentNotNull(specification, nameof(specification));
 

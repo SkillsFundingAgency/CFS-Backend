@@ -27,9 +27,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Dictionary<OrganisationGroupResult, int> FundingGroups { get; set; }
 
         /// <summary>
-        /// FundingGroupVersions. Key is _providerId_channelId e.g. UKPRN_1
+        /// FundingGroupVersions. Key is channelId, then string of funding ID for group
         /// </summary>
-        Dictionary<string, FundingGroupVersion> FundingGroupVersions { get; set; }
+        Dictionary<int, Dictionary<string, FundingGroupVersion>> FundingGroupVersions { get; set; }
 
         string JobId { get; set; }
 

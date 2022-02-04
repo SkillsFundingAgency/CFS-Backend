@@ -63,35 +63,13 @@ using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 {
     [Binding]
-    public class StepContextIoCSetup
+    public class StepContextIoCSetup : SetupBase
     {
-        private readonly IObjectContainer _objectContainer;
-
-        public StepContextIoCSetup(IObjectContainer objectContainer)
+        public StepContextIoCSetup(IObjectContainer objectContainer) : base(objectContainer)
         {
-            _objectContainer = objectContainer;
         }
 
-        private void RegisterTypeAs<TType, TInterface>()
-            where TType : class, TInterface
-            where TInterface : class
-        {
-            _objectContainer.RegisterTypeAs<TType, TInterface>();
-        }
-
-        private void RegisterInstanceAs<TType>(TType instance)
-            where TType : class
-        {
-            _objectContainer.RegisterInstanceAs(instance);
-        }
-
-        private TType ResolveInstance<TType>()
-            where TType : class
-        {
-            return _objectContainer.Resolve<TType>();
-        }
-
-        [BeforeScenario]
+        [BeforeScenario(new []{ "refresh", "approve", "release" } )]
         public void SetupStepContexts()
         {
             PublishingResiliencePolicies publishingResiliencePolicies = new PublishingResiliencePolicies()
@@ -192,13 +170,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderVersionService, IPublishedProviderVersionService>();
             RegisterTypeAs<PublishedFundingInMemorySearchRepository, ISearchRepository<PublishedFundingIndex>>();
 
-            RegisterTypeAs<GeneratePublishedFundingCsvJobCreation, ICreateGeneratePublishedFundingCsvJobs>();
-            RegisterTypeAs<CreateGeneratePublishedProviderEstateCsvJobs, ICreateGeneratePublishedProviderEstateCsvJobs>();
+           
             RegisterTypeAs<PublishIntegrityCheckJobCreation, ICreatePublishIntegrityJob>();
             RegisterTypeAs<PublishingDatasetsDataCopyJobCreation, ICreatePublishDatasetsDataCopyJob>();
             RegisterTypeAs<CurrentCorrelationStepContext, ICurrentCorrelationStepContext>();
             RegisterTypeAs<ProcessDatasetObsoleteItemsJobCreation, ICreateProcessDatasetObsoleteItemsJob>();
             RegisterTypeAs<ProviderFilter, IProviderFilter>();
+
+
+            RegisterTypeAs<GeneratePublishedFundingCsvJobCreation, ICreateGeneratePublishedFundingCsvJobs>();
+            RegisterTypeAs<CreateGeneratePublishedProviderEstateCsvJobs, ICreateGeneratePublishedProviderEstateCsvJobs>();
 
             IGeneratePublishedFundingCsvJobsCreation[] generatePublishedFundingCsvJobsCreations = 
                 typeof(IGeneratePublishedFundingCsvJobsCreation).Assembly.GetTypes()
@@ -336,22 +317,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
         public class RoundingSettingsStub : IFundingLineRoundingSettings
         {
             public int DecimalPlaces => 2;
-        }
-        
-
-        private class ConfigurationStub : IConfiguration
-        {
-            public IConfigurationSection GetSection(string key) => null;
-
-            public IEnumerable<IConfigurationSection> GetChildren() => ArraySegment<IConfigurationSection>.Empty;
-
-            public IChangeToken GetReloadToken() => null;
-
-            public string this[string key]
-            {
-                get => null;
-                set{}
-            }
         }
         
     }

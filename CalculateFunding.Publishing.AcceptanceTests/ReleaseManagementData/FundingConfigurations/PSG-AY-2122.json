@@ -1,0 +1,507 @@
+{
+  "approvalMode": "All",
+  "paymentOrganisationSource": "PaymentOrganisationFields",
+  "providerSource": "FDZ",
+  "organisationGroupings": [
+    {
+      "groupingReason": "Payment",
+      "organisationGroupTypeCode": "LocalAuthority",
+      "groupTypeIdentifier": "UKPRN",
+      "groupTypeClassification": "LegalEntity",
+      "providerTypeMatch": [
+        {
+          "providerType": "Local authority maintained schools",
+          "providerSubType": "Community school"
+        },
+        {
+          "providerType": "Local authority maintained schools",
+          "providerSubType": "Foundation school"
+        },
+        {
+          "providerType": "Local authority maintained schools",
+          "providerSubType": "Pupil referral unit"
+        },
+        {
+          "providerType": "Local authority maintained schools",
+          "providerSubType": "Voluntary aided school"
+        },
+        {
+          "providerType": "Local authority maintained schools",
+          "providerSubType": "Voluntary controlled school"
+        },
+        {
+          "providerType": "Special schools",
+          "providerSubType": "Community special school"
+        },
+        {
+          "providerType": "Special schools",
+          "providerSubType": "Foundation special school"
+        }
+      ]
+    },
+    {
+      "groupingReason": "Payment",
+      "organisationGroupTypeCode": "AcademyTrust",
+      "groupTypeIdentifier": "UKPRN",
+      "groupTypeClassification": "LegalEntity",
+      "providerTypeMatch": [
+        {
+          "providerType": "Free Schools",
+          "providerSubType": "Free schools"
+        },
+        {
+          "providerType": "Free Schools",
+          "providerSubType": "Free schools alternative provision"
+        },
+        {
+          "providerType": "Free Schools",
+          "providerSubType": "Free schools special"
+        },
+        {
+          "providerType": "Free Schools",
+          "providerSubType": "Free schools 16 to 19"
+        },
+        {
+          "providerType": "Independent schools",
+          "providerSubType": "City technology college"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy alternative provision converter"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy alternative provision sponsor led"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy converter"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy special converter"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy special sponsor led"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy sponsor led"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy 16 to 19 sponsor led"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy 16-19 converter"
+        }
+      ]
+    },
+    {
+      "groupingReason": "Information",
+      "organisationGroupTypeCode": "Provider",
+      "groupTypeIdentifier": "UKPRN",
+      "groupTypeClassification": "LegalEntity",
+      "providerTypeMatch": [
+        {
+          "providerType": "Special schools",
+          "providerSubType": "Non-maintained special school"
+        }
+      ]
+    },
+    {
+      "groupingReason": "Information",
+      "organisationGroupTypeCode": "LocalAuthority",
+      "groupTypeIdentifier": "LACode",
+      "groupTypeClassification": "GeographicalBoundary",
+      "providerTypeMatch": []
+    }
+  ],
+  "releaseChannels": [
+    {
+      "channelCode": "Payment",
+      "isVisible": true,
+      "organisationGroupings": [
+        {
+          "groupingReason": "Payment",
+          "organisationGroupTypeCode": "LocalAuthority",
+          "groupTypeIdentifier": "UKPRN",
+          "groupTypeClassification": "LegalEntity",
+          "providerTypeMatch": [
+            {
+              "providerType": "Local authority maintained schools",
+              "providerSubType": "Community school"
+            },
+            {
+              "providerType": "Local authority maintained schools",
+              "providerSubType": "Foundation school"
+            },
+            {
+              "providerType": "Local authority maintained schools",
+              "providerSubType": "Pupil referral unit"
+            },
+            {
+              "providerType": "Local authority maintained schools",
+              "providerSubType": "Voluntary aided school"
+            },
+            {
+              "providerType": "Local authority maintained schools",
+              "providerSubType": "Voluntary controlled school"
+            },
+            {
+              "providerType": "Special schools",
+              "providerSubType": "Community special school"
+            },
+            {
+              "providerType": "Special schools",
+              "providerSubType": "Foundation special school"
+            }
+          ]
+        },
+        {
+          "groupingReason": "Payment",
+          "organisationGroupTypeCode": "AcademyTrust",
+          "groupTypeIdentifier": "UKPRN",
+          "groupTypeClassification": "LegalEntity",
+          "providerTypeMatch": [
+            {
+              "providerType": "Free Schools",
+              "providerSubType": "Free schools"
+            },
+            {
+              "providerType": "Free Schools",
+              "providerSubType": "Free schools alternative provision"
+            },
+            {
+              "providerType": "Free Schools",
+              "providerSubType": "Free schools special"
+            },
+            {
+              "providerType": "Free Schools",
+              "providerSubType": "Free schools 16 to 19"
+            },
+            {
+              "providerType": "Independent schools",
+              "providerSubType": "City technology college"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy alternative provision converter"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy alternative provision sponsor led"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy converter"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy special converter"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy special sponsor led"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy sponsor led"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy 16 to 19 sponsor led"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy 16-19 converter"
+            }
+          ]
+        }
+      ],
+      "providerTypeMatch": [
+        {
+          "providerType": "Local authority maintained schools",
+          "providerSubType": "Community school"
+        },
+        {
+          "providerType": "Local authority maintained schools",
+          "providerSubType": "Foundation school"
+        },
+        {
+          "providerType": "Local authority maintained schools",
+          "providerSubType": "Pupil referral unit"
+        },
+        {
+          "providerType": "Local authority maintained schools",
+          "providerSubType": "Voluntary aided school"
+        },
+        {
+          "providerType": "Local authority maintained schools",
+          "providerSubType": "Voluntary controlled school"
+        },
+        {
+          "providerType": "Special schools",
+          "providerSubType": "Community special school"
+        },
+        {
+          "providerType": "Special schools",
+          "providerSubType": "Foundation special school"
+        },
+        {
+          "providerType": "Free Schools",
+          "providerSubType": "Free schools"
+        },
+        {
+          "providerType": "Free Schools",
+          "providerSubType": "Free schools alternative provision"
+        },
+        {
+          "providerType": "Free Schools",
+          "providerSubType": "Free schools special"
+        },
+        {
+          "providerType": "Free Schools",
+          "providerSubType": "Free schools 16 to 19"
+        },
+        {
+          "providerType": "Independent schools",
+          "providerSubType": "City technology college"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy alternative provision converter"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy alternative provision sponsor led"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy converter"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy special converter"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy special sponsor led"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy sponsor led"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy 16 to 19 sponsor led"
+        },
+        {
+          "providerType": "Academies",
+          "providerSubType": "Academy 16-19 converter"
+        }
+      ]
+    },
+    {
+      "channelCode": "Statement",
+      "isVisible": true,
+      "organisationGroupings": [
+        {
+          "groupingReason": "Payment",
+          "organisationGroupTypeCode": "LocalAuthority",
+          "groupTypeIdentifier": "UKPRN",
+          "groupTypeClassification": "LegalEntity",
+          "providerTypeMatch": [
+            {
+              "providerType": "Local authority maintained schools",
+              "providerSubType": "Community school"
+            },
+            {
+              "providerType": "Local authority maintained schools",
+              "providerSubType": "Foundation school"
+            },
+            {
+              "providerType": "Local authority maintained schools",
+              "providerSubType": "Pupil referral unit"
+            },
+            {
+              "providerType": "Local authority maintained schools",
+              "providerSubType": "Voluntary aided school"
+            },
+            {
+              "providerType": "Local authority maintained schools",
+              "providerSubType": "Voluntary controlled school"
+            },
+            {
+              "providerType": "Special schools",
+              "providerSubType": "Community special school"
+            },
+            {
+              "providerType": "Special schools",
+              "providerSubType": "Foundation special school"
+            }
+          ]
+        },
+        {
+          "groupingReason": "Payment",
+          "organisationGroupTypeCode": "AcademyTrust",
+          "groupTypeIdentifier": "UKPRN",
+          "groupTypeClassification": "LegalEntity",
+          "providerTypeMatch": [
+            {
+              "providerType": "Free Schools",
+              "providerSubType": "Free schools"
+            },
+            {
+              "providerType": "Free Schools",
+              "providerSubType": "Free schools alternative provision"
+            },
+            {
+              "providerType": "Free Schools",
+              "providerSubType": "Free schools special"
+            },
+            {
+              "providerType": "Free Schools",
+              "providerSubType": "Free schools 16 to 19"
+            },
+            {
+              "providerType": "Independent schools",
+              "providerSubType": "City technology college"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy alternative provision converter"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy alternative provision sponsor led"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy converter"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy special converter"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy special sponsor led"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy sponsor led"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy 16 to 19 sponsor led"
+            },
+            {
+              "providerType": "Academies",
+              "providerSubType": "Academy 16-19 converter"
+            }
+          ]
+        },
+        {
+          "groupingReason": "Information",
+          "organisationGroupTypeCode": "Provider",
+          "groupTypeIdentifier": "UKPRN",
+          "groupTypeClassification": "LegalEntity",
+          "providerTypeMatch": [
+            {
+              "providerType": "Special schools",
+              "providerSubType": "Non-maintained special school"
+            }
+          ]
+        },
+        {
+          "groupingReason": "Information",
+          "organisationGroupTypeCode": "LocalAuthority",
+          "groupTypeIdentifier": "LACode",
+          "groupTypeClassification": "GeographicalBoundary",
+          "providerTypeMatch": []
+        }
+      ]
+    }
+  ],
+  "errorDetectors": [
+    "TrustIdMismatchErrorDetector",
+    "FundingLineValueProfileMismatchErrorDetector",
+    "PostPaymentOutOfScopeProviderErrorDetector",
+    "MultipleSuccessorErrorDetector",
+    "ProviderNotFundedErrorDetector"
+  ],
+  "variations": [
+    {
+      "name": "TemplateUpdated",
+      "order": 0
+    },
+    {
+      "name": "FundingSchemaUpdated",
+      "order": 1
+    },
+    {
+      "name": "ProviderMetadata",
+      "order": 2
+    },
+    {
+      "name": "Closure",
+      "order": 3
+    },
+    {
+      "name": "ClosureWithSuccessor",
+      "order": 4
+    },
+    {
+      "name": "FundingUpdated",
+      "order": 5
+    },
+    {
+      "name": "ProfilingUpdated",
+      "order": 6
+    },
+    {
+      "name": "PupilNumberSuccessor",
+      "order": 7
+    }
+  ],
+  "releaseManagementVariations": [
+    {
+      "name": "TemplateUpdated",
+      "order": 0
+    },
+    {
+      "name": "FundingSchemaUpdated",
+      "order": 1
+    },
+    {
+      "name": "ProviderMetadata",
+      "order": 2
+    },
+    {
+      "name": "FundingUpdated",
+      "order": 3
+    },
+    {
+      "name": "ProfilingUpdated",
+      "order": 4
+    },
+    {
+      "name": "CalculationValuesUpdated",
+      "order": 5
+    },
+    {
+      "name": "IndicativeToLive",
+      "order": 6
+    }
+  ],
+  "defaultTemplateVersion": null,
+  "updateCoreProviderVersion": "Manual",
+  "enableUserEditableCustomProfiles": false,
+  "enableUserEditableRuleBasedProfiles": false,
+  "enableConverterDataMerge": false,
+  "runCalculationEngineAfterCoreProviderUpdate": false,
+  "successorCheck": true
+}

@@ -27,12 +27,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _logger = logger;
         }
 
-        public async Task ReleaseProviderVersionChannel(IEnumerable<ReleasedProvider> releasedProviders,
+        public async Task ReleaseProviderVersionChannel(IEnumerable<string> releasedProviders,
             int channelId, DateTime statusChangedDate)
         {
-            foreach (ReleasedProvider releasedProvider in releasedProviders)
+            foreach (string releasedProviderId in releasedProviders)
             {
-                string key = $"{releasedProvider.ProviderId}_{channelId}";
+                string key = $"{releasedProviderId}_{channelId}";
 
                 if (_releaseToChannelSqlMappingContext.ReleasedProviderVersionChannels.ContainsKey(key))
                 {
@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 ReleasedProviderVersionChannel releasedProviderVersionChannel =
                     await _repo.CreateReleasedProviderVersionChannelsUsingAmbientTransaction(new ReleasedProviderVersionChannel
                     {
-                        ReleasedProviderVersionId = GetReleaseProviderVersionId(releasedProvider.ProviderId, channelId),
+                        ReleasedProviderVersionId = GetReleaseProviderVersionId(releasedProviderId, channelId),
                         ChannelId = channelId,
                         StatusChangedDate = statusChangedDate,
                         AuthorId = _releaseToChannelSqlMappingContext.Author.Id,
@@ -50,14 +50,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     });
 
                 _releaseToChannelSqlMappingContext.ReleasedProviderVersionChannels.Add(key, releasedProviderVersionChannel);
-
-                FundingGroupProvider fundingGroupProvider = new FundingGroupProvider
-                {
-                    FundingGroupVersionId = GetFundingGroupVersionId(releasedProvider.ProviderId, channelId),
-                    ReleasedProviderVersionChannelId = releasedProviderVersionChannel.ReleasedProviderVersionChannelId
-                };
-
-                await _repo.CreateFundingGroupProviderUsingAmbientTransaction(fundingGroupProvider);
             }
         }
 
@@ -70,17 +62,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             _logger.Error($"GetReleaseProviderVersionId: Provider {providerId} not found in sql context for {channelId}");
             throw new KeyNotFoundException($"GetReleaseProviderVersionId: Provider {providerId} not found in sql context for {channelId}");
-        }
-
-        private int GetFundingGroupVersionId(string providerId, int channelId)
-        {
-            if (_releaseToChannelSqlMappingContext.FundingGroupVersions.TryGetValue(providerId, out FundingGroupVersion fundingGroupVersion))
-            {
-                return fundingGroupVersion.FundingGroupVersionId;
-            }
-
-            _logger.Error($"GetFundingGroupVersionId: Provider {providerId} not found in sql context for {channelId}");
-            throw new KeyNotFoundException($"GetFundingGroupVersionId: Provider {providerId} not found in sql context for {channelId}");
         }
     }
 }

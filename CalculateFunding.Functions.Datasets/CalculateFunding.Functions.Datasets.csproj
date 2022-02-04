@@ -22,7 +22,7 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="3.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.2" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.3" />
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
 	<PackageReference Include="Microsoft.Azure.Cosmos" Version="3.17.1" />

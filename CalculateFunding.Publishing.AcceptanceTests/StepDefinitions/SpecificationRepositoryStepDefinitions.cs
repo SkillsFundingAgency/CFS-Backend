@@ -26,6 +26,48 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         {
             SpecificationSummary specificationSummary = table.CreateInstance<SpecificationSummary>();
 
+            string fundingStreamId = null;
+            string fundingPeriodId = null;
+            string templateVersion = null;
+
+            foreach (TableRow row in table.Rows)
+            {
+                if (row.Count < 2)
+                {
+                    continue;
+                }
+
+                if (string.Equals(row[0], "FundingStreamId", System.StringComparison.InvariantCultureIgnoreCase))
+                {
+                    fundingStreamId = row[1];
+                }
+
+                if (string.Equals(row[0], "FundingPeriodId", System.StringComparison.InvariantCultureIgnoreCase))
+                {
+                    fundingPeriodId = row[1];
+                }
+
+                if (string.Equals(row[0], "TemplateVersion", System.StringComparison.InvariantCultureIgnoreCase))
+                {
+                    templateVersion = row[1];
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                specificationSummary.FundingStreams = new Reference[] { new Reference(fundingStreamId, fundingStreamId) };
+
+                if (!string.IsNullOrWhiteSpace(templateVersion))
+                {
+                    specificationSummary.TemplateIds = new Dictionary<string, string>() { { fundingStreamId, templateVersion } };
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(fundingPeriodId))
+            {
+                specificationSummary.FundingPeriod =  new Reference(fundingPeriodId, fundingPeriodId);
+            }
+
             await _currentSpecificationContext.Repo.AddSpecification(specificationSummary);
 
             _currentSpecificationContext.SpecificationId = specificationSummary.Id;
@@ -84,7 +126,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             Guard.IsNullOrWhiteSpace(_currentSpecificationContext.SpecificationId, nameof(_currentSpecificationContext.SpecificationId));
 
             _currentSpecificationContext.Repo.EditSpecificationStatus(
-                _currentSpecificationContext.SpecificationId, 
+                _currentSpecificationContext.SpecificationId,
                 PublishStatus.Approved);
         }
     }

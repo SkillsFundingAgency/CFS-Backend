@@ -9,13 +9,13 @@
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="6.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="6.0.2" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.2" />
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="6.0.0" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.20.1" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.1" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0" />
 
     

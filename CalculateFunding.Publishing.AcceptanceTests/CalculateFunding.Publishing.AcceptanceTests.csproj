@@ -2,11 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net6</TargetFramework>
-    <LangVersion>8</LangVersion>
+    <LangVersion>10</LangVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="ReleaseManagementData\FDZ\76-paymentorganisations.json" />
+    <None Remove="ReleaseManagementData\FundingConfigurations\PSG-AY-2122.json" />
+    <None Remove="ReleaseManagementData\PublishedProviders\publishedprovider-10071688-AY-2122-PSG.json" />
     <None Remove="Resources\16191.2.json" />
     <None Remove="Resources\DSG1.0.json" />
     <None Remove="Resources\DSG1.0.Variations.json" />
@@ -15,6 +18,7 @@
     <None Remove="Resources\Input\CalculationResults\gag-approve-all-funding-calculations.json" />
     <None Remove="Resources\Input\ProviderVersions\1619-providers-1_0.json" />
     <None Remove="Resources\Input\ProviderVersions\gag-providers-1_0.json" />
+    <None Remove="Resources\Input\ProviderVersions\PSG-2021-10-11-76.json" />
     <None Remove="Resources\Input\PublishedProviders\1619-AS-2021-1000000.json" />
     <None Remove="Resources\Input\PublishedProviders\1619-AS-2021-1000002.json" />
     <None Remove="Resources\Input\PublishedProviders\GAG-AC-2021-1000002.json" />
@@ -25,6 +29,7 @@
     <None Remove="Resources\PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json" />
     <None Remove="Resources\PSG-AY-1920-Payment-LocalAuthority-9000000-1_0.json" />
     <None Remove="Resources\psg1.0.json" />
+    <None Remove="Resources\PSG1.2.json" />
     <None Remove="Resources\PublishedFunding\1619-AS-2021-Information-LocalAuthority-200-1_0.json" />
     <None Remove="Resources\PublishedFunding\1619-AS-2021-Payment-LocalAuthority-9000000-1_0.json" />
     <None Remove="Resources\PublishedFunding\DSG-FY-2021-Information-LocalAuthority-200-1_0.json" />
@@ -65,6 +70,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="ReleaseManagementData\FDZ\76-paymentorganisations.json" />
+    <EmbeddedResource Include="ReleaseManagementData\FundingConfigurations\PSG-AY-2122.json" />
+    <EmbeddedResource Include="ReleaseManagementData\PublishedProviders\publishedprovider-10071688-AY-2122-PSG.json" />
     <EmbeddedResource Include="Resources\16191.2.json" />
     <EmbeddedResource Include="Resources\GAG1.2.json" />
     <EmbeddedResource Include="Resources\DSG1.0.Variations.json" />
@@ -73,11 +81,13 @@
     <EmbeddedResource Include="Resources\Input\CalculationResults\gag-approve-all-funding-calculations.json" />
     <EmbeddedResource Include="Resources\Input\ProviderVersions\1619-providers-1_0.json" />
     <EmbeddedResource Include="Resources\Input\ProviderVersions\gag-providers-1_0.json" />
+    <EmbeddedResource Include="Resources\Input\ProviderVersions\PSG-2021-10-11-76.json" />
     <EmbeddedResource Include="Resources\Input\PublishedProviders\1619-AS-2021-1000000.json" />
     <EmbeddedResource Include="Resources\Input\PublishedProviders\1619-AS-2021-1000002.json" />
     <EmbeddedResource Include="Resources\Input\PublishedProviders\GAG-AC-2021-1000002.json" />
     <EmbeddedResource Include="Resources\Input\TemplateMapping\1619-TemplateMapping.json" />
     <EmbeddedResource Include="Resources\Input\TemplateMapping\GAG-TemplateMapping.json" />
+    <EmbeddedResource Include="Resources\PSG1.2.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\1619-AS-2021-Information-LocalAuthority-200-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\1619-AS-2021-Payment-LocalAuthority-9000000-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\GAG-AC-2021-Payment-LocalAuthority-9000000-1_0.json" />
@@ -110,12 +120,12 @@
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema12" Version="2.0.1" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.2.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />
-    <PackageReference Include="SpecFlow" Version="3.6.23" />
-    <PackageReference Include="SpecFlow.MsTest" Version="3.6.23" />
-    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.6.23" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.8" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
+    <PackageReference Include="SpecFlow" Version="3.9.40" />
+    <PackageReference Include="SpecFlow.MsTest" Version="3.9.40" />
+    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.9.40" />
   </ItemGroup>
 
   <ItemGroup>
@@ -129,55 +139,55 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Features\ApproveAllFundingGag.feature.cs">
+    <Compile Update="Features\Approve\ApproveAllFundingGag.feature.cs">
       <DependentUpon>ApproveAllFundingGag.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\ApproveBatchFunding1619.feature.cs">
+    <Compile Update="Features\Approve\ApproveBatchFunding1619.feature.cs">
       <DependentUpon>ApproveBatchFunding1619.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\ApproveBatchFundingGag.feature.cs">
+    <Compile Update="Features\Approve\ApproveBatchFundingGag.feature.cs">
       <DependentUpon>ApproveBatchFundingGag.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\ApproveBatchFundingDsg.feature.cs">
+    <Compile Update="Features\Approve\ApproveBatchFundingDsg.feature.cs">
       <DependentUpon>ApproveBatchFundingDsg.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\ApproveBatchFundingPsg.feature.cs">
+    <Compile Update="Features\Approve\ApproveBatchFundingPsg.feature.cs">
       <DependentUpon>ApproveBatchFundingPsg.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\PublishingAllFunding1619.feature.cs">
+    <Compile Update="Features\PublishFunding\PublishingAllFunding1619.feature.cs">
       <DependentUpon>PublishingAllFunding1619.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\PublishingAllFundingGag.feature.cs">
+    <Compile Update="Features\PublishFunding\PublishingAllFundingGag.feature.cs">
       <DependentUpon>PublishingAllFundingGag.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\PublishingBatchFunding1619.feature.cs">
+    <Compile Update="Features\PublishFunding\PublishingBatchFunding1619.feature.cs">
       <DependentUpon>PublishingBatchFunding1619.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\PublishingBatchFundingGag.feature.cs">
+    <Compile Update="Features\PublishFunding\PublishingBatchFundingGag.feature.cs">
       <DependentUpon>PublishingBatchFundingGag.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\PublishingBatchFundingPsg.feature.cs">
+    <Compile Update="Features\PublishFunding\PublishingBatchFundingPsg.feature.cs">
       <DependentUpon>PublishingBatchFundingPsg.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\PublishingBatchFundingDsg.feature.cs">
+    <Compile Update="Features\PublishFunding\PublishingBatchFundingDsg.feature.cs">
       <DependentUpon>PublishingBatchFundingDsg.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\PublishingAllFundingDsg.feature.cs">
+    <Compile Update="Features\PublishFunding\PublishingAllFundingDsg.feature.cs">
       <DependentUpon>PublishingAllFundingDsg.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\Refresh1619Variations.feature.cs">
+    <Compile Update="Features\Refresh\Refresh1619Variations.feature.cs">
       <DependentUpon>Refresh1619Variations.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\Refresh1619.feature.cs">
+    <Compile Update="Features\Refresh\Refresh1619.feature.cs">
       <DependentUpon>Refresh1619.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\RefreshGAG.feature.cs">
+    <Compile Update="Features\Refresh\RefreshGAG.feature.cs">
       <DependentUpon>RefreshGAG.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\RefreshDsgVariations.feature.cs">
+    <Compile Update="Features\Refresh\RefreshDsgVariations.feature.cs">
       <DependentUpon>RefreshDsgVariations.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\RefreshPsgVariations.feature.cs">
+    <Compile Update="Features\Refresh\RefreshPsgVariations.feature.cs">
       <DependentUpon>RefreshPsgVariations.feature</DependentUpon>
     </Compile>
     <Compile Update="Properties\Resources.Designer.cs">
@@ -195,82 +205,86 @@
   </ItemGroup>
 
   <ItemGroup>
-    <SpecFlowFeatureFiles Update="Features\ApproveAllFunding1619.feature">
+    <SpecFlowFeatureFiles Update="Features\Approve\ApproveAllFunding1619.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\ApproveAllFundingGag.feature">
+    <SpecFlowFeatureFiles Update="Features\Approve\ApproveAllFundingGag.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\ApproveBatchFunding1619.feature">
+    <SpecFlowFeatureFiles Update="Features\Approve\ApproveBatchFunding1619.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\ApproveBatchFundingGag.feature">
+    <SpecFlowFeatureFiles Update="Features\Approve\ApproveBatchFundingGag.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\ApproveBatchFundingDsg.feature">
+    <SpecFlowFeatureFiles Update="Features\Approve\ApproveBatchFundingDsg.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\ApproveBatchFundingPsg.feature">
+    <SpecFlowFeatureFiles Update="Features\Approve\ApproveBatchFundingPsg.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\PublishingAllFunding1619.feature">
+    <SpecFlowFeatureFiles Update="Features\PublishFunding\PublishingAllFunding1619.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\PublishingAllFundingGag.feature">
+    <SpecFlowFeatureFiles Update="Features\PublishFunding\PublishingAllFundingGag.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\PublishingBatchFunding1619.feature">
+    <SpecFlowFeatureFiles Update="Features\PublishFunding\PublishingBatchFunding1619.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\PublishingBatchFundingGag.feature">
+    <SpecFlowFeatureFiles Update="Features\PublishFunding\PublishingBatchFundingGag.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\PublishingBatchFundingPsg.feature">
+    <SpecFlowFeatureFiles Update="Features\PublishFunding\PublishingBatchFundingPsg.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\PublishingBatchFundingDsg.feature">
+    <SpecFlowFeatureFiles Update="Features\PublishFunding\PublishingBatchFundingDsg.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\PublishingAllFundingDsg.feature">
+    <SpecFlowFeatureFiles Update="Features\PublishFunding\PublishingAllFundingDsg.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\Refresh1619Variations.feature">
+    <SpecFlowFeatureFiles Update="Features\Refresh\Refresh1619Variations.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\Refresh1619.feature">
+    <SpecFlowFeatureFiles Update="Features\Refresh\Refresh1619.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\RefreshDsgVariationsWithSecondOccurrence.feature">
+    <SpecFlowFeatureFiles Update="Features\Refresh\RefreshDsgVariationsWithSecondOccurrence.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\RefreshGAG.feature">
+    <SpecFlowFeatureFiles Update="Features\Refresh\RefreshGAG.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\RefreshDsgVariations.feature">
+    <SpecFlowFeatureFiles Update="Features\Refresh\RefreshDsgVariations.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\RefreshPsgVariations.feature">
+    <SpecFlowFeatureFiles Update="Features\Refresh\RefreshPsgVariations.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Features\ReleaseManagement\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>

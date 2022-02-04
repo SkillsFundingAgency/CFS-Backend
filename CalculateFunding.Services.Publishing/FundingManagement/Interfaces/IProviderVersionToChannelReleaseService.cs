@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
     public interface IProviderVersionToChannelReleaseService
     {
-        Task ReleaseProviderVersionChannel(IEnumerable<ReleasedProvider> releasedProviders, int channelId, DateTime statusChangedDateTime);
+        Task ReleaseProviderVersionChannel(IEnumerable<string> releasedProviderIds, int channelId, DateTime statusChangedDateTime);
     }
 }

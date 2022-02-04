@@ -7,13 +7,14 @@ using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Extensions;
 using FluentAssertions;
+using Newtonsoft.Json;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 {
     [Binding]
-    public class PoliciesStepDefinitions
+    public class PoliciesStepDefinitions : StepDefinitionBase
     {
         private readonly IPoliciesStepContext _policiesStepContext;
 
@@ -42,6 +43,31 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _policiesStepContext.CreateFundingConfiguration = fundingConfiguration;
 
             _policiesStepContext.Repo.SetFundingConfiguration(fundingPeriodId, fundingStreamId, fundingConfiguration);
+        }
+
+        [Given(@"a funding configuration exists for funding stream '(.*)' in funding period '(.*)' in resources")]
+        public void GivenAFundingConfigurationExistsForFundingStreamInFundingPeriodInResource(string fundingStreamId, string fundingPeriodId)
+        {
+            fundingStreamId
+                .Should()
+                .NotBeNullOrWhiteSpace();
+
+            fundingPeriodId
+                .Should()
+                .NotBeNullOrWhiteSpace();
+
+            _policiesStepContext.CreateFundingStreamId = fundingStreamId;
+            _policiesStepContext.CreateFundingPeriodId = fundingPeriodId;
+
+            string contents = GetTestDataContents($"ReleaseManagementData.FundingConfigurations.{fundingStreamId}-{fundingPeriodId}.json");
+
+            FundingConfiguration fundingConfiguration = JsonConvert.DeserializeObject<FundingConfiguration>(contents);
+
+            fundingConfiguration.FundingPeriodId = fundingPeriodId;
+            fundingConfiguration.FundingStreamId = fundingStreamId;
+            _policiesStepContext.CreateFundingConfiguration = fundingConfiguration;
+
+            _policiesStepContext.Repo.SetFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
         }
 
         [Given(@"the funding configuration has the following organisation group and provider status list '(.*)'")]

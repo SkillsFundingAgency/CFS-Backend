@@ -4,6 +4,8 @@ using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Extensions;
 using FluentAssertions;
 using Newtonsoft.Json;
+using System;
+using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -83,6 +85,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 providerId);
         }
 
+        [Given(@"all providers in provider version '([^']*)' are in scope")]
+        public async Task GivenAllProvidersInProviderVersionAreInScope(string providerVersionId)
+        {
+            Common.ApiClient.Models.ApiResponse<ProviderVersion> result = await _providersStepContext.EmulatedClient.GetProvidersByVersion(providerVersionId);
+            if(result == null || result.Content == null)
+            {
+                throw new InvalidOperationException("Unable to find provider version");
+            }
 
+            foreach(Provider provider in result.Content.Providers)
+            {
+                _providersStepContext.EmulatedClient.AddProviderAsScopedProvider(
+                _currentSpecificationStepContext.SpecificationId,
+                providerVersionId,
+                provider.ProviderId);
+            }
+        }
     }
 }

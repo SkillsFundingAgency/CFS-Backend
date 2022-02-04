@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
@@ -16,7 +17,7 @@ using TechTalk.SpecFlow.Assist;
 namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 {
     [Binding]
-    public class PublishedFundingRepositoryStepDefinitions
+    public class PublishedFundingRepositoryStepDefinitions : StepDefinitionBase
     {
         private readonly IPublishFundingStepContext _publishFundingStepContext;
         private readonly IPublishedFundingRepositoryStepContext _publishedFundingRepositoryStepContext;
@@ -95,18 +96,18 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         }
 
         [Given(@"the Published Provider '(.*)' has the following funding lines")]
-        public void GivenThePublishedProviderHasTheFollowingFundingLines(string publishedProviderId, 
+        public void GivenThePublishedProviderHasTheFollowingFundingLines(string publishedProviderId,
             IEnumerable<FundingLine> fundingLines)
         {
             PublishedProvider publishedProvider = GetPublishedProvider(publishedProviderId);
 
-            publishedProvider.Current.FundingLines =  fundingLines.ToArray();
+            publishedProvider.Current.FundingLines = fundingLines.ToArray();
         }
 
 
         [Given(@"the Published Provider '(.*)' has the following distribution period for funding line '(.*)'")]
-        public void GivenThePublishedProviderHasTheFollowingDistributionPeriodForFundingLine(string providerId, 
-            string fundingLineCode, 
+        public void GivenThePublishedProviderHasTheFollowingDistributionPeriodForFundingLine(string providerId,
+            string fundingLineCode,
             Table table)
         {
             SetFundingLineOnPublishedProvider(fundingLineCode,
@@ -118,8 +119,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         [Given(@"the Published Provider has the following distribution period for funding line '(.*)'")]
         public void GivenThePublishedProviderHasTheFollowingDistributionPeriodForFundingLine(string fundingLineCode, Table table)
         {
-            SetFundingLineOnPublishedProvider(fundingLineCode, 
-                table, 
+            SetFundingLineOnPublishedProvider(fundingLineCode,
+                table,
                 _publishedFundingRepositoryStepContext.CurrentPublishedProvider);
         }
 
@@ -176,8 +177,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         [Given(@"the Published Providers distribution period has the following profiles for funding line '(.*)'")]
         public void GivenThePublishedProvidersDistributionPeriodHasTheFollowingProfilesForFundingLine(string fundingLineCode, Table table)
         {
-            SetProfilePeriodsOnPublishedProvider(fundingLineCode, 
-                table, 
+            SetProfilePeriodsOnPublishedProvider(fundingLineCode,
+                table,
                 _publishedFundingRepositoryStepContext.CurrentPublishedProvider);
         }
 
@@ -278,7 +279,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                     calculations.Select(_ =>
                         new CalculationResult
                         {
-                            Id = _publishFundingStepContext.CalculationsInMemoryClient.Mapping.TemplateMappingItems.FirstOrDefault(t => t.TemplateId == _.TemplateCalculationId)?.CalculationId, 
+                            Id = _publishFundingStepContext.CalculationsInMemoryClient.Mapping.TemplateMappingItems.FirstOrDefault(t => t.TemplateId == _.TemplateCalculationId)?.CalculationId,
                             Value = _.Value
                         }).ToArray()
                 );
@@ -289,7 +290,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Calculations = calculations
                 .Select(c => new FundingCalculation
                 {
-                    TemplateCalculationId = c.TemplateCalculationId, 
+                    TemplateCalculationId = c.TemplateCalculationId,
                     Value = c.Value
                 });
 
@@ -334,8 +335,29 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             Guard.ArgumentNotNull(_publishedFundingRepositoryStepContext.CurrentPublishedProvider, nameof(_publishedFundingRepositoryStepContext.CurrentPublishedProvider));
 
             _publishedFundingRepositoryStepContext.Repo.AddPublishedProvider(_currentSpecificationStepContext.SpecificationId, _publishedFundingRepositoryStepContext.CurrentPublishedProvider);
-            
+
             _publishedFundingRepositoryStepContext.CurrentPublishedProvider = null;
+        }
+
+        [Given(@"published provider '([^']*)' exists for funding string '([^']*)' in period '([^']*)' in cosmos from json")]
+        public void GivenPublishedProviderExistsForFundingStringInPeriodInCosmosFromJson(string providerId, string fundingStreamId, string fundingPeriodId)
+        {
+            string contents = GetTestDataContents($"ReleaseManagementData.PublishedProviders.publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}.json");
+            if (string.IsNullOrWhiteSpace(contents))
+            {
+                throw new InvalidOperationException("Content for published provider is empty or null");
+            }
+
+            DocumentEntity<PublishedProvider> publishedProvider = JsonConvert.DeserializeObject<DocumentEntity<PublishedProvider>>(contents);
+
+            _publishedFundingRepositoryStepContext.Repo.AddPublishedProvider(_currentSpecificationStepContext.SpecificationId, publishedProvider.Content);
+        }
+
+
+        [Given(@"published provider exists '([^']*)' in cosmos from json")]
+        public void GivenPublishedProviderExistsInCosmosFromJson(string providerId)
+        {
+
         }
     }
 }

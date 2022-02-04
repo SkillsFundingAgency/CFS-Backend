@@ -24,8 +24,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private ProviderVersionToChannelReleaseService _service;
         private Dictionary<string, ReleasedProviderVersion> _providerVersions;
         private Dictionary<string, ReleasedProviderVersionChannel> _providerVersionChannels;
-        private Dictionary<string, FundingGroupVersion> _fundingGroupVersions;
+        private Dictionary<int, Dictionary<string, FundingGroupVersion>> _fundingGroupVersions;
         private List<ReleasedProvider> _releasedProviders;
+        private IEnumerable<string> _releasedProviderIds;
         private Mock<IReleaseToChannelSqlMappingContext> _releaseToChannelSqlMappingContext;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private Mock<ILogger> _logger;
@@ -48,13 +49,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             {
                 new ReleasedProvider
                 {
-                    ProviderId = new RandomString()
+                    ProviderId = new RandomString(),
                 },
                 new ReleasedProvider
                 {
-                    ProviderId = new RandomString()
+                    ProviderId = new RandomString(),
                 }
             };
+
+            _releasedProviderIds = _releasedProviders.Select(_ => _.ProviderId);
 
             int id = 1;
 
@@ -74,10 +77,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 StatusChangedDate = statusDateTime
             });
 
-            _fundingGroupVersions = _releasedProviders.ToDictionary(_ => _.ProviderId, _ => new FundingGroupVersion
+            _fundingGroupVersions = new Dictionary<int, Dictionary<string, FundingGroupVersion>>()
             {
-                FundingGroupVersionId = new RandomNumberBetween(1, 10)
-            });
+                { 1,  _releasedProviders.ToDictionary(_ => _.ProviderId, _ => new FundingGroupVersion
+                        {
+                            FundingGroupVersionId = new RandomNumberBetween(1, 10)
+                        })
+                }
+            };
         }
 
         [TestMethod]
@@ -86,7 +93,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GivenContext(null, _providerVersions, _fundingGroupVersions);
             GivenReleasedProviderVersionChannel();
 
-            await _service.ReleaseProviderVersionChannel(_releasedProviders, channelId, statusDateTime);
+            await _service.ReleaseProviderVersionChannel(_releasedProviderIds, channelId, statusDateTime);
 
             _releaseManagementRepository.Verify(
                 r => r.CreateReleasedProviderVersionChannelsUsingAmbientTransaction(It.IsAny<ReleasedProviderVersionChannel>()), Times.Exactly(_releasedProviders.Count));
@@ -97,7 +104,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             GivenContext(_providerVersionChannels, _providerVersions, null);
 
-            await _service.ReleaseProviderVersionChannel(_releasedProviders, channelId, statusDateTime);
+            await _service.ReleaseProviderVersionChannel(_releasedProviderIds, channelId, statusDateTime);
 
             _releaseManagementRepository.Verify(
                 r => r.CreateReleasedProviderVersionChannelsUsingAmbientTransaction(It.IsAny<ReleasedProviderVersionChannel>()), Times.Never);
@@ -108,7 +115,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             GivenContext(null, null, null);
 
-            Func<Task> result = async () => await _service.ReleaseProviderVersionChannel(_releasedProviders, channelId, statusDateTime);
+            Func<Task> result = async () => await _service.ReleaseProviderVersionChannel(_releasedProviderIds, channelId, statusDateTime);
 
             result
                 .Should()
@@ -135,7 +142,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private void GivenContext(
             Dictionary<string, ReleasedProviderVersionChannel> providerVersionChannels,
             Dictionary<string, ReleasedProviderVersion> providerVersions,
-            Dictionary<string, FundingGroupVersion> fundingGroupVersions)
+            Dictionary<int, Dictionary<string, FundingGroupVersion>> fundingGroupVersions)
         {
             if (providerVersionChannels == null)
             {
@@ -149,7 +156,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
             if (fundingGroupVersions == null)
             {
-                fundingGroupVersions = new Dictionary<string, FundingGroupVersion>();
+                fundingGroupVersions = new Dictionary<int, Dictionary<string, FundingGroupVersion>>();
             }
 
             _releaseToChannelSqlMappingContext.SetupGet(s => s.ReleasedProviderVersionChannels)

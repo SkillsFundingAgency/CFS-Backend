@@ -169,7 +169,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Returns(fundingGroups);
 
             _context.SetupGet(s => s.FundingGroupVersions)
-                .Returns(new Dictionary<string, FundingGroupVersion>());
+                .Returns(new Dictionary<int, Dictionary<string, FundingGroupVersion>>());
         }
 
         private void GivenContextWithMissingFundingGroup()
