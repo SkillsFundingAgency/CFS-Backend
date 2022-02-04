@@ -3,10 +3,13 @@ using System.Net;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -33,6 +36,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             SpecificationSummary specification)
             => Specifications.Setup(_ => _.GetSpecificationSummaryById(specificationId))
                 .ReturnsAsync(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specification));
+
+        protected void AndTheFundingConfiguration(
+            string fundingStreamId,
+            string fundingPeriodId,
+            FundingConfiguration fundingConfiguration)
+            => Policies.Setup(_ => _.GetFundingConfiguration(fundingStreamId, fundingPeriodId))
+                .ReturnsAsync(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration));
 
         protected void AndTheFundingTemplate(string fundingStreamId,
             string fundingPeriodId,
@@ -95,6 +105,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             setUp?.Invoke(fundingTemplateContentsBuilder);
 
             return fundingTemplateContentsBuilder.Build();
+        }
+
+        protected FundingConfiguration NewFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
+        {
+            FundingConfigurationBuilder fundingConfigurationBuilder = new FundingConfigurationBuilder();
+
+            setUp?.Invoke(fundingConfigurationBuilder);
+
+            return fundingConfigurationBuilder.Build();
+        }
+
+        protected FundingConfigurationChannel NewFundingConfigurationChannel(Action<FundingConfigurationChannelBuilder> setUp = null)
+        {
+            FundingConfigurationChannelBuilder fundingConfigurationChannelBuilder = new FundingConfigurationChannelBuilder();
+
+            setUp?.Invoke(fundingConfigurationChannelBuilder);
+
+            return fundingConfigurationChannelBuilder.Build();
+        }
+
+        protected Channel NewChannel(Action<ChannelBuilder> setUp = null)
+        {
+            ChannelBuilder channelBuilder = new ChannelBuilder();
+
+            setUp?.Invoke(channelBuilder);
+
+            return channelBuilder.Build();
         }
 
         protected static string NewRandomString() => new RandomString();

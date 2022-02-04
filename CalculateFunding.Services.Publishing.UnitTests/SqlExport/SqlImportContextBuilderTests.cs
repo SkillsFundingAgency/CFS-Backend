@@ -1,11 +1,17 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Services.Core.FeatureToggles;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.SqlExport;
 using FluentAssertions;
+using Microsoft.FeatureManagement;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
@@ -19,6 +25,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
         private Mock<ICosmosDbFeedIterator> _publishedProviders;
 
+        private Mock<IReleaseManagementRepository> _releaseManagementRepository;
+
+        private Mock<IFeatureManagerSnapshot> _featureManagerSnapshot;
+
         private SqlImportContextBuilder _contextBuilder;
 
         [TestInitialize]
@@ -26,6 +36,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         {
             _cosmos = new Mock<ICosmosRepository>();
             _publishedProviders = new Mock<ICosmosDbFeedIterator>();
+            _featureManagerSnapshot = new Mock<IFeatureManagerSnapshot>();
+            _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
 
             _contextBuilder = new SqlImportContextBuilder(_cosmos.Object,
                 Policies.Object,
@@ -35,13 +47,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 {
                     SpecificationsApiClient = Policy.NoOpAsync(),
                     PoliciesApiClient = Policy.NoOpAsync()
-                });
+                },
+                _releaseManagementRepository.Object,
+                _featureManagerSnapshot.Object);
         }
 
         [DataTestMethod]
         [DataRow(SqlExportSource.CurrentPublishedProviderVersion)]
         [DataRow(SqlExportSource.ReleasedPublishedProviderVersion)]
-        public async Task CreatesContextWithDocumentFeedForFundingStreamAndPeriodAndInitialisedDataTableBuilders(SqlExportSource sqlExportSource)
+        public async Task CreatesContextWithDocumentFeedForFundingStreamAndPeriodAndInitialisedDataTableBuilders(
+            SqlExportSource sqlExportSource)
         {
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
@@ -56,12 +71,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             Calculation calculationFour = NewCalculation(_ => _.WithCalculations(calculationOne));
             Calculation calculationFive = NewCalculation(_ => _.WithCalculations(calculationTwo));
 
-            SchemaContext schemaContext = new SchemaContext();
+            SchemaContext schemaContext = new();
 
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
                 .WithFundingStreamIds(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithTemplateIds((fundingStreamId, templateVersion)));
+
+            FundingConfigurationChannel fundingConfigurationChannel 
+                = NewFundingConfigurationChannel(_ => _.WithChannelCode("ch1"));
+            FundingConfiguration fundingConfiguration 
+                = NewFundingConfiguration(_ => _.WithReleaseChannels(fundingConfigurationChannel));
+            IEnumerable<Channel> channels = new[] { NewChannel(_ => _.WithChannelCode("ch1").WithChannelId(1)) };
             FundingTemplateContents fundingTemplate = NewFundingTemplateContents(_ => _.WithSchemaVersion(schemaVersion)
                 .WithTemplateFileContents(fundingTemplateContents));
             TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(
@@ -71,6 +92,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 )));
             
             GivenTheSpecification(specificationId, specificationSummary);
+            AndTheFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
+            AndTheChannels(channels);
             AndTheFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion, fundingTemplate);
             AndTheTemplateMetadataContents(schemaVersion, fundingTemplateContents, templateMetadataContents);
             AndTheCosmosDocumentFeed(specificationId, fundingStreamId);
@@ -141,6 +164,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 .Should()
                 .Be(calculation.Name);
         }
+
+        protected void AndTheChannels(
+            IEnumerable<Channel> channels)
+            => _releaseManagementRepository.Setup(_ => _.GetChannels()).ReturnsAsync(channels);
 
         private async Task<ISqlImportContext> WhenTheImportContextIsBuilt(string specificationId,
             string fundingStreamId,

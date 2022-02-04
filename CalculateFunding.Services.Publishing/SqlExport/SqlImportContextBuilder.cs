@@ -4,13 +4,17 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
+using Microsoft.FeatureManagement;
 using Polly;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
@@ -24,12 +28,16 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         private readonly ISpecificationsApiClient _specifications;
         private readonly AsyncPolicy _specificationResilience;
         private readonly AsyncPolicy _policiesResilience;
+        private readonly IReleaseManagementRepository _releaseManagementRepository;
+        private readonly IFeatureManagerSnapshot _featureManagerSnapshot;
 
         public SqlImportContextBuilder(ICosmosRepository cosmos,
             IPoliciesApiClient policies,
             ITemplateMetadataResolver templateMetadataResolver,
             ISpecificationsApiClient specifications,
-            IPublishingResiliencePolicies resiliencePolicies)
+            IPublishingResiliencePolicies resiliencePolicies,
+            IReleaseManagementRepository releaseManagementRepository,
+            IFeatureManagerSnapshot featureManagerSnapshot)
         {
             Guard.ArgumentNotNull(cosmos, nameof(cosmos));
             Guard.ArgumentNotNull(policies, nameof(policies));
@@ -37,6 +45,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             Guard.ArgumentNotNull(specifications, nameof(specifications));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
 
             _cosmos = cosmos;
             _policies = policies;
@@ -44,6 +53,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             _specifications = specifications;
             _specificationResilience = resiliencePolicies.SpecificationsApiClient;
             _policiesResilience = resiliencePolicies.PoliciesApiClient;
+            _releaseManagementRepository = releaseManagementRepository;
+            _featureManagerSnapshot = featureManagerSnapshot;
         }
 
         public async Task<ISqlImportContext> CreateImportContext(
@@ -53,13 +64,20 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             SqlExportSource sqlExportSource)
         {
             ICosmosDbFeedIterator publishedProviderFeed = GetPublishedProviderFeed(specificationId, fundingStreamId, sqlExportSource);
+            SpecificationSummary specification = await GetSpecificationSummary(specificationId);
 
-            TemplateMetadataContents template = await GetTemplateMetadataContents(specificationId, fundingStreamId);
+            IEnumerable<ProviderVersionInChannel> providerVersionInChannels 
+                = await GetProviderVersionInChannels(specification, fundingStreamId);
+
+            TemplateMetadataContents template = await GetTemplateMetadataContents(specification, fundingStreamId);
 
             IEnumerable<FundingLine> allFundingLines = template.RootFundingLines.Flatten(_ => _.FundingLines);
             IEnumerable<Calculation> allCalculations = allFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations));
             IEnumerable<Calculation> uniqueCalculations = Enumerable.DistinctBy(allCalculations, _ => _.TemplateCalculationId);
             IDictionary<uint, string> calculationNames = GetCalculationNames(uniqueCalculations);
+
+            bool isLatestReleasedVersionChannelPopulationEnabled 
+                = await _featureManagerSnapshot.IsEnabledAsync("EnableLatestReleasedVersionChannelPopulation");
 
             return new SqlImportContext
             {
@@ -67,7 +85,10 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 CalculationNames = calculationNames,
                 Calculations = new CalculationDataTableBuilder(uniqueCalculations),
                 Providers = new ProviderDataTableBuilder(),
-                Funding = new PublishedProviderVersionDataTableBuilder(),
+                Funding = new PublishedProviderVersionDataTableBuilder(
+                    providerVersionInChannels, 
+                    sqlExportSource,
+                    isLatestReleasedVersionChannelPopulationEnabled),
                 InformationFundingLines = new InformationFundingLineDataTableBuilder(),
                 PaymentFundingLines = new PaymentFundingLineDataTableBuilder(),
                 SchemaContext = schemaContext,
@@ -78,14 +99,31 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         private static IDictionary<uint, string> GetCalculationNames(IEnumerable<Calculation> calculations)
             => calculations.ToDictionary(_ => _.TemplateCalculationId, _ => _.Name);
 
-        private async Task<TemplateMetadataContents> GetTemplateMetadataContents(string specificationId,
+        private async Task<IEnumerable<ProviderVersionInChannel>> GetProviderVersionInChannels(
+            SpecificationSummary specification,
             string fundingStreamId)
         {
-            ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(()
-                => _specifications.GetSpecificationSummaryById(specificationId));
+            ApiResponse<FundingConfiguration> fundingConfigurationResponse = await _policiesResilience.ExecuteAsync(()
+                => _policies.GetFundingConfiguration(fundingStreamId, specification.FundingPeriod.Id));
 
-            SpecificationSummary specification = specificationResponse.Content;
+            FundingConfiguration fundingConfiguration = fundingConfigurationResponse.Content;
 
+            IEnumerable<Channel> channels = await _releaseManagementRepository.GetChannels();
+
+            IEnumerable<FundingConfigurationChannel> releaseChannels 
+                = fundingConfiguration.ReleaseChannels.Where(_ => _.IsVisible);
+
+            IEnumerable<ProviderVersionInChannel> providerVersionInChannels =
+                await _releaseManagementRepository.GetLatestPublishedProviderVersions(
+                    specification.Id, 
+                    releaseChannels.Select(rc => channels.SingleOrDefault(c => c.ChannelCode == rc.ChannelCode).ChannelId));
+
+            return providerVersionInChannels;
+        }
+
+        private async Task<TemplateMetadataContents> GetTemplateMetadataContents(SpecificationSummary specification,
+            string fundingStreamId)
+        {
             string templateVersion = specification.TemplateIds[fundingStreamId];
 
             ApiResponse<FundingTemplateContents> templateContentsRequest = await _policiesResilience.ExecuteAsync(()
@@ -98,6 +136,15 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             ITemplateMetadataGenerator templateContents = _templateMetadataResolver.GetService(schemaVersion);
 
             return templateContents.GetMetadata(fundingTemplateContents.TemplateFileContents);
+        }
+
+        private async Task<SpecificationSummary> GetSpecificationSummary(string specificationId)
+        {
+            ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(()
+                => _specifications.GetSpecificationSummaryById(specificationId));
+
+            SpecificationSummary specification = specificationResponse.Content;
+            return specification;
         }
 
         private ICosmosDbFeedIterator GetPublishedProviderFeed(string specificationId,
