@@ -104,8 +104,6 @@ namespace CalculateFunding.Services.Core.AzureStorage
                 await destBlob.StartCopyAsync(new Uri(sourceBlobSAS));
                 
                 return destBlob;
-
-                // return await _container.Value.GetBlobReferenceFromServerAsync(destinationPath);
             }
 
             return null;

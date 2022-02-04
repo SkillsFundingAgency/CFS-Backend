@@ -1930,7 +1930,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public void UpdateDatasetAndVersionDefinitionName_GivenANullDefinitionRefrenceSupplied_LogsAndThrowsException()
+        public void UpdateDatasetAndVersionDefinitionName_GivenANullDefinitionReferenceSupplied_LogsAndThrowsException()
         {
             //Arrange
             Reference reference = null;

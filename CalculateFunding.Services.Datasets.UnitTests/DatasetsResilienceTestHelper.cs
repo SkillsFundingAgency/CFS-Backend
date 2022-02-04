@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Datasets
                 CacheProviderRepository = Policy.NoOpAsync(),
                 ProviderResultsRepository = Policy.NoOpAsync(),
                 DatasetSearchService = Policy.NoOpAsync(),
+                DatasetVersionSearchService = Policy.NoOpAsync(),
                 ProviderRepository = Policy.NoOpAsync(),
                 SpecificationsApiClient = Policy.NoOpAsync(),
                 DatasetDefinitionSearchRepository = Policy.NoOpAsync(),

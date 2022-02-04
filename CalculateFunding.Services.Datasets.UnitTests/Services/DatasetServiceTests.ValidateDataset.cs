@@ -960,9 +960,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .BlobExistsAsync(Arg.Is(blobPath))
-                .Returns(true);
-            blobClient
                 .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
@@ -1097,9 +1094,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .BlobExistsAsync(Arg.Is(blobPath))
-                .Returns(true);
-            blobClient
                 .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
@@ -1227,9 +1221,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .BlobExistsAsync(Arg.Is(blobPath))
-                .Returns(true);
-            blobClient
                 .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
@@ -1285,7 +1276,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .Should().Throw<InvalidOperationException>()
+                .Should().Throw<NonRetriableException>()
+                .WithInnerException<InvalidOperationException>()
                 .WithMessage($"Failed to save dataset for id: {model.DatasetId} with status code InternalServerError");
 
             logger
@@ -1418,8 +1410,18 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .Should().Throw<InvalidOperationException>()
+                .Should().Throw<NonRetriableException>()
+                .WithMessage("Failed to save the dataset or dataset version during validation")
+                .WithInnerException<InvalidOperationException>()
                 .WithMessage($"Failed to save dataset for id: {model.DatasetId} in search with errors ");
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the dataset or dataset version during validation"));
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to save dataset for id: {model.DatasetId} in search with errors "));
         }
 
         [TestMethod]
@@ -1974,8 +1976,14 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-               .Should().Throw<InvalidOperationException>()
-               .WithMessage($"Failed to save dataset or dataset version for id: {model.DatasetId} due to version mismatch. Expected next version to be 3 but request provided '2'");
+                .Should().Throw<NonRetriableException>()
+                .WithMessage("Failed to save the dataset or dataset version during validation")
+                .WithInnerException<InvalidOperationException>()
+                .WithMessage($"Failed to save dataset or dataset version for id: {model.DatasetId} due to version mismatch. Expected next version to be 3 but request provided '2'");
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the dataset or dataset version during validation"));
 
             logger
                 .Received(1)
@@ -2113,12 +2121,18 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             action
-                .Should().Throw<InvalidOperationException>()
+                .Should().Throw<NonRetriableException>()
+                .WithMessage("Failed to save the dataset or dataset version during validation")
+                .WithInnerException<InvalidOperationException>()
                 .WithMessage($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
 
             logger
                 .Received(1)
-                .Warning($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the dataset or dataset version during validation"));
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to retrieve dataset for id: {model.DatasetId} response was null"));
         }
 
         [TestMethod]
@@ -2262,12 +2276,18 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .Should().Throw<InvalidOperationException>()
+                .Should().Throw<NonRetriableException>()
+                .WithMessage("Failed to save the dataset or dataset version during validation")
+                .WithInnerException<InvalidOperationException>()
                 .WithMessage($"Failed to save dataset for id: {model.DatasetId} with status code InternalServerError");
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Failed to save dataset for id: {model.DatasetId} with status code InternalServerError"));
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the dataset or dataset version during validation"));
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to save dataset for id: {model.DatasetId} with status code InternalServerError"));
         }
 
         [TestMethod]
@@ -2424,12 +2444,18 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .Should().Throw<InvalidOperationException>()
+                .Should().Throw<NonRetriableException>()
+                .WithMessage("Failed to save the dataset or dataset version during validation")
+                .WithInnerException<InvalidOperationException>()
                 .WithMessage($"Failed to save dataset for id: {model.DatasetId} in search with errors Error in dataset ID for search");
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Failed to save dataset for id: {model.DatasetId} in search with errors Error in dataset ID for search"));
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the dataset or dataset version during validation"));
+            
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to save dataset for id: {model.DatasetId} in search with errors Error in dataset ID for search"));
         }
 
         [TestMethod]
@@ -2798,6 +2824,90 @@ namespace CalculateFunding.Services.Datasets.Services
                  Arg.Is<DatasetValidationStatusModel>(s =>
                      s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
                      s.ErrorMessage == $"Blob {blobPath} contains no data" &&
+                     s.OperationId == message.UserProperties["operation-id"].ToString()
+                     ));
+        }
+
+        [TestMethod]
+        public async Task OnValidateDataset_WhenBlobReturnsCopyUploadedToNewBlobReferenceButNewBlobAlreadyExists_ThenDatasetReIndexed()
+        {
+            // Arrange
+            string dataSetId1 = "id-1";
+
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(dataSetId1)
+                .WithFileName("blah.xlsx"));
+
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IValidator<GetDatasetBlobModel> validator = CreateGetDatasetBlobModelValidator();
+
+            List<ValidationFailure> validationFailures = new List<ValidationFailure>();
+
+            ValidationResult validationResult = new ValidationResult(validationFailures);
+
+            validator
+                .ValidateAsync(Arg.Any<GetDatasetBlobModel>())
+                .Returns(validationResult);
+
+            ICloudBlob cloubBlob = Substitute.For<ICloudBlob>();
+            cloubBlob
+                .Name
+                .Returns("dsid/v1/filename.xlsx");
+
+            cloubBlob
+                .Metadata["name"]
+                .Returns("dataset");
+
+            MemoryStream memoryStream = new MemoryStream(new byte[1]);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(Arg.Is(blobPath))
+                .Returns(true);
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                cacheProvider: cacheProvider,
+                getDatasetBlobModelValidator: validator,
+                blobClient: blobClient);
+
+            // Act
+            Func<Task> invocation = async () => await service.Run(message);
+
+            // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to copy uploaded file '{uploadedBlobPath}' to new location '{blobPath}' as it already exists."));
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(
+                Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                Arg.Is<DatasetValidationStatusModel>(s =>
+                    s.CurrentOperation == DatasetValidationStatus.Processing &&
+                    s.OperationId == message.UserProperties["operation-id"].ToString()
+                    ));
+
+            await cacheProvider
+                 .Received(1)
+                 .SetAsync(
+                 Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                 Arg.Is<DatasetValidationStatusModel>(s =>
+                     s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
+                     s.ErrorMessage == $"Failed to copy uploaded file '{uploadedBlobPath}' to new location '{blobPath}' as it already exists." &&
                      s.OperationId == message.UserProperties["operation-id"].ToString()
                      ));
         }

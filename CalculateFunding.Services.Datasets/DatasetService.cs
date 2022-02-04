@@ -78,6 +78,8 @@ namespace CalculateFunding.Services.Datasets
         private readonly IValidator<DatasetMetadataModel> _datasetMetadataModelValidator;
         private readonly ISearchRepository<DatasetIndex> _datasetIndexSearchRepository;
         private readonly ISearchRepository<DatasetVersionIndex> _datasetVersionIndexRepository;
+        private readonly AsyncPolicy _datasetIndexSearchPolicy;
+        private readonly AsyncPolicy _datasetVersionIndexPolicy;
         private readonly IProvidersApiClient _providersApiClient;
         private readonly IValidator<GetDatasetBlobModel> _getDatasetBlobModelValidator;
         private readonly ICacheProvider _cacheProvider;
@@ -139,6 +141,8 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProvidersApiClient, nameof(datasetsResiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.SpecificationsApiClient, nameof(datasetsResiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.DatasetSearchService, nameof(datasetsResiliencePolicies.DatasetSearchService));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.DatasetVersionSearchService, nameof(datasetsResiliencePolicies.DatasetVersionSearchService));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(providerSourceDatasetsRepository, nameof(providerSourceDatasetsRepository));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
@@ -156,11 +160,13 @@ namespace CalculateFunding.Services.Datasets
             _mapper = mapper;
             _datasetMetadataModelValidator = datasetMetadataModelValidator;
             _datasetIndexSearchRepository = datasetIndexSearchRepository;
+            _datasetIndexSearchPolicy = datasetsResiliencePolicies.DatasetSearchService;
             _getDatasetBlobModelValidator = getDatasetBlobModelValidator;
             _cacheProvider = cacheProvider;
             _dataWorksheetValidator = dataWorksheetValidator;
             _datasetUploadValidator = datasetUploadValidator;
             _datasetVersionIndexRepository = datasetVersionIndexRepository;
+            _datasetVersionIndexPolicy = datasetsResiliencePolicies.DatasetVersionSearchService;
             _providersApiClient = providersApiClient;
             _providersApiClientPolicy = datasetsResiliencePolicies.ProvidersApiClient;
             _jobManagement = jobManagement;
@@ -701,6 +707,16 @@ namespace CalculateFunding.Services.Datasets
 
             string uploadedBlobPath = GetUploadedBlobFilepath(model.Filename, model.DatasetId, model.Version);
             string blobPath = GetMergedBlobFilepath(model.Filename, model.DatasetId, model.Version);
+            
+            if (await _blobClient.BlobExistsAsync(blobPath))
+            {
+                string errorMessage = $"Failed to copy uploaded file '{uploadedBlobPath}' to new location '{blobPath}' as it already exists.";
+
+                _logger.Error(errorMessage);
+                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
+                throw new NonRetriableException(errorMessage);
+            }
+
             ICloudBlob blob = await _blobClient.CopyBlobAsync(uploadedBlobPath, blobPath);
 
             if (blob == null)
@@ -938,7 +954,8 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error(exception, "Failed to save the dataset or dataset version during validation");
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.ExceptionThrown, exception.Message);
-                throw;
+
+                throw new NonRetriableException("Failed to save the dataset or dataset version during validation", exception);
             }
         }
 
@@ -1790,7 +1807,7 @@ namespace CalculateFunding.Services.Datasets
             Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(model.DatasetId);
             if (dataset == null)
             {
-                _logger.Warning($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
+                _logger.Error($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
 
                 throw new InvalidOperationException($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
             }
@@ -1830,7 +1847,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (!statusCode.IsSuccess())
             {
-                _logger.Warning($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode}");
+                _logger.Error($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode}");
 
                 throw new InvalidOperationException($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode}");
             }
@@ -1842,7 +1859,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 string errors = string.Join(";", indexErrors.Select(m => m.ErrorMessage).ToArraySafe());
 
-                _logger.Warning($"Failed to save dataset for id: {model.DatasetId} in search with errors {errors}");
+                _logger.Error($"Failed to save dataset for id: {model.DatasetId} in search with errors {errors}");
 
                 throw new InvalidOperationException($"Failed to save dataset for id: {model.DatasetId} in search with errors {errors}");
             }
@@ -1859,7 +1876,7 @@ namespace CalculateFunding.Services.Datasets
                 return ArraySegment<IndexError>.Empty;
             }
 
-            return await _datasetIndexSearchRepository.Index(new List<DatasetIndex>
+            return await _datasetIndexSearchPolicy.ExecuteAsync(() => _datasetIndexSearchRepository.Index(new List<DatasetIndex>
             {
                 new DatasetIndex
                 {
@@ -1879,14 +1896,14 @@ namespace CalculateFunding.Services.Datasets
                     FundingStreamName = dataset.Current.FundingStream?.Name,
                     RelationshipId = dataset.RelationshipId
                 }
-            });
+            }));
         }
 
-        private Task<IEnumerable<IndexError>> IndexDatasetVersionInSearch(Dataset dataset, DatasetVersion datasetVersion)
+        private async Task<IEnumerable<IndexError>> IndexDatasetVersionInSearch(Dataset dataset, DatasetVersion datasetVersion)
         {
             Guard.ArgumentNotNull(dataset, nameof(dataset));
 
-            return _datasetVersionIndexRepository.Index(new List<DatasetVersionIndex>
+            return await _datasetVersionIndexPolicy.ExecuteAsync(() => _datasetVersionIndexRepository.Index(new List<DatasetVersionIndex>
             {
                 new DatasetVersionIndex
                 {
@@ -1904,7 +1921,7 @@ namespace CalculateFunding.Services.Datasets
                     FundingStreamId = datasetVersion.FundingStream?.Id,
                     FundingStreamName = datasetVersion.FundingStream?.Name
                 }
-            });
+            }));
         }
 
         private async Task<(IDictionary<string, IEnumerable<string>> validationFailures, int providersProcessed)> ValidateTableResults(
