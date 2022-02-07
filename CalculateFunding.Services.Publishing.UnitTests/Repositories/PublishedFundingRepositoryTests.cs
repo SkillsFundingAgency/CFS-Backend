@@ -813,7 +813,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                   c.content.current.minorVersion,
                                   c.content.current.provider.providerId,
                                   c.content.current.provider.providerType,
-                                  c.content.current.provider.providerSubType
+                                  c.content.current.provider.providerSubType,
+                                  c.content.current.provider.status
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
@@ -866,7 +867,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                   c.content.current.minorVersion,
                                   c.content.current.provider.providerId,
                                   c.content.current.provider.providerType,
-                                  c.content.current.provider.providerSubType
+                                  c.content.current.provider.providerSubType,
+                                  c.content.current.provider.status
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
@@ -1090,7 +1092,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             return result;
         }
 
-        private dynamic CreateReleaseFundingSummaryPublishedProviderFundingResult(string specificationId, string publishedProviderId, bool? isIndicative = null)
+        private dynamic CreateReleaseFundingSummaryPublishedProviderFundingResult(
+            string specificationId, string publishedProviderId, bool? isIndicative = null, string status = "Open")
         {
             string providerId = NewRandomString();
             string providerType = NewRandomString();
@@ -1109,6 +1112,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             result.providerType = providerType;
             result.providerSubType = providerSubType;
             result.isIndicative = isIndicative;
+            result.status = status;
 
             return result;
         }

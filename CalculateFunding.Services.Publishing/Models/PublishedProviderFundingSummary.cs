@@ -12,5 +12,6 @@
         public string ProviderId { get; set; }
         public string ProviderType { get; set; }
         public string ProviderSubType { get; set; }
+        public string Status { get; set; }
     }
 }

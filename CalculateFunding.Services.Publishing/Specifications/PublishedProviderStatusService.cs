@@ -111,8 +111,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
         public async Task<IActionResult> GetApprovedPublishedProviderReleaseFundingSummary(ReleaseFundingPublishProvidersRequest request,
             string specificationId)
         {
-            SpecificationSummary specificationSummary =
-                await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationService.GetSpecificationSummaryById(specificationId));
+            SpecificationSummary specificationSummary = await _specificationService.GetSpecificationSummaryById(specificationId);
 
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(
                 specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id);

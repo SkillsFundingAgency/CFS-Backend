@@ -66,11 +66,11 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             IEnumerable<Channel> channels = await GetChannels(channelCodes);
 
-            IEnumerable<ProviderVersionInChannel> providerVersionInChannels = await _releaseManagementRepository.GetLatestPublishedProviderVersions(
+            IEnumerable<ProviderVersionInChannel> latestPublishedProviderVersionsInChannels = await _releaseManagementRepository.GetLatestPublishedProviderVersions(
                 specificationSummary.Id,
                 channels.Select(_ => _.ChannelId));
 
-            Dictionary<string, int> providerMajorVersionLookup = providerVersionInChannels.ToDictionary(_ => $"{_.ChannelId}-{_.ProviderId}", _ => _.MajorVersion);
+            Dictionary<string, int> providerMajorVersionLookup = latestPublishedProviderVersionsInChannels.ToDictionary(_ => $"{_.ChannelId}-{_.ProviderId}", _ => _.MajorVersion);
 
             IEnumerable<PublishedProviderFundingSummary> approvedPublishedProviderSummaries = await GetPublishedProviderFundingSummaries(
                 publishedProviderIds,
@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                             ProviderId = _.ProviderId,
                             ProviderType = _.ProviderType,
                             ProviderSubType = _.ProviderSubType,
-                            Status = PublishedProviderStatus.Approved.ToString()
+                            Status = _.Status
                         },
                         TotalFunding = _.TotalFunding,
                         IsIndicative = _.IsIndicative,

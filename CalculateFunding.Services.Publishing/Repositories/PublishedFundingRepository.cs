@@ -1365,7 +1365,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                   c.content.current.minorVersion,
                                   c.content.current.provider.providerId,
                                   c.content.current.provider.providerType,
-                                  c.content.current.provider.providerSubType
+                                  c.content.current.provider.providerSubType,
+                                  c.content.current.provider.status
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
@@ -1392,7 +1393,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                   c.content.current.minorVersion,
                                   c.content.current.provider.providerId,
                                   c.content.current.provider.providerType,
-                                  c.content.current.provider.providerSubType
+                                  c.content.current.provider.providerSubType,
+                                  c.content.current.provider.status
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
@@ -1415,6 +1417,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             {
                 SpecificationId = (string)_.specificationId,
                 ProviderId = (string)_.providerId,
+                Status = (string)_.status,
                 MajorVersion = (int)_.majorVersion,
                 MinorVersion = (int)_.minorVersion,
                 TotalFunding = (decimal?)_.totalFunding,
