@@ -46,7 +46,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     FundingStreamId = new RandomString(),
                     FundingPeriodId = new RandomString(),
                     MajorVersion = 1,
-                    MinorVersion = 2
+                    MinorVersion = 2,
+                    Provider = new Provider()
+                    {
+                        ProviderVersionId = new RandomString(),
+                    }
                 },
                 new PublishedProviderVersion
                 {
@@ -54,7 +58,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     FundingStreamId = new RandomString(),
                     FundingPeriodId = new RandomString(),
                     MajorVersion = 1,
-                    MinorVersion = 2
+                    MinorVersion = 2,
+                    Provider = new Provider()
+                    {
+                        ProviderVersionId = new RandomString(),
+                    }
                 },
             }.ToArray();
 
@@ -138,7 +146,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 MajorVersion = s.MajorVersion,
                 MinorVersion = s.MinorVersion,
                 TotalFunding = s.TotalFunding ?? 0m,
-                ReleasedProviderId = new RandomNumberBetween(1, 1000)
+                ReleasedProviderId = new RandomNumberBetween(1, 1000),
+                CoreProviderVersionId = s.Provider.ProviderVersionId,
             }).ToArray();
 
             _releaseToChannelSqlMappingContext.SetupGet(_ => _.ReleasedProviderVersions)

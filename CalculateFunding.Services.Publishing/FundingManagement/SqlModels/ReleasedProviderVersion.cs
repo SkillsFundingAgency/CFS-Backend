@@ -26,5 +26,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
 
         [Required]
         public decimal TotalFunding { get; set; }
+
+        /// <summary>
+        /// Providers service - core provider version ID
+        /// </summary>
+        [Required]
+        public string CoreProviderVersionId { get; set; }
     }
 }

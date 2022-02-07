@@ -14,7 +14,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 NewDataColumn<int>("MajorVersion"),
                 NewDataColumn<int>("MinorVersion"),
                 NewDataColumn<string>("FundingId", 128),
-                NewDataColumn<decimal>("TotalFunding")
+                NewDataColumn<decimal>("TotalFunding"),
+                NewDataColumn<string>("CoreProviderVersionId", 128)
 
             };
 
@@ -25,7 +26,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 dto.MajorVersion,
                 dto.MinorVersion,
                 dto.FundingId,
-                dto.TotalFunding);
+                dto.TotalFunding,
+                dto.CoreProviderVersionId);
         }
 
         protected override void EnsureTableNameIsSet(ReleasedProviderVersion dto)
