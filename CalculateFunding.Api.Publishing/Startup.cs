@@ -42,7 +42,6 @@ using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Migration;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
-using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using CalculateFunding.Services.Publishing.IoC;
@@ -613,8 +612,8 @@ namespace CalculateFunding.Api.Publishing
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     ProfilingApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(),
-                    PublishedProviderSearchRepository = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(),
+                    PublishedIndexSearchResiliencePolicy = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    PublishedProviderSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     FundingStreamPaymentDatesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     DatasetsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),

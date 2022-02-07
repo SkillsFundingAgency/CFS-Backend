@@ -39,7 +39,6 @@ using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Migration;
-using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using CalculateFunding.Services.Publishing.IoC;
@@ -736,7 +735,7 @@ namespace CalculateFunding.Functions.Publishing
                 FundingFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 PublishedFundingBlobRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PublishedProviderSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(),
+                PublishedIndexSearchResiliencePolicy = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                 DatasetsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),

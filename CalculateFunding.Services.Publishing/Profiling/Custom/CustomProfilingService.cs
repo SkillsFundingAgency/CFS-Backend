@@ -150,7 +150,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                 correlationId: correlationId,
                 force: true);
 
-            await _publishedProviderIndexerService.IndexPublishedProvider(currentProviderVersion);
+            await _publishedProviderIndexerService.IndexPublishedProvider(publishedProvider.Current);
 
             _logger.Information(
                 $"Successfully applied custom profiling {request.CustomProfileName} to published provider {publishedProviderId}");
