@@ -10,7 +10,7 @@
   
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="7.1.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="8.0.0" />
   </ItemGroup>
   
   

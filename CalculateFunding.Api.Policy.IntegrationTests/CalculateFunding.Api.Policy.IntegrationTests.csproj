@@ -22,7 +22,7 @@
 
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="7.1.0" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="8.0.0" />
         <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.2" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />

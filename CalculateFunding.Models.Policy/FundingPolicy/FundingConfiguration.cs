@@ -78,5 +78,8 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
 
         [JsonProperty("releaseActionGroups")]
         public IEnumerable<ReleaseActionGroup> ReleaseActionGroups { get; set; }
+
+        [JsonProperty("enableCarryForward")]
+        public bool EnableCarryForward { get; set; }
     }
 }
