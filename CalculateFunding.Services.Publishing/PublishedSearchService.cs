@@ -13,12 +13,12 @@ using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Serilog;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using JsonExtensions = CalculateFunding.Common.Extensions.JsonExtensions;
 
 
 namespace CalculateFunding.Services.Publishing
@@ -257,22 +257,25 @@ namespace CalculateFunding.Services.Publishing
                     }
                 }
 
-                Dictionary<string, IEnumerable<ReleaseChannel>> releaseChannelLookupByProviderId =
-                            await _publishedProvidersSearchService.GetPublishedProviderReleaseChannelsLookup(results.Results?
-                                .Select(_ => new ReleaseChannelSearch
-                                {
-                                    ProviderId = _.UKPRN,
-                                    SpecificationId = _.SpecificationId,
-                                    FundingStreamId = _.FundingStreamId,
-                                    FundingPeriodId = _.FundingPeriodId
-                                }));
-
                 if (results.Results != null)
                 {
-                    foreach (PublishedSearchResult result in results.Results)
+                    Dictionary<string, IEnumerable<ReleaseChannel>> releaseChannelLookupByProviderId =
+                        await _publishedProvidersSearchService.GetPublishedProviderReleaseChannelsLookup(Enumerable.DistinctBy(results.Results?
+                            .Select(_ => new ReleaseChannelSearch
+                            {
+                                SpecificationId = _.SpecificationId,
+                                FundingStreamId = _.FundingStreamId,
+                                FundingPeriodId = _.FundingPeriodId
+                            }), _ => _.SpecificationId));
+
+                    IEnumerable<PublishedSearchResult> enrichedResults = results.Results.Select(_ =>
                     {
-                        result.ReleaseChannels = GetReleaseChannels(releaseChannelLookupByProviderId, result.UKPRN);
-                    }
+                        PublishedSearchResult result = JsonExtensions.DeepCopy(_);
+                        result.ReleaseChannels = GetReleaseChannels(releaseChannelLookupByProviderId, _.UKPRN);
+                        return result;
+                    });
+
+                    results.Results = enrichedResults;
                 }
 
                 return new OkObjectResult(results);

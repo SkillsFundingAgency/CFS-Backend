@@ -30,31 +30,23 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         {
             Dictionary<string, IEnumerable<ReleaseChannel>> result = new Dictionary<string, IEnumerable<ReleaseChannel>>();
 
-            IEnumerable<GroupedReleaseChannel> groupedReleaseChannels = searchRequest.GroupBy(_ => new
+            foreach (ReleaseChannelSearch releaseChannelSearch in searchRequest)
             {
-                _.SpecificationId,
-                _.FundingStreamId,
-                _.FundingPeriodId
-            }).Select(_ => new GroupedReleaseChannel
-            {
-                SpecificationId = _.Key.SpecificationId,
-                FundingStreamId = _.Key.FundingStreamId,
-                FundingPeriodId = _.Key.FundingPeriodId,
-                Results = _.ToList()
-            });
+                IEnumerable<int> channelIds =
+                    await GetVisibleChannelIdsForFundingConfiguration(releaseChannelSearch.FundingStreamId, releaseChannelSearch.FundingPeriodId);
 
-            foreach (GroupedReleaseChannel grc in groupedReleaseChannels)
-            {
-                IEnumerable<int> channelIds = await GetVisibleChannelIdsForFundingConfiguration(grc.FundingStreamId, grc.FundingPeriodId);
                 if (channelIds.Any())
                 {
-                    IEnumerable<ProviderVersionInChannel> versions = await _releaseManagementRepository.GetLatestPublishedProviderVersions(grc.SpecificationId, channelIds);
+                    IEnumerable<ProviderVersionInChannel> versions =
+                        await _releaseManagementRepository.GetLatestPublishedProviderVersions(
+                            releaseChannelSearch.SpecificationId, channelIds);
+
                     IEnumerable<IGrouping<string, ProviderVersionInChannel>> versionsGroupedByProviderId = versions.GroupBy(_ => _.ProviderId);
-                    foreach (IGrouping<string, ProviderVersionInChannel> item in versionsGroupedByProviderId)
+                    foreach (IGrouping<string, ProviderVersionInChannel> provider in versionsGroupedByProviderId)
                     {
-                        if (result.ContainsKey(item.Key))
+                        if (result.ContainsKey(provider.Key))
                         {
-                            IEnumerable<ReleaseChannel> newReleaseChannels = item.ToList().Select(_ => new ReleaseChannel
+                            IEnumerable<ReleaseChannel> newReleaseChannels = provider.ToList().Select(_ => new ReleaseChannel
                             {
                                 ChannelCode = _.ChannelCode,
                                 ChannelName = _.ChannelName,
@@ -62,13 +54,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                                 MinorVersion = _.MinorVersion
                             });
 
-                            List<ReleaseChannel> existingReleaseChannels = result[item.Key].ToList();
+                            List<ReleaseChannel> existingReleaseChannels = result[provider.Key].ToList();
                             existingReleaseChannels.AddRange(newReleaseChannels);
-                            result[item.Key] = Enumerable.DistinctBy(existingReleaseChannels, _ => new { _.ChannelName, _.ChannelCode, _.MajorVersion, _.MinorVersion });
+                            result[provider.Key] = Enumerable.DistinctBy(existingReleaseChannels, _ => new { _.ChannelName, _.ChannelCode, _.MajorVersion, _.MinorVersion });
                         }
                         else
                         {
-                            result[item.Key] = item.ToList().Select(_ => new ReleaseChannel
+                            result[provider.Key] = provider.ToList().Select(_ => new ReleaseChannel
                             {
                                 ChannelCode = _.ChannelCode,
                                 ChannelName = _.ChannelName,
