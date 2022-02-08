@@ -42,9 +42,10 @@ namespace CalculateFunding.Services.Publishing.Errors
             if (publishedProvider.Released != null &&
                 publishedProvider.Current?.HasCustomProfiles == false &&
                 providerVariationContext != null &&
+                providerVariationContext.Variances.AnyWithNullCheck() &&
                 providerVariationContext.ApplicableVariations.Count == 0)
             {
-                string errorMessage = $"Provider {publishedProvider.Current.ProviderId} no applicable variation found for variances {publishedProvidersContext.VariationContexts[publishedProvider.Current.ProviderId].Variances.AsJson()}.";
+                string errorMessage = $"Provider {publishedProvider.Current.ProviderId} no applicable variation found for variances {providerVariationContext.Variances.AsJson()}.";
                 errorCheck.AddError(new PublishedProviderError
                 {
                     Type = PublishedProviderErrorType.NoApplicableVariation,

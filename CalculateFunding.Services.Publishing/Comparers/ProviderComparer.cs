@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.Comparers
                 {
                     if (!CompareStringCollectionsIgnoreOrder((IEnumerable<string>) propA, (IEnumerable<string>) propB))
                     {
-                        _variances.Add(property.Name, $"{propA?.AsJson()} != {propB?.AsJson()}");
+                        RecordVariance(property, $"{propA?.AsJson()} != {propB?.AsJson()}", true);
                         return false;
                     }
                     else
@@ -47,13 +47,13 @@ namespace CalculateFunding.Services.Publishing.Comparers
                     {
                         if (!propB.Equals(propA))
                         {
-                            _variances.Add(property.Name, $"{propA} != {propB}");
+                            RecordVariance(property, $"{propA} != {propB}");
                             return false;
                         }
                     }
                     else
                     {
-                        _variances.Add(property.Name, "compare to empty");
+                        RecordVariance(property, "compare to empty");
                         return false;
                     }
                 }
@@ -61,13 +61,21 @@ namespace CalculateFunding.Services.Publishing.Comparers
                 {
                     if (propB != null)
                     {
-                        _variances.Add(property.Name, "compare from empty");
+                        RecordVariance(property, "compare from empty");
                         return false;
                     }
                 }
             }
 
             return true;
+        }
+
+        private void RecordVariance(PropertyInfo property, string value, bool skipAttributeCheck = false)
+        {
+            if (skipAttributeCheck || property.GetCustomAttribute(typeof(VariationReasonValueAttribute)) != null)
+            {
+                _variances.Add(property.Name, value);
+            }
         }
 
         private static bool CompareStringCollectionsIgnoreOrder(IEnumerable<string> collectionA,

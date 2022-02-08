@@ -397,6 +397,41 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     It.IsAny<bool>()), Times.Never);
         }
 
+        [TestMethod]
+        public async Task RefreshResults_WhenPublishedProviderVariesDueToUntrackedVariationProperty_NoErrorLogged()
+        {
+            string providerId = string.Empty;
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndScopedProviders((_) =>
+            {
+                _.Last().TrustName = $"{_.Last().TrustName}_updated";
+                providerId = _.Last().ProviderId;
+            });
+            AndScopedProviderCalculationResults();
+            AndTemplateMapping();
+            AndPublishedProviders(_publishedProviders);
+            AndNewMissingPublishedProviders();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
+            GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object));
+            AndFundingConfiguration();
+            AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
+            AndTheFundingPeriod();
+
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            _publishedProviderStatusUpdateService
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1
+                        && _.Single().Current.ProviderId == providerId
+                        && _.Single().Current.Errors.AnyWithNullCheck(_ => _.Type.Equals(PublishedProviderErrorType.ProfilingConsistencyCheckFailure))),
+                    It.IsAny<Reference>(),
+                    PublishedProviderStatus.Updated,
+                    JobId,
+                    CorrelationId,
+                    It.IsAny<bool>()), Times.Once);
+        }
 
         [TestMethod]
         public async Task RefreshResults_WhenPublishedProviderVariesButNoApplicableProfilingUpdatedVariationDetected_ErrorLogged()
