@@ -389,7 +389,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 MajorVersion = providerVersion.MajorVersion,
                 MinorVersion = providerVersion.MinorVersion,
                 FundingId = providerVersion.FundingId,
-                TotalFunding = providerVersion.TotalFunding ?? 0m
+                TotalFunding = providerVersion.TotalFunding ?? 0m,
+                CoreProviderVersionId = providerVersion.Provider.ProviderVersionId,
             };
 
             Interlocked.Increment(ref _nextReleasedProviderVersionId);
