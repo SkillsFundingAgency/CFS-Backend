@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         protected override Task<(ReProfileRequest, bool)> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
+            PublishedProviderVersion currentState,
             IApplyProviderVariations variationApplications,
             string profilePatternKey,
             ReProfileAudit reProfileAudit,

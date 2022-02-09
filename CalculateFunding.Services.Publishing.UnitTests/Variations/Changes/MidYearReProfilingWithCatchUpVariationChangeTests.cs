@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     {
         protected override string Strategy => "MidYearReProfiling";
 
-        protected DateTimeOffset OpenDate => ProfileDate.AddMonths(-1);
+        protected override DateTimeOffset OpenDate => ProfileDate.AddMonths(-1);
 
         [TestInitialize]
         public void SetUp()
@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             int variationPointerIndex = 1)
         {
             ProfilePeriod firstPeriod = new YearMonthOrderedProfilePeriods(fundingLine).ToArray().First();
-            bool catchup = OpenDate == null ? false : OpenDate.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && OpenDate.Year <= firstPeriod.Year;
+            bool catchup = OpenDate.Month < YearMonthOrderedProfilePeriods.MonthNumberFor(firstPeriod.TypeValue) && OpenDate.Year <= firstPeriod.Year;
 
             PublishedProviderVersion publishedProvider = VariationContext.RefreshState;
             
@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
             ReProfileRequestBuilder.Setup(_ => _.BuildReProfileRequest(fundingLine.FundingLineCode,
                     key,
-                    RefreshState,
+                    CurrentState,
                     fundingLine.Value,
                     reProfileAudit,
                     catchup ? MidYearType.OpenerCatchup : MidYearType.Opener,

@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 return;
             }
 
-            (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await BuildReProfileRequest(fundingLineCode, refreshState, priorState , variationApplications, profilePatternKey, reProfileAudit, fundingLine,(fundingLineCode, profilePatternKey, reProfileAudit, paidIndex) => ReProfileForSameAmountFunc(fundingLineCode, profilePatternKey, reProfileAudit, paidIndex));
+            (ReProfileRequest ReProfileRequest, bool ReProfileForSameAmount) = await BuildReProfileRequest(fundingLineCode, refreshState, priorState, currentState, variationApplications, profilePatternKey, reProfileAudit, fundingLine,(fundingLineCode, profilePatternKey, reProfileAudit, paidIndex) => ReProfileForSameAmountFunc(fundingLineCode, profilePatternKey, reProfileAudit, paidIndex));
 
             bool skipReProfiling = SkipReProfiling(ReProfileRequest, ReProfileForSameAmount);
                 
@@ -180,6 +180,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         protected virtual async Task<(ReProfileRequest request, bool shouldExecuteForSameAsKey)> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
+            PublishedProviderVersion currentState,
             IApplyProviderVariations variationApplications,
             string profilePatternKey,
             ReProfileAudit reProfileAudit,

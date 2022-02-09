@@ -18,11 +18,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         protected override string ChangeName => "Mid year re-profile variation change";
 
-        protected DateTimeOffset OpenDate => ProfileDate.AddMonths(1);
+        protected virtual DateTimeOffset OpenDate => ProfileDate.AddMonths(1);
 
         protected virtual MidYearType MidYearTypeValue => MidYearType.Opener;
 
-        protected virtual PublishedProviderVersion ReProfilePublishedProvider => RefreshState;
+        protected virtual PublishedProviderVersion ReProfilePublishedProvider => CurrentState;
 
         [TestInitialize]
         public virtual void SetUp()

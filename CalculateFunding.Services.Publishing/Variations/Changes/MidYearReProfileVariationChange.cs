@@ -43,6 +43,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         protected override Task<(ReProfileRequest, bool)> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,
+            PublishedProviderVersion currentState,
             IApplyProviderVariations variationApplications,
             string profilePatternKey,
             ReProfileAudit reProfileAudit,
@@ -50,7 +51,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             Func<string, string, ReProfileAudit, int, bool> reProfileForSameAmountFunc) =>
             variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
-                refreshState,
+                currentState,
                 fundingLine.Value,
                 reProfileAudit,
                 midYearType: GetMidYearType(refreshState.Provider?.DateOpened, fundingLine),

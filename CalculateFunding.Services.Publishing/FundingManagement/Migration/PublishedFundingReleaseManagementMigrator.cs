@@ -391,7 +391,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private async Task PopulateLinkingTables(Dictionary<string, Channel> channels, Dictionary<string, SqlModels.VariationReason> variationReasons)
         {
-            List<ReleasedProviderVersionChannel> createReleasedProviderVersionChannels = new List<ReleasedProviderVersionChannel>();
+            ConcurrentDictionary<string, ReleasedProviderVersionChannel> createReleasedProviderVersionChannels = new ConcurrentDictionary<string, ReleasedProviderVersionChannel>();
             List<FundingGroupProvider> createFundingGroupProviders = new List<FundingGroupProvider>();
             List<ReleasedProviderChannelVariationReason> createReleasedProviderChannelVariationReasons = new List<ReleasedProviderChannelVariationReason>();
 
@@ -429,7 +429,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                         AuthorName = publishedProviderVersion.Author.Name,
                     };
 
-                    createReleasedProviderVersionChannels.Add(releasedProviderVersionChannel);
+                    createReleasedProviderVersionChannels.AddOrUpdate($"{releasedProviderVersionChannel.ChannelId}_{releasedProviderVersionChannel.ReleasedProviderVersionId}", 
+                        releasedProviderVersionChannel, 
+                        (id, existing) => { return releasedProviderVersionChannel; }
+                    );
 
                     FundingGroupProvider fundingGroupProvider = new FundingGroupProvider
                     {
@@ -472,7 +475,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             ReleasedProviderChannelVariationReasonDataTableBuilder providerVariationReasonsBuilder = new ReleasedProviderChannelVariationReasonDataTableBuilder();
             FundingGroupProviderDataTableBuilder fundingGroupProviderBuilder = new FundingGroupProviderDataTableBuilder();
 
-            releasedChannelBuilder.AddRows(createReleasedProviderVersionChannels.ToArray());
+            releasedChannelBuilder.AddRows(createReleasedProviderVersionChannels.Values.ToArray());
             _logger.Information($"Importing {createReleasedProviderVersionChannels.Count} ReleasedProviderVersionChannels");
             await importer.ImportDataTable(releasedChannelBuilder, SqlBulkCopyOptions.KeepIdentity);
 

@@ -88,8 +88,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 AndTheProfilePeriodAmountShouldBe(profilePeriod, expectedAmount);
             }
         }
+        protected PublishedProviderVersion CurrentState => VariationContext.CurrentState;
 
-        
         protected PublishedProviderVersion RefreshState => VariationContext.RefreshState;
 
         protected PublishedProviderVersion PriorState => VariationContext.PriorState;
