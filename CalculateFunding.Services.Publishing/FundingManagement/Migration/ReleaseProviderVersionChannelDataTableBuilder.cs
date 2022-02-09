@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Migration
         protected override void AddDataRowToDataTable(ReleasedProviderVersionChannel dto)
         {
             DataTable.Rows.Add(dto.ReleasedProviderVersionChannelId,
-                dto.ReleasedProviderVersionChannelId,
+                dto.ReleasedProviderVersionId,
                 dto.ChannelId,
                 dto.StatusChangedDate,
                 dto.AuthorId,
