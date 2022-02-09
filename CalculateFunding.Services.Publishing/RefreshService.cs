@@ -23,6 +23,7 @@ using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -54,6 +55,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private readonly IRefreshStateService _refreshStateService;
         private readonly IOrganisationGroupService _organisationGroupService;
+        private readonly IChannelOrganisationGroupGeneratorService _channelOrganisationGroupGeneratorService;
 
         public RefreshService(IPublishedFundingDataService publishedFundingDataService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -77,7 +79,8 @@ namespace CalculateFunding.Services.Publishing
             IBatchProfilingService batchProfilingService,
             IPublishedFundingCsvJobsService publishFundingCsvJobsService,
             IRefreshStateService refreshStateService,
-            IOrganisationGroupService organisationGroupService) : base(jobManagement, logger)
+            IOrganisationGroupService organisationGroupService,
+            IChannelOrganisationGroupGeneratorService channelOrganisationGroupGeneratorService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
@@ -104,6 +107,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
             Guard.ArgumentNotNull(refreshStateService, nameof(refreshStateService));
             Guard.ArgumentNotNull(organisationGroupService, nameof(organisationGroupService));
+            Guard.ArgumentNotNull(channelOrganisationGroupGeneratorService, nameof(channelOrganisationGroupGeneratorService));
 
             _publishedFundingDataService = publishedFundingDataService;
             _specificationService = specificationService;
@@ -130,6 +134,7 @@ namespace CalculateFunding.Services.Publishing
             _publishFundingCsvJobsService = publishFundingCsvJobsService;
             _refreshStateService = refreshStateService;
             _organisationGroupService = organisationGroupService;
+            _channelOrganisationGroupGeneratorService = channelOrganisationGroupGeneratorService;
         }
 
         public override async Task Process(Message message)
@@ -339,6 +344,12 @@ namespace CalculateFunding.Services.Publishing
                     specification.ProviderVersionId,
                     specification.ProviderSnapshotId);
 
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> channelOrganisationGroupResultsData =
+                await _channelOrganisationGroupGeneratorService.GenerateOrganisationGroupsForAllChannels(
+                    fundingConfiguration,
+                    specification,
+                    publishedProvidersReadonlyDictionary.Values.Select(_ => _.Current));
+
             PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
             {
                 ScopedProviders = scopedProviders.Values,
@@ -347,6 +358,7 @@ namespace CalculateFunding.Services.Publishing
                 CurrentPublishedFunding = (await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingDataService.GetCurrentPublishedFunding(specification.Id, GroupingReason.Payment)))
                     .Where(x => x.Current.GroupingReason == CalculateFunding.Models.Publishing.GroupingReason.Payment),
                 OrganisationGroupResultsData = organisationGroupResultsData,
+                ChannelOrganisationGroupResultsData = channelOrganisationGroupResultsData,
                 FundingConfiguration = fundingConfiguration,
                 VariationContexts = new ConcurrentDictionary<string, ProviderVariationContext>()
             };

@@ -11,5 +11,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
     public interface IChannelOrganisationGroupGeneratorService
     {
         Task<IEnumerable<OrganisationGroupResult>> GenerateOrganisationGroups(Channel channel, FundingConfiguration fundingConfiguration, SpecificationSummary specification, IEnumerable<PublishedProviderVersion> publishedProvidersInReleaseBatch);
+
+        Task<IDictionary<string, IEnumerable<OrganisationGroupResult>>> GenerateOrganisationGroupsForAllChannels(FundingConfiguration fundingConfiguration, SpecificationSummary specification, IEnumerable<PublishedProviderVersion> publishedProvidersInReleaseBatch);
     }
 }

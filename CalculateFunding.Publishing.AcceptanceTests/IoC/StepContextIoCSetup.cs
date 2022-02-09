@@ -302,6 +302,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderContentChannelPersistenceService, IPublishedProviderContentChannelPersistenceService>();
 
             RegisterTypeAs<OrganisationGroupService, IOrganisationGroupService>();
+            RegisterTypeAs<ChannelOrganisationGroupGeneratorService, IChannelOrganisationGroupGeneratorService>();
             RegisterTypeAs<VariationErrorRecorder, IRecordVariationErrors>();
             RegisterTypeAs<RefreshService, IRefreshService>();
 

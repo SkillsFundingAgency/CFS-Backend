@@ -11,6 +11,7 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
@@ -99,6 +100,124 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 It.Is<string>(s => s.Equals(providerVersionId)),
                 It.Is<int?>(s => s.Equals(providerSnapshotId))),
                 Times.Once);
+        }
+
+        [TestMethod]
+        public async Task WhenGeneratingOrganisationGroupsForAllChannels_GeneratorRunsForEachChannel()
+        {
+            List<OrganisationGroupResult> expectedOrganisationGroupResults = new List<OrganisationGroupResult>();
+
+            _generator.Setup(g => g.GenerateOrganisationGroup(
+                It.IsAny<List<OrganisationGroupingConfiguration>>(),
+                It.IsAny<ProviderSource>(),
+                It.IsAny<PaymentOrganisationSource>(),
+                It.IsAny<IEnumerable<ApiProvider>>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .ReturnsAsync(expectedOrganisationGroupResults);
+
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration();
+            SpecificationSummary specificationSummary = NewSpecificationSummary();
+
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> result = await _sut.GenerateOrganisationGroupsForAllChannels(
+                fundingConfiguration, specificationSummary, NewBatchProviders());
+
+            _generator.Verify(g => g.GenerateOrganisationGroup(
+                It.IsAny<IEnumerable<OrganisationGroupingConfiguration>>(),
+                It.Is<ProviderSource>(ps => ps.Equals(fundingConfiguration.ProviderSource)),
+                It.Is<PaymentOrganisationSource>(pos => pos.Equals(fundingConfiguration.PaymentOrganisationSource)),
+                It.IsAny<IEnumerable<ApiProvider>>(),
+                It.Is<string>(s => s.Equals(specificationSummary.ProviderVersionId)),
+                It.Is<int?>(s => s.Equals(specificationSummary.ProviderSnapshotId))),
+                Times.Exactly(fundingConfiguration.ReleaseChannels.Count()));
+
+            Assert.AreEqual(result.Count, fundingConfiguration.ReleaseChannels.Count());
+        }
+
+        private FundingConfiguration NewFundingConfiguration()
+        {
+            List<OrganisationGroupingConfiguration> organisationGroupingConfigurations = new List<OrganisationGroupingConfiguration>
+            {
+                new OrganisationGroupingConfiguration
+                {
+                    GroupingReason = Common.ApiClient.Policies.Models.GroupingReason.Contracting,
+                    GroupTypeClassification = OrganisationGroupTypeClassification.LegalEntity,
+                    GroupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN,
+                    OrganisationGroupTypeCode = OrganisationGroupTypeCode.LocalAuthoritySsf
+                },
+                new OrganisationGroupingConfiguration
+                {
+                    GroupingReason = Common.ApiClient.Policies.Models.GroupingReason.Contracting,
+                    GroupTypeClassification = OrganisationGroupTypeClassification.LegalEntity,
+                    GroupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN,
+                    OrganisationGroupTypeCode = OrganisationGroupTypeCode.LocalAuthority
+                },
+                new OrganisationGroupingConfiguration
+                {
+                    GroupingReason = Common.ApiClient.Policies.Models.GroupingReason.Information,
+                    GroupTypeClassification = OrganisationGroupTypeClassification.GeographicalBoundary,
+                    GroupTypeIdentifier = OrganisationGroupTypeIdentifier.LACode,
+                    OrganisationGroupTypeCode = OrganisationGroupTypeCode.LocalAuthority
+                },
+                new OrganisationGroupingConfiguration
+                {
+                    GroupingReason = Common.ApiClient.Policies.Models.GroupingReason.Payment,
+                    GroupTypeClassification = OrganisationGroupTypeClassification.LegalEntity,
+                    GroupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN,
+                    OrganisationGroupTypeCode = OrganisationGroupTypeCode.AcademyTrust
+                },
+                new OrganisationGroupingConfiguration
+                {
+                    GroupingReason = Common.ApiClient.Policies.Models.GroupingReason.Contracting,
+                    GroupTypeClassification = OrganisationGroupTypeClassification.LegalEntity,
+                    GroupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN,
+                    OrganisationGroupTypeCode = OrganisationGroupTypeCode.Provider
+                },
+                new OrganisationGroupingConfiguration
+                {
+                    GroupingReason = Common.ApiClient.Policies.Models.GroupingReason.Indicative,
+                    GroupTypeClassification = OrganisationGroupTypeClassification.LegalEntity,
+                    GroupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN,
+                    OrganisationGroupTypeCode = OrganisationGroupTypeCode.Provider
+                }
+            };
+
+            return new FundingConfiguration
+            {
+                ProviderSource = ProviderSource.CFS,
+                PaymentOrganisationSource = PaymentOrganisationSource.PaymentOrganisationAsProvider,
+                ReleaseChannels = new List<FundingConfigurationChannel>
+                {
+                    new FundingConfigurationChannel
+                    {
+                        ChannelCode = "ChannelOne",
+                        OrganisationGroupings = organisationGroupingConfigurations
+                    },
+                    new FundingConfigurationChannel
+                    {
+                        ChannelCode = "ChannelTwo",
+                        OrganisationGroupings = organisationGroupingConfigurations
+                    }
+                }
+            };
+        }
+
+        private SpecificationSummary NewSpecificationSummary(string providerVersionId = null, int? providerSnapshotId = null)
+        {
+            return new SpecificationSummary
+            {
+                ProviderVersionId = providerVersionId ?? "123",
+                ProviderSnapshotId = providerSnapshotId ?? 100
+            };
+        }
+
+        private List<PublishedProviderVersion> NewBatchProviders()
+        {
+            return new List<PublishedProviderVersion>
+            {
+                new PublishedProviderVersion() { FundingStreamId = "Stream1", FundingPeriodId = "Period1" },
+                new PublishedProviderVersion() { FundingStreamId = "Stream1", FundingPeriodId = "Period2" }
+            };
         }
 
         private IMapper CreateMapper()

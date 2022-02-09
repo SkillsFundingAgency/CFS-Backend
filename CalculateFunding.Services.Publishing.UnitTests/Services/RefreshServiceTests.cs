@@ -40,6 +40,7 @@ using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
@@ -89,6 +90,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private Mock<ICalculationPrerequisiteCheckerService> _calculationApprovalCheckerService;
         private IMapper _mapper;
         private Mock<IOrganisationGroupService> _organisationGroupService;
+        private Mock<IChannelOrganisationGroupGeneratorService> _channelOrganisationGroupGeneratorService;
         private string _providerIdVaried;
         private const string SpecificationId = "SpecificationId";
         private const string FundingPeriodId = "AY-2020";
@@ -164,6 +166,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishingResiliencePolicies,
                 _fundingStreamPaymentDatesRepository.Object));
             _organisationGroupService = new Mock<IOrganisationGroupService>();
+            _channelOrganisationGroupGeneratorService = new Mock<IChannelOrganisationGroupGeneratorService>();
             _transactionFactory = new TransactionFactory(_logger.Object, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = new Mock<IPublishedProviderVersionService>();
             _publishFundingCsvJobsService = new Mock<IPublishedFundingCsvJobsService>();
@@ -231,7 +234,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _batchProfilingService.Object,
                 _publishFundingCsvJobsService.Object,
                 _refreshStateService,
-                _organisationGroupService.Object);
+                _organisationGroupService.Object,
+                _channelOrganisationGroupGeneratorService.Object);
         }
 
         [TestMethod]

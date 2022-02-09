@@ -46,5 +46,36 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 specification.ProviderVersionId,
                 specification.ProviderSnapshotId);
         }
+
+        public async Task<IDictionary<string, IEnumerable<OrganisationGroupResult>>> GenerateOrganisationGroupsForAllChannels
+            (FundingConfiguration fundingConfiguration, SpecificationSummary specification,
+            IEnumerable<PublishedProviderVersion> publishedProvidersInReleaseBatch)
+        {
+            IEnumerable<ApiProvider> batchProviders = _mapper.Map<IEnumerable<ApiProvider>>(publishedProvidersInReleaseBatch
+                .Select(s => s.Provider));
+
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> channelOrganisationGroups = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
+
+            if(fundingConfiguration?.ReleaseChannels == null)
+            {
+                return channelOrganisationGroups;
+            }
+
+            foreach (FundingConfigurationChannel channel in fundingConfiguration.ReleaseChannels)
+            {
+                IEnumerable<OrganisationGroupingConfiguration> organisationGroupingConfigurations = channel?.OrganisationGroupings;
+                channelOrganisationGroups.Add(channel.ChannelCode,
+                    await _organisationGroupGenerator.GenerateOrganisationGroup(
+                        organisationGroupingConfigurations,
+                        fundingConfiguration.ProviderSource,
+                        fundingConfiguration.PaymentOrganisationSource,
+                        batchProviders,
+                        specification.ProviderVersionId,
+                        specification.ProviderSnapshotId)
+                    );
+            }
+
+            return channelOrganisationGroups;
+        }
     }
 }

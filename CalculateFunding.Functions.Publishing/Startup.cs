@@ -369,7 +369,9 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddTransient<IErrorDetectionStrategyLocator, ErrorDetectionStrategyLocator>();
             builder.AddTransient<IDetectPublishedProviderErrors, FundingLineValueProfileMismatchErrorDetector>();
             builder.AddTransient<IDetectPublishedProviderErrors, TrustIdMismatchErrorDetector>();
+            builder.AddTransient<IDetectPublishedProviderErrors, TrustIdMismatchChannelErrorDetector>();
             builder.AddTransient<IDetectPublishedProviderErrors, ProviderNotFundedErrorDetector>();
+            builder.AddTransient<IDetectPublishedProviderErrors, ProviderNotFundedChannelErrorDetector>();
             builder.AddTransient<IDetectPublishedProviderErrors, PostPaymentOutOfScopeProviderErrorDetector>();
             builder.AddTransient<IDetectPublishedProviderErrors, ProfilingConsistencyCheckErrorDetector>();
             builder.AddTransient<IDetectPublishedProviderErrors, MultipleSuccessorErrorDetector>();

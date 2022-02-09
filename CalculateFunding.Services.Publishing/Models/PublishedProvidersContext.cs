@@ -12,6 +12,11 @@ namespace CalculateFunding.Services.Publishing.Models
             get; set; 
         }
 
+        public IDictionary<string, IEnumerable<OrganisationGroupResult>> ChannelOrganisationGroupResultsData
+        {
+            get; set;
+        }
+
         public IEnumerable<Provider> ScopedProviders
         {
             get; set;
