@@ -15,6 +15,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ApprovalMode? _approvalMode;
         private bool? _enableUserEditableRuleBasedProfiles;
         private bool? _enableUserEditableCustomProfiles;
+        private bool? _enableCarryForward;
         private IEnumerable<FundingConfigurationChannel> _releaseChannels;
         private IEnumerable<FundingVariation> _fundingVariations;
 
@@ -67,6 +68,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public FundingConfigurationBuilder WithEnableCarryForward(bool? enableCarryForward)
+        {
+            _enableCarryForward = enableCarryForward;
+
+            return this;
+        }
+
         public FundingConfigurationBuilder WithReleaseChannels(params FundingConfigurationChannel[] releaseChannels)
         {
             _releaseChannels = releaseChannels;
@@ -92,7 +100,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 EnableUserEditableCustomProfiles = _enableUserEditableCustomProfiles ?? NewRandomFlag(),
                 EnableUserEditableRuleBasedProfiles = _enableUserEditableRuleBasedProfiles ?? NewRandomFlag(),
                 ReleaseChannels = _releaseChannels ?? Array.Empty<FundingConfigurationChannel>(),
-                ReleaseManagementVariations = _fundingVariations ?? Array.Empty<FundingVariation>()
+                ReleaseManagementVariations = _fundingVariations ?? Array.Empty<FundingVariation>(),
+                EnableCarryForward = _enableCarryForward ?? NewRandomFlag(),
             };
         }
     }

@@ -15,6 +15,7 @@ namespace CalculateFunding.Models.Publishing
         ProfilingConsistencyCheckFailure,
         MultipleSuccessors,
         NoApplicableVariation,
-        NoApplicableProfilingUpdateVariation
+        NoApplicableProfilingUpdateVariation,
+        CarryOverAmountFound
     }
 }

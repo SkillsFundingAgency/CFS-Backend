@@ -507,6 +507,7 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IDetectPublishedProviderErrors, MultipleSuccessorErrorDetector>()
                 .AddSingleton<IDetectPublishedProviderErrors, NoApplicableVariationErrorDetector>()
                 .AddSingleton<IDetectPublishedProviderErrors, NoApplicableProfilingUpdateVariationErrorDetector>()
+                .AddSingleton<IDetectPublishedProviderErrors, CarryOverAmountFoundErrorDetector>()
                 .AddSingleton<IProfilingService, ProfilingService>()
                 .AddSingleton<IHealthChecker, ProfilingService>()
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>() 

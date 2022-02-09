@@ -21,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         private string _providerId;
         private string _fundingStreamId;
         private string _fundingPeriodId;
+        private decimal _carryOverAmount;
 
         private ValidationResult _result;
 
@@ -43,6 +44,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             _fundingPeriodId = NewRandomString();
             _fundingStreamId = NewRandomString();
             _providerId = NewRandomString();
+            _carryOverAmount = NewRandomNumber();
         }
 
         [TestMethod]
@@ -134,6 +136,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         }
 
         [TestMethod]
+        public async Task FailsValidationIfEnableCarryForwardSetToFalseForFundingConfigurationAndRequestHasCarryOver()
+        {
+            GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true, enableCarryForward: false);
+
+            await WhenTheRequestIsValidated(NewOtherwiseValidRequest());
+
+            ThenTheValidationResultsContainsTheErrors(("CarryOver", $"This request contains carry over amount of £{_carryOverAmount} but funding configuration has not EnableCarryForward setting enabled for funding stream - '{_fundingStreamId}' and funding period - '{_fundingPeriodId}'"));
+        }
+
+        [TestMethod]
         public async Task FailsValidationIfTheProfilePeriodsHaveDuplicateOccurrencesInAFundingLine()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
@@ -204,13 +217,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 .ReturnsAsync(publishedProvider);
         }
 
-        private void GivenTheFundingConfiguration(bool enableUserEditableCustomProfiles)
+        private void GivenTheFundingConfiguration(bool enableUserEditableCustomProfiles, bool enableCarryForward = true)
         {
             _policiesService.Setup(_ => _.GetFundingConfiguration(_fundingStreamId, _fundingPeriodId))
                 .ReturnsAsync(NewFundingConfiguration(_ => 
                 _.WithFundingStreamId(_fundingStreamId)
                 .WithFundingPeriodId(_fundingPeriodId)
-                .WithEnableUserEditableCustomProfiles(enableUserEditableCustomProfiles)));
+                .WithEnableUserEditableCustomProfiles(enableUserEditableCustomProfiles)
+                .WithEnableCarryForward(enableCarryForward)));
         }
 
         private async Task WhenTheRequestIsValidated(ApplyCustomProfileRequest request)
@@ -248,6 +262,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 .WithProviderId(_providerId)
                 .WithFundingStreamId(_fundingStreamId)
                 .WithFundingLineCode(_fundingLineCode)
+                .WithCarryOver(_carryOverAmount)
                 .WithProfilePeriods(NewProfilePeriod(pp =>
                     pp.WithOccurence(1)
                         .WithYear(2020)

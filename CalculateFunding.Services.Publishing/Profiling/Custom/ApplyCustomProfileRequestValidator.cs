@@ -109,6 +109,11 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                         {
                             ctx.AddFailure("Request", $"User not allowed to edit custom profiles for funding stream - '{fundingStreamId}' and funding period - '{fundingPeriodId}'");
                         }
+
+                        if(!fundingConfiguration.EnableCarryForward && request.HasCarryOver)
+                        {
+                            ctx.AddFailure(nameof(request.CarryOver), $"This request contains carry over amount of £{request.CarryOver} but funding configuration has not EnableCarryForward setting enabled for funding stream - '{fundingStreamId}' and funding period - '{fundingPeriodId}'");
+                        }
                     }
                 });
         }

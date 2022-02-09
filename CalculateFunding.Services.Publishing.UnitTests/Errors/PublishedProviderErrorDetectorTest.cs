@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -99,6 +100,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             return profilingCarryOverBuilder.Build();
         }
 
+        protected FundingConfiguration NewFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
+        {
+            FundingConfigurationBuilder fundingConfigurationBuilder = new FundingConfigurationBuilder();
+
+            setUp?.Invoke(fundingConfigurationBuilder);
+
+            return fundingConfigurationBuilder.Build();
+        }
+
         protected string NewRandomString() => new RandomString();
+        protected decimal NewRandomNumber() => new RandomNumberBetween(1, 10000);
+
     }
 }
