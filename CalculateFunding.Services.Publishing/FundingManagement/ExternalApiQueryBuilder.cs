@@ -39,6 +39,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             int? pageRef,
             int totalCount)
         {
+            int startAt = GetStartAt(pageRef, top, totalCount);
+
             return (
 
                 $@"
@@ -46,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 
                 {BuildFromClauseAndPredicates(fundingStreamIds, fundingPeriodIds, groupingReasons, variationReasons)}
                 ORDER BY FGV.StatusChangedDate ASC, FGV.FundingGroupVersionId ASC
-                {PagingSkipLimit(pageRef, top, totalCount)}",
+                OFFSET @startAt ROWS FETCH NEXT @pageSize ROWS ONLY",
 
         new
         {
@@ -54,7 +56,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             fundingStreamIds,
             fundingPeriodIds,
             groupingReasons,
-            variationReasons
+            variationReasons,
+            startAt = startAt,
+            pageSize = top
         });
         }
 
@@ -118,12 +122,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 null;
         }
 
-        private string PagingSkipLimit(int? pageRef, int top, int totalCount)
+        private int GetStartAt(int? pageRef, int top, int totalCount)
         {
             int offset = totalCount % top == 0 ? top : totalCount % top;
+
             return pageRef.HasValue ?
-                $"OFFSET {(pageRef - 1) * top} ROWS {top} ROWS FETCH NEXT {top} ROWS ONLY" :
-                $"OFFSET {Math.Max(0, totalCount - offset)} ROWS FETCH NEXT {top} ROWS ONLY";
+                (pageRef.Value - 1) * top: 
+                Math.Max(0, totalCount - offset);
         }
     }
 }

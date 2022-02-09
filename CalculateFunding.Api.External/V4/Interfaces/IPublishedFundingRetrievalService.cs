@@ -12,11 +12,11 @@ namespace CalculateFunding.Api.External.V4.Interfaces
         /// Gets a single published funding feed document.
         /// </summary>
         /// <param name="fundingId">Funding ID</param>
-        /// <param name="channelId">Channel ID</param>
+        /// <param name="channelCode">Channel Code</param>
         /// <param name="isForPreLoad"></param>
         /// <returns></returns>
-        Task<Stream> GetFundingFeedDocument(string fundingId, int channelId, bool isForPreLoad = false);
+        Task<Stream> GetFundingFeedDocument(string fundingId, string channelCode, bool isForPreLoad = false);
 
-        Task<IDictionary<ExternalFeedFundingGroupItem, Stream>> GetFundingFeedDocuments(IEnumerable<ExternalFeedFundingGroupItem> batchItems, int channelId, CancellationToken cancellationToken);
+        Task<IDictionary<ExternalFeedFundingGroupItem, Stream>> GetFundingFeedDocuments(IEnumerable<ExternalFeedFundingGroupItem> batchItems, string channelCode, CancellationToken cancellationToken);
     }
 }

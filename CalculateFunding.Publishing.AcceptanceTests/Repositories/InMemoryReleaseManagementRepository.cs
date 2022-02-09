@@ -380,11 +380,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<int?> GetChannelIdFromUrlKey(string normalisedKey)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<IEnumerable<Channel>> GetChannels()
         {
             return Task.FromResult(_channels.Values.AsEnumerable());
@@ -538,6 +533,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<bool> UpdateSpecificationUsingAmbientTransaction(Specification specification)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Channel> GetChannelFromUrlKey(string normalisedKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ProviderVersionInChannel> GetReleasedProvider(string publishedProviderVersion, int channelId)
         {
             throw new NotImplementedException();
         }

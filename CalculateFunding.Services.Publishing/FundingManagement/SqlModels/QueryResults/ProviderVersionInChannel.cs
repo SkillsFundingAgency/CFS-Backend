@@ -13,5 +13,7 @@
         public int MinorVersion { get; set; }
 
         public string ProviderId { get; set; }
+
+        public string CoreProviderVersionId { get; set; }
     }
 }

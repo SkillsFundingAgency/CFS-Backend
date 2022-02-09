@@ -103,6 +103,8 @@ namespace CalculateFunding.Api.External
                     jFormatter?.SupportedMediaTypes.Clear();
                     jFormatter?.SupportedMediaTypes.Add("application/atom+json");
                     jFormatter?.SupportedMediaTypes.Add("application/json");
+                    jFormatter?.SupportedMediaTypes.Add("application/problem+json");
+                    jFormatter?.SupportedMediaTypes.Add("application/problem+xml");
                 });
 
             // If using Kestrel:

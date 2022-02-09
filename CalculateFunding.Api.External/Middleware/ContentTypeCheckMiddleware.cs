@@ -11,7 +11,9 @@ namespace CalculateFunding.Api.External.Middleware
         private static readonly List<string> AcceptableContentTypes = new List<string>()
         {
             "application/atom+json",
-            "application/json"
+            "application/json",
+            "application/problem+json",
+            "application/problem+xml"
         };
 
         private readonly RequestDelegate _next;

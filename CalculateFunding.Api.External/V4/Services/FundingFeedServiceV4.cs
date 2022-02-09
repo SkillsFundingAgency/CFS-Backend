@@ -7,6 +7,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,21 +24,21 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.External.V4.Services
 {
-    public class FundingFeedServiceV4 : IFundingFeedServiceV4
+    public class FundingFeedService : IFundingFeedService
     {
         public const int MaxRecords = 500;
 
         private readonly IReleaseManagementRepository _repo;
         private readonly IPublishedFundingRetrievalService _publishedFundingRetrievalService;
-        private readonly IChannelUrlToIdResolver _channelUrlToIdResolver;
+        private readonly IChannelUrlToChannelResolver _channelUrlToChannelResolver;
         private readonly IExternalApiFeedWriter _feedWriter;
         private readonly ILogger _logger;
         private readonly AsyncPolicy _releaseManagementPolicy;
 
-        public FundingFeedServiceV4(
+        public FundingFeedService(
             IReleaseManagementRepository releaseManagementRepository,
             IPublishedFundingRetrievalService publishedFundingRetrievalService,
-            IChannelUrlToIdResolver channelUrlToIdResolver,
+            IChannelUrlToChannelResolver channelUrlToChannelResolver,
             IExternalApiFeedWriter externalApiFeedWriter,
             ILogger logger,
             IPublishingResiliencePolicies publishingResiliencePolicies)
@@ -47,10 +48,11 @@ namespace CalculateFunding.Api.External.V4.Services
             Guard.ArgumentNotNull(externalApiFeedWriter, nameof(externalApiFeedWriter));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
+            Guard.ArgumentNotNull(channelUrlToChannelResolver, nameof(channelUrlToChannelResolver));
 
             _repo = releaseManagementRepository;
             _publishedFundingRetrievalService = publishedFundingRetrievalService;
-            _channelUrlToIdResolver = channelUrlToIdResolver;
+            _channelUrlToChannelResolver = channelUrlToChannelResolver;
             _feedWriter = externalApiFeedWriter;
             _logger = logger;
 
@@ -83,9 +85,9 @@ namespace CalculateFunding.Api.External.V4.Services
             int? pageSize = MaxRecords,
            CancellationToken cancellationToken = default(CancellationToken))
         {
-            int? channelId = await _channelUrlToIdResolver.ResolveUrlToChannelId(channelUrlKey);
+            Channel channel = await _channelUrlToChannelResolver.ResolveUrlToChannel(channelUrlKey);
 
-            if (!channelId.HasValue)
+            if (channel == null)
             {
                 return new PreconditionFailedResult("Channel does not exist");
             }
@@ -99,7 +101,7 @@ namespace CalculateFunding.Api.External.V4.Services
             Stopwatch sw = Stopwatch.StartNew();
 
             SearchFeedResult<ExternalFeedFundingGroupItem> searchFeed = await GetSearchFeedResultForPage(
-                pageRef, pageSize.Value, channelId.Value, fundingStreamIds, fundingPeriodIds,
+                pageRef, pageSize.Value, channel.ChannelId, fundingStreamIds, fundingPeriodIds,
                 groupingReasons?.Select(x => x.ToString()),
                 variationReasons?.Select(x => x.ToString()));
 
@@ -117,7 +119,7 @@ namespace CalculateFunding.Api.External.V4.Services
 
             try
             {
-                await CreateAtomFeed(searchFeed, request, response, channelId.Value, cancellationToken);
+                await CreateAtomFeed(searchFeed, request, response, channel.ChannelCode, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -131,7 +133,7 @@ namespace CalculateFunding.Api.External.V4.Services
         private async Task CreateAtomFeed(SearchFeedResult<ExternalFeedFundingGroupItem> searchFeed,
                                           HttpRequest request,
                                           HttpResponse response,
-                                          int channelId,
+                                          string channelCode,
                                           CancellationToken cancellationToken)
         {
             const string fundingEndpointName = "notifications";
@@ -159,7 +161,7 @@ namespace CalculateFunding.Api.External.V4.Services
 
                 Stopwatch sw = Stopwatch.StartNew();
 
-                IDictionary<ExternalFeedFundingGroupItem, Stream> contents = await _publishedFundingRetrievalService.GetFundingFeedDocuments(batchItems, channelId, cancellationToken);
+                IDictionary<ExternalFeedFundingGroupItem, Stream> contents = await _publishedFundingRetrievalService.GetFundingFeedDocuments(batchItems, channelCode, cancellationToken);
 
                 sw.Stop();
 
@@ -172,7 +174,7 @@ namespace CalculateFunding.Api.External.V4.Services
                                           fundingTrimmedRequestPath,
                                           contents,
                                           isLastBatch,
-                                          channelId,
+                                          channelCode,
                                           cancellationToken);
             }
 
@@ -186,7 +188,7 @@ namespace CalculateFunding.Api.External.V4.Services
             string fundingTrimmedRequestPath,
             IEnumerable<KeyValuePair<ExternalFeedFundingGroupItem, Stream>> fundingFeedDocuments,
             bool isLastBatch,
-            int channelId,
+            string channelCode,
             CancellationToken cancellationToken)
         {
             int feedDocumentCount = fundingFeedDocuments.Count();
@@ -197,7 +199,7 @@ namespace CalculateFunding.Api.External.V4.Services
 
             if (noContentDocuments.Any())
             {
-                string message = $"No funding content blob found for funding ID in channel {channelId}: {string.Join(',', noContentDocuments.Select(x => x.Key.FundingId))}.";
+                string message = $"No funding content blob found for funding ID in channel {channelCode}: {string.Join(',', noContentDocuments.Select(x => x.Key.FundingId))}.";
                 throw new Exception(message);
             }
 

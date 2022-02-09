@@ -55,12 +55,12 @@ namespace CalculateFunding.Api.External.V4.Services
         }
 
         public async Task<Stream> GetFundingFeedDocument(string fundingId,
-            int channelId,
+            string channelCode,
             bool isForPreLoad = false)
         {
             Guard.IsNullOrWhiteSpace(fundingId, nameof(fundingId));
 
-            FundingFileSystemCacheKey fundingFileSystemCacheKey = _blobDocumentPathGenerator.GenerateFilesystemCacheKeyForFundingDocument(fundingId, channelId);
+            FundingFileSystemCacheKey fundingFileSystemCacheKey = _blobDocumentPathGenerator.GenerateFilesystemCacheKeyForFundingDocument(fundingId, channelCode);
 
             if (_cacheSettings.IsEnabled && _fileSystemCache.Exists(fundingFileSystemCacheKey))
             {
@@ -69,7 +69,7 @@ namespace CalculateFunding.Api.External.V4.Services
                 return _fileSystemCache.Get(fundingFileSystemCacheKey);
             }
 
-            string blobDocumentPath = _blobDocumentPathGenerator.GenerateBlobPathForFundingDocument(fundingId, channelId);
+            string blobDocumentPath = _blobDocumentPathGenerator.GenerateBlobPathForFundingDocument(fundingId, channelCode);
 
             ICloudBlob blob = _blobClient.GetBlockBlobReference(blobDocumentPath);
 
@@ -97,7 +97,7 @@ namespace CalculateFunding.Api.External.V4.Services
 
         }
 
-        public async Task<IDictionary<ExternalFeedFundingGroupItem, Stream>> GetFundingFeedDocuments(IEnumerable<ExternalFeedFundingGroupItem> batchItems, int channelId, CancellationToken cancellationToken)
+        public async Task<IDictionary<ExternalFeedFundingGroupItem, Stream>> GetFundingFeedDocuments(IEnumerable<ExternalFeedFundingGroupItem> batchItems, string channelCode, CancellationToken cancellationToken)
         {
             ConcurrentDictionary<ExternalFeedFundingGroupItem, Stream> feedContentResults = new ConcurrentDictionary<ExternalFeedFundingGroupItem, Stream>(_externalEngineOptions.BlobLookupConcurrencyCount, batchItems.Count());
 
@@ -116,7 +116,7 @@ namespace CalculateFunding.Api.External.V4.Services
 
                         try
                         {
-                            Stream contents = await GetFundingFeedDocument(item.FundingId, channelId);
+                            Stream contents = await GetFundingFeedDocument(item.FundingId, channelCode);
                             feedContentResults.TryAdd(item, contents);
 
                         }

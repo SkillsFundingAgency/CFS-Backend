@@ -36,8 +36,8 @@ namespace CalculateFunding.Api.External.V4.IoC
     {
         public static IServiceCollection AddExternalApiV4Services(this IServiceCollection builder, IConfiguration configuration)
         {
-            builder.AddSingleton<IFundingFeedServiceV4, FundingFeedServiceV4>();
-            builder.AddSingleton<IChannelUrlToIdResolver, ChannelUrlToIdResolver>();
+            builder.AddSingleton<IFundingFeedService, FundingFeedService>();
+            builder.AddSingleton<IChannelUrlToChannelResolver, ChannelUrlToChannelResolver>();
             builder.AddSingleton<IBlobDocumentPathGenerator, BlobDocumentPathGenerator>();
             builder.AddSingleton<IExternalApiFeedWriter, ExternalApiFeedWriter>();
             builder.AddSingleton<IFundingFeedItemByIdService, FundingFeedItemByIdService>();
@@ -49,7 +49,7 @@ namespace CalculateFunding.Api.External.V4.IoC
 
                     configuration.Bind("AzureStorageSettings", storageSettings);
 
-                    storageSettings.ContainerName = "publishedproviderversions";
+                    storageSettings.ContainerName = "releasedproviders";
 
                     IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
                     return new BlobClient(blobContainerRepository);
@@ -61,7 +61,7 @@ namespace CalculateFunding.Api.External.V4.IoC
 
                 configuration.Bind("AzureStorageSettings", storageSettings);
 
-                storageSettings.ContainerName = "publishedproviderversions";
+                storageSettings.ContainerName = "releasedproviders";
 
                 IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
                 IBlobClient blobClient = new BlobClient(blobContainerRepository);
@@ -71,9 +71,10 @@ namespace CalculateFunding.Api.External.V4.IoC
                 IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
                 IExternalApiFileSystemCacheSettings settings = ctx.GetService<IExternalApiFileSystemCacheSettings>();
                 IReleaseManagementRepository releaseManagementRepository = ctx.GetService<IReleaseManagementRepository>();
-                IChannelUrlToIdResolver channelUrlToIdResolver = ctx.GetService<IChannelUrlToIdResolver>();
+                IChannelUrlToChannelResolver channelUrlToChannelResolver = ctx.GetService<IChannelUrlToChannelResolver>();
+                IBlobDocumentPathGenerator blobDocumentPathGenerator = ctx.GetService<IBlobDocumentPathGenerator>();
 
-                return new ProviderFundingVersionService(blobClient, releaseManagementRepository, channelUrlToIdResolver, logger, publishingResiliencePolicies, fileSystemCache, settings);
+                return new ProviderFundingVersionService(blobClient, releaseManagementRepository, channelUrlToChannelResolver, blobDocumentPathGenerator, logger, publishingResiliencePolicies, fileSystemCache, settings);
             });
             
             builder.AddSingleton<IPublishedFundingBulkRepository, PublishedFundingBulkRepository>((ctx) =>
@@ -107,7 +108,7 @@ namespace CalculateFunding.Api.External.V4.IoC
 
                 configuration.Bind("AzureStorageSettings", storageSettings);
 
-                storageSettings.ContainerName = "publishedfunding";
+                storageSettings.ContainerName = "releasedgroups";
 
                 IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
                 IBlobClient blobClient = new BlobClient(blobContainerRepository);

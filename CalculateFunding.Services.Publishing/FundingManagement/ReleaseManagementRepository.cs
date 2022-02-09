@@ -413,6 +413,23 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return providerVersionChannel;
         }
 
+        public async Task<ProviderVersionInChannel> GetReleasedProvider(string publishedProviderVersion, int channelId)
+        {
+            return await QuerySingleSql<ProviderVersionInChannel>(@$"
+				SELECT RPVC.[ChannelId], C.ChannelCode, C.ChannelName, RPV.MajorVersion, RPV.MinorVersion, RP.ProviderId, RPV.CoreProviderVersionId
+                FROM [ReleasedProviders] RP
+                INNER JOIN ReleasedProviderVersions RPV ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
+                INNER JOIN Channels C ON C.ChannelId = RPVC.ChannelId
+                WHERE RPV.FundingId = @{nameof(publishedProviderVersion)}
+				AND RPVC.ChannelId = @{nameof(channelId)}",
+                new
+                {
+                    publishedProviderVersion,
+                    channelId,
+                });
+        }
+
         public async Task<ReleasedProviderVersionChannel> GetReleasedProviderVersionChannel(int releasedProviderVersionId, int channelId)
         {
             return await QuerySingleSql<ReleasedProviderVersionChannel>(
@@ -488,9 +505,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return await QuerySql<ExternalFeedFundingGroupItem>(sql, parameters);
         }
 
-        public async Task<int?> GetChannelIdFromUrlKey(string normalisedKey)
+        public async Task<Channel> GetChannelFromUrlKey(string normalisedKey)
         {
-            return await QuerySingleSql<int?>($"SELECT ChannelId FROM Channels WHERE UrlKey = @{nameof(normalisedKey)}",
+            return await QuerySingleSql<Channel>($"SELECT * FROM Channels WHERE UrlKey = @{nameof(normalisedKey)}",
                 new
                 {
                     normalisedKey,
@@ -533,7 +550,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             return await QuerySql<string>(@$"
 				SELECT [FGV].[FundingId]
-				FROM [ReleaseManagement].[dbo].[FundingGroupVersions] FGV
+				FROM FundingGroupVersions FGV
 				INNER JOIN FundingGroupProviders FGP ON FGV.FundingGroupVersionId = FGP.FundingGroupVersionId
 				INNER JOIN ReleasedProviderVersionChannels RPVC ON FGP.ReleasedProviderVersionChannelId = RPVC.ReleasedProviderVersionChannelId
 				INNER JOIN ReleasedProviderVersions RPV ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId

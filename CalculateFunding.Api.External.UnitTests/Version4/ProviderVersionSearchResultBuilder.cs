@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Api.External.V3.Models;
+﻿using CalculateFunding.Api.External.V4.Models;
 
 namespace CalculateFunding.Api.External.UnitTests.Version4
 {

@@ -15,11 +15,11 @@ namespace CalculateFunding.Api.External.V4.Controllers
     [ApiController]
     [ApiVersion("4.0")]
     [Route("api/v{version:apiVersion}/{channel}/funding/notifications")]
-    public class FundingFeedControllerV4 : ControllerBase
+    public class FundingFeedController : ControllerBase
     {
-        private readonly IFundingFeedServiceV4 _fundingFeedsService;
+        private readonly IFundingFeedService _fundingFeedsService;
 
-        public FundingFeedControllerV4(IFundingFeedServiceV4 fundingFeedsService)
+        public FundingFeedController(IFundingFeedService fundingFeedsService)
         {
             Guard.ArgumentNotNull(fundingFeedsService, nameof(fundingFeedsService));
             _fundingFeedsService = fundingFeedsService;

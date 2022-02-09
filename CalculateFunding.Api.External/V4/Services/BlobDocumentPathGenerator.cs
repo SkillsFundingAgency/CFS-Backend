@@ -4,17 +4,19 @@ namespace CalculateFunding.Api.External.V4.Services
 {
     public class BlobDocumentPathGenerator : IBlobDocumentPathGenerator
     {
-        public string GenerateBlobPathForFundingDocument(string fundingId, int channelId)
+        public string GenerateBlobPathForFundingDocument(string fundingId, string channelCode)
         {
-            // TODO: ensure valid characters are in funding ID.
-            // TODO: Change back to channels after writing documents per channel
-            //return $"{channelId}/{fundingId}.json";
-            return $"{fundingId}.json";
+            return $"{channelCode}/{fundingId}.json";
         }
 
-        public FundingFileSystemCacheKey GenerateFilesystemCacheKeyForFundingDocument(string fundingId, int channelId)
+        public FundingFileSystemCacheKey GenerateFilesystemCacheKeyForFundingDocument(string fundingId, string channelCode)
         {
-            return new FundingFileSystemCacheKey($"{channelId}_{fundingId}");
+            return new FundingFileSystemCacheKey($"{channelCode}_{fundingId}");
+        }
+
+        public ProviderFundingFileSystemCacheKey GenerateFilesystemCacheKeyForProviderFundingDocument(string fundingId, string channelCode)
+        {
+            return new ProviderFundingFileSystemCacheKey($"{channelCode}_{fundingId}");
         }
     }
 }

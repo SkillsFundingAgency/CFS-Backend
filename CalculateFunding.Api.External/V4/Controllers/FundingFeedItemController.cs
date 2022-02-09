@@ -10,11 +10,11 @@ namespace CalculateFunding.Api.External.V4.Controllers
     [ApiController]
     [ApiVersion("4.0")]
     [Route("api/v{version:apiVersion}/{channel}/funding")]
-    public class FundingFeedItemControllerV4 : ControllerBase
+    public class FundingFeedItemController : ControllerBase
     {
         private readonly IFundingFeedItemByIdService _fundingService;
 
-        public FundingFeedItemControllerV4(IFundingFeedItemByIdService fundingService)
+        public FundingFeedItemController(IFundingFeedItemByIdService fundingService)
         {
             Guard.ArgumentNotNull(fundingService, nameof(fundingService));
 

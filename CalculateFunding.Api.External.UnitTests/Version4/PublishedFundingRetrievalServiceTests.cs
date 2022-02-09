@@ -19,10 +19,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version4
     public class PublishedFundingRetrievalServiceTests
     {
         [TestMethod]
-        [DataRow(1234, "1234")]
-        public async Task GetFundingFeedDocument_BlobDoesntExist_LogsAndReturnsNull(int channel, string fundingId)
+        [DataRow("1234", "1234")]
+        public async Task GetFundingFeedDocument_BlobDoesntExist_LogsAndReturnsNull(string channelCode, string fundingId)
         {
-            string documentPath = $"{fundingId}.json";
+            string documentPath = $"{channelCode}/{fundingId}.json";
 
             ICloudBlob cloudBlob = CreateBlob();
             cloudBlob
@@ -44,7 +44,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version4
                 blobDocumentPathGenerator: blobDocumentPathGenerator);
 
 
-            Stream result = await service.GetFundingFeedDocument(fundingId, channel);
+            Stream result = await service.GetFundingFeedDocument(fundingId, channelCode);
 
             result
                 .Should()
@@ -66,9 +66,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version4
         [TestMethod]
         public async Task GetFundingFeedDocument_NoFundingStream_LogsAndReturnsNull()
         {
-            int channel = 1234;
+            string channelCode = "1234";
             string fundingId = "1234";
-            string documentPath = "1234.json";
+            string documentPath = "1234/1234.json";
 
             ICloudBlob cloudBlob = CreateBlob();
             cloudBlob
@@ -93,7 +93,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version4
                 logger: logger,
                 blobDocumentPathGenerator: blobDocumentPathGenerator);
 
-            Stream result = await service.GetFundingFeedDocument(fundingId, channel);
+            Stream result = await service.GetFundingFeedDocument(fundingId, channelCode);
 
             result
                 .Should()
@@ -125,10 +125,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version4
         {
             //Arrange
             string template = new RandomString();
-            int channel = 1234;
+            string channelCode = "1234";
             string fundingId = "cromulent";
 
-            string documentPath = "cromulent.json";
+            string documentPath = "1234/cromulent.json";
             string uri = $"https://cfs/test/{documentPath}";
 
             Stream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(template));
@@ -146,7 +146,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version4
                 .Exists(Arg.Any<BlobRequestOptions>(), Arg.Any<OperationContext>())
                 .Returns(true);
 
-            string documentName = $"{channel}_{fundingId}";
+            string documentName = $"{channelCode}_{fundingId}";
 
             fileSystemCache
                 .Exists(Arg.Is<FileSystemCacheKey>(_ => _.Key == documentName))
@@ -176,7 +176,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version4
                 blobDocumentPathGenerator: blobDocumentPathGenerator);
 
             //Act
-            MemoryStream result = (MemoryStream)await service.GetFundingFeedDocument(fundingId, channel);
+            MemoryStream result = (MemoryStream)await service.GetFundingFeedDocument(fundingId, channelCode);
 
             //Assert
             Encoding.UTF8.GetString(result.ToArray())
@@ -218,9 +218,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version4
         {
             //Arrange
             string template = new RandomString();
-            int channel = 1234;
+            string channelCode = "1234";
             string fundingId = "1234";
-            string documentPath = "1234.json";
+            string documentPath = "1234/1234.json";
 
             Stream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(template));
 
@@ -257,7 +257,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version4
                 blobDocumentPathGenerator: blobDocumentPathGenerator);
 
             //Act
-            MemoryStream result = (MemoryStream)await service.GetFundingFeedDocument(fundingId, channel);
+            MemoryStream result = (MemoryStream)await service.GetFundingFeedDocument(fundingId, channelCode);
 
             //Assert
             Encoding.UTF8.GetString(result.ToArray())
@@ -284,7 +284,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version4
                 .Received(0)
                 .Get(Arg.Any<FundingFileSystemCacheKey>());
 
-            string documentName = $"{channel}_{fundingId}"; ;
+            string documentName = $"{channelCode}_{fundingId}"; ;
 
             fileSystemCache
                 .Received(expectedCacheAccessCount)

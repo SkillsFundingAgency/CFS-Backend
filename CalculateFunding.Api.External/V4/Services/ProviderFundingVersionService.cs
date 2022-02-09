@@ -6,6 +6,7 @@ using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
 using Polly;
@@ -25,11 +26,13 @@ namespace CalculateFunding.Api.External.V4.Services
         private readonly AsyncPolicy _blobClientPolicy;
         private readonly ILogger _logger;
         private readonly IReleaseManagementRepository _releaseManagementRepository;
-        private readonly IChannelUrlToIdResolver _channelUrlToIdResolver;
+        private readonly IChannelUrlToChannelResolver _channelUrlToChannelResolver;
+        private readonly IBlobDocumentPathGenerator _blobDocumentPathGenerator;
 
         public ProviderFundingVersionService(IBlobClient blobClient,
             IReleaseManagementRepository releaseManagementRepository,
-            IChannelUrlToIdResolver channelUrlToIdResolver,
+            IChannelUrlToChannelResolver channelUrlToChannelResolver,
+            IBlobDocumentPathGenerator blobDocumentPathGenerator,
             ILogger logger,
             IExternalApiResiliencePolicies resiliencePolicies,
             IFileSystemCache fileSystemCache,
@@ -37,7 +40,8 @@ namespace CalculateFunding.Api.External.V4.Services
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(channelUrlToIdResolver, nameof(channelUrlToIdResolver));
+            Guard.ArgumentNotNull(channelUrlToChannelResolver, nameof(channelUrlToChannelResolver));
+            Guard.ArgumentNotNull(blobDocumentPathGenerator, nameof(blobDocumentPathGenerator));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
             Guard.ArgumentNotNull(cacheSettings, nameof(cacheSettings));
@@ -46,39 +50,38 @@ namespace CalculateFunding.Api.External.V4.Services
             _blobClient = blobClient;
             _logger = logger;
             _releaseManagementRepository = releaseManagementRepository;
-            _channelUrlToIdResolver = channelUrlToIdResolver;
+            _blobDocumentPathGenerator = blobDocumentPathGenerator;
+            _channelUrlToChannelResolver = channelUrlToChannelResolver;
             _fileSystemCache = fileSystemCache;
             _cacheSettings = cacheSettings;
             _blobClientPolicy = resiliencePolicies.PublishedProviderBlobRepositoryPolicy;
         }
 
-        public async Task<IActionResult> GetProviderFundingVersion(string channel, string providerFundingVersion)
+        public async Task<IActionResult> GetProviderFundingVersion(string channelUrl, string providerFundingVersion)
         {
             if (string.IsNullOrWhiteSpace(providerFundingVersion)) return new BadRequestObjectResult("Null or empty id provided.");
 
-            int? channelId = await _channelUrlToIdResolver.ResolveUrlToChannelId(channel);
-            if (!channelId.HasValue)
+            Channel channel = await _channelUrlToChannelResolver.ResolveUrlToChannel(channelUrl);
+            if (channel == null)
             {
                 return new PreconditionFailedResult("Channel does not exist");
             }
 
-            bool providerVersionExists = await _releaseManagementRepository.ContainsProviderVersion(channelId.Value, providerFundingVersion);
+            bool providerVersionExists = await _releaseManagementRepository.ContainsProviderVersion(channel.ChannelId, providerFundingVersion);
             if (!providerVersionExists)
             {
                 return new NotFoundObjectResult("Provider version not found.");
             }
 
-            // TODO: Change to per channel once written to blob storage eg
-            //string blobName = $"{channelId.Value}/{providerFundingVersion}.json";
-            string blobName = $"{providerFundingVersion}.json";
+            string blobName = _blobDocumentPathGenerator.GenerateBlobPathForFundingDocument(providerFundingVersion, channel.ChannelCode);
 
             try
             {
-                ProviderFundingFileSystemCacheKey cacheKey = new ProviderFundingFileSystemCacheKey(providerFundingVersion);
+                ProviderFundingFileSystemCacheKey cacheKey = _blobDocumentPathGenerator.GenerateFilesystemCacheKeyForProviderFundingDocument(providerFundingVersion, channel.ChannelCode);
 
                 if (_cacheSettings.IsEnabled && _fileSystemCache.Exists(cacheKey))
                 {
-                    using Stream cachedStream = _fileSystemCache.Get(cacheKey);
+                    Stream cachedStream = _fileSystemCache.Get(cacheKey);
                     return GetResultStream(cachedStream);
                 }
 
@@ -93,7 +96,7 @@ namespace CalculateFunding.Api.External.V4.Services
 
                 ICloudBlob blob = await _blobClientPolicy.ExecuteAsync(() => _blobClient.GetBlobReferenceFromServerAsync(blobName));
 
-                using Stream blobStream = await _blobClientPolicy.ExecuteAsync(() => _blobClient.DownloadToStreamAsync(blob));
+                Stream blobStream = await _blobClientPolicy.ExecuteAsync(() => _blobClient.DownloadToStreamAsync(blob));
 
                 if (_cacheSettings.IsEnabled)
                 {
@@ -112,13 +115,18 @@ namespace CalculateFunding.Api.External.V4.Services
             }
         }
 
-        public async Task<IActionResult> GetFundings(string channel, string publishedProviderVersion)
+        public async Task<IActionResult> GetFundings(string channelUrl, string publishedProviderVersion)
         {
             if (string.IsNullOrWhiteSpace(publishedProviderVersion)) return new BadRequestObjectResult("Null or empty id provided.");
 
-            int? channelId = await _channelUrlToIdResolver.ResolveUrlToChannelId(channel);
+            Channel channel = await _channelUrlToChannelResolver.ResolveUrlToChannel(channelUrl);
+            
+            if (channel == null)
+            {
+                return new PreconditionFailedResult("Channel does not exist");
+            }
 
-            IEnumerable<string> fundingGroupsVersionsForProvider = await _releaseManagementRepository.GetFundingGroupIdsForProviderFunding(channelId.Value, publishedProviderVersion);
+            IEnumerable<string> fundingGroupsVersionsForProvider = await _releaseManagementRepository.GetFundingGroupIdsForProviderFunding(channel.ChannelId, publishedProviderVersion);
 
             return new OkObjectResult(fundingGroupsVersionsForProvider);
         }

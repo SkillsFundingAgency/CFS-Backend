@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 
         Task<IEnumerable<Channel>> GetChannels();
         Task<Channel> GetChannelByChannelCode(string channelCode);
-        Task<int?> GetChannelIdFromUrlKey(string normalisedKey);
+        Task<Channel> GetChannelFromUrlKey(string normalisedKey);
         Task<Channel> CreateChannel(Channel channel);
         Task<bool> UpdateChannel(Channel channel);
         Task<IEnumerable<FundingPeriod>> GetFundingPeriods();
@@ -78,6 +78,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersions();
         Task<ReleasedProviderChannelVariationReason> CreateReleasedProviderChannelVariationReason(ReleasedProviderChannelVariationReason reason);
         Task<ReleasedProviderVersionChannel> GetReleasedProviderVersionChannel(int releasedProviderVersionId, int channelId);
+        Task<ProviderVersionInChannel> GetReleasedProvider(string publishedProviderVersion, int channelId);
         Task<IEnumerable<FundingGroup>> GetFundingGroups();
         Task<FundingGroupProvider> CreateFundingGroupProvider(FundingGroupProvider fundingGroupProvider);
         Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannel(ReleasedProviderVersionChannel providerVersionChannel);

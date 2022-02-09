@@ -17,9 +17,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version4.Controllers
         [TestMethod]
         public async Task GetFunding_CallsCorrectlyForPayment()
         {
-            IFundingFeedServiceV4 fundingFeedService = Substitute.For<IFundingFeedServiceV4>();
+            IFundingFeedService fundingFeedService = Substitute.For<IFundingFeedService>();
 
-            FundingFeedControllerV4 controller = new FundingFeedControllerV4(
+            FundingFeedController controller = new FundingFeedController(
                 fundingFeedService);
 
             string[] fundingStreamIds = new string[] { "1234" };
@@ -46,9 +46,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version4.Controllers
         [TestMethod]
         public async Task GetFunding_CallsCorrectlyForInformation()
         {
-            IFundingFeedServiceV4 fundingFeedService = Substitute.For<IFundingFeedServiceV4>();
+            IFundingFeedService fundingFeedService = Substitute.For<IFundingFeedService>();
 
-            FundingFeedControllerV4 controller = new FundingFeedControllerV4(
+            FundingFeedController controller = new FundingFeedController(
                 fundingFeedService);
 
             string[] fundingStreamIds = new string[] { "1234" };
@@ -75,9 +75,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version4.Controllers
         [TestMethod]
         public async Task GetFunding_CallsCorrectlyForContracting()
         {
-            IFundingFeedServiceV4 fundingFeedService = Substitute.For<IFundingFeedServiceV4>();
+            IFundingFeedService fundingFeedService = Substitute.For<IFundingFeedService>();
 
-            FundingFeedControllerV4 controller = new FundingFeedControllerV4(
+            FundingFeedController controller = new FundingFeedController(
                 fundingFeedService);
 
             string[] fundingStreamIds = new string[] { "1234" };
@@ -104,9 +104,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version4.Controllers
         [TestMethod]
         public async Task GetFundingPage_CallsCorrectly()
         {
-            IFundingFeedServiceV4 fundingFeedService = Substitute.For<IFundingFeedServiceV4>();
+            IFundingFeedService fundingFeedService = Substitute.For<IFundingFeedService>();
 
-            FundingFeedControllerV4 controller = new FundingFeedControllerV4(
+            FundingFeedController controller = new FundingFeedController(
                 fundingFeedService);
 
             string[] fundingStreamIds = new string[] { "1234" };

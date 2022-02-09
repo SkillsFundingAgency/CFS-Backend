@@ -6,6 +6,8 @@ using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Polly;
@@ -18,51 +20,58 @@ namespace CalculateFunding.Api.External.V4.Services
 {
     public class PublishedProviderRetrievalService : IPublishedProviderRetrievalService
     {
-        private readonly IPublishedFundingRepository _publishedFundingRepository;
-        private readonly IProvidersApiClient _providersApiClient;
-        private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
-        private readonly AsyncPolicy _providersApiClientPolicy;
+        private readonly IReleaseManagementRepository _releaseManagementRepository;
         private readonly ILogger _logger;
         private readonly IMapper _mapper;
         private readonly IExternalApiFileSystemCacheSettings _cacheSettings;
         private readonly IFileSystemCache _fileSystemCache;
+        private readonly IProvidersApiClient _providersApiClient;
+        private readonly AsyncPolicy _providersApiClientPolicy;
+        private readonly IChannelUrlToChannelResolver _channelUrlToChannelResolver;
 
         public PublishedProviderRetrievalService(
-            IPublishedFundingRepository publishedFundingRepository,
+            IReleaseManagementRepository releaseManagementRepository,
             IPublishingResiliencePolicies publishingResiliencePolicies,
             IProvidersApiClient providersApiClient,
             ILogger logger,
             IMapper mapper,
             IExternalApiFileSystemCacheSettings cacheSettings,
+            IChannelUrlToChannelResolver channelUrlToChannelResolver,
             IFileSystemCache fileSystemCache)
         {
-            Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
+            Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(channelUrlToChannelResolver, nameof(channelUrlToChannelResolver));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
-            Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies.ProvidersApiClient, nameof(publishingResiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(cacheSettings, nameof(cacheSettings));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
 
-            _publishedFundingRepository = publishedFundingRepository;
+            _releaseManagementRepository = releaseManagementRepository;
             _providersApiClient = providersApiClient;
             _logger = logger;
             _mapper = mapper;
             _cacheSettings = cacheSettings;
             _fileSystemCache = fileSystemCache;
-            _publishedFundingRepositoryPolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _providersApiClientPolicy = publishingResiliencePolicies.ProvidersApiClient;
+            _channelUrlToChannelResolver = channelUrlToChannelResolver;
         }
 
-        public async Task<ActionResult<ProviderVersionSearchResult>> GetPublishedProviderInformation(string channel, string publishedProviderVersion)
+        public async Task<ActionResult<ProviderVersionSearchResult>> GetPublishedProviderInformation(string channelKey, string publishedProviderVersion)
         {
-            Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
+            Guard.IsNullOrWhiteSpace(channelKey, nameof(channelKey));
+            Guard.IsNullOrWhiteSpace(publishedProviderVersion, nameof(publishedProviderVersion));
 
-            string blobName = $"{publishedProviderVersion}.json";
+            Channel channel = await _channelUrlToChannelResolver.ResolveUrlToChannel(channelKey);
 
-            ProviderVersionSystemCacheKey providerVersionFileSystemCacheKey = new ProviderVersionSystemCacheKey(blobName);
+            if (channel == null)
+            {
+                return new PreconditionFailedResult("Channel not found");
+            }
+
+            ProviderVersionSystemCacheKey providerVersionFileSystemCacheKey = new ProviderVersionSystemCacheKey($"{channel.ChannelCode}_{publishedProviderVersion}");
 
             if (_cacheSettings.IsEnabled && _fileSystemCache.Exists(providerVersionFileSystemCacheKey))
             {
@@ -73,10 +82,9 @@ namespace CalculateFunding.Api.External.V4.Services
                 return cachedProviderVersionSearchResult;
             }
 
-            (string providerVersionId, string providerId) results =
-                await _publishedFundingRepositoryPolicy.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderId(publishedProviderVersion));
+            ProviderVersionInChannel releasedProvider = await _releaseManagementRepository.GetReleasedProvider(publishedProviderVersion, channel.ChannelId);
 
-            if (string.IsNullOrEmpty(results.providerVersionId) || string.IsNullOrEmpty(results.providerId))
+            if (string.IsNullOrEmpty(releasedProvider?.ProviderId))
             {
                 _logger.Error($"Failed to retrieve published provider with publishedProviderVersion: {publishedProviderVersion}");
 
@@ -85,12 +93,12 @@ namespace CalculateFunding.Api.External.V4.Services
 
             ApiResponse<ProvidersApiClientModel.Search.ProviderVersionSearchResult> apiResponse =
                 await _providersApiClientPolicy.ExecuteAsync(() =>
-                    _providersApiClient.GetProviderByIdFromProviderVersion(results.providerVersionId, results.providerId));
+                    _providersApiClient.GetProviderByIdFromProviderVersion(releasedProvider.CoreProviderVersionId, releasedProvider.ProviderId));
 
             if (apiResponse?.Content == null || !apiResponse.StatusCode.IsSuccess())
             {
                 string errorMessage = $"Failed to retrieve GetProviderByIdFromProviderVersion with " +
-                    $"providerVersionId: {results.providerVersionId} and providerId: {results.providerId}";
+                    $"providerVersionId: {releasedProvider.CoreProviderVersionId} and providerId: {releasedProvider.ProviderId}";
 
                 _logger.Error(errorMessage);
 
