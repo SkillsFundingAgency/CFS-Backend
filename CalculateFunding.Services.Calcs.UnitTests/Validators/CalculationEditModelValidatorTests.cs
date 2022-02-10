@@ -139,6 +139,43 @@ namespace CalculateFunding.Services.Calcs.Validators
         }
 
         [TestMethod]
+        public async Task ValidateAsync_WhenCalculationNameLengthIsLessThanAllowedLimit_ValidIsFalse()
+        {
+            //Arrange
+            CalculationEditModel model = CreateModel();
+            model.Name = "123";
+
+            Calculation existingCalculation = new Calculation
+            {
+                Id = model.CalculationId,
+                Current = new CalculationVersion
+                {
+                    CalculationType = CalculationType.Additional
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(model.CalculationId))
+                .Returns(existingCalculation);
+
+            CalculationEditModelValidator validator = CreateValidator(calculationRepository: calculationsRepository);
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result.Errors
+              .Should()
+              .Contain(_ => _.ErrorMessage == "Calculation name length should be at least 4 characters");
+        }
+
+        [TestMethod]
         public async Task ValidateAsync_WhenCalculationNameAlreadyExists_ValidIsFalse()
         {
             //Arrange

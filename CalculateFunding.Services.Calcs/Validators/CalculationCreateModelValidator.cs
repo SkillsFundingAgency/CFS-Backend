@@ -20,7 +20,8 @@ namespace CalculateFunding.Services.Calcs.Validators
         private readonly IPreviewService _previewService;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
-        private readonly char[] CalculationNameNotAllowedCharacters = new[] { '\"' };  
+        private readonly char[] CalculationNameNotAllowedCharacters = new[] { '\"' };
+        private const int MinCalculationNameCharLimit = 4;
 
         public CalculationCreateModelValidator(
             ICalculationsRepository calculationRepository,
@@ -67,6 +68,11 @@ namespace CalculateFunding.Services.Calcs.Validators
                           context.AddFailure($"Calculation name contains not allowed character: '{calculationNameNotAllowedCharacter}'");
                           return;
                       }
+                  }
+
+                  if(calculationCreateModel.CalculationType == CalculationType.Additional && calculationCreateModel.Name.Length < MinCalculationNameCharLimit)
+                  {
+                      context.AddFailure($"Calculation name length should be at least {MinCalculationNameCharLimit} characters");
                   }
 
                   if (!string.IsNullOrWhiteSpace(calculationCreateModel.SpecificationId))

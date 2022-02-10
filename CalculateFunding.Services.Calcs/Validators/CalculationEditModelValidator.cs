@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         private readonly IPreviewService _previewService;
         private readonly ICalculationsRepository _calculationRepository;
         private readonly char[] CalculationNameNotAllowedCharacters = new[] { '\"' };
+        private const int MinCalculationNameCharLimit = 4;
 
         public CalculationEditModelValidator(
             IPreviewService previewService,
@@ -57,7 +58,16 @@ namespace CalculateFunding.Services.Calcs.Validators
                      }
                  }
 
-                if (!string.IsNullOrWhiteSpace(calculationEditModel.SpecificationId))
+                 if (calculationEditModel.Name.Length < MinCalculationNameCharLimit)
+                 {
+                     Calculation existingCalculation = _calculationRepository.GetCalculationById(calculationEditModel.CalculationId).Result;
+                     if (existingCalculation.Current.CalculationType == CalculationType.Additional)
+                     {
+                         context.AddFailure($"Calculation name length should be at least {MinCalculationNameCharLimit} characters");
+                     }
+                 }
+
+                 if (!string.IsNullOrWhiteSpace(calculationEditModel.SpecificationId))
                 {
                     Calculation calculation = _calculationRepository.GetCalculationBySpecificationIdAndCalculationName(calculationEditModel.SpecificationId, calculationEditModel.Name).Result;
 
