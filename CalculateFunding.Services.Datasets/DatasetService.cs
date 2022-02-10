@@ -708,15 +708,6 @@ namespace CalculateFunding.Services.Datasets
             string uploadedBlobPath = GetUploadedBlobFilepath(model.Filename, model.DatasetId, model.Version);
             string blobPath = GetMergedBlobFilepath(model.Filename, model.DatasetId, model.Version);
             
-            if (await _blobClient.BlobExistsAsync(blobPath))
-            {
-                string errorMessage = $"Failed to copy uploaded file '{uploadedBlobPath}' to new location '{blobPath}' as it already exists.";
-
-                _logger.Error(errorMessage);
-                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
-                throw new NonRetriableException(errorMessage);
-            }
-
             ICloudBlob blob = await _blobClient.CopyBlobAsync(uploadedBlobPath, blobPath);
 
             if (blob == null)
