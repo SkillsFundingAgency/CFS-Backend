@@ -63,11 +63,6 @@ namespace CalculateFunding.Services.Profiling.Models
         /// </summary>
         public int? VariationPointerIndex { get; set; }
 
-        /// <summary>
-        /// A flag used to determine if we are requesting a re-profile which has already happened
-        /// </summary>
-        public bool AlreadyPaidUpToIndex { get; set; }
-
         [JsonIgnore] 
         public decimal FundingLineTotalChange => FundingLineTotal - ExistingFundingLineTotal;
     }

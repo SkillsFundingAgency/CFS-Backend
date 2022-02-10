@@ -32,18 +32,6 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             AndTheCarryOverShouldBe(0);
         }
 
-        [TestMethod]
-        public void SkipsProfilingIfAlreadyPaidToIndex()
-        {
-            Context.Request.AlreadyPaidUpToIndex = true;
-
-            WhenTheFundingLineIsReProfiled();
-
-            Result.SkipReProfiling
-                .Should()
-                .Be(true);
-        }
-
         private static IEnumerable<object[]> StartUpGrantExamples()
         {
             //Example 1 - New provider eligible for SUG Part A opens at the start of the funding year

@@ -15,7 +15,6 @@ namespace CalculateFunding.Services.Profiling.Tests
         private string _profilePatternKey;
         private int? _variationPointer;
         private MidYearType? _midYearType;
-        private bool _alreadyPaidUpToIndex;
 
         public ReProfileRequestBuilder WithMidYearCatchup(MidYearType? midYearType)
         {
@@ -80,13 +79,6 @@ namespace CalculateFunding.Services.Profiling.Tests
             return this;
         }
 
-        public ReProfileRequestBuilder WithAlreadyPaidUpToIndex(bool alreadyPaidUpToIndex)
-        {
-            _alreadyPaidUpToIndex = alreadyPaidUpToIndex;
-
-            return this;
-        }
-
         public ReProfileRequest Build()
         {
             return new ReProfileRequest
@@ -99,8 +91,7 @@ namespace CalculateFunding.Services.Profiling.Tests
                 ExistingFundingLineTotal = _existingFundingLineTotal.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue)),
                 ExistingPeriods = _existingProfilePeriods,
                 VariationPointerIndex = _variationPointer,
-                MidYearType = _midYearType,
-                AlreadyPaidUpToIndex = _alreadyPaidUpToIndex
+                MidYearType = _midYearType
             };
         }
         

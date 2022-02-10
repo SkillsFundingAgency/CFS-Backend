@@ -24,11 +24,9 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             decimal previousTotalAllocation,
             decimal[] expectedAdjustedPeriodValues,
             decimal? expectedRemainingOverPayment,
-            MidYearType? midYearType,
-            bool alreadyPaidUpToIndex)
+            MidYearType? midYearType)
         {
             Context.Request.MidYearType = midYearType;
-            Context.Request.AlreadyPaidUpToIndex = alreadyPaidUpToIndex;
 
             GivenTheLatestProfiling(AsLatestProfiling(newTheoreticalProfilePeriods));
             GivenTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
@@ -54,8 +52,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 5000M,
                 NewDecimals(1000, 1000, 1600, 1200, 1200),
                 0M,
-                null,
-                false
+                null
             };
             // Example 2 - decrease funding
             yield return new object[]
@@ -67,8 +64,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 5000M,
                 NewDecimals(1000, 1000, 400, 800, 800),
                 0M,
-                null,
-                false
+                null
             };
             //Example 3 - decrease funding more than period amount
             yield return new object[]
@@ -80,8 +76,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                  5000M,
                  NewDecimals(1000, 1000, -200, 600, 600),
                  0M,
-                null,
-                false
+                null
             };
             // Example 4 - decrease funding to paid amount -zero off
             yield return new object[]
@@ -93,8 +88,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 5000M,
                 NewDecimals(1000, 1000, 0, 0, 0),
                 0M,
-                null,
-                false
+                null
             };
             // Example 5 - decrease funding more than paid amount
             yield return new object[]
@@ -106,8 +100,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 5000M,
                 NewDecimals(1000, 1000, -1000, 0, 0),
                 0M,
-                null,
-                false
+                null
             };
             // Example 6 - increase of funding, with different percentages in remaining periods
             yield return new object[]
@@ -119,8 +112,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 5000M,
                 NewDecimals(750, 1000, 2750, 600, 900),
                 0M,
-                null,
-                false
+                null
             };
             // Example 7 - decimals
             yield return new object[]
@@ -132,8 +124,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 5000M,
                 NewDecimals(1000, 1000, 1101.86M, 1033.95M, 1033.95M),
                 0M,
-                null,
-                false
+                null
             };
             // Example 8 - decimals
             yield return new object[]
@@ -145,8 +136,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 NewDecimals(0, 0, 1800M, 600M, 600M),
                 0M,
-                null,
-                false
+                null
             };
             // Example 9 - negative funding lines
             yield return new object[]
@@ -158,8 +148,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 -5000M,
                 NewDecimals(-1000, -1000, -1101.86M, -1033.95M, -1033.95M),
                 0M,
-                null,
-                false
+                null
             };
             // Example 10 - test for mid year opener with catchup
             yield return new object[]
@@ -171,8 +160,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 NewDecimals(0, 0, 3101.86M, 1033.95M, 1033.95M),
                 0M,
-                MidYearType.OpenerCatchup,
-                false
+                MidYearType.OpenerCatchup
             };
             // Example 11
             // 1619
@@ -186,8 +174,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 NewDecimals(0, 0, 0, 21962.80M, 0, 0, 0, 15689.87M, 0, 0, 0, 0),
                 0M,
-                MidYearType.Opener,
-                false
+                MidYearType.Opener
             };
             // Example 27
             //  1619
@@ -201,8 +188,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 NewDecimals(0, 0, 0, 0, 0, 13958.64M, 0, 0, 13958.64M, 13959.05M, 0, 0),
                 0M,
-                MidYearType.Opener,
-                false
+                MidYearType.Opener
             };
             // Example 29
             //  1619
@@ -216,8 +202,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 27917.28M, 13959.05M, 0, 0),
                 0M,
-                MidYearType.Opener,
-                false
+                MidYearType.Opener
             };
             // Example 38
             //  1619
@@ -232,8 +217,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 NewDecimals(0, 0, 0, 0, 0, 0, 20427.16M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
                 0M,
-                MidYearType.OpenerCatchup,
-                false
+                MidYearType.OpenerCatchup
             };
             // Example 39
             //  1619
@@ -247,8 +231,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 NewDecimals(0, 0, 0, 0, 0, 0, 20427.16M, 1902.60M, 4631.14M, 4277.17M, 3539.72M, 2094.33M),
                 0M,
-                MidYearType.Opener,
-                false
+                MidYearType.Opener
             };
             // Example 50
             //  1619
@@ -262,8 +245,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 27651.67M,
                 NewDecimals(0, 0, 0, 16129.22M, 0, -2303.39M, 0, 0, 0, 0, 0, 0),
                 0M,
-                MidYearType.Closure,
-                false
+                MidYearType.Closure
             };
             // Example 53
             //  1619
@@ -277,8 +259,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 26483.99M,
                 NewDecimals(0, 0, 6620.99M, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                 0M,
-                MidYearType.Closure,
-                false
+                MidYearType.Closure
             };
             // Example 66
             //  1619
@@ -292,8 +273,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 NewDecimals(0, 0, 0, 0, 0, 34288M, 0, 0, 0, 0, 0, 0),
                 0M,
-                MidYearType.Opener,
-                false
+                MidYearType.Opener
             };
             // Example 71
             //  1619
@@ -308,8 +288,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 NewDecimals(0, 0, 0, 0, 13242M, 6621M, 0, 0, 6620.99M, 0, 0, 0),
                 0M,
-                MidYearType.Opener,
-                false
+                MidYearType.Opener
             };
             // Example 72
             //  1619
@@ -324,23 +303,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 0M,
                 NewDecimals(0, 0, 0, 0, 7724.50M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
                 0M,
-                MidYearType.Opener,
-                false
-            };
-            //  1619
-            //      Existing provider with new eligibility for a funding line - Variable profile - some default payment months in the past,
-            //      others still in the future - eligibility for funding deemed to apply from the point that provider became eligible
-            yield return new object[]
-            {
-                4,
-                NewDecimals(0, 0, 0, 3862.30M, 3862.20M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
-                NewDecimals(0, 0, 0, 3862.30M, 3862.20M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
-                15448.99M,
-                15448.99M,
-                NewDecimals(0, 0, 0, 3862.30M, 3862.20M, 3862.25M, 0, 0, 3862.24M, 0, 0, 0),
-                0M,
-                MidYearType.Opener,
-                true
+                MidYearType.Opener
             };
             // Example 84 
             //  1619
@@ -355,8 +318,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 26483.99M,
                 NewDecimals(0, 0, 0, 2942.69M, 2942.65M, 2942.65M, 1151.52M, 2494.90M, 2494.87M, 2494.87M, 2494.87M, 2494.87M),
                 0M,
-                null,
-                false
+                null
             };
             // Example 96 
             //  1619
@@ -372,8 +334,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 34288M,
                 NewDecimals(0, 0, 0, 34288M, 0, 0, -4411.63M, 0, 0, 0, 0, 0),
                 0M,
-                null,
-                false
+                null
             };
             // Example 99 
             //  1619
@@ -389,8 +350,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 34288M,
                 NewDecimals(0, 0, 0, 34288M, 0, 3579.25M, 0, 0, 0, 0, 0, 0),
                 0M,
-                null,
-                false
+                null
             };
         }
     }

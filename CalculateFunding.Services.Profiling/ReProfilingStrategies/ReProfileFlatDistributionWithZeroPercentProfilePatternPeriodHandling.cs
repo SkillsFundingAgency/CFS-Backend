@@ -27,8 +27,6 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
             int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
 
-            variationPointerIndex = GetAlreadyPaidUptoIndex(context, variationPointerIndex);
-
             bool shouldSkipZeroPercentPeriods = HasUnpaidNoneZeroProfilePeriods(_orderedProfilePatternPeriods, variationPointerIndex);
             
             if (shouldSkipZeroPercentPeriods)

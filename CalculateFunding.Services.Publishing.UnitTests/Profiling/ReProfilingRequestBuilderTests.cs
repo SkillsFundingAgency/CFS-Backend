@@ -253,9 +253,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         [TestMethod]
         [DataRow(MidYearType.Converter, 1)]
         [DataRow(MidYearType.Opener, 1)]
-        [DataRow(MidYearType.Opener, 0)]
         [DataRow(MidYearType.OpenerCatchup, 1)]
         [DataRow(MidYearType.Closure, 1)]
+        [DataRow(MidYearType.Closure, 0)]
         public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers(MidYearType midYearType, int variationPointerOccurrence)
         {
             string providerId = NewRandomString();
@@ -322,7 +322,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     ProfilePatternKey = profilePattern,
                     MidYearType = midYearType,
                     VariationPointerIndex = 1,
-                    AlreadyPaidUpToIndex = variationPointerOccurrence == 0 ? true : false,
                     ExistingPeriods = new []
                     {
                         NewExististingProfilePeriod(_ => _.WithOccurrence(0)
