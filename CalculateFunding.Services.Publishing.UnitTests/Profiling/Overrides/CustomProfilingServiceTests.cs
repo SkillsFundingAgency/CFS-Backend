@@ -575,7 +575,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                                     .WithProfilePeriods(profilePeriod2)))
                             .WithValue(profilePeriod1.ProfiledValue + profilePeriod2.ProfiledValue + carryOver.GetValueOrDefault()))
                         )
-                    .WithErrors(new PublishedProviderError { Type = PublishedProviderErrorType.FundingLineValueProfileMismatch }))));
+                    .WithErrors(new PublishedProviderError { Type = PublishedProviderErrorType.FundingLineValueProfileMismatch, FundingLineCode = fundingLineOne },
+                        new PublishedProviderError { Type = PublishedProviderErrorType.ProfilingConsistencyCheckFailure, FundingLineCode = fundingLineOne },
+                        new PublishedProviderError { Type = PublishedProviderErrorType.ProviderNotFunded, FundingLineCode = fundingLineOne }))));
 
             Reference author = NewAuthor();
 
@@ -594,17 +596,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             AndTheCustomProfilePeriodsWereUsedOn(fundingLine, profilePeriods);
             AndANewProviderVersionWasCreatedFor(publishedProvider, expectedRequestedStatus, author);
             AndProfilingAuditUpdatedForFundingLines(publishedProvider, new[] { fundingLineOne }, author);
-            AndErrorsAreCleared(publishedProvider);
+            AndErrorsAreCleared(publishedProvider, fundingLineOne);
             AndPublishCsvReportsJobCreated();
             AndThePublishedProviderIsIndex(publishedProvider);
         }
 
-        private void AndErrorsAreCleared(PublishedProvider publishedProvider)
+        private void AndErrorsAreCleared(PublishedProvider publishedProvider, string fundingLineCode)
         {
             publishedProvider
                 .Current
                 .Errors
-                .Where(_ => _.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch)
+                .Where(_ => (_.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch || _.Type == PublishedProviderErrorType.ProfilingConsistencyCheckFailure) && _.FundingLineCode == fundingLineCode)
                 .Should()
                 .BeEmpty();
         }

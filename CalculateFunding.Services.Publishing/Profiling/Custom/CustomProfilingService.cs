@@ -138,7 +138,9 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             currentProviderVersion.AddProfilingAudit(fundingLineCode, author);
 
             // reset profiling errors
-            currentProviderVersion.ResetErrors(_ => _.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch);
+            currentProviderVersion.ResetErrors(_ => 
+                (_.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch ||
+                _.Type == PublishedProviderErrorType.ProfilingConsistencyCheckFailure) && _.FundingLineCode == fundingLineCode);
             
             await _publishedProviderVersionCreation.UpdatePublishedProviderStatus(new[] { publishedProvider },
                 author,
