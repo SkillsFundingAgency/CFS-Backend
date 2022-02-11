@@ -17,6 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private const int StatementMajorVersion = 1;
         private const int PaymentMajorVersion = 2;
         private const int ContractingMajorVersion = 3;
+        private const int ChannelCodeOneMajorVersion = 4;
 
         [DataRow(SqlExportSource.CurrentPublishedProviderVersion, true)]
         [DataRow(SqlExportSource.CurrentPublishedProviderVersion, false)]
@@ -32,6 +33,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 NewProviderVersionInChannel(_ => _.WithChannelCode("Statement").WithMajorVersion(StatementMajorVersion)),
                 NewProviderVersionInChannel(_ => _.WithChannelCode("Payment").WithMajorVersion(PaymentMajorVersion)),
                 NewProviderVersionInChannel(_ => _.WithChannelCode("Contracting").WithMajorVersion(ContractingMajorVersion)),
+                NewProviderVersionInChannel(_ => _.WithChannelCode("ChannelCodeOne").WithMajorVersion(ChannelCodeOneMajorVersion)),
             };
 
             DataTableBuilder = new PublishedProviderVersionDataTableBuilder(
@@ -91,6 +93,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 dataRowValues.Add($"{StatementMajorVersion}.0");
                 dataRowValues.Add($"{PaymentMajorVersion}.0");
                 dataRowValues.Add($"{ContractingMajorVersion}.0");
+                dataRowValues.Add($"{ChannelCodeOneMajorVersion}.0");
             }
 
             dataRowValues.Add(publishedProviderVersion.Date.UtcDateTime);
@@ -123,6 +126,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 dataColumns.Add(NewDataColumn<string>("LatestStatementReleaseVersion", 8));
                 dataColumns.Add(NewDataColumn<string>("LatestPaymentReleaseVersion", 8));
                 dataColumns.Add(NewDataColumn<string>("LatestContractReleaseVersion", 8));
+                dataColumns.Add(NewDataColumn<string>("LatestChannelCodeOneReleaseVersion", 8));
             }
 
             dataColumns.Add(NewDataColumn<DateTime>("LastUpdated"));

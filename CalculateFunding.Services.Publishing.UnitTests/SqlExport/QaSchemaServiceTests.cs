@@ -5,13 +5,16 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Services.SqlExport;
 using CalculateFunding.Services.SqlExport.Models;
+using Microsoft.FeatureManagement;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
@@ -26,7 +29,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private Mock<IQaRepository> _qa;
         private Mock<IQaRepositoryLocator> _qaRepoLocator;
         private Mock<IProfilingApiClient> _profiling;
-        
+        private Mock<IFeatureManagerSnapshot> _featureManagerSnapshot;
+
         private QaSchemaService _schemaService;
 
         [TestInitialize]
@@ -38,6 +42,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             _qa = new Mock<IQaRepository>();
             _qaRepoLocator = new Mock<IQaRepositoryLocator>();
             _qaRepoLocator.Setup(_ => _.GetService(It.IsAny<SqlExportSource>())).Returns(_qa.Object);
+
+            _featureManagerSnapshot = new Mock<IFeatureManagerSnapshot>();
 
             _sqlNameGenerator.Setup(_ => _.GenerateIdentifier(It.IsAny<string>()))
                 .Returns<string>(input => input);
@@ -53,13 +59,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 {
                     SpecificationsApiClient = Policy.NoOpAsync(),
                     PoliciesApiClient = Policy.NoOpAsync()
-                });
+                },
+                ReleaseManagementRepository.Object,
+                _featureManagerSnapshot.Object);
         }
 
         [DataTestMethod]
-        [DataRow(SqlExportSource.CurrentPublishedProviderVersion)]
-        [DataRow(SqlExportSource.ReleasedPublishedProviderVersion)]
-        public async Task CreatesDDLMatchingSpecificationFundingAndReCreatesSchemaObjectsInQaRepository(SqlExportSource sqlExportSource)
+        [DataRow(SqlExportSource.CurrentPublishedProviderVersion, true)]
+        [DataRow(SqlExportSource.ReleasedPublishedProviderVersion, true)]
+        [DataRow(SqlExportSource.CurrentPublishedProviderVersion, false)]
+        [DataRow(SqlExportSource.ReleasedPublishedProviderVersion, false)]
+        public async Task CreatesDDLMatchingSpecificationFundingAndReCreatesSchemaObjectsInQaRepository(
+            SqlExportSource sqlExportSource,
+            bool latestReleasedVersionChannelPopulationEnabled)
         {
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
@@ -78,7 +90,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
             string fundingLineOneCode = NewRandomString();
             string fundingLineTwoCode = NewRandomString();
-            
+
+            string channelNameOne = NewRandomString();
+
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
                 .WithFundingStreamIds(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
@@ -101,12 +115,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 _.WithFundingPeriodId(fundingPeriodId)
                     .WithFundingStreamId(fundingStreamId)
                     .WithFundingLineId(fundingLineTwoCode));
-            
+
+            FundingConfigurationChannel fundingConfigurationChannel
+                = NewFundingConfigurationChannel(_ => _.WithChannelCode(channelNameOne));
+            FundingConfiguration fundingConfiguration
+                = NewFundingConfiguration(_ => _.WithReleaseChannels(fundingConfigurationChannel));
+            IEnumerable<Channel> channels = new[] { NewChannel(_ => _.WithChannelCode(channelNameOne).WithChannelId(1)) };
+
             GivenTheSpecification(specificationId, specificationSummary);
+            AndTheFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
+            AndTheChannels(channels);
             AndTheFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion, fundingTemplate);
             AndTheTemplateMetadataContents(schemaVersion, fundingTemplateContents, templateMetadataContents);
             AndTheProfiling(fundingStreamId, fundingPeriodId, profilePatternOne, profilePatternTwo);
-            
+            AndTheFeature("EnableLatestReleasedVersionChannelPopulation", latestReleasedVersionChannelPopulationEnabled);
+
             await WhenTheSchemaIsRecreated(specificationId, fundingStreamId, sqlExportSource);
 
             Dictionary<string, SqlColumnDefinition> providerColumns = new List<SqlColumnDefinition>() {
@@ -214,7 +237,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 }
             }.ToDictionary(_ => _.Name);
 
-            Dictionary<string, SqlColumnDefinition> fundingColumns = new List<SqlColumnDefinition>() {
+            List<SqlColumnDefinition> fundingColumns = new List<SqlColumnDefinition>() {
                 new SqlColumnDefinition
                 {
                     Name = "TotalFunding",
@@ -257,7 +280,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                     Type = "[varchar](32)",
                     AllowNulls = false
                 },
-
                 new SqlColumnDefinition
                 {
                     Name = "LastUpdated",
@@ -282,11 +304,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                     Type = "[nvarchar](1024)",
                     AllowNulls = false
                 }
-            }.ToDictionary(_ => _.Name);
+            };
+
+            if (sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion && latestReleasedVersionChannelPopulationEnabled)
+            {
+                fundingColumns.Add(
+                    new SqlColumnDefinition
+                    {
+                        Name = $"Latest{channelNameOne}ReleaseVersion",
+                        Type = "[varchar](8)",
+                        AllowNulls = false
+                    });
+            }
+
+            Dictionary<string, SqlColumnDefinition> fundingColumnsDictionary = fundingColumns.ToDictionary(_ => _.Name);
 
             ThenTheGenerateCreateTableSqlWasCalled($"{fundingStreamTablePrefix}_Providers", fundingStreamId, fundingPeriodId, providerColumns);
 
-            ThenTheGenerateCreateTableSqlWasCalled($"{fundingStreamTablePrefix}_Funding", fundingStreamId, fundingPeriodId, fundingColumns);
+            ThenTheGenerateCreateTableSqlWasCalled($"{fundingStreamTablePrefix}_Funding", fundingStreamId, fundingPeriodId, fundingColumnsDictionary);
 
             ThenTheTotalNumberOfDDLScriptsExecutedWas(7);
         }
@@ -316,6 +351,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             => _profiling.Setup(_ => _.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId))
                 .ReturnsAsync(new ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>>(HttpStatusCode.OK, periodPatterns));
 
+        private void AndTheFeature(string featureName,
+            bool featureStatus)
+            => _featureManagerSnapshot.Setup(_ => _.IsEnabledAsync(featureName))
+                .ReturnsAsync(featureStatus);
+
         private static bool ColumnsMatch(IEnumerable<SqlColumnDefinition> actualColumns,
             IEnumerable<SqlColumnDefinition> expectedColumns)
         {
@@ -340,6 +380,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             setUp?.Invoke(fundingStreamPeriodProfilePatternBuilder);
             
             return fundingStreamPeriodProfilePatternBuilder.Build();
+        }
+
+        private static ProviderVersionInChannel NewProviderVersionInChannel(Action<ProviderVersionInChannelBuilder> setUp = null)
+        {
+            ProviderVersionInChannelBuilder providerVersionInChannelBuilder = new ProviderVersionInChannelBuilder();
+
+            setUp?.Invoke(providerVersionInChannelBuilder);
+
+            return providerVersionInChannelBuilder.Build();
         }
     }
 }

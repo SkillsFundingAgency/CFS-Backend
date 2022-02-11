@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -8,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement;
 using CalculateFunding.Tests.Common.Helpers;
@@ -22,6 +24,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         protected Mock<ISpecificationsApiClient> Specifications;
         protected Mock<ITemplateMetadataResolver> TemplateMetadataResolver;
         protected Mock<ITemplateMetadataGenerator> TemplateMetadataGenerator;
+        protected Mock<IReleaseManagementRepository> ReleaseManagementRepository;
+
 
         [TestInitialize]
         public void QaSchemaTemplateTestSetUp()
@@ -29,7 +33,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             Policies = new Mock<IPoliciesApiClient>();
             Specifications = new Mock<ISpecificationsApiClient>();
             TemplateMetadataResolver = new Mock<ITemplateMetadataResolver>();
-            TemplateMetadataGenerator = new Mock<ITemplateMetadataGenerator>();   
+            TemplateMetadataGenerator = new Mock<ITemplateMetadataGenerator>();
+            ReleaseManagementRepository = new Mock<IReleaseManagementRepository>();
         }
 
         protected void GivenTheSpecification(string specificationId,
@@ -50,6 +55,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             FundingTemplateContents fundingTemplate)
             => Policies.Setup(_ => _.GetFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion))
                 .ReturnsAsync(new ApiResponse<FundingTemplateContents>(HttpStatusCode.OK, fundingTemplate));
+
+        protected void AndTheChannels(
+            IEnumerable<Channel> channels)
+            => ReleaseManagementRepository.Setup(_ => _.GetChannels()).ReturnsAsync(channels);
 
         protected void AndTheTemplateMetadataContents(string schemaVersion,
             string templateContents,

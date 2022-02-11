@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -16,9 +17,12 @@ using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.SqlExport;
 using CalculateFunding.Services.SqlExport.Models;
+using Microsoft.FeatureManagement;
 using Polly;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
@@ -34,6 +38,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         private readonly ISqlNameGenerator _sqlNames;
         private readonly AsyncPolicy _specificationResilience;
         private readonly AsyncPolicy _policiesResilience;
+        private readonly IReleaseManagementRepository _releaseManagementRepository;
+        private readonly IFeatureManagerSnapshot _featureManagerSnapshot;
 
         public QaSchemaService(IPoliciesApiClient policies,
             ISpecificationsApiClient specificationsApiClient,
@@ -42,7 +48,9 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             IQaRepositoryLocator qaRepositoryLocator,
             IProfilingApiClient profilingClient,
             ISqlNameGenerator sqlNames,
-            IPublishingResiliencePolicies resiliencePolicies)
+            IPublishingResiliencePolicies resiliencePolicies,
+            IReleaseManagementRepository releaseManagementRepository,
+            IFeatureManagerSnapshot featureManagerSnapshot)
         {
             Guard.ArgumentNotNull(policies, nameof(policies));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -51,6 +59,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             Guard.ArgumentNotNull(qaRepositoryLocator, nameof(qaRepositoryLocator));
             Guard.ArgumentNotNull(profilingClient, nameof(profilingClient));
             Guard.ArgumentNotNull(sqlNames, nameof(sqlNames));
+            Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
+            Guard.ArgumentNotNull(featureManagerSnapshot, nameof(featureManagerSnapshot));
 
             _policies = policies;
             _specifications = specificationsApiClient;
@@ -61,6 +71,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             _sqlNames = sqlNames;
             _specificationResilience = resiliencePolicies.SpecificationsApiClient;
             _policiesResilience = resiliencePolicies.PoliciesApiClient;
+            _releaseManagementRepository = releaseManagementRepository;
+            _featureManagerSnapshot = featureManagerSnapshot;
 
             //TODO; extract all of the different table builders so that this can more easily tested
             //at the moment it needs a god test with too much setup to make much sense to anyone
@@ -127,7 +139,17 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             string fundingStreamTablePrefix = $"{fundingStreamId}_{fundingPeriodId}";
 
-            EnsureTable($"{fundingStreamTablePrefix}_Funding", GetSqlColumnDefinitionsForFunding(), fundingStreamId, fundingPeriodId, qaRepository);
+            IEnumerable<ProviderVersionInChannel> providerVersionInChannels = await GetProviderVersionInChannels(specification, fundingStreamId);
+
+            bool isLatestReleasedVersionChannelPopulationEnabled 
+                = await _featureManagerSnapshot.IsEnabledAsync("EnableLatestReleasedVersionChannelPopulation");
+
+            EnsureTable(
+                $"{fundingStreamTablePrefix}_Funding", 
+                GetSqlColumnDefinitionsForFunding(providerVersionInChannels, sqlExportSource, isLatestReleasedVersionChannelPopulationEnabled), 
+                fundingStreamId, 
+                fundingPeriodId, 
+                qaRepository);
             EnsureTable($"{fundingStreamTablePrefix}_Providers", GetSqlColumnDefinitionsForProviderInformation(), fundingStreamId, fundingPeriodId, qaRepository);
 
             (IEnumerable<SqlColumnDefinition> informationFundingLineFields,
@@ -140,6 +162,28 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             EnsureTable($"{fundingStreamTablePrefix}_InformationFundingLines", informationFundingLineFields, fundingStreamId, fundingPeriodId, qaRepository);
             EnsureTable($"{fundingStreamTablePrefix}_PaymentFundingLines", paymentFundingLineFields, fundingStreamId, fundingPeriodId, qaRepository);
             EnsureTable($"{fundingStreamTablePrefix}_Calculations", calculationFields, fundingStreamId, fundingPeriodId, qaRepository);
+        }
+
+        private async Task<IEnumerable<ProviderVersionInChannel>> GetProviderVersionInChannels(
+        SpecificationSummary specification,
+        string fundingStreamId)
+        {
+            ApiResponse<FundingConfiguration> fundingConfigurationResponse = await _policiesResilience.ExecuteAsync(()
+                => _policies.GetFundingConfiguration(fundingStreamId, specification.FundingPeriod.Id));
+
+            FundingConfiguration fundingConfiguration = fundingConfigurationResponse.Content;
+
+            IEnumerable<Channel> channels = await _releaseManagementRepository.GetChannels();
+
+            IEnumerable<FundingConfigurationChannel> releaseChannels
+                = fundingConfiguration.ReleaseChannels.Where(_ => _.IsVisible);
+
+            IEnumerable<ProviderVersionInChannel> providerVersionInChannels =
+                await _releaseManagementRepository.GetLatestPublishedProviderVersions(
+                    specification.Id,
+                    releaseChannels.Select(rc => channels.SingleOrDefault(c => c.ChannelCode == rc.ChannelCode).ChannelId));
+
+            return providerVersionInChannels;
         }
 
         private async Task DropExistingTables(
@@ -305,11 +349,15 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             return (informationFundingLineFields, paymentFundingLineFields, calculationFields);
         }
 
-        private IEnumerable<SqlColumnDefinition> GetSqlColumnDefinitionsForFunding()
+        private IEnumerable<SqlColumnDefinition> GetSqlColumnDefinitionsForFunding(
+            IEnumerable<ProviderVersionInChannel> providerVersionInChannels,
+            SqlExportSource sqlExportSource,
+            bool latestReleasedVersionChannelPopulationEnabled)
         {
             //TODO: these column sizes will most likely need some tuning as just doing
             //the import spike threw up some issues with truncation errors etc.
-            return new List<SqlColumnDefinition>
+            
+            List<SqlColumnDefinition> fundingColumnDefinitions = new List<SqlColumnDefinition>
             {
                 new SqlColumnDefinition
                 {
@@ -353,7 +401,6 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     Type = "[varchar](32)",
                     AllowNulls = false
                 },
-
                 new SqlColumnDefinition
                 {
                     Name = "LastUpdated",
@@ -379,6 +426,21 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     AllowNulls = false
                 }
             };
+
+            if (sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion && latestReleasedVersionChannelPopulationEnabled) {
+
+                foreach (ProviderVersionInChannel providerVersionInChannel in providerVersionInChannels)
+                {
+                    fundingColumnDefinitions.Add(new SqlColumnDefinition
+                    {
+                        Name = $"Latest{providerVersionInChannel.ChannelCode}ReleaseVersion",
+                        Type = "[varchar](8)",
+                        AllowNulls = false
+                    });
+                }
+            }
+
+            return fundingColumnDefinitions;
         }
 
         private IEnumerable<SqlColumnDefinition> GetSqlColumnDefinitionsForProviderInformation()

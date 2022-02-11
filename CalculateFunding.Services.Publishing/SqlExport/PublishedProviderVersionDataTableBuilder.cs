@@ -42,9 +42,10 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             if (_sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion
                 && _latestReleasedVersionChannelPopulationEnabled)
             {
-                dataColumns.Add(NewDataColumn<string>("LatestStatementReleaseVersion", 8));
-                dataColumns.Add(NewDataColumn<string>("LatestPaymentReleaseVersion", 8));
-                dataColumns.Add(NewDataColumn<string>("LatestContractReleaseVersion", 8));
+                foreach (ProviderVersionInChannel _providerVersionInChannel in _providerVersionInChannels)
+                {
+                    dataColumns.Add(NewDataColumn<string>($"Latest{_providerVersionInChannel.ChannelCode}ReleaseVersion", 8));
+                }
             }
 
             dataColumns.Add(NewDataColumn<DateTime>("LastUpdated"));
@@ -72,9 +73,10 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             if (_sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion
                 && _latestReleasedVersionChannelPopulationEnabled)
             {
-                dataRowValues.Add($"{_providerVersionInChannels.SingleOrDefault(_ => _.ChannelCode == "Statement")?.MajorVersion}.0");
-                dataRowValues.Add($"{_providerVersionInChannels.SingleOrDefault(_ => _.ChannelCode == "Payment")?.MajorVersion}.0");
-                dataRowValues.Add($"{_providerVersionInChannels.SingleOrDefault(_ => _.ChannelCode == "Contracting")?.MajorVersion}.0");
+                foreach (ProviderVersionInChannel _providerVersionInChannel in _providerVersionInChannels)
+                {
+                    dataRowValues.Add($"{_providerVersionInChannels.SingleOrDefault(_ => _.ChannelCode == _providerVersionInChannel.ChannelCode)?.MajorVersion}.0");
+                }
             }
 
             dataRowValues.Add(dto.Date.UtcDateTime);
