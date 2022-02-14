@@ -1,4 +1,5 @@
 ﻿using System;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
@@ -7,19 +8,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
     public class PublishedProviderFundingSummaryBuilder : TestEntityBuilder
     {
         private string _specificationId;
-        private string _providerId;
-        private string _providerSubType;
-        private string _providerType;
         private decimal? _totalFunding;
         private int _majorVersion;
         private int _minorVersion;
         private bool _isIndicative;
         private string _channelCode;
         private string _channelName;
+        private Provider _provider;
+        private string _status;
 
         public PublishedProviderFundingSummaryBuilder WithSpecificationId(string specificationId)
         {
             _specificationId = specificationId;
+            return this;
+        }
+
+        public PublishedProviderFundingSummaryBuilder WithStatus(string status)
+        {
+            _status = status;
             return this;
         }
 
@@ -32,24 +38,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         public PublishedProviderFundingSummaryBuilder WithChannelName(string channelName)
         {
             _channelName = channelName;
-            return this;
-        }
-
-        public PublishedProviderFundingSummaryBuilder WithProviderId(string providerId)
-        {
-            _providerId = providerId;
-            return this;
-        }
-
-        public PublishedProviderFundingSummaryBuilder WithProviderType(string providerType)
-        {
-            _providerType = providerType;
-            return this;
-        }
-
-        public PublishedProviderFundingSummaryBuilder WithProviderSubType(string providerSubType)
-        {
-            _providerSubType = providerSubType;
             return this;
         }
 
@@ -77,14 +65,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             return this;
         }
 
+        public PublishedProviderFundingSummaryBuilder WithProvider(Provider provider)
+        {
+            _provider = provider;
+            return this;
+        }
+
         public PublishedProviderFundingSummary Build()
         {
             return new PublishedProviderFundingSummary
             {
                 SpecificationId = _specificationId ?? NewRandomString(),
-                ProviderId = _providerId ?? NewRandomString(),
-                ProviderType = _providerType ?? NewRandomString(),
-                ProviderSubType = _providerSubType ?? NewRandomString(),
+                Status = _status,
+                Provider = _provider,
                 TotalFunding = _totalFunding ?? NewRandomNumberBetween(10000, Int32.MaxValue),
                 MajorVersion = _majorVersion,
                 MinorVersion = _minorVersion,

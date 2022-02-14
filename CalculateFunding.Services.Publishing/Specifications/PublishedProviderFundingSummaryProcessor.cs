@@ -66,43 +66,52 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             IEnumerable<Channel> channels = await GetChannels(channelCodes);
 
-            IEnumerable<ProviderVersionInChannel> latestPublishedProviderVersionsInChannels = await _releaseManagementRepository.GetLatestPublishedProviderVersions(
-                specificationSummary.Id,
-                channels.Select(_ => _.ChannelId));
-
-            Dictionary<string, int> providerMajorVersionLookup = latestPublishedProviderVersionsInChannels.ToDictionary(_ => $"{_.ChannelId}-{_.ProviderId}", _ => _.MajorVersion);
-
-            IEnumerable<PublishedProviderFundingSummary> approvedPublishedProviderSummaries = await GetPublishedProviderFundingSummaries(
+            IEnumerable<PublishedProviderFundingSummary> approvedOrReleasedPublishedProviders = await GetPublishedProviderFundingSummaries(
                 publishedProviderIds,
                 specificationSummary,
-                new PublishedProviderStatus[] { PublishedProviderStatus.Approved }
+                new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released }
                 );
 
             List<PublishedProviderFundingSummary> finalSummaries = new List<PublishedProviderFundingSummary>();
 
+            IEnumerable<ProviderVersionInChannel> latestPublishedProviderVersions =
+                await _releaseManagementRepository.GetLatestPublishedProviderVersions(specificationSummary.Id, channels.Select(_=>_.ChannelId));
+
             foreach (Channel channel in channels)
             {
-                IEnumerable<PublishedProviderFundingSummary> approvedNewVersionPublishedProviderSummmaries =
-                    approvedPublishedProviderSummaries.Where(
-                        _ => !providerMajorVersionLookup.ContainsKey($"{channel.ChannelId}-{_.ProviderId}")
-                            || _.MajorVersion != providerMajorVersionLookup[$"{channel.ChannelId}-{_.ProviderId}"]);
+                List<PublishedProviderFundingSummary> eligibleProviders = new List<PublishedProviderFundingSummary>();
 
-                IEnumerable<PublishedProviderVersion> publishedProviderVersions = approvedNewVersionPublishedProviderSummmaries
+                IEnumerable<PublishedProviderFundingSummary> approvedNewVersionPublishedProviders =
+                    approvedOrReleasedPublishedProviders
+                        .Where(_ => _.Status == PublishedProviderStatus.Approved.ToString())
+                        .Select(_ => _);
+
+                eligibleProviders.AddRange(approvedNewVersionPublishedProviders);
+
+                IEnumerable<PublishedProviderFundingSummary> releasedProviders = approvedOrReleasedPublishedProviders
+                    .Where(_=>_.Status == PublishedProviderStatus.Released.ToString())
+                    .Select(_=>_);
+
+                foreach (PublishedProviderFundingSummary provider in releasedProviders)
+                {
+                    ProviderVersionInChannel providerVersionInChannel = latestPublishedProviderVersions
+                        .FirstOrDefault(_ => _.ProviderId == provider.Provider.ProviderId && _.ChannelId == channel.ChannelId);
+
+                    if (providerVersionInChannel == null || ProviderHasNewerVersionWhichHasNotBeenReleasedInThisChannel(provider, providerVersionInChannel))
+                    {
+                        eligibleProviders.Add(provider);
+                    }
+                }
+
+                IEnumerable<PublishedProviderVersion> publishedProviderVersions = eligibleProviders
                     .Select(_ => new PublishedProviderVersion
                     {
                         SpecificationId = _.SpecificationId,
-                        Provider = new Provider
-                        {
-                            ProviderId = _.ProviderId,
-                            ProviderType = _.ProviderType,
-                            ProviderSubType = _.ProviderSubType,
-                            Status = _.Status
-                        },
+                        Provider = _.Provider,
                         TotalFunding = _.TotalFunding,
                         IsIndicative = _.IsIndicative,
                         MajorVersion = _.MajorVersion,
                         MinorVersion = _.MinorVersion,
-                        ProviderId = _.ProviderId
                     });
 
                 IEnumerable<PublishedProviderVersion> filteredPublishedProviders = _providersForChannelFilterService.FilterProvidersForChannel(
@@ -119,12 +128,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
                     .ToDictionary(_ => _);
 
                 IEnumerable<PublishedProviderFundingSummary> orgFilteredPublishedProviders = filteredPublishedProviders
-                    .Where(_ => providersInOrganisationGroupResultLookup.ContainsKey(_.ProviderId))
+                    .Where(_ => providersInOrganisationGroupResultLookup.ContainsKey(_.Provider.ProviderId))
                     .Select(_ => new PublishedProviderFundingSummary
                     {
                         TotalFunding = _.TotalFunding,
                         IsIndicative = _.IsIndicative,
-                        ProviderId = _.ProviderId,
+                        Provider = _.Provider,
                         ChannelCode = channel.ChannelCode,
                         ChannelName = channel.ChannelName
                     });
@@ -134,13 +143,18 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             ReleaseFundingPublishedProvidersSummary result = new ReleaseFundingPublishedProvidersSummary
             {
-                TotalProviders = finalSummaries.Select(_ => _.ProviderId).Distinct().Count(),
-                TotalIndicativeProviders = finalSummaries.Where(_ => _.IsIndicative).Select(_ => _.ProviderId).Distinct().Count(),
-                TotalFunding = finalSummaries.GroupBy(_ => _.ProviderId).Select(_ => _.First().TotalFunding).Sum(),
+                TotalProviders = finalSummaries.Select(_ => _.Provider.ProviderId).Distinct().Count(),
+                TotalIndicativeProviders = finalSummaries.Where(_ => _.IsIndicative).Select(_ => _.Provider.ProviderId).Distinct().Count(),
+                TotalFunding = finalSummaries.GroupBy(_ => _.Provider.ProviderId).Select(_ => _.First().TotalFunding).Sum(),
                 ChannelFundings = GenerateChannelFundings(finalSummaries)
             };
 
             return result;
+
+            static bool ProviderHasNewerVersionWhichHasNotBeenReleasedInThisChannel(PublishedProviderFundingSummary provider, ProviderVersionInChannel providerVersionInChannel)
+            {
+                return provider.MajorVersion > providerVersionInChannel.MajorVersion;
+            }
         }
 
         private IEnumerable<ChannelFunding> GenerateChannelFundings(IEnumerable<PublishedProviderFundingSummary> finalSummaries)

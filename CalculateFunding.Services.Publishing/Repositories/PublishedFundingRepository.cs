@@ -9,7 +9,6 @@ using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Newtonsoft.Json.Linq;
-using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -1330,7 +1329,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         }
 
         /// <summary>
-        ///     Get count and sum of total funding for all published provider ids with the supplied status
+        ///     Get count and sum of total funding for all published provider ids with the supplied status(es)
         ///     When publishedProviderIds is empty use all providers in spec (non-batch mode)
         ///     NB ensure that the ids count is not greater than 100 as this is max permitted per query for an IN
         ///     clause in cosmos sql
@@ -1363,10 +1362,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                   c.content.current.isIndicative,
                                   c.content.current.majorVersion,
                                   c.content.current.minorVersion,
-                                  c.content.current.provider.providerId,
-                                  c.content.current.provider.providerType,
-                                  c.content.current.provider.providerSubType,
-                                  c.content.current.provider.status
+                                  c.content.current.status,
+                                  c.content.current.provider
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
@@ -1391,10 +1388,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                   c.content.current.isIndicative,
                                   c.content.current.majorVersion,
                                   c.content.current.minorVersion,
-                                  c.content.current.provider.providerId,
-                                  c.content.current.provider.providerType,
-                                  c.content.current.provider.providerSubType,
-                                  c.content.current.provider.status
+                                  c.content.current.status,
+                                  c.content.current.provider
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
@@ -1416,14 +1411,69 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return results.Select(_ => new PublishedProviderFundingSummary
             {
                 SpecificationId = (string)_.specificationId,
-                ProviderId = (string)_.providerId,
                 Status = (string)_.status,
+                Provider = new Provider
+                {
+                    ProviderId = (string)_.provider.providerId,
+                    Status = (string)_.provider.status,
+                    ProviderType = (string)_.provider.providerType,
+                    ProviderSubType = (string)_.provider.providerSubType,
+                    TrustStatus = (ProviderTrustStatus)(int)_.provider.trustStatus,
+                    Name = (string)_.provider.name,
+                    URN = (string)_.provider.urn,
+                    UKPRN = (string)_.provider.ukprn,
+                    UPIN = (string)_.provider.upin,
+                    EstablishmentNumber = (string)_.provider.establishmentNumber,
+                    FurtherEducationTypeCode = (string)_.provider.furtherEducationTypeCode,
+                    FurtherEducationTypeName = (string)_.provider.furtherEducationTypeName,
+                    DfeEstablishmentNumber = (string)_.provider.dfeEstablishmentNumber,
+                    Authority = (string)_.provider.authority,
+                    DateOpened = (DateTimeOffset?)_.provider.dateOpened,
+                    DateClosed = (DateTimeOffset?)_.provider.dateClosed,
+                    ProviderProfileIdType = (string)_.provider.providerProfileIdType,
+                    LACode = (string)_.provider.laCode,
+                    NavVendorNo = (string)_.provider.navVendorNo,
+                    CrmAccountId = (string)_.provider.crmAccountId,
+                    LegalName = (string)_.provider.legalName,
+                    PhaseOfEducation = (string)_.provider.phaseOfEducation,
+                    ReasonEstablishmentOpened = (string)_.provider.reasonEstablishmentOpened,
+                    ReasonEstablishmentClosed = (string)_.provider.reasonEstablishmentClosed,
+                    Successor = (string)_.provider.successor,
+                    TrustName = (string)_.provider.trustName,
+                    TrustCode = (string)_.provider.trustCode,
+                    Town = (string)_.provider.town,
+                    Postcode = (string)_.provider.postcode,
+                    CompaniesHouseNumber = (string)_.provider.companiesHouseNumber,
+                    GroupIdNumber = (string)_.provider.groupIdNumber,
+                    RscRegionName = (string)_.provider.rscRegionName,
+                    RscRegionCode = (string)_.provider.rscRegionCode,
+                    GovernmentOfficeRegionName = (string)_.provider.governmentOfficeRegionName,
+                    GovernmentOfficeRegionCode = (string)_.provider.governmentOfficeRegionCode,
+                    DistrictName = (string)_.provider.districtName,
+                    DistrictCode = (string)_.provider.districtCode,
+                    WardName = (string)_.provider.wardName,
+                    WardCode = (string)_.provider.wardCode,
+                    CensusWardName = (string)_.provider.censusWardName,
+                    CensusWardCode = (string)_.provider.censusWardCode,
+                    MiddleSuperOutputAreaName = (string)_.provider.middleSuperOutputAreaName,
+                    MiddleSuperOutputAreaCode = (string)_.provider.middleSuperOutputAreaCode,
+                    LowerSuperOutputAreaName = (string)_.provider.lowerSuperOutputAreaName,
+                    LowerSuperOutputAreaCode = (string)_.provider.lowerSuperOutputAreaCode,
+                    ParliamentaryConstituencyName = (string)_.provider.parliamentaryConstituencyName,
+                    ParliamentaryConstituencyCode = (string)_.provider.parliamentaryConstituencyCode,
+                    LondonRegionCode = (string)_.provider.londonRegionCode,
+                    LondonRegionName = (string)_.provider.londonRegionName,
+                    CountryCode = (string)_.provider.countryCode,
+                    CountryName = (string)_.provider.countryName,
+                    LocalGovernmentGroupTypeCode = (string)_.provider.localGovernmentGroupTypeCode,
+                    LocalGovernmentGroupTypeName = (string)_.provider.localGovernmentGroupTypeName,
+                    PaymentOrganisationIdentifier = (string)_.provider.paymentOrganisationIdentifier,
+                    PaymentOrganisationName = (string)_.provider.paymentOrganisationName
+                },
                 MajorVersion = (int)_.majorVersion,
                 MinorVersion = (int)_.minorVersion,
                 TotalFunding = (decimal?)_.totalFunding,
                 IsIndicative = (bool)(_.isIndicative ?? false),
-                ProviderType = (string)_.providerType,
-                ProviderSubType = (string)_.providerSubType
             });
         }
 

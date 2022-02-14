@@ -1,4 +1,7 @@
-﻿namespace CalculateFunding.Services.Publishing.Models
+﻿
+using CalculateFunding.Models.Publishing;
+
+namespace CalculateFunding.Services.Publishing.Models
 {
     public class PublishedProviderFundingSummary
     {
@@ -9,9 +12,7 @@
         public bool IsIndicative { get; set; }
         public int MajorVersion { get; set; }
         public int MinorVersion { get; set; }
-        public string ProviderId { get; set; }
-        public string ProviderType { get; set; }
-        public string ProviderSubType { get; set; }
         public string Status { get; set; }
+        public Provider Provider { get; set; }
     }
 }

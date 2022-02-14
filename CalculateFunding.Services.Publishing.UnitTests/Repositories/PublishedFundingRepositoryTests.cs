@@ -811,10 +811,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                   c.content.current.isIndicative,
                                   c.content.current.majorVersion,
                                   c.content.current.minorVersion,
-                                  c.content.current.provider.providerId,
-                                  c.content.current.provider.providerType,
-                                  c.content.current.provider.providerSubType,
-                                  c.content.current.provider.status
+                                  c.content.current.status,
+                                  c.content.current.provider
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
@@ -865,10 +863,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                   c.content.current.isIndicative,
                                   c.content.current.majorVersion,
                                   c.content.current.minorVersion,
-                                  c.content.current.provider.providerId,
-                                  c.content.current.provider.providerType,
-                                  c.content.current.provider.providerSubType,
-                                  c.content.current.provider.status
+                                  c.content.current.status,
+                                  c.content.current.provider
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
@@ -1102,16 +1098,70 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             int majorVersion = NewRandomNumber();
             int minorVersion = NewRandomNumber();
 
+            dynamic provider = new ExpandoObject();
+            provider.providerId = providerId;
+            provider.providerType = providerType;
+            provider.providerSubType = providerSubType;
+            provider.status = status;
+            provider.trustStatus = ProviderTrustStatus.NotApplicable;
+            provider.name = NewRandomString();
+            provider.urn = NewRandomString();
+            provider.ukprn = NewRandomString();
+            provider.upin = NewRandomString();
+            provider.establishmentNumber = NewRandomString();
+            provider.furtherEducationTypeCode = NewRandomString();
+            provider.furtherEducationTypeName = NewRandomString();
+            provider.dfeEstablishmentNumber = NewRandomString();
+            provider.authority = NewRandomString();
+            provider.dateOpened = DateTime.Now;
+            provider.dateClosed = DateTime.Now;
+            provider.providerProfileIdType = NewRandomString();
+            provider.laCode = NewRandomString();
+            provider.navVendorNo = NewRandomString();
+            provider.crmAccountId = NewRandomString();
+            provider.legalName = NewRandomString();
+            provider.phaseOfEducation = NewRandomString();
+            provider.reasonEstablishmentOpened = NewRandomString();
+            provider.reasonEstablishmentClosed = NewRandomString();
+            provider.successor = NewRandomString();
+            provider.trustName = NewRandomString();
+            provider.trustCode = NewRandomString();
+            provider.town = NewRandomString();
+            provider.postcode = NewRandomString();
+            provider.companiesHouseNumber = NewRandomString();
+            provider.groupIdNumber = NewRandomString();
+            provider.rscRegionName = NewRandomString();
+            provider.rscRegionCode = NewRandomString();
+            provider.governmentOfficeRegionName = NewRandomString();
+            provider.governmentOfficeRegionCode = NewRandomString();
+            provider.districtName = NewRandomString();
+            provider.districtCode = NewRandomString();
+            provider.wardName = NewRandomString();
+            provider.wardCode = NewRandomString();
+            provider.censusWardName = NewRandomString();
+            provider.censusWardCode = NewRandomString();
+            provider.middleSuperOutputAreaName = NewRandomString();
+            provider.middleSuperOutputAreaCode = NewRandomString();
+            provider.lowerSuperOutputAreaName = NewRandomString();
+            provider.lowerSuperOutputAreaCode = NewRandomString();
+            provider.parliamentaryConstituencyName = NewRandomString();
+            provider.parliamentaryConstituencyCode = NewRandomString();
+            provider.londonRegionCode = NewRandomString();
+            provider.londonRegionName = NewRandomString();
+            provider.countryCode = NewRandomString();
+            provider.countryName = NewRandomString();
+            provider.localGovernmentGroupTypeCode = NewRandomString();
+            provider.localGovernmentGroupTypeName = NewRandomString();
+            provider.paymentOrganisationIdentifier = NewRandomString();
+            provider.paymentOrganisationName = NewRandomString();
 
             dynamic result = new ExpandoObject();
-            result.providerId = providerId;
             result.specificationId = specificationId;
             result.majorVersion = majorVersion;
             result.minorVersion = minorVersion;
             result.totalFunding = totalFunding;
-            result.providerType = providerType;
-            result.providerSubType = providerSubType;
             result.isIndicative = isIndicative;
+            result.provider = provider;
             result.status = status;
 
             return result;

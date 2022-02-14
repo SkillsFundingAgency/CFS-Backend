@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Generators.OrganisationGroup.Models;
@@ -18,6 +14,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
 using Serilog.Core;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
@@ -78,6 +78,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         /// <summary>
         /// 3 Published Providers and 2 Channels
         /// All to be released into both channels
+        /// Major versions different or do not exist in sql
         /// </summary>
         /// <returns></returns>
         [TestMethod]
@@ -87,16 +88,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             GivenProviderVersionInChannels(fundings.Select(_ => new ProviderVersionInChannel
             {
-                ProviderId = _.ProviderId,
-                MajorVersion = _.MajorVersion + fundings.Count(), // Generate a different major version
+                ProviderId = _.Provider.ProviderId,
+                MajorVersion = 1, // Version in rm sql db
                 ChannelId = ContractingChannelId
             }).ToArray());
 
             GivenOrganisationGroupResults(AsArray(
                 NewOrganisationGroupResult(_ => _.WithProviders(AsArray(
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[0].ProviderId },
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[1].ProviderId },
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[2].ProviderId }
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[0].Provider.ProviderId },
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[1].Provider.ProviderId },
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[2].Provider.ProviderId }
                 )))));
 
             ReleaseFundingPublishedProvidersSummary actualSummary = await WhenTheFundingSummaryIsProcessed(_channels.Select(_ => _.ChannelCode));
@@ -104,12 +105,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             actualSummary
                 .TotalProviders
                 .Should()
-                .Be(fundings.Count());
+                .Be(fundings.Length);
 
             actualSummary
                 .TotalIndicativeProviders
                 .Should()
-                .Be(fundings.Where(_ => _.IsIndicative).Count());
+                .Be(fundings.Count(_ => _.IsIndicative));
 
             actualSummary
                 .TotalFunding
@@ -125,14 +126,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     {
                         ChannelCode = Contracting,
                         ChannelName = Contracting,
-                        TotalProviders = fundings.Count(),
+                        TotalProviders = fundings.Length,
                         TotalFunding = fundings[0].TotalFunding + fundings[1].TotalFunding + fundings[2].TotalFunding
                     },
                     new ChannelFunding
                     {
                         ChannelCode = Statement,
                         ChannelName = Statement,
-                        TotalProviders = fundings.Count(),
+                        TotalProviders = fundings.Length,
                         TotalFunding = fundings[0].TotalFunding + fundings[1].TotalFunding + fundings[2].TotalFunding
                     }
                 });
@@ -140,7 +141,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
         /// <summary>
         /// 3 Published Providers and 2 Channels
-        /// All to be released into one channel only
+        /// All to be released into both channels
+        /// Major versions different or do not exist in sql
         /// </summary>
         /// <returns></returns>
         [TestMethod]
@@ -150,16 +152,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             GivenProviderVersionInChannels(fundings.Select(_ => new ProviderVersionInChannel
             {
-                ProviderId = _.ProviderId,
+                ProviderId = _.Provider.ProviderId,
                 MajorVersion = _.MajorVersion, // Major version already released for Contracting
                 ChannelId = ContractingChannelId
             }).ToArray());
 
             GivenOrganisationGroupResults(AsArray(
             NewOrganisationGroupResult(_ => _.WithProviders(AsArray(
-            new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[0].ProviderId },
-            new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[1].ProviderId },
-            new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[2].ProviderId }
+            new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[0].Provider.ProviderId },
+            new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[1].Provider.ProviderId },
+            new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[2].Provider.ProviderId }
             )))));
 
             ReleaseFundingPublishedProvidersSummary actualSummary = await WhenTheFundingSummaryIsProcessed(_channels.Select(_ => _.ChannelCode));
@@ -167,12 +169,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             actualSummary
                 .TotalProviders
                 .Should()
-                .Be(fundings.Count());
+                .Be(fundings.Length);
 
             actualSummary
                 .TotalIndicativeProviders
                 .Should()
-                .Be(fundings.Where(_ => _.IsIndicative).Count());
+                .Be(fundings.Count(_ => _.IsIndicative));
 
             actualSummary
                 .TotalFunding
@@ -184,6 +186,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Should()
                 .BeEquivalentTo(new[]
                 {
+                    new ChannelFunding
+                    {
+                        ChannelCode = Contracting,
+                        ChannelName = Contracting,
+                        TotalProviders = fundings.Count(_ => _.Status == "Approved"),
+                        TotalFunding = fundings[0].TotalFunding + fundings[2].TotalFunding
+                    },
                     new ChannelFunding
                     {
                         ChannelCode = Statement,
@@ -206,16 +215,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             GivenProviderVersionInChannels(fundings.Select(_ => new ProviderVersionInChannel
             {
-                ProviderId = _.ProviderId,
-                MajorVersion = _.MajorVersion + fundings.Count(), // Generate a different major version
+                ProviderId = _.Provider.ProviderId,
+                MajorVersion = _.MajorVersion - 1, // Generate a different major version
                 ChannelId = ContractingChannelId
             }).ToArray());
 
             GivenOrganisationGroupResults(AsArray(
                 NewOrganisationGroupResult(_ => _.WithProviders(AsArray(
                 // Note missing provider 1
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[1].ProviderId },
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[2].ProviderId }
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[1].Provider.ProviderId },
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[2].Provider.ProviderId }
                 )))));
 
             ReleaseFundingPublishedProvidersSummary actualSummary = await WhenTheFundingSummaryIsProcessed(_channels.Select(_ => _.ChannelCode));
@@ -269,16 +278,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             GivenProviderVersionInChannels(fundings.Select(_ => new ProviderVersionInChannel
             {
-                ProviderId = _.ProviderId,
-                MajorVersion = _.MajorVersion + fundings.Count(), // Generate a different major version
+                ProviderId = _.Provider.ProviderId,
+                MajorVersion = _.MajorVersion,
                 ChannelId = ContractingChannelId
             }).ToArray());
 
             GivenOrganisationGroupResults(AsArray(
                 NewOrganisationGroupResult(_ => _.WithProviders(AsArray(
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[0].ProviderId },
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[1].ProviderId },
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[2].ProviderId }
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[0].Provider.ProviderId },
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[1].Provider.ProviderId },
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[2].Provider.ProviderId }
                 )))));
 
             ReleaseFundingPublishedProvidersSummary actualSummary = await WhenTheFundingSummaryIsProcessed(new string[] { Contracting });
@@ -286,17 +295,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             actualSummary
                 .TotalProviders
                 .Should()
-                .Be(fundings.Count());
+                .Be(fundings.Count(_ => _.Status == "Approved"));
 
             actualSummary
                 .TotalIndicativeProviders
                 .Should()
-                .Be(fundings.Where(_ => _.IsIndicative).Count());
+                .Be(fundings.Count(_ => _.IsIndicative && _.Status == "Approved"));
 
             actualSummary
                 .TotalFunding
                 .Should()
-                .Be(fundings[0].TotalFunding + fundings[1].TotalFunding + fundings[2].TotalFunding);
+                .Be(fundings[0].TotalFunding + fundings[2].TotalFunding);
 
             actualSummary
                 .ChannelFundings
@@ -307,15 +316,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     {
                         ChannelCode = Contracting,
                         ChannelName = Contracting,
-                        TotalProviders = fundings.Count(),
-                        TotalFunding = fundings[0].TotalFunding + fundings[1].TotalFunding + fundings[2].TotalFunding
+                        TotalProviders = fundings.Count(_ => _.Status == "Approved"),
+                        TotalFunding = fundings[0].TotalFunding + fundings[2].TotalFunding
                     }
                 });
         }
 
         /// <summary>
         /// 3 Published Providers and 2 Channels
-        /// All to be released into one channel where only some providers need to be released
+        /// All to be released into one channel
         /// </summary>
         /// <returns></returns>
         [TestMethod]
@@ -323,18 +332,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             PublishedProviderFundingSummary[] fundings = GenerateFundings();
 
-            GivenProviderVersionInChannels(fundings.Select(_ => new ProviderVersionInChannel
+            GivenProviderVersionInChannels(fundings.Where(_ => _.Status == "Released" ).Select(_ => new ProviderVersionInChannel
             {
-                ProviderId = _.ProviderId,
-                MajorVersion = _.MajorVersion,
+                ProviderId = _.Provider.ProviderId,
+                MajorVersion = _.MajorVersion + 1,
                 ChannelId = ContractingChannelId
-            }).Take(1).ToArray());
+            }).ToArray());
 
             GivenOrganisationGroupResults(AsArray(
                 NewOrganisationGroupResult(_ => _.WithProviders(AsArray(
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[0].ProviderId },
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[1].ProviderId },
-                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[2].ProviderId }
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[0].Provider.ProviderId },
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[1].Provider.ProviderId },
+                new Common.ApiClient.Providers.Models.Provider { ProviderId = fundings[2].Provider.ProviderId }
                 )))));
 
             ReleaseFundingPublishedProvidersSummary actualSummary = await WhenTheFundingSummaryIsProcessed(new string[] { Contracting });
@@ -342,12 +351,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             actualSummary
                 .TotalProviders
                 .Should()
-                .Be(fundings.Count() - 1);
+                .Be(fundings.Length - 1);
 
             actualSummary
                 .TotalFunding
                 .Should()
-                .Be(fundings[1].TotalFunding + fundings[2].TotalFunding);
+                .Be(fundings[0].TotalFunding + fundings[2].TotalFunding);
 
             actualSummary
                 .ChannelFundings
@@ -358,8 +367,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     {
                         ChannelCode = Contracting,
                         ChannelName = Contracting,
-                        TotalProviders = fundings.Count() - 1,
-                        TotalFunding = fundings[1].TotalFunding + fundings[2].TotalFunding
+                        TotalProviders = fundings.Length - 1,
+                        TotalFunding = fundings[0].TotalFunding + fundings[2].TotalFunding
                     }
                 });
         }
@@ -393,33 +402,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             decimal totalFunding2 = NewRandomNumber();
             decimal totalFunding3 = NewRandomNumber();
 
-            int majorVersionOne = 1;
-            int majorVersionTwo = 2;
-            int majorVersionThree = 3;
+            int majorVersionOne = 10;
+            int majorVersionTwo = 20;
+            int majorVersionThree = 30;
 
             PublishedProviderFundingSummary fundingOne = NewPublishedProviderFunding(_ => _
                 .WithSpecificationId(_specificationId)
-                .WithProviderId(_pageOne.First())
-                .WithProviderType(NewRandomString())
-                .WithProviderSubType(NewRandomString())
+                .WithStatus("Approved")
+                .WithProvider(
+                    NewProvider(p => p.WithProviderType(NewRandomString()).WithProviderSubType(NewRandomString()).WithProviderId(_pageOne.First())))
                 .WithIsIndicative(true)
                 .WithMajorVersion(majorVersionOne)
                 .WithMinorVersion(majorVersionOne)
                 .WithTotalFunding(totalFunding1));
             PublishedProviderFundingSummary fundingTwo = NewPublishedProviderFunding(_ => _
                 .WithSpecificationId(_specificationId)
-                .WithProviderId(_pageTwo.Last())
-                .WithProviderType(NewRandomString())
-                .WithProviderSubType(NewRandomString())
+                .WithStatus("Released")
+                .WithProvider(
+                    NewProvider(p => p.WithProviderType(NewRandomString()).WithProviderSubType(NewRandomString()).WithProviderId(_pageTwo.Last())))
                 .WithIsIndicative(false)
                 .WithMajorVersion(majorVersionTwo)
                 .WithMinorVersion(majorVersionTwo)
                 .WithTotalFunding(totalFunding2));
             PublishedProviderFundingSummary fundingThree = NewPublishedProviderFunding(_ => _
                 .WithSpecificationId(_specificationId)
-                .WithProviderId(_pageThree.Skip(1).First())
-                .WithProviderType(NewRandomString())
-                .WithProviderSubType(NewRandomString())
+                .WithStatus("Approved")
+                .WithProvider(
+                    NewProvider(p => p.WithProviderType(NewRandomString()).WithProviderSubType(NewRandomString()).WithProviderId(_pageThree.Skip(1).First())))
                 .WithIsIndicative(false)
                 .WithMajorVersion(majorVersionThree)
                 .WithMinorVersion(majorVersionThree)
@@ -447,7 +456,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             _publishedFunding.Setup(_ => _.GetReleaseFundingPublishedProviders(It.Is<IEnumerable<string>>(ids => ids.SequenceEqual(publishedProviderIds)),
                     It.Is<string>(spec => spec == _specificationId),
-                    It.Is<PublishedProviderStatus[]>(sts => sts.SequenceEqual(new List<PublishedProviderStatus> { PublishedProviderStatus.Approved }))))
+                    It.Is<PublishedProviderStatus[]>(sts => sts.SequenceEqual(new List<PublishedProviderStatus> { PublishedProviderStatus.Approved, PublishedProviderStatus.Released }))))
                 .ReturnsAsync(fundings);
         }
 
@@ -488,6 +497,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private PublishedProviderFundingSummary NewPublishedProviderFunding(Action<PublishedProviderFundingSummaryBuilder> setUp = null)
         {
             PublishedProviderFundingSummaryBuilder builder = new PublishedProviderFundingSummaryBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        private Provider NewProvider(Action<ProviderBuilder> setUp = null)
+        {
+            ProviderBuilder builder = new ProviderBuilder();
 
             setUp?.Invoke(builder);
 
