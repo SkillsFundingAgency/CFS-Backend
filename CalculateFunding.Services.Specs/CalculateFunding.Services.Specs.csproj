@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Models.Graph\CalculateFunding.Models.Graph.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Messages\CalculateFunding.Models.Messages.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.ProviderLegacy\CalculateFunding.Models.ProviderLegacy.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />

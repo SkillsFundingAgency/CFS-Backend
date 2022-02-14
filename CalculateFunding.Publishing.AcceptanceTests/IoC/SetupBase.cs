@@ -1,4 +1,5 @@
 ﻿using BoDi;
+using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using System;
@@ -26,6 +27,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             where TType : class
         {
             _objectContainer.RegisterInstanceAs(instance);
+        }
+
+        protected IStrategyRegistration RegisterFactoryAs<TInterface>(Func<IObjectContainer, TInterface> factoryDelegate, string name = null)
+        {
+            return _objectContainer.RegisterFactoryAs(factoryDelegate, name);
         }
 
         protected TType ResolveInstance<TType>()

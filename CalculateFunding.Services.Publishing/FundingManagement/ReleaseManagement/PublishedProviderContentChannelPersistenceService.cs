@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
         }
 
-        public async Task SavePublishedProviderVariationReasonContents(
+        public async Task SavePublishedProviderContents(
             SpecificationSummary specification,
             IEnumerable<PublishedProviderVersion> publishedProviderVersions,
             Channel channel,

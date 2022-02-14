@@ -189,7 +189,27 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             ReleasedProvider actualProvider = _repoInMemory.GetReleasedProviderById(expectedProvider.ReleasedProviderId);
 
-            actualProvider.Should().BeEquivalentTo(actualProvider);
+            actualProvider.Should().BeEquivalentTo(expectedProvider);
+        }
+
+        [Then(@"there is a released provider version record created in the release management repository")]
+        public async Task ThenThereIsAReleasedProviderVersionRecordCreatedInTheReleaseManagementRepository(Table table)
+        {
+            ReleasedProviderVersion expectedProvider = table.CreateInstance<ReleasedProviderVersion>();
+
+            ReleasedProviderVersion actualProvider = await _repoInMemory.GetReleasedProviderVersionById(expectedProvider.ReleasedProviderId);
+
+            actualProvider.Should().BeEquivalentTo(expectedProvider);
+        }
+
+        [Then(@"there is a released provider version channel record created in the release management repository")]
+        public async Task ThenThereIsAReleasedProviderVersionChannelRecordCreatedInTheReleaseManagementRepository(Table table)
+        {
+            ReleasedProviderVersionChannel expected = table.CreateInstance<ReleasedProviderVersionChannel>();
+
+            ReleasedProviderVersionChannel actual = await _repoInMemory.GetReleasedProviderVersionChannel(expected.ReleasedProviderVersionChannelId);
+
+            actual.Should().BeEquivalentTo(expected);
         }
 
     }

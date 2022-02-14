@@ -20,6 +20,7 @@ using Provider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using System.Linq;
 using FluentAssertions;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 {
@@ -30,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private Mock<IPublishedProviderLoaderForFundingGroupData> _publishedProviderLoader;
         private Mock<IPoliciesService> _policiesService;
         private Mock<IPublishedFundingDateService> _publishedFundingDateService;
-        private Mock<IPublishedFundingDataService> _publishedFundingDataService;
+        private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private readonly IPublishingResiliencePolicies _publishingResiliencePolicies = new ResiliencePolicies
         {
             PublishedFundingRepository = Policy.NoOpAsync()
@@ -46,6 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private SpecificationSummary _specificationSummary;
         private List<OrganisationGroupResult> _organisationGroupsToCreate;
         private FundingGroupDataGenerator _service;
+        private string _fundingPeriodId;
 
         [TestInitialize]
         public void Initialise()
@@ -67,13 +69,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _publishedProviderLoader = new Mock<IPublishedProviderLoaderForFundingGroupData>();
             _policiesService = new Mock<IPoliciesService>();
             _publishedFundingDateService = new Mock<IPublishedFundingDateService>();
-            _publishedFundingDataService = new Mock<IPublishedFundingDataService>();
+            _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _service = new FundingGroupDataGenerator(
                 _publishedFundingGenerator.Object,
                 _policiesService.Object,
                 _publishedFundingDateService.Object,
                 _publishingResiliencePolicies,
-                _publishedFundingDataService.Object,
+                _releaseManagementRepository.Object,
                 _publishedProviderLoader.Object
             );
         }
@@ -85,7 +87,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GivenPublishedProviders();
             GivenPublishedFunding();
 
-            IEnumerable<(PublishedFundingVersion, OrganisationGroupResult)> result = await _service.Generate(
+            IEnumerable<GeneratedPublishedFunding> result = await _service.Generate(
                 _organisationGroupsToCreate, _specificationSummary, _channel, new List<string> { new RandomString() });
 
             result
@@ -94,25 +96,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
             result
                 .First()
-                .Item1.GroupingReason.ToString()
+                .PublishedFundingVersion.GroupingReason.ToString()
                 .Should()
-                .Equals(result.First().Item2.GroupReason.ToString());
+                .Equals(result.First().OrganisationGroupResult.GroupReason.ToString());
 
             result
                 .First()
-                .Item1.OrganisationGroupTypeCode
+                .PublishedFundingVersion.OrganisationGroupTypeCode
                 .Should()
-                .Equals(result.First().Item2.GroupTypeCode.ToString());
+                .Equals(result.First().OrganisationGroupResult.GroupTypeCode.ToString());
 
             result
                 .First()
-                .Item1.OrganisationGroupTypeIdentifier.ToString()
+                .PublishedFundingVersion.OrganisationGroupTypeIdentifier.ToString()
                 .Should()
-                .Equals(result.First().Item2.GroupTypeIdentifier.ToString());
+                .Equals(result.First().OrganisationGroupResult.GroupTypeIdentifier.ToString());
 
             result
                 .First()
-                .Item1.VariationReasons
+                .PublishedFundingVersion.VariationReasons
                 .Should()
                 .BeEquivalentTo(new List<CalculateFunding.Models.Publishing.VariationReason>
                 {
@@ -163,6 +165,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                         Current = new PublishedProviderVersion
                         {
                             ProviderId = _providerId,
+                            FundingStreamId = _fundingStream.Id,
+                            FundingPeriodId = _specificationSummary.FundingPeriod.Id,
                             VariationReasons = new List<CalculateFunding.Models.Publishing.VariationReason>
                             {
                                 CalculateFunding.Models.Publishing.VariationReason.CalculationValuesUpdated,
@@ -188,17 +192,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 GroupingReason = Enum.Parse<CalculateFunding.Models.Publishing.GroupingReason>(groupingReason.ToString()),
                 OrganisationGroupTypeCode = groupTypeCode.ToString(),
                 OrganisationGroupTypeIdentifier = groupTypeIdentifier.ToString(),
-                Version = new RandomNumberBetween(1, 10)
+                Version = new RandomNumberBetween(1, 10),
+                FundingId = new RandomString(),
             };
 
-            _publishedFundingDataService.Setup(_ => _.GetCurrentPublishedFunding(It.IsAny<string>(), It.IsAny<GroupingReason?>()))
-                .ReturnsAsync(new List<PublishedFunding>
-                {
-                    new PublishedFunding
-                    {
-                        Current = publishedProviderVersion
-                    }
-                });
+            _releaseManagementRepository.Setup(_ => _.GetLatestFundingGroupMajorVersionsBySpecificationId(_specificationSummary.Id, _channel.ChannelId))
+                .ReturnsAsync( Enumerable.Empty<LatestFundingGroupVersion>());
 
             _organisationGroupsToCreate = new List<OrganisationGroupResult>
             {

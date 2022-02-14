@@ -4,6 +4,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -24,7 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private Mock<IReleaseToChannelSqlMappingContext> _context;
         private FundingGroupDataPersistenceService _service;
         private Fixture _fixture;
-        private IEnumerable<(PublishedFundingVersion, OrganisationGroupResult)> _fundingGroupData;
+        private IEnumerable<GeneratedPublishedFunding> _fundingGroupData;
 
         [TestInitialize]
         public void Initialise()
@@ -32,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _context = new Mock<IReleaseToChannelSqlMappingContext>();
             _fixture = new Fixture();
-            _fundingGroupData = _fixture.CreateMany<(PublishedFundingVersion, OrganisationGroupResult)>();
+            _fundingGroupData = _fixture.CreateMany<GeneratedPublishedFunding>();
             SetUpRepo();
 
             _service = new FundingGroupDataPersistenceService(_releaseManagementRepository.Object, _context.Object);
@@ -53,7 +54,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseManagementRepository.Verify(
                 _ => _.CreateFundingGroupVariationReasonUsingAmbientTransaction(
                     It.Is<FundingGroupVersionVariationReason>(f => f.FundingGroupVersionId == FundingGroupVersionId)),
-                        Times.Exactly(_fundingGroupData.SelectMany(s => s.Item1.VariationReasons).Count()));
+                        Times.Exactly(_fundingGroupData.SelectMany(s => s.PublishedFundingVersion.VariationReasons).Count()));
         }
 
         [TestMethod]
@@ -85,7 +86,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private void SetupGroupingReasons()
         {
             IEnumerable<CalculateFunding.Models.Publishing.GroupingReason> usedGroupingReasons =
-                _fundingGroupData.Select(s => s.Item1.GroupingReason)
+                _fundingGroupData.Select(s => s.PublishedFundingVersion.GroupingReason)
                 .Distinct();
 
             List<Publishing.FundingManagement.SqlModels.GroupingReason> groupingReasons = new List<Publishing.FundingManagement.SqlModels.GroupingReason>();
@@ -105,7 +106,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
         private void SetupFundingStreams()
         {
-            IEnumerable<string> usedFundingStreams = _fundingGroupData.Select(s => s.Item1.FundingStreamId);
+            IEnumerable<string> usedFundingStreams = _fundingGroupData.Select(s => s.PublishedFundingVersion.FundingStreamId);
             List<Publishing.FundingManagement.SqlModels.FundingStream> fundingStreams = new List<Publishing.FundingManagement.SqlModels.FundingStream>();
             int id = 1;
             foreach (string item in usedFundingStreams)
@@ -123,7 +124,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
         private void SetupFundingPeriods()
         {
-            IEnumerable<string> usedFundingPeriods = _fundingGroupData.Select(s => s.Item1.FundingPeriod.Id);
+            IEnumerable<string> usedFundingPeriods = _fundingGroupData.Select(s => s.PublishedFundingVersion.FundingPeriod.Id);
             List<Publishing.FundingManagement.SqlModels.FundingPeriod> fundingPeriods = new List<Publishing.FundingManagement.SqlModels.FundingPeriod>();
             int id = 1;
             foreach (string item in usedFundingPeriods)
@@ -141,7 +142,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
         private void SetupVariationReasons()
         {
-            IEnumerable<CalculateFunding.Models.Publishing.VariationReason> usedVariationReasons = _fundingGroupData.SelectMany(s => s.Item1.VariationReasons).Distinct();
+            IEnumerable<CalculateFunding.Models.Publishing.VariationReason> usedVariationReasons = _fundingGroupData.SelectMany(s => s.PublishedFundingVersion.VariationReasons).Distinct();
             List<Publishing.FundingManagement.SqlModels.VariationReason> variationReasons = new List<Publishing.FundingManagement.SqlModels.VariationReason>();
             int id = 0;
             foreach (CalculateFunding.Models.Publishing.VariationReason item in usedVariationReasons)
@@ -161,7 +162,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             Dictionary<OrganisationGroupResult, int> fundingGroups = new Dictionary<OrganisationGroupResult, int>();
             int id = 0;
-            foreach (OrganisationGroupResult item in _fundingGroupData.Select(s => s.Item2))
+            foreach (OrganisationGroupResult item in _fundingGroupData.Select(s => s.OrganisationGroupResult))
             {
                 fundingGroups.Add(item, id++);
             }
@@ -176,7 +177,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             Dictionary<OrganisationGroupResult, int> fundingGroups = new Dictionary<OrganisationGroupResult, int>();
             int id = 0;
-            List<OrganisationGroupResult> organisationGroupResults = _fundingGroupData.Select(s => s.Item2).ToList();
+            List<OrganisationGroupResult> organisationGroupResults = _fundingGroupData.Select(s => s.OrganisationGroupResult).ToList();
             organisationGroupResults.RemoveAt(0);
             foreach (OrganisationGroupResult item in organisationGroupResults)
             {

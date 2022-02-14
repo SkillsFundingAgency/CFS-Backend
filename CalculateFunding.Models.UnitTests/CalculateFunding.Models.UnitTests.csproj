@@ -10,19 +10,21 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.8" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.Calcs\CalculateFunding.Models.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Datasets\CalculateFunding.Models.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.External\CalculateFunding.Models.External.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Jobs\CalculateFunding.Models.Jobs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Policy\CalculateFunding.Models.Policy.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Providers\CalculateFunding.Models.Providers.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Publishing\CalculateFunding.Models.Publishing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Users\CalculateFunding.Models.Users.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core.UnitTests\CalculateFunding.Services.Core.UnitTests.csproj" />
   </ItemGroup>
 

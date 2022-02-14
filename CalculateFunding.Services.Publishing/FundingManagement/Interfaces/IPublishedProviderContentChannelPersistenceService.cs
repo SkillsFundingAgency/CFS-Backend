@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
     public interface IPublishedProviderContentChannelPersistenceService
     {
-        Task SavePublishedProviderVariationReasonContents(
+        Task SavePublishedProviderContents(
             SpecificationSummary specification,
             IEnumerable<PublishedProviderVersion> publishedProviderVersions,
             Channel channel,

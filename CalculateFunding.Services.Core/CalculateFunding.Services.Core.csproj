@@ -56,7 +56,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Models.Users\CalculateFunding.Models.Users.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Versioning\CalculateFunding.Models.Versioning.csproj" />
     <ProjectReference Include="..\CalculateFunding.Repositories.Common.Search\CalculateFunding.Repositories.Common.Search.csproj" />
   </ItemGroup>
 

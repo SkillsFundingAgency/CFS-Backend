@@ -185,6 +185,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return _releasedProviders[releasedProviderId];
         }
 
+        public Task<ReleasedProviderVersion> GetReleasedProviderVersionById(int releasedProviderId)
+        {
+            _releasedProviderVersions.TryGetValue(releasedProviderId, out ReleasedProviderVersion rpv);
+
+            return Task.FromResult(rpv);
+        }
+
         private void EnsureFundingGroupExists(int fundingGroupId)
         {
             if (!_fundingGroups.ContainsKey(fundingGroupId))
@@ -280,6 +287,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannel(ReleasedProviderVersionChannel providerVersionChannel)
         {
             throw new NotImplementedException();
+        }
+
+        public Task<ReleasedProviderVersionChannel> GetReleasedProviderVersionChannel(int releasedProviderVersionChannelId)
+        {
+            _releasedProviderVersionChannels.TryGetValue(releasedProviderVersionChannelId, out ReleasedProviderVersionChannel rpvc);
+
+            return Task.FromResult(rpvc);
         }
 
         public Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannelsUsingAmbientTransaction(ReleasedProviderVersionChannel providerVersionChannel)
@@ -545,6 +559,32 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<ProviderVersionInChannel> GetReleasedProvider(string publishedProviderVersion, int channelId)
         {
             throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<LatestFundingGroupVersion>> GetLatestFundingGroupMajorVersionsBySpecificationId(string specificationId, int channelId)
+        {
+            IEnumerable<int> fundingGroupsForSpecification = 
+                _fundingGroups.Values
+                .Where(_ => _.SpecificationId == specificationId)
+                .Select(_ => _.FundingGroupId);
+
+            IEnumerable<FundingGroupVersion> fundingGroupVersionsForSpecification = 
+                _fundingGroupVersions.Values
+                .Where(_ => fundingGroupsForSpecification.Contains(_.FundingGroupId) 
+                    && _.ChannelId == channelId);
+
+            IEnumerable<LatestFundingGroupVersion> latestVersions = 
+                fundingGroupVersionsForSpecification
+                .GroupBy(_ => _.FundingGroupId)
+                .Select(_ => _.OrderByDescending(g => g.MajorVersion).First())
+                .Select(_ => new LatestFundingGroupVersion()
+                                {
+                                    MajorVersion = _.MajorVersion,
+                                    FundingGroupVersionId = _.FundingGroupVersionId,
+                                    FundingId = _.FundingId,
+                                });
+
+            return Task.FromResult(latestVersions);
         }
     }
 }

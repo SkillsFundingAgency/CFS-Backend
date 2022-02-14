@@ -49,6 +49,8 @@ using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using Microsoft.FeatureManagement;
+using CalculateFunding.Tests.Common;
+using CalculateFunding.Services.Core.Services;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 {
@@ -75,9 +77,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             RegisterStepContexts();
 
+            RegisterBlobStorageClientsAndStepContexts();
+
             RegisterValidators();
 
             RegisterPrereqChecker();
+        }
+
+        private void RegisterBlobStorageClientsAndStepContexts()
+        {
+            RegisterFactoryAs<IReleaseManagementBlobStepContext>((container) =>
+            {
+                return new ReleaseManagementBlobStepContext
+                {
+                    PublishedProvidersClient = new InMemoryAzureBlobClient(),
+                    FundingGroupsClient = new InMemoryBlobClient(),
+                    PublishedFundingClient = new InMemoryBlobClient(),
+                    ReleasedProvidersClient = new InMemoryBlobClient()
+                };
+            });
         }
 
         private void RegisterPrereqChecker()
@@ -137,11 +155,39 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             RegisterInstanceAs<IPublishedFundingContentsGeneratorResolver>(publishedFundingContentsGeneratorResolver);
 
-
             RegisterTypeAs<PublishedProviderContentPersistenceService, IPublishedProviderContentPersistenceService>();
-            RegisterTypeAs<PublishedFundingContentsPersistenceService, IPublishedFundingContentsPersistenceService>();
 
-            RegisterTypeAs<PublishedProviderVersionService, IPublishedProviderVersionService>();
+            RegisterFactoryAs<IPublishedFundingContentsPersistenceService>((ctx =>
+            {
+                IPublishedFundingContentsGeneratorResolver contentsGeneratorResolver = ctx.Resolve<IPublishedFundingContentsGeneratorResolver>();
+                IPublishingResiliencePolicies publishingResiliencePolicies = ctx.Resolve<IPublishingResiliencePolicies>();
+                IPublishingEngineOptions publishingEngineOptions = ctx.Resolve<IPublishingEngineOptions>();
+               
+                IReleaseManagementBlobStepContext releaseManagementBlobStepContext = ctx.Resolve<IReleaseManagementBlobStepContext>();
+                ReleaseManagementBlobStepContext stepContext = (ReleaseManagementBlobStepContext)releaseManagementBlobStepContext;
+
+                return new PublishedFundingContentsPersistenceService(contentsGeneratorResolver,
+                    stepContext.FundingGroupsClient,
+                    publishingResiliencePolicies,
+                    publishingEngineOptions);
+            }));
+
+            RegisterFactoryAs<IPublishedProviderVersionService>((svc) => {
+            ILogger logger = svc.Resolve<ILogger>();
+                IReleaseManagementBlobStepContext releaseManagementBlobStepContext = svc.Resolve<IReleaseManagementBlobStepContext>();
+                ReleaseManagementBlobStepContext stepContext = (ReleaseManagementBlobStepContext)releaseManagementBlobStepContext;
+
+                IPublishingResiliencePolicies publishingResiliencePolicies = svc.Resolve<IPublishingResiliencePolicies>();
+                IJobManagement jobManagement = svc.Resolve<IJobManagement>();
+
+                return new PublishedProviderVersionService(logger,
+                    stepContext.PublishedProvidersClient,
+                    publishingResiliencePolicies,
+                    jobManagement
+                    );
+            });
+
+
             RegisterTypeAs<PublishedProviderVersioningService, IPublishedProviderVersioningService>();
             RegisterTypeAs<PublishedProviderIndexerService, IPublishedProviderIndexerService>();
             RegisterTypeAs<PublishedProviderStatusUpdateService, IPublishedProviderStatusUpdateService>();
@@ -209,6 +255,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             RegisterInstanceAs<IConfiguration>(new ConfigurationBuilder().Build());
             RegisterTypeAs<InMemoryFeatureManagerSnapshot, IFeatureManagerSnapshot>();
+
+            StaticDateTimeService staticDateTimeService = new StaticDateTimeService();
+
+            RegisterInstanceAs<StaticDateTimeService>(staticDateTimeService);
+            RegisterInstanceAs<ICurrentDateTime>(staticDateTimeService);
         }
 
         private void RegisterValidators()
@@ -271,11 +322,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<InMemoryBlobClient, IBlobClient>();
             RegisterTypeAs<InMemoryAzureBlobClient, Services.Core.Interfaces.AzureStorage.IBlobClient>();
 
-            
+
             RegisterTypeAs<PublishedProviderInMemorySearchRepository, ISearchRepository<PublishedProviderIndex>>();
             RegisterTypeAs<PublishedFundingInMemorySearchRepository, ISearchRepository<PublishedFundingIndex>>();
 
-            
+
         }
 
         private void RegisterDependentMicroserviceAccessors()
@@ -324,15 +375,42 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<GenerateVariationReasonsForChannelService, IGenerateVariationReasonsForChannelService>();
             RegisterTypeAs<ProviderVariationsDetection, IDetectProviderVariations>();
             RegisterTypeAs<PublishedProviderContentChannelPersistenceService, IPublishedProviderContentChannelPersistenceService>();
-            RegisterTypeAs<PublishedProviderChannelVersionService, IPublishedProviderChannelVersionService>();
-            RegisterTypeAs<PublishedFundingContentsChannelPersistenceService, IPublishedFundingContentsChannelPersistenceService>();
             RegisterTypeAs<FundingGroupService, IFundingGroupService>();
             RegisterTypeAs<FundingGroupDataGenerator, IFundingGroupDataGenerator>();
             RegisterTypeAs<PublishedProviderLoaderForFundingGroupData, IPublishedProviderLoaderForFundingGroupData>();
             RegisterTypeAs<FundingGroupDataPersistenceService, IFundingGroupDataPersistenceService>();
             RegisterTypeAs<FundingGroupProviderPersistenceService, IFundingGroupProviderPersistenceService>();
 
-            
+            RegisterFactoryAs<IPublishedFundingContentsChannelPersistenceService>((svc) =>
+            {
+
+                IReleaseManagementBlobStepContext releaseManagementBlobStepContextInterface = svc.Resolve<IReleaseManagementBlobStepContext>();
+                ReleaseManagementBlobStepContext releaseManagementBlobStepContext = releaseManagementBlobStepContextInterface as ReleaseManagementBlobStepContext;
+                ILogger logger = svc.Resolve<ILogger>();
+                IPublishedFundingContentsGeneratorResolver publishedFundingContentsGeneratorResolver = svc.Resolve<IPublishedFundingContentsGeneratorResolver>();
+                IPublishingResiliencePolicies publishingResiliencePolicies = svc.Resolve<IPublishingResiliencePolicies>();
+                IPublishingEngineOptions publishingEngineOptions = svc.Resolve<IPublishingEngineOptions>();
+                IPoliciesService policiesService = svc.Resolve<IPoliciesService>();
+
+                return new PublishedFundingContentsChannelPersistenceService(logger,
+                                    publishedFundingContentsGeneratorResolver,
+                                    releaseManagementBlobStepContext.FundingGroupsClient,
+                                    publishingResiliencePolicies,
+                                    publishingEngineOptions,
+                                    policiesService);
+            });
+
+            RegisterFactoryAs<IPublishedProviderChannelVersionService>((svc) =>
+            {
+                ILogger logger = svc.Resolve<ILogger>();
+                IReleaseManagementBlobStepContext releaseManagementBlobStepContextInterface = svc.Resolve<IReleaseManagementBlobStepContext>();
+                ReleaseManagementBlobStepContext releaseManagementBlobStepContext = releaseManagementBlobStepContextInterface as ReleaseManagementBlobStepContext;
+                IPublishingResiliencePolicies publishingResiliencePolicies = svc.Resolve<IPublishingResiliencePolicies>();
+
+                return new PublishedProviderChannelVersionService(logger,
+                                                                  releaseManagementBlobStepContext.ReleasedProvidersClient,
+                                                                  publishingResiliencePolicies);
+            });
         }
     }
 }

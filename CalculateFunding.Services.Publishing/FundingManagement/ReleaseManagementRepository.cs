@@ -719,10 +719,28 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 (SELECT FundingGroupId, MAX(MajorVersion) AS LatestVersion FROM FundingGroupVersions 
                 GROUP BY FundingGroupId) LatestFundingGroupVersion ON FGV.FundingGroupId = LatestFundingGroupVersion.FundingGroupId AND FGV.MajorVersion = LatestFundingGroupVersion.LatestVersion
                 INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
-				WHERE FG.SpecificationId =  {nameof(specificationId)}",
+				WHERE FG.SpecificationId =  @{nameof(specificationId)}",
                 new
                 {
                     specificationId
+                });
+        }
+
+        public async Task<IEnumerable<LatestFundingGroupVersion>> GetLatestFundingGroupMajorVersionsBySpecificationId(string specificationId, int channelId)
+        {
+            return await QuerySql<LatestFundingGroupVersion>($@"
+               SELECT FGV.FundingGroupVersionId, FGV.MajorVersion, FGV.FundingId
+                FROM FundingGroupVersions FGV
+                INNER JOIN 
+                (SELECT FundingGroupId, MAX(MajorVersion) AS LatestVersion FROM FundingGroupVersions 
+                GROUP BY FundingGroupId) LatestFundingGroupVersion ON FGV.FundingGroupId = LatestFundingGroupVersion.FundingGroupId AND FGV.MajorVersion = LatestFundingGroupVersion.LatestVersion
+                INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
+				WHERE FGV.ChannelId =  @{nameof(channelId)}
+				AND FG.SpecificationId =  @{nameof(specificationId)}",
+                new
+                {
+                    specificationId,
+                    channelId
                 });
         }
 

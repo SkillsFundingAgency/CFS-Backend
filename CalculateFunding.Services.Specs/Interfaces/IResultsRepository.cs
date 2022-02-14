@@ -1,6 +1,4 @@
-﻿using CalculateFunding.Models.Users;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {

@@ -40,7 +40,6 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.Schema.IdentifierFieldType, IdentifierFieldType>();
             CreateMap<CalcEngineModels.CalculationResult, CalculationResult>();
             CreateMap<CalculationSummaryModel, CalcEngineModels.CalculationSummaryModel>();
-            CreateMap<Common.ApiClient.Specifications.Models.SpecificationSummary, Models.Specs.SpecificationSummary>();
 
             CreateJobsMappingProfiles();
             CreateDatasetsMappingProfiles();

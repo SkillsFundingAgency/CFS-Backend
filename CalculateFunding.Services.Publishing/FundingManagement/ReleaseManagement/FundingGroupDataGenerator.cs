@@ -8,6 +8,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Newtonsoft.Json;
@@ -27,33 +28,31 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IPublishedFundingGenerator _publishedFundingGenerator;
         private readonly IPoliciesService _policiesService;
         private readonly IPublishedFundingDateService _publishedFundingDateService;
-        private readonly AsyncPolicy _publishingResiliencePolicy;
-        private readonly IPublishedFundingDataService _publishedFundingDataService;
+        private readonly IReleaseManagementRepository _repo;
         private readonly IPublishedProviderLoaderForFundingGroupData _publishedProviderLoader;
 
         public FundingGroupDataGenerator(IPublishedFundingGenerator publishedFundingGenerator,
             IPoliciesService policiesService,
             IPublishedFundingDateService publishedFundingDateService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
-            IPublishedFundingDataService publishedFundingDataService,
+            IReleaseManagementRepository releaseManagementRepository,
             IPublishedProviderLoaderForFundingGroupData publishedProviderLoader)
         {
             Guard.ArgumentNotNull(publishedFundingGenerator, nameof(publishedFundingGenerator));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(publishedFundingDateService, nameof(publishedFundingDateService));
-            Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
+            Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(publishedProviderLoader, nameof(publishedProviderLoader));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
 
             _publishedFundingGenerator = publishedFundingGenerator;
             _policiesService = policiesService;
             _publishedFundingDateService = publishedFundingDateService;
-            _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
-            _publishedFundingDataService = publishedFundingDataService;
+            _repo = releaseManagementRepository;
             _publishedProviderLoader = publishedProviderLoader;
         }
 
-        public async Task<IEnumerable<(PublishedFundingVersion, OrganisationGroupResult)>> Generate(
+        public async Task<IEnumerable<GeneratedPublishedFunding>> Generate(
             IEnumerable<OrganisationGroupResult> organisationGroupsToCreate,
             SpecificationSummary specification,
             Channel channel,
@@ -66,7 +65,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             PublishedFundingInput publishedFundingInput = new PublishedFundingInput
             {
-                OrganisationGroupsToSave = await GeneratePublishedFundingOrganisationGroupResultTuples(organisationGroupsToCreate, specification, fundingStream),
+                OrganisationGroupsToSave = organisationGroupsToCreate.Select(_ => ((PublishedFunding)null, _)),// await GeneratePublishedFundingOrganisationGroupResultTuples(organisationGroupsToCreate, specification, fundingStream),
                 FundingStream = fundingStream,
                 FundingPeriod = await _policiesService.GetFundingPeriodByConfigurationId(specification.FundingPeriod.Id),
                 PublishingDates = _publishedFundingDateService.GetDatesForSpecification(),
@@ -75,30 +74,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 SpecificationId = specification.Id
             };
 
-            return GenerateOutput(organisationGroupsToCreate, publishedProviders, publishedFundingInput);
-        }
+            IEnumerable<LatestFundingGroupVersion> latestFundingGroupsForChannel = await _repo.GetLatestFundingGroupMajorVersionsBySpecificationId(specification.Id, channel.ChannelId);
 
-        private async Task<List<(PublishedFunding, OrganisationGroupResult)>> GeneratePublishedFundingOrganisationGroupResultTuples(IEnumerable<OrganisationGroupResult> organisationGroupsToCreate, SpecificationSummary specification, Reference fundingStream)
-        {
-            IEnumerable<PublishedFunding> publishedFundings = await _publishingResiliencePolicy.ExecuteAsync(() =>
-                           _publishedFundingDataService.GetCurrentPublishedFunding(fundingStream.Id, specification.FundingPeriod.Id));
 
-            List<(PublishedFunding, OrganisationGroupResult)> organisationGroupsToSave = new List<(PublishedFunding, OrganisationGroupResult)>();
-
-            foreach (OrganisationGroupResult organisationGroup in organisationGroupsToCreate)
-            {
-                PublishedFunding publishedFundingForOrganisationGroup = publishedFundings?
-                    .Where(_ => organisationGroup.IdentifierValue == _.Current.OrganisationGroupIdentifierValue &&
-                        organisationGroup.GroupTypeCode == Enum.Parse<OrganisationGroupTypeCode>(_.Current.OrganisationGroupTypeCode) &&
-                        organisationGroup.GroupTypeClassification == Enum.Parse<OrganisationGroupTypeClassification>(_.Current.OrganisationGroupTypeClassification) &&
-                        organisationGroup.GroupTypeIdentifier == Enum.Parse<OrganisationGroupTypeIdentifier>(_.Current.OrganisationGroupTypeIdentifier) &&
-                        organisationGroup.GroupReason == Enum.Parse<OrganisationGroupingReason>(_.Current.GroupingReason.ToString()))
-                    .OrderBy(_ => _.Current.Version).LastOrDefault();
-
-                organisationGroupsToSave.Add((publishedFundingForOrganisationGroup, organisationGroup));
-            }
-
-            return organisationGroupsToSave;
+            return GenerateOutput(organisationGroupsToCreate, publishedProviders, publishedFundingInput, latestFundingGroupsForChannel);
         }
 
         private async Task<TemplateMetadataContents> ReadTemplateMetadataContents(Reference fundingStream, SpecificationSummary specification)
@@ -114,14 +93,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             return templateMetadataContents;
         }
 
-        private IEnumerable<(PublishedFundingVersion, OrganisationGroupResult)> GenerateOutput(IEnumerable<OrganisationGroupResult> organisationGroupsToCreate, List<PublishedProvider> publishedProviders, PublishedFundingInput publishedFundingInput)
+        private IEnumerable<GeneratedPublishedFunding> GenerateOutput(IEnumerable<OrganisationGroupResult> organisationGroupsToCreate, List<PublishedProvider> publishedProviders, PublishedFundingInput publishedFundingInput, IEnumerable<LatestFundingGroupVersion> latestFundingGroupsForChannel)
         {
             IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundings =
                                 _publishedFundingGenerator.GeneratePublishedFunding(publishedFundingInput, publishedProviders).ToList();
 
             AggregateVariationReasons(publishedProviders, publishedFundings);
 
-            List<(PublishedFundingVersion, OrganisationGroupResult)> result = new List<(PublishedFundingVersion, OrganisationGroupResult)>();
+            List<GeneratedPublishedFunding> result = new List<GeneratedPublishedFunding>();
+
+            Dictionary<string, LatestFundingGroupVersion> latestFundingVersions = latestFundingGroupsForChannel.ToDictionary(_ => _.FundingId);
 
             foreach ((PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion) publishedFunding in publishedFundings)
             {
@@ -135,11 +116,33 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     throw new NonRetriableException($"Organisation group result not found for ${JsonConvert.SerializeObject(publishedFunding.PublishedFundingVersion)}");
                 }
 
-                result.Add((publishedFunding.PublishedFundingVersion, organisationGroupResult));
+                publishedFunding.PublishedFundingVersion.MajorVersion = GetMajorVersionForRelease(publishedFunding.PublishedFundingVersion.FundingId, latestFundingVersions);
+
+                result.Add( new GeneratedPublishedFunding()
+                {
+                    PublishedFunding = publishedFunding.PublishedFunding,
+                    PublishedFundingVersion = publishedFunding.PublishedFundingVersion,
+                    OrganisationGroupResult = organisationGroupResult,
+                });
             }
 
             return result;
         }
+
+        private int GetMajorVersionForRelease(string fundingId, Dictionary<string, LatestFundingGroupVersion> latestFundingVersions)
+        {
+            if(latestFundingVersions.TryGetValue(fundingId, out var latestFunding))
+            {
+                // Existing version, so increase the major version by 1
+                return latestFunding.MajorVersion + 1;
+            }
+            else
+            {
+                // Initial version for this group in this channel
+                return 1;
+            }
+        }
+
 
         private void AggregateVariationReasons(List<PublishedProvider> publishedProviders, IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave)
         {

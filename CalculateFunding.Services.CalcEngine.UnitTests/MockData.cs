@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.ProviderLegacy;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.CalcEngine.UnitTests

@@ -1,10 +1,13 @@
 ﻿using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Services.Publishing.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +32,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IFundingGroupService _fundingGroupService;
         private readonly IFundingGroupDataGenerator _fundingGroupDataGenerator;
         private readonly IFundingGroupDataPersistenceService _fundingGroupDataPersistenceService;
+        private readonly ICurrentDateTime _currentDateTime;
 
         public ChannelReleaseService(
             IPublishedProvidersLoadContext publishProvidersLoadContext,
@@ -44,7 +48,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IFundingGroupProviderPersistenceService fundingGroupProviderPersistenceService,
             IFundingGroupService fundingGroupService,
             IFundingGroupDataGenerator fundingGroupDataGenerator,
-            IFundingGroupDataPersistenceService fundingGroupDataPersistenceService)
+            IFundingGroupDataPersistenceService fundingGroupDataPersistenceService,
+            ICurrentDateTime currentDateTime)
         {
             Guard.ArgumentNotNull(publishProvidersLoadContext, nameof(publishProvidersLoadContext));
             Guard.ArgumentNotNull(providersForChannelFilterService, nameof(providersForChannelFilterService));
@@ -60,6 +65,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(fundingGroupProviderPersistenceService, nameof(fundingGroupProviderPersistenceService));
             Guard.ArgumentNotNull(fundingGroupDataGenerator, nameof(fundingGroupDataGenerator));
             Guard.ArgumentNotNull(fundingGroupDataPersistenceService, nameof(fundingGroupDataPersistenceService));
+            Guard.ArgumentNotNull(currentDateTime, nameof(currentDateTime));
 
             _publishProvidersLoadContext = publishProvidersLoadContext;
             _providersForChannelFilterService = providersForChannelFilterService;
@@ -75,6 +81,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _fundingGroupService = fundingGroupService;
             _fundingGroupDataGenerator = fundingGroupDataGenerator;
             _fundingGroupDataPersistenceService = fundingGroupDataPersistenceService;
+            _currentDateTime = currentDateTime;
         }
 
         /// <summary>
@@ -88,12 +95,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         public async Task ReleaseProvidersForChannel(Channel channel,
             FundingConfiguration fundingConfiguration,
             SpecificationSummary specification,
-            IEnumerable<string> batchPublishedProviderIds)
+            IEnumerable<string> batchPublishedProviderIds,
+            Reference author,
+            string jobId,
+            string correlationId)
         {
             Guard.ArgumentNotNull(channel, nameof(channel));
             Guard.ArgumentNotNull(fundingConfiguration, nameof(fundingConfiguration));
             Guard.ArgumentNotNull(specification, nameof(specification));
             Guard.ArgumentNotNull(batchPublishedProviderIds, nameof(batchPublishedProviderIds));
+
+            DateTime currentDateTime = _currentDateTime.GetUtcNow();
 
             IEnumerable<PublishedProvider> publishedProvidersBatch = await _publishProvidersLoadContext.GetOrLoadProviders(batchPublishedProviderIds);
 
@@ -116,7 +128,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IEnumerable<FundingGroup> fundingGroups =
                 await _fundingGroupService.CreateFundingGroups(specification.Id, channel.ChannelId, organisationGroupsToCreate);
 
-            IEnumerable<(PublishedFundingVersion, OrganisationGroupResult)> fundingGroupData =
+            IEnumerable<GeneratedPublishedFunding> fundingGroupData =
                 await _fundingGroupDataGenerator.Generate(
                     organisationGroupsToCreate, specification, channel, batchPublishedProviderIds);
 
@@ -139,7 +151,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             await _providerVersionToChannelReleaseService.ReleaseProviderVersionChannel(
                 providersToRelease.Values.Select(_=>_.ProviderId),
                 channel.ChannelId,
-                DateTime.UtcNow);
+                currentDateTime);
 
             IDictionary<string, IEnumerable<VariationReason>> variationReasonsForProviders = await _generateVariationReasonsForChannelService.GenerateVariationReasonsForProviders(
                 batchPublishedProviderIds,
@@ -148,14 +160,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 fundingConfiguration,
                 allOrganisationGroups.GroupByProviderId());
 
-            // FundingGroupProviders needs to be released here. All funding groups created + latest versions of provider Ids
             await _fundingGroupProviderPersistenceService.PersistFundingGroupProviders(channel.ChannelId, fundingGroupData, providersInGroupsToRelease);
 
             await _publishedProviderContentChannelPersistenceService
-                .SavePublishedProviderVariationReasonContents(specification, providersInGroupsToRelease, channel, variationReasonsForProviders);
+                .SavePublishedProviderContents(specification, providersInGroupsToRelease, channel, variationReasonsForProviders);
 
             await _publishedFundingContentsChannelPersistenceService
-                .SavePublishedFundingContents(fundingGroupData.Select(_ => _.Item1), channel);
+                .SavePublishedFundingContents(fundingGroupData.Select(_ => _.PublishedFundingVersion), channel);
         }
     }
 }

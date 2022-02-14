@@ -3,6 +3,7 @@ using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Services.Publishing.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,26 +27,26 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _ctx = releaseToChannelSqlMappingContext;
         }
 
-        public async Task PersistFundingGroupProviders(int channelId, IEnumerable<(PublishedFundingVersion, OrganisationGroupResult)> fundingGroupData, IEnumerable<PublishedProviderVersion> providersInGroupsToRelease)
+        public async Task PersistFundingGroupProviders(int channelId, IEnumerable<GeneratedPublishedFunding> fundingGroupData, IEnumerable<PublishedProviderVersion> providersInGroupsToRelease)
         {
             Dictionary<string, PublishedProviderVersion> providers = providersInGroupsToRelease.ToDictionary(_ => _.ProviderId);
 
             IEnumerable<string> batchProviderIds = providersInGroupsToRelease.Select(_ => _.ProviderId);
 
-            foreach (var group in fundingGroupData)
+            foreach (GeneratedPublishedFunding group in fundingGroupData)
             {
-                if (!_ctx.FundingGroupVersions[channelId].TryGetValue(group.Item1.FundingId, out FundingGroupVersion fundingGroupVersion))
+                if (!_ctx.FundingGroupVersions[channelId].TryGetValue(group.PublishedFundingVersion.FundingId, out FundingGroupVersion fundingGroupVersion))
                 {
-                    throw new InvalidOperationException($"Unable to find FundingGroupVersion with funding ID '{group.Item1.FundingId}' in channel '{channelId}'");
+                    throw new InvalidOperationException($"Unable to find FundingGroupVersion with funding ID '{group.PublishedFundingVersion.FundingId}' in channel '{channelId}'");
                 }
 
-                var providersIdsInBatchForGroup = group.Item2.Providers.Select(_ => _.ProviderId).Union(batchProviderIds);
+                IEnumerable<string> providersIdsInBatchForGroup = group.OrganisationGroupResult.Providers.Select(_ => _.ProviderId).Union(batchProviderIds);
                 if (!providersIdsInBatchForGroup.Any())
                 {
-                    throw new InvalidOperationException($"No providers for the current batch were found for group '{group.Item1.FundingId}'");
+                    throw new InvalidOperationException($"No providers for the current batch were found for group '{group.PublishedFundingVersion.FundingId}'");
                 }
 
-                foreach (var providerId in providersIdsInBatchForGroup)
+                foreach (string providerId in providersIdsInBatchForGroup)
                 {
                     string contextKey = $"{providerId}_{channelId}";
 

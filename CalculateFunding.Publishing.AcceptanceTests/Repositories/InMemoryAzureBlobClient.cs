@@ -56,6 +56,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public bool ContainsBlob(string fileName)
+        {
+            return _files.ContainsKey(fileName);
+        }
+
         public async Task UploadAsync(ICloudBlob blob, string data)
         {
             _files[blob.Name] = data;

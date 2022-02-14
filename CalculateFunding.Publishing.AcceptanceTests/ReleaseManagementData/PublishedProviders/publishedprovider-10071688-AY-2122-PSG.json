@@ -87,8 +87,8 @@
       ],
       "referenceData": null,
       "totalFunding": 17780,
-      "majorVersion": 1,
-      "minorVersion": 0,
+      "majorVersion": 0,
+      "minorVersion": 1,
       "provider": {
         "providerVersionId": "PSG-2021-10-11-76",
         "providerId": "10071688",

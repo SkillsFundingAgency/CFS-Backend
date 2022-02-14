@@ -91,7 +91,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features.ReleaseManagement
             testRunner.CollectScenarioErrors();
         }
         
-        public virtual void InitialReleaseOfProvidersIntoChannels(string fundingStreamId, string fundingPeriodId, string specificationId, string specificationName, string providerVersionId, string providerSnapshotId, string[] exampleTags)
+        public virtual void InitialReleaseOfProvidersIntoChannels(string fundingStreamId, string fundingPeriodId, string specificationId, string specificationName, string providerVersionId, string providerSnapshotId, string currentDateTime, string authorId, string authorName, string[] exampleTags)
         {
             string[] @__tags = new string[] {
                     "releasemanagement"};
@@ -107,6 +107,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features.ReleaseManagement
             argumentsOfScenario.Add("Specification Name", specificationName);
             argumentsOfScenario.Add("ProviderVersionId", providerVersionId);
             argumentsOfScenario.Add("ProviderSnapshotId", providerSnapshotId);
+            argumentsOfScenario.Add("CurrentDateTime", currentDateTime);
+            argumentsOfScenario.Add("AuthorId", authorId);
+            argumentsOfScenario.Add("AuthorName", authorName);
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Initial release of providers into channels", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 6
 this.ScenarioInitialize(scenarioInfo);
@@ -243,6 +246,9 @@ this.ScenarioInitialize(scenarioInfo);
 #line 45
  testRunner.And("the job is submitted to the job service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
+#line 46
+ testRunner.And(string.Format("the current date and time is \'{0}\'", currentDateTime), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
                 TechTalk.SpecFlow.Table table1210 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
@@ -251,11 +257,11 @@ this.ScenarioInitialize(scenarioInfo);
                             "Corr"});
                 table1210.AddRow(new string[] {
                             "AuthorName",
-                            "Releaser Name"});
+                            string.Format("{0}", authorName)});
                 table1210.AddRow(new string[] {
                             "AuthorId",
-                            "Rel1"});
-#line 46
+                            string.Format("{0}", authorId)});
+#line 47
  testRunner.When("funding is released to channels for selected providers", ((string)(null)), table1210, "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table1211 = new TechTalk.SpecFlow.Table(new string[] {
@@ -270,8 +276,82 @@ this.ScenarioInitialize(scenarioInfo);
                 table1211.AddRow(new string[] {
                             "ProviderId",
                             "10071688"});
-#line 51
+#line 52
  testRunner.Then("there is a released provider record in the release management repository", ((string)(null)), table1211, "Then ");
+#line hidden
+                TechTalk.SpecFlow.Table table1212 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Field",
+                            "Value"});
+                table1212.AddRow(new string[] {
+                            "ReleasedProviderVersionId",
+                            "1"});
+                table1212.AddRow(new string[] {
+                            "ReleasedProviderId",
+                            "1"});
+                table1212.AddRow(new string[] {
+                            "MajorVersion",
+                            "1"});
+                table1212.AddRow(new string[] {
+                            "FundingId",
+                            "PSG-AY-2122-10071688-1_0"});
+                table1212.AddRow(new string[] {
+                            "TotalFunding",
+                            "17780"});
+                table1212.AddRow(new string[] {
+                            "CoreProviderVersionId",
+                            string.Format("{0}", providerVersionId)});
+#line 57
+ testRunner.And("there is a released provider version record created in the release management rep" +
+                        "ository", ((string)(null)), table1212, "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table1213 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Field",
+                            "Value"});
+                table1213.AddRow(new string[] {
+                            "ReleasedProviderVersionChannelId",
+                            "1"});
+                table1213.AddRow(new string[] {
+                            "ReleasedProviderVersionId",
+                            "1"});
+                table1213.AddRow(new string[] {
+                            "ChannelId",
+                            "3"});
+                table1213.AddRow(new string[] {
+                            "StatusChangedDate",
+                            string.Format("{0}", currentDateTime)});
+                table1213.AddRow(new string[] {
+                            "AuthorId",
+                            string.Format("{0}", authorId)});
+                table1213.AddRow(new string[] {
+                            "AuthorName",
+                            string.Format("{0}", authorName)});
+#line 65
+ testRunner.And("there is a released provider version channel record created in the release manage" +
+                        "ment repository", ((string)(null)), table1213, "And ");
+#line hidden
+#line 73
+ testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Informat" +
+                        "ion-LocalAuthority-212-1_0\' in the channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 74
+ testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Payment-" +
+                        "LocalAuthority-10004002-1_0\' in the channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 75
+ testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Payment-" +
+                        "LocalAuthority-10004002-1_0\' in the channel \'Payment\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 76
+ testRunner.And("there is content blob created for the released published provider with ID \'PSG-AY" +
+                        "-2122-10071688-1_0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 77
+ testRunner.And("there is content blob created for the released provider with ID \'PSG-AY-2122-1007" +
+                        "1688-1_0\' in channel \'Payment\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 78
+ testRunner.And("there is content blob created for the released provider with ID \'PSG-AY-2122-1007" +
+                        "1688-1_0\' in channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -288,10 +368,13 @@ this.ScenarioInitialize(scenarioInfo);
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Specification Name", "PE and Sport Grant")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ProviderVersionId", "PSG-2021-10-11-76")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ProviderSnapshotId", "76")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:CurrentDateTime", "2022-02-10 14:18:00")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:AuthorId", "AuthId")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:AuthorName", "Author Name")]
         public virtual void InitialReleaseOfProvidersIntoChannels_PSG()
         {
 #line 6
-this.InitialReleaseOfProvidersIntoChannels("PSG", "AY-2122", "3812005f-13b3-4d00-a118-d6cb0e2b2402", "PE and Sport Grant", "PSG-2021-10-11-76", "76", ((string[])(null)));
+this.InitialReleaseOfProvidersIntoChannels("PSG", "AY-2122", "3812005f-13b3-4d00-a118-d6cb0e2b2402", "PE and Sport Grant", "PSG-2021-10-11-76", "76", "2022-02-10 14:18:00", "AuthId", "Author Name", ((string[])(null)));
 #line hidden
         }
     }

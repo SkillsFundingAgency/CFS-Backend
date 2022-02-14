@@ -21,7 +21,6 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.ProviderLegacy;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Calcs.MappingProfiles;
@@ -50,6 +49,7 @@ using GraphRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relatio
 using ApiClientSpecModels = CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Services.Calcs.UnitTests.Services;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -61,6 +61,14 @@ namespace CalculateFunding.Services.Calcs.Services
         private const string AssemblyEtag = "assembly-etag";
         
         private IEnumerable<ObsoleteItem> obsoleteItems = new ObsoleteItem[0];
+        private ISpecificationsApiClient _specificationsApiClient;
+
+        [TestInitialize]
+        public void SetupTest()
+        {
+            _specificationsApiClient = CreateSpecificationsApiClient();
+
+        }
 
         [TestMethod]
         public void Process_GivenNullMessage_ThrowsArgumentNullException()
@@ -1159,13 +1167,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(false);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+           
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
                 .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
@@ -1236,7 +1241,8 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient, mapper: mapper,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             await buildProjectsService.Process(message);
@@ -1273,13 +1279,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(false);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+           
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
                 .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
@@ -1350,7 +1353,8 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient, mapper: mapper,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             Func<Task> invocation = async () => await buildProjectsService.Process(message);
@@ -1387,13 +1391,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(false);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+            
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
                 .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
@@ -1458,7 +1459,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
-                datasetsApiClient: datasetsApiClient, mapper: mapper, policiesApiClient: policiesApiClient);
+                datasetsApiClient: datasetsApiClient, mapper: mapper, policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             Func<Task> invocation = async () => await buildProjectsService.Run(message);
@@ -1607,155 +1609,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId));
         }
 
-        [TestMethod]
-        public async Task Process_GivenBuildProjectAndSpecificationSummaryInCache_DoesntCallGetSpecificationSummaryById()
-        {
-            //Arrange
-            EngineSettings engineSettings = CreateEngineSettings();
-            engineSettings.MaxPartitionSize = 1;
-
-            IEnumerable<ProviderSummary> providerSummaries = new[]
-            {
-                new ProviderSummary{ Id = "1" },
-                new ProviderSummary{ Id = "2" },
-                new ProviderSummary{ Id = "3" },
-                new ProviderSummary{ Id = "4" },
-                new ProviderSummary{ Id = "5" },
-                new ProviderSummary{ Id = "6" },
-                new ProviderSummary{ Id = "7" },
-                new ProviderSummary{ Id = "8" },
-                new ProviderSummary{ Id = "9" },
-                new ProviderSummary{ Id = "10" }
-            };
-
-            string parentJobId = "job-id-1";
-
-            string specificationId = "test-spec1";
-
-            JobViewModel parentJob = new JobViewModel
-            {
-                Id = parentJobId,
-                InvokerUserDisplayName = "Username",
-                InvokerUserId = "UserId",
-                SpecificationId = specificationId,
-                CorrelationId = "correlation-id-1",
-                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
-            };
-
-            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
-
-            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-            string specificationSummaryCacheKey = $"{CacheKeys.SpecificationSummaryById}{specificationId}";
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            Message message = new Message(Encoding.UTF8.GetBytes(""));
-            message.UserProperties.Add("jobId", "job-id-1");
-            message.UserProperties.Add("specification-id", specificationId);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
-                .Returns(true);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Is(specificationSummaryCacheKey))
-                .Returns(true);
-            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
-            cacheProvider
-                .ListLengthAsync<ProviderSummary>(cacheKey)
-                .Returns(10);
-
-            IEnumerable<string> providerIds = providerSummaries.Select(m => m.Id);
-
-            cacheProvider
-                .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
-                .Returns(providerSummaries);
-
-            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
-            providersApiClient
-                .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
-
-            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
-            policiesApiClient
-                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
-                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(Arg.Is(parentJobId))
-                .Returns(jobViewModelResponse);
-
-            jobsApiClient
-                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
-                .Returns(CreateJobs());
-
-            ILogger logger = CreateLogger();
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
-                .Returns(new[]
-                {
-                    new Calculation
-                    {
-                        Current = new CalculationVersion
-                        {
-                            Name = "Calc 1",
-                            SourceCode = "return Sum(Calc2)"
-                        }
-                    }
-                });
-
-            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
-            datasetsApiClient
-                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
-                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
-
-            datasetsApiClient
-                .GetDatasetDefinitionById(Arg.Is("111"))
-                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
-
-            IMapper mapper = CreateMapper();
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
-
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(new ApiResponse<Common.ApiClient.Specifications.Models.SpecificationSummary>(HttpStatusCode.OK, new Common.ApiClient.Specifications.Models.SpecificationSummary()));
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger,
-                cacheProvider: cacheProvider,
-                jobManagement: jobManagement,
-                calculationsRepository: calculationsRepository,
-                engineSettings: engineSettings,
-                providersApiClient: providersApiClient,
-                datasetsApiClient: datasetsApiClient,
-                mapper: mapper,
-                specificationsApiClient: specificationsApiClient,
-                policiesApiClient: policiesApiClient);
-
-            //Act
-            await buildProjectsService.Run(message);
-
-            //Assert
-            await
-                specificationsApiClient
-                    .DidNotReceive()
-                    .GetSpecificationSummaryById(Arg.Is(specificationId));
-        }
-
+       
         [TestMethod]
         public async Task Process_GivenBuildProjectAndSpecificationSummaryNotInCache_CallGetSpecificationSummaryById()
         {
@@ -1958,12 +1812,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -2017,7 +1867,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -2125,13 +1976,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+ 
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -2184,7 +2032,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
                 jobManagement: jobManagement, engineSettings: engineSettings,
                 datasetsApiClient: datasetsApiClient, mapper: mapper,
-                sourceFileRepository: sourceFileRepository, policiesApiClient: policiesApiClient);
+                sourceFileRepository: sourceFileRepository, policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             string assemblyETag = new RandomString();
 
@@ -2270,13 +2119,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+            
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -2329,7 +2175,8 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
                 jobManagement: jobManagement, engineSettings: engineSettings,
-                datasetsApiClient: datasetsApiClient, mapper: mapper, policiesApiClient: policiesApiClient);
+                datasetsApiClient: datasetsApiClient, mapper: mapper, policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
 
@@ -2406,13 +2253,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
+
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -2461,7 +2305,8 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
                 jobManagement: jobManagement, engineSettings: engineSettings,
-                datasetsApiClient: datasetsApiClient, mapper: mapper, policiesApiClient: policiesApiClient);
+                datasetsApiClient: datasetsApiClient, mapper: mapper, policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.Run(message);
@@ -2769,14 +2614,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
 
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
-
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
 
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
@@ -2855,7 +2694,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
                 jobManagement: jobManagement,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -2906,6 +2746,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider
                     .Received(1)
                     .RemoveByPatternAsync(Arg.Is($"{CacheKeys.CalculationAggregations}{specificationId}"));
+        }
+
+        private void AndSpecificationsClientReturnsSpecification(SpecificationSummary specificationSummary)
+        {
+            _specificationsApiClient.GetSpecificationSummaryById(Arg.Is(specificationSummary.Id)).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
         }
 
         [TestMethod]
@@ -2962,13 +2807,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+            
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -3063,7 +2905,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -3152,13 +2995,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+          
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(0);
@@ -3246,7 +3086,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -3309,13 +3150,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+           
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -3403,7 +3241,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
-                policiesApiClient:policiesApiClient);
+                policiesApiClient:policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -3443,13 +3282,9 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+            
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId, ProviderSource.FDZ);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             
@@ -3526,7 +3361,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -3579,13 +3415,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+           
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -3674,7 +3507,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -3739,13 +3573,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
-            cacheProvider
-                .KeyExists<SpecificationSummary>(Arg.Any<string>())
-                .Returns(true);
+            
             SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
-            cacheProvider
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+            AndSpecificationsClientReturnsSpecification(specificationSummary);
+
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -3804,7 +3635,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient,
+                specificationsApiClient: _specificationsApiClient);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.Run(message);

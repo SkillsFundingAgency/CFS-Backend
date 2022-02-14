@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Analysis;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Tests.Common.Helpers;
@@ -63,7 +61,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                         job.SpecificationId == specificationId &&
                         job.Trigger != null &&
                         job.Trigger.EntityId == specificationId &&
-                        job.Trigger.EntityType == nameof(Specification))),
+                        job.Trigger.EntityType == "Specification")),
                     Times.Once);
         }
 

@@ -185,8 +185,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             foreach (KeyValuePair<string, SqlModels.Channel> channel in channels)
             {
-                await _channelReleaseService.ReleaseProvidersForChannel(
-                    channel.Value, fundingConfiguration, specification, releaseProvidersToChannelRequest.ProviderIds);
+                await _channelReleaseService.ReleaseProvidersForChannel(channel.Value,
+                                                                        fundingConfiguration,
+                                                                        specification,
+                                                                        releaseProvidersToChannelRequest.ProviderIds,
+                                                                        author,
+                                                                        jobId,
+                                                                        correlationId);
             }
         }
 

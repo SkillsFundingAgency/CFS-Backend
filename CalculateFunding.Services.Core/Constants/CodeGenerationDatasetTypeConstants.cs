@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Models.Calcs
+﻿namespace CalculateFunding.Services.Core.Constants
 {
     public static class CodeGenerationDatasetTypeConstants
     {

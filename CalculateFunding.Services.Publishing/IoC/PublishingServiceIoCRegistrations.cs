@@ -7,6 +7,7 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Specifications;
@@ -60,6 +61,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IDeselectSpecificationForFundingService, DeselectSpecificationForFundingService>();
             serviceCollection.AddSingleton<IDeletePublishedFundingBlobDocumentsService, DeletePublishedFundingBlobDocumentsService>();
             serviceCollection.AddSingleton<IPublishedProviderFundingStructureService, PublishedProviderFundingStructureService>();
+            serviceCollection.AddSingleton<ICurrentDateTime, CurrentDateTimeService>();
 
             PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(configuration);
             OrganisationGroupResiliencePolicies organisationResiliencePolicies = CreateResiliencePolicies(policySettings);

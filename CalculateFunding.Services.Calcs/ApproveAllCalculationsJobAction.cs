@@ -2,7 +2,6 @@
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
 using Serilog;
 using System;
@@ -52,7 +51,7 @@ namespace CalculateFunding.Services.Calcs
                 Trigger = new Trigger
                 {
                     EntityId = specificationId,
-                    EntityType = nameof(Specification),
+                    EntityType = "Specification",
                     Message = message
                 },
                 InvokerUserId = user.Id,

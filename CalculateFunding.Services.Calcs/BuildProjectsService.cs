@@ -212,17 +212,8 @@ namespace CalculateFunding.Services.Calcs
                 message.UserProperties["specification-summary-cache-key"].ToString() :
                 $"{CacheKeys.SpecificationSummaryById}{specificationId}";
 
-            bool specificationSummaryExists = await _cacheProvider.KeyExists<Models.Specs.SpecificationSummary>(specificationSummaryCachekey);
-            Models.Specs.SpecificationSummary specificationSummary;
-            if (!specificationSummaryExists)
-            {
-                specificationSummary = _mapper.Map<Models.Specs.SpecificationSummary>(await GetSpecificationSummary(specificationId));
-            }
-            else
-            {
-                specificationSummary = await _cacheProvider.GetAsync<Models.Specs.SpecificationSummary>(specificationSummaryCachekey);
-            }
 
+            SpecificationSummary specificationSummary = await GetSpecificationSummary(specificationId);
             ApiResponse<FundingConfiguration> fundingConfigurationResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id));
 
             if (!fundingConfigurationResponse.StatusCode.IsSuccess())
@@ -245,7 +236,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (summariesExist)
             {
-                if (specificationSummary.ProviderSource == Models.Providers.ProviderSource.CFS)
+                if (specificationSummary.ProviderSource == ProviderSource.CFS)
                 {
                     // if there are no provider results for specification then the call returns no content
                     ApiResponse<IEnumerable<string>> scopedProviderIds = await _providersApiClient.GetScopedProviderIds(specificationId);

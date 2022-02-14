@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 }
             }
 
-            private bool AreEqual(Type typeOfValue, object? priorValue, object? updatedValue)
+            private bool AreEqual(Type typeOfValue, object priorValue, object updatedValue)
             {
                 if (typeOfValue.IsEnum)
                 {

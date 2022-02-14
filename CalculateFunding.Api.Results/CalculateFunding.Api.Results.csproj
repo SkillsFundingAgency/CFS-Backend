@@ -31,7 +31,6 @@
     <ProjectReference Include="..\CalculateFunding.Generators.Schema10\CalculateFunding.Generators.Schema10.csproj" />
     <ProjectReference Include="..\CalculateFunding.Generators.Schema11\CalculateFunding.Generators.Schema11.csproj" />
     <ProjectReference Include="..\CalculateFunding.Generators.Schema12\CalculateFunding.Generators.Schema12.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Models.Result\CalculateFunding.Models.Result.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core.AspNet\CalculateFunding.Services.Core.AspNet.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
 	

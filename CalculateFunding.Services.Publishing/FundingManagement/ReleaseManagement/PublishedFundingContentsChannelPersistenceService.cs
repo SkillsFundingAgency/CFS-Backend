@@ -14,6 +14,7 @@ using Polly;
 using CalculateFunding.Common.Storage;
 using Microsoft.Azure.Storage.Blob;
 using CalculateFunding.Common.Helpers;
+using System.Collections.Concurrent;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
 {
@@ -54,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Channel channel)
         {
             _logger.Information("Saving published funding contents");
-            IDictionary<string, TemplateMetadataContents> schemaVersions = new Dictionary<string, TemplateMetadataContents>();
+            ConcurrentDictionary<string, TemplateMetadataContents> templateMetadataContentsCache = new ConcurrentDictionary<string, TemplateMetadataContents>();
             
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.SavePublishedFundingContentsConcurrencyCount);
@@ -66,22 +67,23 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     {
                         try
                         {
-                            string schemaVersionKey
+                            string templateVersionKey
                                 = $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.TemplateVersion}".ToLower();
 
-                            if (!schemaVersions.ContainsKey(schemaVersionKey))
+                            if (!templateMetadataContentsCache.ContainsKey(templateVersionKey))
                             {
                                 TemplateMetadataContents templateContents =
                                     await _policiesService.GetTemplateMetadataContents(
                                             publishedFundingVersion.FundingStreamId,
                                             publishedFundingVersion.FundingPeriod.Id,
                                             publishedFundingVersion.TemplateVersion);
-                                schemaVersions[schemaVersionKey] = templateContents;
+
+                                templateMetadataContentsCache.TryAdd(templateVersionKey, templateContents);
                             }
 
-                            IPublishedFundingContentsGenerator generator = _publishedFundingContentsGeneratorResolver.GetService(schemaVersions[schemaVersionKey].SchemaVersion);
+                            IPublishedFundingContentsGenerator generator = _publishedFundingContentsGeneratorResolver.GetService(templateMetadataContentsCache[templateVersionKey].SchemaVersion);
 
-                            string contents = generator.GenerateContents(publishedFundingVersion, schemaVersions[schemaVersionKey]);
+                            string contents = generator.GenerateContents(publishedFundingVersion, templateMetadataContentsCache[templateVersionKey]);
 
                             if (string.IsNullOrWhiteSpace(contents))
                             {

@@ -92,9 +92,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(blobName);
         }
 
-        public void VerifyFileName(string fileName)
+        public bool ContainsBlob(string fileName)
         {
-            throw new NotImplementedException();
+           return _files.ContainsKey(fileName);
         }
 
         public ConcurrentDictionary<string, string> GetFiles()
@@ -124,6 +124,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task StartCopyFromUriAsync(string sourceContainer, string sourceBlobName, string targetContainer, string targetBlobName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VerifyFileName(string fileName)
         {
             throw new NotImplementedException();
         }

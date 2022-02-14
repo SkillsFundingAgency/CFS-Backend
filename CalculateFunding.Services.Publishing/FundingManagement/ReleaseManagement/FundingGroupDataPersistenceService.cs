@@ -3,6 +3,7 @@ using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Services.Publishing.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
         }
 
-        public async Task<IEnumerable<FundingGroupVersion>> ReleaseFundingGroupData(IEnumerable<(PublishedFundingVersion, OrganisationGroupResult)> fundingGroupData, int channelId)
+        public async Task<IEnumerable<FundingGroupVersion>> ReleaseFundingGroupData(IEnumerable<GeneratedPublishedFunding> fundingGroupData, int channelId)
         {
             IEnumerable<SqlModels.GroupingReason> groupingReasons = await _releaseManagementRepository.GetGroupingReasons();
             IEnumerable<FundingStream> fundingStreams = await _releaseManagementRepository.GetFundingStreams();
@@ -35,15 +36,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             List<FundingGroupVersion> fundingGroupVersions = new List<FundingGroupVersion>();
 
-            foreach ((PublishedFundingVersion, OrganisationGroupResult) fundingGroupDataItem in fundingGroupData)
+            foreach (GeneratedPublishedFunding fundingGroupDataItem in fundingGroupData)
             {
-                if (!_releaseToChannelSqlMappingContext.FundingGroups.TryGetValue(fundingGroupDataItem.Item2, out int fundingGroupId))
+                if (!_releaseToChannelSqlMappingContext.FundingGroups.TryGetValue(fundingGroupDataItem.OrganisationGroupResult, out int fundingGroupId))
                 {
                     throw new KeyNotFoundException(
-                        $"OrganisationGroupResult not found in sql context for published funding id = {fundingGroupDataItem.Item1.Id}");
+                        $"OrganisationGroupResult not found in sql context for published funding id = {fundingGroupDataItem.PublishedFundingVersion.FundingId}");
                 }
 
-                PublishedFundingVersion pfv = fundingGroupDataItem.Item1;
+                PublishedFundingVersion pfv = fundingGroupDataItem.PublishedFundingVersion;
 
                 if (string.IsNullOrWhiteSpace(pfv.FundingId))
                 {

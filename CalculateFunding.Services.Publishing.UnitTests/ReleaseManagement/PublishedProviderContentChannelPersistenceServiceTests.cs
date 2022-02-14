@@ -213,7 +213,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Returns("contents");
 
             // Act
-            await _publishedProviderContentChannelPersistenceService.SavePublishedProviderVariationReasonContents(
+            await _publishedProviderContentChannelPersistenceService.SavePublishedProviderContents(
                 specificationSummary, publishedProviderVersions, channel, variationReasonsForProviders);
 
             // Assert
@@ -278,7 +278,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Returns("contents");
 
             // Act
-            await _publishedProviderContentChannelPersistenceService.SavePublishedProviderVariationReasonContents(
+            await _publishedProviderContentChannelPersistenceService.SavePublishedProviderContents(
                 specificationSummary, publishedProviderVersions, channel, variationReasonsForProviders);
 
             // Assert

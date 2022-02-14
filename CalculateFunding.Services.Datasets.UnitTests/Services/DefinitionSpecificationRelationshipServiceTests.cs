@@ -377,7 +377,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await cacheProvider
                   .Received(1)
                   .RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specificationId}"));
-            
+
             await cacheProvider
                 .Received(1)
                 .RemoveByPatternAsync(Arg.Is($"{CacheKeys.CodeContext}{specificationId}"));
@@ -2487,7 +2487,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SelectedVersion
                 .Should()
                 .BeNull();
-            
+
             sourceModel
                 .Datasets
                 .First()
@@ -3676,7 +3676,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     Current = new DefinitionSpecificationRelationshipVersion
                     {
                         RelationshipType = DatasetRelationshipType.ReleasedData,
-                        PublishedSpecificationConfiguration = new PublishedSpecificationConfiguration { SpecificationId = specificationId}
+                        PublishedSpecificationConfiguration = new PublishedSpecificationConfiguration { SpecificationId = specificationId }
                     }
                 });
 
@@ -4162,10 +4162,10 @@ namespace CalculateFunding.Services.Datasets.Services
             string calculationOne = NewRandomString();
             string calculationTwo = NewRandomString();
             string templateId = NewRandomString();
-            
-            string fundingLinePrefix = Models.Calcs.CodeGenerationDatasetTypeConstants.FundingLinePrefix;
 
-            string calculationPrefix = Models.Calcs.CodeGenerationDatasetTypeConstants.CalculationPrefix;
+            string fundingLinePrefix = CodeGenerationDatasetTypeConstants.FundingLinePrefix;
+
+            string calculationPrefix = CodeGenerationDatasetTypeConstants.CalculationPrefix;
 
             ILogger logger = CreateLogger();
 
@@ -4245,13 +4245,13 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IGraphApiClient graphApiClient = CreateGraphApiClient();
             graphApiClient
-                .GetAllEntitiesRelatedToFundingLines(Arg.Is<string[]>(_ => 
-                    _.Count() == 2 && 
+                .GetAllEntitiesRelatedToFundingLines(Arg.Is<string[]>(_ =>
+                    _.Count() == 2 &&
                     _.FirstOrDefault() == $"{specificationId}-{targetSpecificationId}-{fundingLinePrefix}_{fundingLineIdOne}" &&
                     _.LastOrDefault() == $"{specificationId}-{targetSpecificationId}-{fundingLinePrefix}_{fundingLineIdTwo}"))
                 .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<FundingLine>>>(HttpStatusCode.OK, fundingLineEntities));
 
-           
+
 
             IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>> calculationEntities = new List<Common.ApiClient.Graph.Models.Entity<Calculation>>
             {
@@ -4281,9 +4281,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Graph.Models.Entity<Calculation>>>(HttpStatusCode.OK, calculationEntities));
 
             DefinitionSpecificationRelationshipService service = CreateService(
-                logger: logger, 
+                logger: logger,
                 datasetRepository: datasetRepository,
-                specificationsApiClient: specificationsApiClient, 
+                specificationsApiClient: specificationsApiClient,
                 policiesApiClient: policiesApiClient,
                 graphApiClient: graphApiClient);
 

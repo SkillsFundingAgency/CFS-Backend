@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Versioning;
@@ -166,15 +167,19 @@ namespace CalculateFunding.Models.Publishing
         public IEnumerable<VariationReason> VariationReasons { get; set; }
 
         [JsonIgnore]
+        [IgnoreDataMember]
         public IEnumerable<FundingLine> PaymentFundingLinesWithValues => ProfiledPaymentFundingLines?.Where(_ => _.Value.HasValue) ?? ArraySegment<FundingLine>.Empty;
 
-        [JsonIgnore] 
+        [JsonIgnore]
+        [IgnoreDataMember]
         public IEnumerable<FundingLine> PaymentFundingLinesWithoutValues => ProfiledPaymentFundingLines?.Where(_ => !_.Value.HasValue) ?? ArraySegment<FundingLine>.Empty;
 
         [JsonIgnore]
+        [IgnoreDataMember]
         public IEnumerable<FundingLine> CustomPaymentFundingLines => FundingLines?.Where(_ => _.Type == FundingLineType.Payment && FundingLineHasCustomProfile(_.FundingLineCode)) ?? ArraySegment<FundingLine>.Empty;
 
         [JsonIgnore]
+        [IgnoreDataMember]
         public IEnumerable<FundingLine> ProfiledPaymentFundingLines => FundingLines?.Where(_ => _.Type == FundingLineType.Payment && !FundingLineHasCustomProfile(_.FundingLineCode)) ?? ArraySegment<FundingLine>.Empty;
 
         public void AddVariationReasons(params VariationReason[] variationReasons) => VariationReasons = (VariationReasons ?? Array.Empty<VariationReason>())
@@ -503,6 +508,7 @@ namespace CalculateFunding.Models.Publishing
         }
 
         [JsonIgnore]
+        [IgnoreDataMember]
         public bool HasResults => Calculations?.Any() == true;
 
         public override VersionedItem Clone()
