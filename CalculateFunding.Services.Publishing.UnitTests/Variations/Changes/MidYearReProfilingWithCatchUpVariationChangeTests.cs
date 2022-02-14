@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
             ReProfileRequestBuilder.Setup(_ => _.BuildReProfileRequest(fundingLine.FundingLineCode,
                     key,
-                    CurrentState,
+                    It.Is<PublishedProviderVersion>(_ => _ == null || _.PublishedProviderId == CurrentState.PublishedProviderId),
                     fundingLine.Value,
                     reProfileAudit,
                     catchup ? MidYearType.OpenerCatchup : MidYearType.Opener,

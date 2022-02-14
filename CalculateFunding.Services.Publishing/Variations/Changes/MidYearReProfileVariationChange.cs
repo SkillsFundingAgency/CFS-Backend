@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Profiling;
@@ -51,11 +52,52 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             Func<string, string, ReProfileAudit, int, bool> reProfileForSameAmountFunc) =>
             variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(fundingLineCode,
                 profilePatternKey,
-                currentState,
+                BuildCurrentPublishedProvider(currentState, refreshState, fundingLine),
                 fundingLine.Value,
                 reProfileAudit,
                 midYearType: GetMidYearType(refreshState.Provider?.DateOpened, fundingLine),
                 reProfileForSameAmountFunc: reProfileForSameAmountFunc);
+
+        protected PublishedProviderVersion BuildCurrentPublishedProvider(PublishedProviderVersion currentState, PublishedProviderVersion refreshState, FundingLine refreshFundingLine)
+        {
+            if (currentState == null)
+            {
+                return currentState;
+            }
+
+            // copy the current published provider so we don't get side effects
+            PublishedProviderVersion currentPublishedProvider = currentState.DeepCopy();
+
+            FundingLine fundingLine = currentPublishedProvider.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == refreshFundingLine.FundingLineCode);
+
+            // the funding line doesn't currently exist this can happen if a new funding line has been added to the template
+            if (fundingLine == null)
+            {
+                // copy the refreshed funding line so we don't get side effects
+                fundingLine = refreshFundingLine.DeepCopy();
+
+                // add the funding line to the current published provider
+                currentPublishedProvider.FundingLines = (currentPublishedProvider.FundingLines ?? ArraySegment<FundingLine>.Empty).Concat(new[] { fundingLine });
+            }
+            else if (fundingLine.Value.HasValue && fundingLine.Value != 0)
+            {
+                // return the prior current state as it has a value it will have distribution periods set
+                return currentState;
+            }
+
+            // if the current funding line value is null or 0 we need to populate the distribution periods
+            foreach (DistributionPeriod distributionPeriod in fundingLine.DistributionPeriods)
+            {
+                distributionPeriod.Value = 0;
+
+                foreach (ProfilePeriod profilePeriod in distributionPeriod.ProfilePeriods)
+                {
+                    profilePeriod.ProfiledValue = 0;
+                }
+            }
+
+            return currentPublishedProvider;
+        }
 
         private MidYearType GetMidYearType(DateTimeOffset? dateTimeOpened, FundingLine fundingLine)
         {

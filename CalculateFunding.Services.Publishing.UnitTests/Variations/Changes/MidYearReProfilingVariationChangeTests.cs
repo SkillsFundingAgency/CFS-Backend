@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
             ReProfileRequestBuilder.Setup(_ => _.BuildReProfileRequest(fundingLine.FundingLineCode,
                     key,
-                    ReProfilePublishedProvider,
+                    It.Is<PublishedProviderVersion>(_ => _ == null || _.PublishedProviderId == ReProfilePublishedProvider.PublishedProviderId),
                     fundingLine.Value,
                     reProfileAudit,
                     MidYearTypeValue,
