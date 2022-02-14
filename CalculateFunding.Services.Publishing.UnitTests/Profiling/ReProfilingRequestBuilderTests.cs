@@ -251,12 +251,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         }
 
         [TestMethod]
-        [DataRow(MidYearType.Converter, 1)]
-        [DataRow(MidYearType.Opener, 1)]
-        [DataRow(MidYearType.OpenerCatchup, 1)]
-        [DataRow(MidYearType.Closure, 1)]
-        [DataRow(MidYearType.Closure, 0)]
-        public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers(MidYearType midYearType, int variationPointerOccurrence)
+        [DataRow(MidYearType.Converter)]
+        [DataRow(MidYearType.Opener)]
+        [DataRow(MidYearType.OpenerCatchup)]
+        [DataRow(MidYearType.Closure)]
+        public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers(MidYearType midYearType)
         {
             string providerId = NewRandomString();
             string fundingLineCode = NewRandomString();
@@ -298,7 +297,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 
             AndTheVariationPointers(publishedProviderVersion.SpecificationId, NewProfileVariationPointer(_ => _.WithFundingLineId(fundingLineCode)
                     .WithFundingStreamId(publishedProviderVersion.FundingStreamId)
-                    .WithOccurence(variationPointerOccurrence)
+                    .WithOccurence(1)
                     .WithYear(2021)
                     .WithTypeValue("January")
                     .WithPeriodType("CalenderMonth")));

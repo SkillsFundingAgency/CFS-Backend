@@ -59,17 +59,18 @@ namespace CalculateFunding.Services.Publishing.Profiling
             // if the paid upto index is the same as the last re-profile index
             bool alreadyPaidUpToIndex = reProfileAudit?.VariationPointerIndex == paidUpToIndex;
 
-            bool midYearOpener = (midYearType == MidYearType.Opener ||
+            bool midYearOpenerOrClosure = (midYearType == MidYearType.Opener ||
                 midYearType == MidYearType.OpenerCatchup ||
-                midYearType == MidYearType.Converter);
+                midYearType == MidYearType.Converter ||
+                midYearType == MidYearType.Closure);
 
             // we need to do this check first as the check determines whether to run re-profile
             // for the same amount of funding and variation pointer index
             bool shouldExecuteSameAs = shouldExecuteSameAsKey != null ? shouldExecuteSameAsKey(fundingLineCode, profilePatternKey, reProfileAudit, paidUpToIndex) : true;
 
-            if (!midYearOpener && alreadyPaidUpToIndex)
+            if (!midYearOpenerOrClosure && alreadyPaidUpToIndex)
             {
-                // if already paid up to index and this is not a mid year opener then we need to skip to the next period
+                // if already paid up to index and this is not a mid year opener or closure then we need to skip to the next period
                 paidUpToIndex++;
             }
 
