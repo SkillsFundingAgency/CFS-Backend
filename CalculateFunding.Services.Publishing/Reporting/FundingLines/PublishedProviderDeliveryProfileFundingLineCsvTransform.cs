@@ -45,6 +45,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     (decimal?)profilePeriods[key].ProfiledValue : 
                     null;
             }
+
+            row["Amount Carried Forward"] = publishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLine.FundingLineCode);
         }
 
 

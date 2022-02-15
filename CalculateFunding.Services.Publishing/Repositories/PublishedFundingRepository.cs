@@ -963,8 +963,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                             'urn' : c.content.provider.urn,
                                             'establishmentNumber' : c.content.provider.establishmentNumber
                                         }},
+                                        'carryOvers' : c.content.carryOvers,
                                         'fundingLines':ARRAY(
                                             SELECT fundingLine.name,
+                                            fundingLine.fundingLineCode,
                                             fundingLine['value'],
                                             ARRAY(
                                                 SELECT distributionPeriod['value'],
@@ -1034,8 +1036,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     }},
                                     'predecessors' : c.content.current.predecessors,
                                     'variationReasons' : c.content.current.variationReasons,
+                                    'carryOvers' : c.content.current.carryOvers,
                                     'fundingLines' : ARRAY(
                                         SELECT fundingLine.name,
+                                        fundingLine.fundingLineCode,
                                         fundingLine['value'],
                                         fundingLine['templateLineId'],
                                         ARRAY(
@@ -1083,8 +1087,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     }},
                                     'predecessors' : c.content.released.predecessors,
                                     'variationReasons' : c.content.released.variationReasons,
+                                    'carryOvers' : c.content.released.carryOvers,
                                     'fundingLines' : ARRAY(
                                         SELECT fundingLine.name,
+                                        fundingLine.fundingLineCode,
                                         fundingLine['value'],
                                         fundingLine['templateLineId'],
                                         ARRAY(

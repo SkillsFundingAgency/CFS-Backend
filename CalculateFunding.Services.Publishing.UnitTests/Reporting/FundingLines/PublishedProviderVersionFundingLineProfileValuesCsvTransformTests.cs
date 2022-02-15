@@ -87,7 +87,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                                 .WithUKPRN("ukprn2")
                                 .WithProviderType("pt2")
                                 .WithProviderSubType("pst2")))
+                        .WithCarryOvers(NewProfilingCarryOver(co => co
+                                    .WithAmount(1025.36M)
+                                    .WithFundingLineCode("fl1")
+                                    .WithType(ProfilingCarryOverType.CustomProfile)))
                         .WithFundingLines(NewFundingLine(fl => fl.WithValue(666M)
+                            .WithFundingLineCode("fl1")
                             .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(
                                     NewProfilePeriod(pp => pp.WithAmount(234)
                                         .WithOccurence(1)
@@ -137,7 +142,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     {"2020 January 1", 123M}, 
                     {"2020 January 2", 456M}, 
                     {"2021 January 1", 789M}, 
-                    {"2021 February 1", 101112M} 
+                    {"2021 February 1", 101112M},
+                    {"Amount Carried Forward", null }
                 },
                 new Dictionary<string, object>
                 {
@@ -159,7 +165,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     {"2020 January 1", 234M}, 
                     {"2020 January 2", 567M}, 
                     {"2021 January 1", 8910M}, 
-                    {"2021 February 1", 111213M}
+                    {"2021 February 1", 111213M},
+                    {"Amount Carried Forward", 1025.36M }
                 }
             };
 

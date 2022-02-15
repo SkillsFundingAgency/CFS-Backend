@@ -47,6 +47,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             return setUps.Select(NewFundingLine);
         }
 
+        protected static ProfilingCarryOver NewProfilingCarryOver(Action<ProfilingCarryOverBuilder> setUp = null)
+        {
+            ProfilingCarryOverBuilder profilingCarryOverBuilder = new ProfilingCarryOverBuilder();
+
+            setUp?.Invoke(profilingCarryOverBuilder);
+
+            return profilingCarryOverBuilder.Build();
+        }
+
         protected static Reference NewReference(Action<ReferenceBuilder> setUp = null)
         {
             ReferenceBuilder referenceBuilder = new ReferenceBuilder();
