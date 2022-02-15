@@ -54,10 +54,12 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 throw new ArgumentOutOfRangeException(nameof(publishedProviderVersion), $"Did not locate profile periods corresponding to funding line id {fundingLineCode} against published provider: {publishedProviderVersion.ProviderId}");
             }
 
+            decimal existingFundingLineTotal = orderedProfilePeriodsForFundingLine.Sum(_ => _.ProfiledValue);
+
             int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine, publishedProviderVersion.ProviderId);
 
-            // if the paid upto index is the same as the last re-profile index
-            bool alreadyPaidUpToIndex = reProfileAudit?.VariationPointerIndex == paidUpToIndex;
+            // if the paid upto index is the same as the last re-profile index and the funding amount is the same
+            bool alreadyProfiledUpToIndex = reProfileAudit?.VariationPointerIndex == paidUpToIndex && existingFundingLineTotal == fundingLineTotal;
 
             bool midYearOpenerOrClosure = (midYearType == MidYearType.Opener ||
                 midYearType == MidYearType.OpenerCatchup ||
@@ -68,15 +70,13 @@ namespace CalculateFunding.Services.Publishing.Profiling
             // for the same amount of funding and variation pointer index
             bool shouldExecuteSameAs = shouldExecuteSameAsKey != null ? shouldExecuteSameAsKey(fundingLineCode, profilePatternKey, reProfileAudit, paidUpToIndex) : true;
 
-            if (!midYearOpenerOrClosure && alreadyPaidUpToIndex)
+            if (!midYearOpenerOrClosure && alreadyProfiledUpToIndex)
             {
-                // if already paid up to index and this is not a mid year opener or closure then we need to skip to the next period
+                // if already profiled up to index and this is not a mid year opener or closure then we need to skip to the next period
                 paidUpToIndex++;
             }
 
             IEnumerable<ExistingProfilePeriod> existingProfilePeriods = BuildExistingProfilePeriods(orderedProfilePeriodsForFundingLine, paidUpToIndex);
-
-            decimal existingFundingLineTotal = orderedProfilePeriodsForFundingLine.Sum(_ => _.ProfiledValue);
 
             return (new ReProfileRequest
             {
