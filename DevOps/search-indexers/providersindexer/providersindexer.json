@@ -269,6 +269,46 @@
     {
       "sourceFieldName": "/successors",
       "targetFieldName": "successors"
+    },
+    {
+      "sourceFieldName": "/phaseOfEducationCode",
+      "targetFieldName": "phaseOfEducationCode"
+    },
+    {
+      "sourceFieldName": "/statutoryLowAge",
+      "targetFieldName": "statutoryLowAge"
+    },
+    {
+      "sourceFieldName": "/statutoryHighAge",
+      "targetFieldName": "statutoryHighAge"
+    },
+    {
+      "sourceFieldName": "/officialSixthFormCode",
+      "targetFieldName": "officialSixthFormCode"
+    },
+    {
+      "sourceFieldName": "/officialSixthFormName",
+      "targetFieldName": "officialSixthFormName"
+    },
+    {
+      "sourceFieldName": "/previousLaCode",
+      "targetFieldName": "previousLaCode"
+    },
+    {
+      "sourceFieldName": "/previousLaName",
+      "targetFieldName": "previousLaName"
+    },
+    {
+      "sourceFieldName": "/statusCode",
+      "targetFieldName": "statusCode"
+    },
+    {
+      "sourceFieldName": "/reasonEstablishmentOpenedCode",
+      "targetFieldName": "reasonEstablishmentOpenedCode"
+    },
+    {
+      "sourceFieldName": "/reasonEstablishmentClosedCode",
+      "targetFieldName": "reasonEstablishmentClosedCode"
     }
   ],
   "parameters": {

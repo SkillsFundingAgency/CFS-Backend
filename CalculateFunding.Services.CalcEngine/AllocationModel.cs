@@ -633,6 +633,38 @@ namespace CalculateFunding.Services.CalcEngine
                         property.SetValue(data, providerSummary.PreviousEstablishmentNumber.EmptyIfNull());
                         break;
 
+                    case "PhaseOfEducationCode":
+                        property.SetValue(data, providerSummary.PhaseOfEducationCode.EmptyIfNull());
+                        break;
+
+                    case "StatutoryLowAge":
+                        property.SetValue(data, providerSummary.StatutoryLowAge.EmptyIfNull());
+                        break;
+
+                    case "StatutoryHighAge":
+                        property.SetValue(data, providerSummary.StatutoryHighAge.EmptyIfNull());
+                        break;
+
+                    case "OfficialSixthFormCode":
+                        property.SetValue(data, providerSummary.OfficialSixthFormCode.EmptyIfNull());
+                        break;
+
+                    case "OfficialSixthFormName":
+                        property.SetValue(data, providerSummary.OfficialSixthFormName.EmptyIfNull());
+                        break;
+
+                    case "StatusCode":
+                        property.SetValue(data, providerSummary.StatusCode.EmptyIfNull());
+                        break;
+
+                    case "ReasonEstablishmentOpenedCode":
+                        property.SetValue(data, providerSummary.ReasonEstablishmentOpenedCode.EmptyIfNull());
+                        break;
+
+                    case "ReasonEstablishmentClosedCode":
+                        property.SetValue(data, providerSummary.ReasonEstablishmentClosedCode.EmptyIfNull());
+                        break;
+
                     default:
                         break;
                 }

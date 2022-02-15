@@ -632,9 +632,56 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                     Name = "LondonRegionCode",
                     Type = "[varchar](256)",
                     AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "PhaseOfEducationCode",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "StatutoryLowAge",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "StatutoryHighAge",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "OfficialSixthFormCode",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "OfficialSixthFormName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "StatusCode",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ReasonEstablishmentOpenedCode",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ReasonEstablishmentClosedCode",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
                 }
             };
-
 
         private void ThenTheGenerateCreateTableSqlWasCalled(string tableName, string specificationId, IDictionary<string, SqlColumnDefinition> columns, bool isSpecificationTable = false)
         {

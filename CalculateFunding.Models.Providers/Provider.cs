@@ -208,6 +208,36 @@ namespace CalculateFunding.Models.Providers
         [JsonProperty("successors")]
         public IEnumerable<string> Successors { get; set; }
 
+        [JsonProperty("phaseOfEducationCode")]
+        public string PhaseOfEducationCode { get; set; }
+
+        [JsonProperty("statutoryLowAge")]
+        public string StatutoryLowAge { get; set; }
+
+        [JsonProperty("statutoryHighAge")]
+        public string StatutoryHighAge { get; set; }
+
+        [JsonProperty("officialSixthFormCode")]
+        public string OfficialSixthFormCode { get; set; }
+
+        [JsonProperty("officialSixthFormName")]
+        public string OfficialSixthFormName { get; set; }
+
+        [JsonProperty("previousLaCode")]
+        public string PreviousLaCode { get; set; }
+
+        [JsonProperty("previousLaName")]
+        public string PreviousLaName { get; set; }
+
+        [JsonProperty("statusCode")]
+        public string StatusCode { get; set; }
+
+        [JsonProperty("reasonEstablishmentOpenedCode")]
+        public string ReasonEstablishmentOpenedCode { get; set; }
+
+        [JsonProperty("reasonEstablishmentClosedCode")]
+        public string ReasonEstablishmentClosedCode { get; set; }
+
         [JsonIgnore]
         public TrustStatus TrustStatus
         {

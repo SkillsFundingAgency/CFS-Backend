@@ -619,6 +619,54 @@ namespace CalculateFunding.Services.Results.SqlExport
                     Name = "IsIndicative",
                     Type = "[bit]",
                     AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "PhaseOfEducationCode",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "StatutoryLowAge",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "StatutoryHighAge",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "OfficialSixthFormCode",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "OfficialSixthFormName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "StatusCode",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ReasonEstablishmentOpenedCode",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ReasonEstablishmentClosedCode",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
                 }
             };
 

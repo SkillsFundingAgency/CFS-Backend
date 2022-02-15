@@ -111,7 +111,16 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                 NewDataColumn<string>("FurtherEducationTypeName", 256, allowNull: true),
                 NewDataColumn<string>("Predecessors", 256, allowNull: true),
                 NewDataColumn<string>("Successors", 256, allowNull: true),
-                NewDataColumn<bool>("IsIndicative"));
+                NewDataColumn<bool>("IsIndicative"),
+                NewDataColumn<string>("PhaseOfEducationCode", 256, allowNull: true),
+                NewDataColumn<string>("StatutoryLowAge", 256, allowNull: true),
+                NewDataColumn<string>("StatutoryHighAge", 256, allowNull: true),
+                NewDataColumn<string>("OfficialSixthFormCode", 256, allowNull: true),
+                NewDataColumn<string>("OfficialSixthFormName", 256, allowNull: true),
+                NewDataColumn<string>("StatusCode", 256, allowNull: true),
+                NewDataColumn<string>("ReasonEstablishmentOpenedCode", 256, allowNull: true),
+                NewDataColumn<string>("ReasonEstablishmentClosedCode", 256, allowNull: true)
+                );
             AndTheDataTableHasRowsMatching(
                 NewRow(
                     rowOne.Provider.Id,
@@ -178,7 +187,15 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                     rowOne.Provider.FurtherEducationTypeName,
                     string.Join(";", rowOne.Provider.Predecessors?.Select(s => s) ?? Array.Empty<string>()),
                     string.Join(";", rowOne.Provider.Successors?.Select(s => s) ?? Array.Empty<string>()),
-                    rowOne.IsIndicativeProvider));
+                    rowOne.IsIndicativeProvider,
+                    rowOne.Provider.PhaseOfEducationCode,
+                    rowOne.Provider.StatutoryLowAge,
+                    rowOne.Provider.StatutoryHighAge,
+                    rowOne.Provider.OfficialSixthFormCode,
+                    rowOne.Provider.OfficialSixthFormName,
+                    rowOne.Provider.StatusCode,
+                    rowOne.Provider.ReasonEstablishmentOpenedCode,
+                    rowOne.Provider.ReasonEstablishmentClosedCode));
             AndTheTableNameIs($"[dbo].[{SpecificationIdentifierName}_Providers]");
         }
     }

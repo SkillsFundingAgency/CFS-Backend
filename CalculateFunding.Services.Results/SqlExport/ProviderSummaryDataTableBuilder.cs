@@ -84,6 +84,14 @@ namespace CalculateFunding.Services.Results.SqlExport
                 NewDataColumn<string>("Predecessors", 256, allowNull: true),
                 NewDataColumn<string>("Successors", 256, allowNull: true),
                 NewDataColumn<bool>("IsIndicative", defaultValue: false),
+                NewDataColumn<string>("PhaseOfEducationCode", 256, allowNull: true),
+                NewDataColumn<string>("StatutoryLowAge", 256, allowNull: true),
+                NewDataColumn<string>("StatutoryHighAge", 256, allowNull: true),
+                NewDataColumn<string>("OfficialSixthFormCode", 256, allowNull: true),
+                NewDataColumn<string>("OfficialSixthFormName", 256, allowNull: true),
+                NewDataColumn<string>("StatusCode", 256, allowNull: true),
+                NewDataColumn<string>("ReasonEstablishmentOpenedCode", 256, allowNull: true),
+                NewDataColumn<string>("ReasonEstablishmentClosedCode", 256, allowNull: true),
             };
 
         protected override void AddDataRowToDataTable(ProviderResult dto)
@@ -152,7 +160,15 @@ namespace CalculateFunding.Services.Results.SqlExport
                 dto.Provider.FurtherEducationTypeName,
                 string.Join(";", dto.Provider.Predecessors?.Select(s => s) ?? Array.Empty<string>()),
                 string.Join(";", dto.Provider.Successors?.Select(s => s) ?? Array.Empty<string>()),
-                dto.IsIndicativeProvider);
+                dto.IsIndicativeProvider,
+                dto.Provider.PhaseOfEducationCode,
+                dto.Provider.StatutoryLowAge,
+                dto.Provider.StatutoryHighAge,
+                dto.Provider.OfficialSixthFormCode,
+                dto.Provider.OfficialSixthFormName,
+                dto.Provider.StatusCode,
+                dto.Provider.ReasonEstablishmentOpenedCode,
+                dto.Provider.ReasonEstablishmentClosedCode);
 
         protected override void EnsureTableNameIsSet(ProviderResult dto)
             => TableName = $"[dbo].[{_specificationIdentifier}_Providers]";

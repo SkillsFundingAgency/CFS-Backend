@@ -212,4 +212,36 @@ Public Class Provider
     <Description(Description:="Has one or more successors")>
     Public Property HasSuccessor() As Boolean
 
+    <Field(Id:="PhaseOfEducationCode", Name:="PhaseOfEducationCode")>
+    <Description(Description:="Phase of Education Code")>
+    Public Property PhaseOfEducationCode() As String
+
+    <Field(Id:="StatutoryLowAge", Name:="StatutoryLowAge")>
+    <Description(Description:="Statutory Low Age")>
+    Public Property StatutoryLowAge() As String
+
+    <Field(Id:="StatutoryHighAge", Name:="StatutoryHighAge")>
+    <Description(Description:="Statutory High Age")>
+    Public Property StatutoryHighAge() As String
+
+    <Field(Id:="OfficialSixthFormCode", Name:="OfficialSixthFormCode")>
+    <Description(Description:="Official Sixth Form Code")>
+    Public Property OfficialSixthFormCode() As String
+
+    <Field(Id:="OfficialSixthFormName", Name:="OfficialSixthFormName")>
+    <Description(Description:="Official Sixth Form Name")>
+    Public Property OfficialSixthFormName() As String
+
+    <Field(Id:="StatusCode", Name:="StatusCode")>
+    <Description(Description:="Status Code")>
+    Public Property StatusCode() As String
+
+    <Field(Id:="ReasonEstablishmentOpenedCode", Name:="ReasonEstablishmentOpenedCode")>
+    <Description(Description:="Reason Establishment Opened Code")>
+    Public Property ReasonEstablishmentOpenedCode() As String
+
+    <Field(Id:="ReasonEstablishmentClosedCode", Name:="ReasonEstablishmentClosedCode")>
+    <Description(Description:="Reason Establishment Closed Code")>
+    Public Property ReasonEstablishmentClosedCode() As String
+
 End Class
