@@ -892,7 +892,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
             List<dynamic> results = new List<dynamic>() {
                 CreatePublishedProviderFundingCsvData(specificationId, publishedProviderId0, status0.ToString()),
-                CreatePublishedProviderFundingCsvData(specificationId, publishedProviderId1, status1.ToString()),
+                CreatePublishedProviderFundingCsvData(specificationId, publishedProviderId1, status1.ToString(), true),
                 CreatePublishedProviderFundingCsvData(specificationId, publishedProviderId2, status0.ToString())
             };
 
@@ -923,7 +923,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                     c.content.current.majorVersion,
                                     c.content.current.minorVersion,
                                     c.content.current.isIndicative,
-                                    c.content.current.variationReasons
+                                    c.content.current.variationReasons,
+                                    c.content.released.majorVersion As lastReleasedMajorVersion,
+                                    c.content.released.minorVersion As lastReleasedMinorVersion,
+                                    c.content.released.totalFunding As lastReleasedTotalFunding
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.deleted = false 
@@ -1167,7 +1170,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             return result;
         }
 
-        private dynamic CreatePublishedProviderFundingCsvData(string specificationid, string providerName, string status)
+        private dynamic CreatePublishedProviderFundingCsvData(string specificationid, string providerName, string status, bool hasReleasedVersion = false)
         {
             dynamic data = new ExpandoObject();
             data.specificationId = specificationid;
@@ -1183,6 +1186,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             data.majorVersion = NewRandomNumber();
             data.minorVersion = NewRandomNumber();
             data.variationReasons = AsJArray(Array.Empty<string>());
+            data.lastReleasedMajorVersion = hasReleasedVersion ? NewRandomNumber() : (int?)null;
+            data.lastReleasedMinorVersion = hasReleasedVersion ? NewRandomNumber() : (int?)null;
+            data.lastReleasedTotalFunding = hasReleasedVersion ? NewRandomNumber() : (int?)null;
 
             return data;
         }

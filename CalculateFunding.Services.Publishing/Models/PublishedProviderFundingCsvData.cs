@@ -15,5 +15,8 @@
         public int? MinorVersion { get; set; }
         public int? MajorVersion { get; set; }
         public string[] VariationReasons { get; set; }
+        public int? LastReleasedMajorVersion { get; set; }
+        public int? LastReleasedMinorVersion { get; set; }
+        public decimal? LastReleasedTotalFunding { get; set; }
     }
 }

@@ -1807,7 +1807,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     c.content.current.majorVersion,
                                     c.content.current.minorVersion,
                                     c.content.current.isIndicative,
-                                    c.content.current.variationReasons
+                                    c.content.current.variationReasons,
+                                    c.content.released.majorVersion As lastReleasedMajorVersion,
+                                    c.content.released.minorVersion As lastReleasedMinorVersion,
+                                    c.content.released.totalFunding As lastReleasedTotalFunding
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.deleted = false 
@@ -1849,7 +1852,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 IsIndicative = (bool?)_.isIndicative,
                 MajorVersion = (int?)_.majorVersion,
                 MinorVersion = (int?)_.minorVersion,
-                VariationReasons = _.variationReasons?.ToObject<string[]>()
+                VariationReasons = _.variationReasons?.ToObject<string[]>(),
+                LastReleasedMajorVersion = (int?)_.lastReleasedMajorVersion,
+                LastReleasedMinorVersion = (int?)_.lastReleasedMinorVersion,
+                LastReleasedTotalFunding = (decimal?)_.lastReleasedTotalFunding
             });
         }
 

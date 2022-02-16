@@ -328,6 +328,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 MinorVersion = x.MinorVersion,
                 ProviderName = x.ProviderName,
                 FundingAmount = x.TotalFunding,
+                PreviousReleasedFundingAmount = x.LastReleasedTotalFunding == null ? "N/A" : x.LastReleasedTotalFunding.ToString(),
+                Difference = x.LastReleasedTotalFunding == null ? 0 : (x.TotalFunding ?? 0) - x.LastReleasedTotalFunding,
                 VariationReasons = string.Join(';', x.VariationReasons)
             });
 
