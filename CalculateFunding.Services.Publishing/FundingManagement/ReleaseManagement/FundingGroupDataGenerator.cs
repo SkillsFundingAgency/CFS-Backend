@@ -30,19 +30,22 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IPublishedFundingDateService _publishedFundingDateService;
         private readonly IReleaseManagementRepository _repo;
         private readonly IPublishedProviderLoaderForFundingGroupData _publishedProviderLoader;
+        private readonly IPublishedFundingIdGeneratorResolver _publishedFundingIdGeneratorResolver;
 
         public FundingGroupDataGenerator(IPublishedFundingGenerator publishedFundingGenerator,
             IPoliciesService policiesService,
             IPublishedFundingDateService publishedFundingDateService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
             IReleaseManagementRepository releaseManagementRepository,
-            IPublishedProviderLoaderForFundingGroupData publishedProviderLoader)
+            IPublishedProviderLoaderForFundingGroupData publishedProviderLoader,
+            IPublishedFundingIdGeneratorResolver publishedFundingIdGeneratorResolver)
         {
             Guard.ArgumentNotNull(publishedFundingGenerator, nameof(publishedFundingGenerator));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(publishedFundingDateService, nameof(publishedFundingDateService));
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(publishedProviderLoader, nameof(publishedProviderLoader));
+            Guard.ArgumentNotNull(publishedFundingIdGeneratorResolver, nameof(publishedFundingIdGeneratorResolver));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
 
             _publishedFundingGenerator = publishedFundingGenerator;
@@ -50,13 +53,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _publishedFundingDateService = publishedFundingDateService;
             _repo = releaseManagementRepository;
             _publishedProviderLoader = publishedProviderLoader;
+            _publishedFundingIdGeneratorResolver = publishedFundingIdGeneratorResolver;
         }
 
         public async Task<IEnumerable<GeneratedPublishedFunding>> Generate(
             IEnumerable<OrganisationGroupResult> organisationGroupsToCreate,
             SpecificationSummary specification,
             Channel channel,
-            IEnumerable<string> batchPublishedProviderIds)
+            IEnumerable<string> batchPublishedProviderIds,
+            Reference author,
+            string jobId,
+            string correlationId)
         {
             Reference fundingStream = specification.FundingStreams.First();
             
@@ -71,13 +78,19 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 PublishingDates = _publishedFundingDateService.GetDatesForSpecification(),
                 TemplateMetadataContents = await ReadTemplateMetadataContents(fundingStream, specification),
                 TemplateVersion = specification.TemplateIds[fundingStream.Id],
-                SpecificationId = specification.Id
+                SpecificationId = specification.Id,
             };
 
             IEnumerable<LatestFundingGroupVersion> latestFundingGroupsForChannel = await _repo.GetLatestFundingGroupMajorVersionsBySpecificationId(specification.Id, channel.ChannelId);
 
 
-            return GenerateOutput(organisationGroupsToCreate, publishedProviders, publishedFundingInput, latestFundingGroupsForChannel);
+            return GenerateOutput(organisationGroupsToCreate,
+                                  publishedProviders,
+                                  publishedFundingInput,
+                                  latestFundingGroupsForChannel,
+                                  author,
+                                  jobId,
+                                  correlationId);
         }
 
         private async Task<TemplateMetadataContents> ReadTemplateMetadataContents(Reference fundingStream, SpecificationSummary specification)
@@ -93,10 +106,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             return templateMetadataContents;
         }
 
-        private IEnumerable<GeneratedPublishedFunding> GenerateOutput(IEnumerable<OrganisationGroupResult> organisationGroupsToCreate, List<PublishedProvider> publishedProviders, PublishedFundingInput publishedFundingInput, IEnumerable<LatestFundingGroupVersion> latestFundingGroupsForChannel)
+        private IEnumerable<GeneratedPublishedFunding> GenerateOutput(IEnumerable<OrganisationGroupResult> organisationGroupsToCreate, List<PublishedProvider> publishedProviders, PublishedFundingInput publishedFundingInput, IEnumerable<LatestFundingGroupVersion> latestFundingGroupsForChannel, Reference author, string jobId, string correlationId)
         {
             IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundings =
-                                _publishedFundingGenerator.GeneratePublishedFunding(publishedFundingInput, publishedProviders).ToList();
+                                _publishedFundingGenerator.GeneratePublishedFunding(publishedFundingInput, publishedProviders, author, jobId, correlationId).ToList();
 
             AggregateVariationReasons(publishedProviders, publishedFundings);
 
@@ -117,6 +130,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 }
 
                 publishedFunding.PublishedFundingVersion.MajorVersion = GetMajorVersionForRelease(publishedFunding.PublishedFundingVersion.FundingId, latestFundingVersions);
+                publishedFunding.PublishedFundingVersion.FundingId = _publishedFundingIdGeneratorResolver
+                    .GetService(publishedFunding.PublishedFundingVersion.SchemaVersion)
+                    .GetFundingId(publishedFunding.PublishedFundingVersion);
+
 
                 result.Add( new GeneratedPublishedFunding()
                 {

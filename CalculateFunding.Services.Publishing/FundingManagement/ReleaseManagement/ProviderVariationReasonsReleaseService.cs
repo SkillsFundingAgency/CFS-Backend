@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     variationReasonForProvider.Value.Select(s => new ReleasedProviderChannelVariationReason
                     {
                         ReleasedProviderVersionChannelId = id,
-                        VariationReasonId = GetVariationReasonId(s)
+                        VariationReasonId = GetVariationReasonId(s),
                     }).ToList();
                 await _releaseManagementRepository.CreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(variationReasonsToBeCreated);
             }

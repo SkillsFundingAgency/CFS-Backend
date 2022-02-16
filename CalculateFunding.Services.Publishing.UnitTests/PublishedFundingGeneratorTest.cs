@@ -41,6 +41,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Reference _fundingStream;
         private PublishedFundingDates _fundingPublishingDates;
         private string _specificationId;
+        private Reference _author;
+        private string _jobId;
+        private string _correlationId;
 
         [TestInitialize]
         public void SetUp()
@@ -68,6 +71,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFunding = Substitute.For<PublishedFunding>();
 
             _scopedProviders = GenerateScopedProviders();
+
+            _author = new Reference(new RandomString(), new RandomString());
+            _jobId = new RandomString();
+            _correlationId = new RandomString();
         }
 
         [TestMethod]
@@ -222,7 +229,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     PublishingDates = _fundingPublishingDates,
                     SpecificationId = _specificationId,
                 },
-                new List<PublishedProvider> { _publishedProvider, _publishedProvider2 }).ToArray();
+                new List<PublishedProvider> { _publishedProvider, _publishedProvider2 },
+                _author,
+                _jobId,
+                _correlationId).ToArray();
         }
 
         private OrganisationGroupResult NewOrganisationGroupResult(Action<OrganisationGroupResultBuilder> setUp = null)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.OrganisationGroup.Models;
@@ -34,8 +35,7 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="publishedFundingInput"></param>
         /// <param name="publishedProviders"></param>
         /// <returns></returns>
-        public IEnumerable<(PublishedFunding, PublishedFundingVersion)> GeneratePublishedFunding(PublishedFundingInput publishedFundingInput,
-            IEnumerable<PublishedProvider> publishedProviders)
+        public IEnumerable<(PublishedFunding, PublishedFundingVersion)> GeneratePublishedFunding(PublishedFundingInput publishedFundingInput, IEnumerable<PublishedProvider> publishedProviders, Reference author, string jobId, string correlationId)
         {
             Guard.ArgumentNotNull(publishedFundingInput, nameof(publishedFundingInput));
             Guard.ArgumentNotNull(publishedFundingInput.FundingPeriod, nameof(publishedFundingInput.FundingPeriod));
@@ -120,6 +120,9 @@ namespace CalculateFunding.Services.Publishing
                     StatusChangedDate = publishedFundingInput.PublishingDates.StatusChangedDate.TrimToTheSecond(),
                     EarliestPaymentAvailableDate = publishedFundingInput.PublishingDates.EarliestPaymentAvailableDate.TrimToTheMinute(),
                     ExternalPublicationDate = publishedFundingInput.PublishingDates.ExternalPublicationDate.TrimToTheMinute(),
+                    Author = author,
+                    JobId = jobId,
+                    CorrelationId = correlationId,
                 };
 
                 publishedFundingVersion.FundingId = _publishedFundingIdGeneratorResolver.GetService(templateMetadataContents.SchemaVersion).GetFundingId(publishedFundingVersion);
@@ -137,6 +140,7 @@ namespace CalculateFunding.Services.Publishing
                 yield return (publishedFundingResult, publishedFundingVersion);
             }
         }
+
 
         private List<FundingCalculation> GenerateCalculations(IEnumerable<AggregateFundingCalculation> aggregateCalculations)
         {

@@ -28,6 +28,24 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             blobExists.Should().BeTrue($"funding groups repository should contain file '{filename}'");
         }
 
+        [Then(@"there are '([^']*)' files contained in the funding groups blob storage")]
+        public void ThenThereAreFilesContainedInTheFundingGroupsBlobStorage(int expectedTotalFiles)
+        {
+            _blobContext.FundingGroupsClient.GetFiles().Count.Should().Be(expectedTotalFiles);
+        }
+
+        [Then(@"there are '([^']*)' files contained in the published providers blob storage")]
+        public void ThenThereAreFilesContainedInThePublishedProvidersBlobStorage(int expectedTotalFiles)
+        {
+            _blobContext.PublishedProvidersClient.GetFiles().Count.Should().Be(expectedTotalFiles);
+        }
+
+        [Then(@"there are '([^']*)' files contained in the released providers blob storage")]
+        public void ThenThereAreFilesContainedInTheReleasedProvidersBlobStorage(int expectedTotalFiles)
+        {
+            _blobContext.ReleasedProvidersClient.GetFiles().Count.Should().Be(expectedTotalFiles);
+        }
+
         [Then(@"there is content blob created for the released published provider with ID '([^']*)'")]
         public void ThenThereIsContentBlobCreatedForTheReleaseProviderWithIDInTheChannel(string fundingId)
         {

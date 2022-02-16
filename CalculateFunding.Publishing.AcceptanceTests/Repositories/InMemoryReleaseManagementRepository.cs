@@ -30,6 +30,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         readonly ConcurrentDictionary<int, ReleasedProvider> _releasedProviders = new();
         readonly ConcurrentDictionary<int, ReleasedProviderVersion> _releasedProviderVersions = new();
         readonly ConcurrentDictionary<int, ReleasedProviderVersionChannel> _releasedProviderVersionChannels = new();
+        readonly ConcurrentDictionary<int, ReleasedProviderChannelVariationReason> _releasedProviderVersionChannelVariatonReasons = new();
 
         int _fundingGroupNextId = 1;
         int _fundingGroupVersionNextId = 1;
@@ -38,7 +39,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         int _releasedProvidersNextId = 1;
         int _releasedProviderVersionsNextId = 1;
         int _releasedProviderVersionChannelsNextId = 1;
+        int _releaseProviderVariationReasonsNextId = 1;
         int _variationReasonsNextId = 1;
+
+        public int ReleasedProviderVersionChannelCount { get { return _releasedProviderVersionChannels.Count; } }
+        public int ReleasedProviderCount { get { return _releasedProviders.Count; } }
+        public int ReleasedProviderVersionsCount { get { return _releasedProviderVersions.Count; } }
+        public int ReleasedProviderVersionVariationReasonsCount { get { return _releasedProviderVersionChannelVariatonReasons.Count; } }
+        public int FundingGroupsCount { get { return _fundingGroups.Count; } }
+        public int FundingGroupsVersionsCount { get { return _fundingGroupVersions.Count; } }
+        public int FundingGroupsVariationReasonsCount { get { return _fundingGroupVersionsVariationReasons.Count; } }
+        public int FundingGroupProvidersCount { get { return _fundingGroupProviders.Count; } }
 
         public Task ClearDatabase()
         {
@@ -237,14 +248,42 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public Task<ReleasedProviderChannelVariationReason> GetReleasedProviderVersionChannelVariationReason(int releasedProviderChannelVariationReasonId)
+        {
+            _releasedProviderVersionChannelVariatonReasons.TryGetValue(releasedProviderChannelVariationReasonId, out ReleasedProviderChannelVariationReason releasedProviderChannelVariationReason);
+
+            return Task.FromResult(releasedProviderChannelVariationReason);
+        }
+
         public Task<ReleasedProviderChannelVariationReason> CreateReleasedProviderChannelVariationReason(ReleasedProviderChannelVariationReason reason)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<ReleasedProviderChannelVariationReason>> CreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(IEnumerable<ReleasedProviderChannelVariationReason> variationReason)
+        public Task<IEnumerable<ReleasedProviderChannelVariationReason>> CreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(IEnumerable<ReleasedProviderChannelVariationReason> providerVariations)
         {
-            throw new NotImplementedException();
+            List<ReleasedProviderChannelVariationReason> results = new();
+
+            foreach (var providerVariation in providerVariations)
+            {
+                EnsureReleaseProviderVersionChannelExists(providerVariation.ReleasedProviderVersionChannelId);
+                EnsureVariationReasonExists(providerVariation.VariationReasonId);
+
+                if (providerVariation.ReleasedProviderChannelVariationReasonId <= 0)
+                {
+                    providerVariation.ReleasedProviderChannelVariationReasonId = _releaseProviderVariationReasonsNextId++;
+                }
+
+
+                if (!_releasedProviderVersionChannelVariatonReasons.TryAdd(providerVariation.ReleasedProviderChannelVariationReasonId, providerVariation))
+                {
+                    throw new InvalidOperationException($"Provider channel variation reason with ID '{providerVariation.ReleasedProviderVersionChannelId}' already exists");
+                }
+
+                results.Add(providerVariation);
+            }
+
+            return Task.FromResult(results.AsEnumerable());
         }
 
         public Task<IEnumerable<ReleasedProvider>> CreateReleasedProvidersUsingAmbientTransaction(IEnumerable<ReleasedProvider> releasedProviders)
@@ -277,6 +316,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             {
                 throw new InvalidOperationException($"Specification with ID '{specificationId}' does not exist");
             }
+        }
+
+        internal Task<FundingGroup> GetFundingGroup(int fundingGroupId)
+        {
+            _fundingGroups.TryGetValue(fundingGroupId, out FundingGroup group);
+
+            return Task.FromResult(group);
         }
 
         public Task<ReleasedProviderVersion> CreateReleasedProviderVersion(ReleasedProviderVersion releasedProviderVersion)
@@ -314,6 +360,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(providerVersionChannel);
         }
 
+        internal Task<FundingGroupVersion> GetFundingGroupVersion(int fundingGroupVersionId)
+        {
+            _fundingGroupVersions.TryGetValue(fundingGroupVersionId, out FundingGroupVersion fundingGroupVersion);
+            return Task.FromResult(fundingGroupVersion);
+        }
+
         private void EnsureReleaseProviderVersionExists(int releasedProviderVersionId)
         {
             if (!_releasedProviderVersions.ContainsKey(releasedProviderVersionId))
@@ -349,6 +401,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(providerVersion);
         }
 
+        public Task<FundingGroupVersionVariationReason> GetFundingGroupVersionVariationReason(int fundingGroupVersionVariationReasonId)
+        {
+            _fundingGroupVersionsVariationReasons.TryGetValue(fundingGroupVersionVariationReasonId, out FundingGroupVersionVariationReason fundingGroupVersionVariationReason);
+
+            return Task.FromResult(fundingGroupVersionVariationReason);
+        }
+
         private void EnsureReleasedProviderExists(int releasedProviderId)
         {
             if (!_releasedProviders.ContainsKey(releasedProviderId))
@@ -374,6 +433,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public Task<FundingGroupProvider> GetFundingGroupProviderById(int fundingGroupProviderId)
+        {
+            _fundingGroupProviders.TryGetValue(fundingGroupProviderId, out FundingGroupProvider fundingGroupProvider);
+
+            return Task.FromResult(fundingGroupProvider);
+        }
+
         public Task<VariationReason> CreateVariationReason(VariationReason reason)
         {
             if (reason.VariationReasonId <= 0)
@@ -391,7 +457,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<Channel> GetChannelByChannelCode(string channelCode)
         {
-            throw new NotImplementedException();
+            Channel channel = _channels.Values.SingleOrDefault(_ => _.ChannelCode == channelCode);
+
+            return Task.FromResult(channel);
         }
 
         public Task<IEnumerable<Channel>> GetChannels()
@@ -563,26 +631,26 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<IEnumerable<LatestFundingGroupVersion>> GetLatestFundingGroupMajorVersionsBySpecificationId(string specificationId, int channelId)
         {
-            IEnumerable<int> fundingGroupsForSpecification = 
+            IEnumerable<int> fundingGroupsForSpecification =
                 _fundingGroups.Values
                 .Where(_ => _.SpecificationId == specificationId)
                 .Select(_ => _.FundingGroupId);
 
-            IEnumerable<FundingGroupVersion> fundingGroupVersionsForSpecification = 
+            IEnumerable<FundingGroupVersion> fundingGroupVersionsForSpecification =
                 _fundingGroupVersions.Values
-                .Where(_ => fundingGroupsForSpecification.Contains(_.FundingGroupId) 
+                .Where(_ => fundingGroupsForSpecification.Contains(_.FundingGroupId)
                     && _.ChannelId == channelId);
 
-            IEnumerable<LatestFundingGroupVersion> latestVersions = 
+            IEnumerable<LatestFundingGroupVersion> latestVersions =
                 fundingGroupVersionsForSpecification
                 .GroupBy(_ => _.FundingGroupId)
                 .Select(_ => _.OrderByDescending(g => g.MajorVersion).First())
                 .Select(_ => new LatestFundingGroupVersion()
-                                {
-                                    MajorVersion = _.MajorVersion,
-                                    FundingGroupVersionId = _.FundingGroupVersionId,
-                                    FundingId = _.FundingId,
-                                });
+                {
+                    MajorVersion = _.MajorVersion,
+                    FundingGroupVersionId = _.FundingGroupVersionId,
+                    FundingId = _.FundingId,
+                });
 
             return Task.FromResult(latestVersions);
         }

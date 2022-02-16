@@ -32,6 +32,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private Mock<IPoliciesService> _policiesService;
         private Mock<IPublishedFundingDateService> _publishedFundingDateService;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
+        private Mock<IPublishedFundingIdGeneratorResolver> _publishedFundingIdGeneratorResolver;
+        private Mock<IPublishedFundingIdGenerator> _publishedFundingIdGenerator;
         private readonly IPublishingResiliencePolicies _publishingResiliencePolicies = new ResiliencePolicies
         {
             PublishedFundingRepository = Policy.NoOpAsync()
@@ -46,8 +48,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private string _providerId = new RandomString();
         private SpecificationSummary _specificationSummary;
         private List<OrganisationGroupResult> _organisationGroupsToCreate;
+        private List<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> _publishedFunding;
         private FundingGroupDataGenerator _service;
         private string _fundingPeriodId;
+        private Reference _author;
+        private string _jobId;
+        private string _correlationId;
+        private string _templateVersion;
+        private TemplateMetadataContents _templateMetadataContents;
+        private string _schemaVersion;
+        private string _fundingId;
 
         [TestInitialize]
         public void Initialise()
@@ -70,14 +80,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _policiesService = new Mock<IPoliciesService>();
             _publishedFundingDateService = new Mock<IPublishedFundingDateService>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
+            _publishedFundingIdGeneratorResolver = new Mock<IPublishedFundingIdGeneratorResolver>();
+            _publishedFundingIdGenerator = new Mock<IPublishedFundingIdGenerator>();
+
+            _templateVersion = new RandomString();
+            _schemaVersion = new RandomString();
+
+            _templateMetadataContents = new TemplateMetadataContents()
+            {
+                TemplateVersion = _templateVersion,
+                FundingPeriodId = _specificationSummary.FundingPeriod.Id,
+                FundingStreamId = _specificationSummary.FundingStreams.First().Id,
+                SchemaVersion = _schemaVersion,
+            };
+
             _service = new FundingGroupDataGenerator(
                 _publishedFundingGenerator.Object,
                 _policiesService.Object,
                 _publishedFundingDateService.Object,
                 _publishingResiliencePolicies,
                 _releaseManagementRepository.Object,
-                _publishedProviderLoader.Object
+                _publishedProviderLoader.Object,
+                _publishedFundingIdGeneratorResolver.Object
             );
+
+            _author = new Reference(new RandomString(), new RandomString());
+            _jobId = new RandomString();
+            _correlationId = new RandomString();
+            _fundingId = new RandomString();
         }
 
         [TestMethod]
@@ -86,9 +116,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GivenTemplate();
             GivenPublishedProviders();
             GivenPublishedFunding();
+            GivenSchemaVersionResolverExists();
+            GivenFundingIdReturns();
 
             IEnumerable<GeneratedPublishedFunding> result = await _service.Generate(
-                _organisationGroupsToCreate, _specificationSummary, _channel, new List<string> { new RandomString() });
+                _organisationGroupsToCreate, 
+                _specificationSummary, 
+                _channel, new List<string> { new RandomString()
+                },
+                _author,
+                _jobId,
+                _correlationId);
 
             result
                 .Should()
@@ -121,6 +159,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     CalculateFunding.Models.Publishing.VariationReason.CalculationValuesUpdated,
                     CalculateFunding.Models.Publishing.VariationReason.CountryNameFieldUpdated
                 });
+
+            result
+                .First()
+                .PublishedFundingVersion.FundingId
+                .Should()
+                .Be(_fundingId);
+        }
+
+        private void GivenFundingIdReturns()
+        {
+            _publishedFundingIdGenerator.Setup(_ => _.GetFundingId(_publishedFunding[0].PublishedFundingVersion)).Returns(
+                _fundingId);
+        }
+
+        private void GivenSchemaVersionResolverExists()
+        {
+            _publishedFundingIdGeneratorResolver
+                .Setup(_ => _.GetService(_schemaVersion))
+                .Returns(_publishedFundingIdGenerator.Object);
         }
 
         [TestMethod]
@@ -131,7 +188,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GivenPublishedFunding();
 
             Func<Task> result = () => _service.Generate(
-                _organisationGroupsToCreate, _specificationSummary, _channel, new List<string> { new RandomString() });
+                _organisationGroupsToCreate, 
+                _specificationSummary, 
+                _channel, 
+                new List<string> { new RandomString() },
+                _author,
+                _jobId,
+                _correlationId);
 
             result
                 .Should()
@@ -147,7 +210,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GivenPublishedFunding(setMissingPublishedFunding: true);
 
             Func<Task> result = () => _service.Generate(
-                _organisationGroupsToCreate, _specificationSummary, _channel, new List<string> { new RandomString() });
+                _organisationGroupsToCreate, _specificationSummary, 
+                _channel,
+                new List<string> { new RandomString() },
+                _author,
+                _jobId,
+                _correlationId);
 
             result
                 .Should()
@@ -167,6 +235,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                             ProviderId = _providerId,
                             FundingStreamId = _fundingStream.Id,
                             FundingPeriodId = _specificationSummary.FundingPeriod.Id,
+                            TemplateVersion = _templateVersion,
                             VariationReasons = new List<CalculateFunding.Models.Publishing.VariationReason>
                             {
                                 CalculateFunding.Models.Publishing.VariationReason.CalculationValuesUpdated,
@@ -194,6 +263,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 OrganisationGroupTypeIdentifier = groupTypeIdentifier.ToString(),
                 Version = new RandomNumberBetween(1, 10),
                 FundingId = new RandomString(),
+                SchemaVersion = _schemaVersion,
             };
 
             _releaseManagementRepository.Setup(_ => _.GetLatestFundingGroupMajorVersionsBySpecificationId(_specificationSummary.Id, _channel.ChannelId))
@@ -211,14 +281,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 }
             };
 
-            List<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFunding =
+             _publishedFunding =
                 new List<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)>
                 {
                     (new PublishedFunding { Current = publishedProviderVersion }, publishedProviderVersion)
                 };
 
-            _publishedFundingGenerator.Setup(_ => _.GeneratePublishedFunding(It.IsAny<PublishedFundingInput>(), It.IsAny<IEnumerable<PublishedProvider>>()))
-                .Returns(publishedFunding);
+            _publishedFundingGenerator.Setup(_ => _.GeneratePublishedFunding(
+                It.IsAny<PublishedFundingInput>(),
+                It.IsAny<IEnumerable<PublishedProvider>>(),
+                _author,
+                _jobId,
+                _correlationId))
+                .Returns(_publishedFunding);
         }
 
         private void GivenNoTemplate()
@@ -230,7 +305,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private void GivenTemplate()
         {
             _policiesService.Setup(_ => _.GetTemplateMetadataContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(new TemplateMetadataContents());
+                .ReturnsAsync(_templateMetadataContents);
         }
     }
 }

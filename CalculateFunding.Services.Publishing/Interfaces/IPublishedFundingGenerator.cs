@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
 
@@ -8,6 +9,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         IEnumerable<(PublishedFunding, PublishedFundingVersion)> GeneratePublishedFunding(
             PublishedFundingInput generatePublishedFundingInput, 
-            IEnumerable<PublishedProvider> publishedProviders);
+            IEnumerable<PublishedProvider> publishedProviders,
+            Reference author,
+            string jobId,
+            string correlationId);
     }
 }

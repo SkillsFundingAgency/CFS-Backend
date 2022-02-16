@@ -167,7 +167,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 ReleaseManagementBlobStepContext stepContext = (ReleaseManagementBlobStepContext)releaseManagementBlobStepContext;
 
                 return new PublishedFundingContentsPersistenceService(contentsGeneratorResolver,
-                    stepContext.FundingGroupsClient,
+                    stepContext.PublishedFundingClient,
                     publishingResiliencePolicies,
                     publishingEngineOptions);
             }));
@@ -380,6 +380,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderLoaderForFundingGroupData, IPublishedProviderLoaderForFundingGroupData>();
             RegisterTypeAs<FundingGroupDataPersistenceService, IFundingGroupDataPersistenceService>();
             RegisterTypeAs<FundingGroupProviderPersistenceService, IFundingGroupProviderPersistenceService>();
+            RegisterTypeAs<ProviderVariationReasonsReleaseService, IProviderVariationReasonsReleaseService>();
 
             RegisterFactoryAs<IPublishedFundingContentsChannelPersistenceService>((svc) =>
             {

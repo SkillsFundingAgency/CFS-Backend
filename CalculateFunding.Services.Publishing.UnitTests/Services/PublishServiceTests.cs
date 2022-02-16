@@ -79,7 +79,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IJobsRunning _jobsRunning;
         private ICreatePublishDatasetsDataCopyJob _createPublishDatasetsDataCopyJob;
         private ICreateProcessDatasetObsoleteItemsJob _createProcessDatasetObsoleteItemsJob;
-
+        private Reference _author;
+        private RandomString _jobId;
+        private RandomString _correlationId;
         private const string SpecificationId = "SpecificationId";
         private const string FundingPeriodId = "AY-2020";
         private const string JobId = "JobId";
@@ -136,6 +138,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _createPublishIntegrityJob = Substitute.For<ICreatePublishIntegrityJob>();
             _createPublishDatasetsDataCopyJob = Substitute.For<ICreatePublishDatasetsDataCopyJob>();
             _createProcessDatasetObsoleteItemsJob = Substitute.For<ICreateProcessDatasetObsoleteItemsJob>();
+            _author = new Reference(new RandomString(), new RandomString());
+            _jobId = new RandomString();
+            _correlationId = new RandomString();
 
             _publishedFundingService = new PublishedFundingService(_publishedFundingDataService,
                 _publishingResiliencePolicies,
@@ -530,10 +535,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Arg.Is<List<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)>>(
                         _ => _.Select(item => item.PublishedFundingVersion)
                               .All(ppv => ppv.VariationReasons.Contains(variationReason))),
-                    Arg.Any<Reference>(),
-                    PublishedFundingStatus.Released,
-                    JobId,
-                    CorrelationId
+                    PublishedFundingStatus.Released
                 );
         }
 
@@ -558,10 +560,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void AndUpdateFundingStatusThrowsAnError(string error)
         {
             _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(Arg.Any<IEnumerable<(PublishedFunding, PublishedFundingVersion)>>(),
-                    Arg.Any<Reference>(),
-                    Arg.Is(PublishedFundingStatus.Released),
-                    Arg.Is(JobId),
-                    Arg.Is(CorrelationId))
+                    Arg.Is(PublishedFundingStatus.Released))
                 .Throws(new Exception(error));
         }
 
@@ -799,7 +798,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingGenerator
                 .GeneratePublishedFunding(
                     Arg.Is<PublishedFundingInput>(_ => _.SpecificationId == SpecificationId),
-                    Arg.Is<ICollection<PublishedProvider>>(_ => _.All(pp => _publishedProviders.Select(pp => pp.Current.ProviderId).Contains(pp.Current.ProviderId))))
+                    Arg.Is<ICollection<PublishedProvider>>(_ => _.All(pp => _publishedProviders.Select(pp => pp.Current.ProviderId).Contains(pp.Current.ProviderId))),
+                    _author,
+                    _jobId,
+                    _correlationId
+                    )
                 .Returns(publishedFunding);
         }
 

@@ -58,10 +58,7 @@ namespace CalculateFunding.Services.Publishing
 
         public async Task UpdatePublishedFundingStatus(
             IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave, 
-            Reference author, 
-            PublishedFundingStatus status, 
-            string jobId, 
-            string correlationId)
+            PublishedFundingStatus status)
         {
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.UpdatePublishedFundingStatusConcurrencyCount);
@@ -81,9 +78,7 @@ namespace CalculateFunding.Services.Publishing
                                 .CreateVersion(_.PublishedFundingVersion, currentVersion, currentVersion.PartitionKey);
 
                             publishedFundingVersion.Status = status;
-                            publishedFundingVersion.Author = author;
-                            publishedFundingVersion.JobId = jobId;
-                            publishedFundingVersion.CorrelationId = correlationId;
+                           
                             publishedFundingVersion.MajorVersion = publishedFundingVersion.Version;
 
                             publishedFunding.Current = publishedFundingVersion;

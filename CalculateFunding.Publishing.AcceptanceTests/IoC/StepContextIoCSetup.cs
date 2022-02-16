@@ -59,6 +59,7 @@ using PublishedFundingContentsGenerator12 = CalculateFunding.Generators.Schema12
 using CalculateFunding.Generators.Schema10;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
+using CalculateFunding.Services.Core.Services;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 {
@@ -313,6 +314,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterInstanceAs<IBatchProfilingOptions>(new BatchProfilingOptions(new ConfigurationStub()));
             RegisterTypeAs<BatchProfilingService, IBatchProfilingService>();
             RegisterTypeAs<ProducerConsumerFactory, IProducerConsumerFactory>();
+            RegisterTypeAs<CurrentDateTimeService, ICurrentDateTime>();
         }
 
         public class RoundingSettingsStub : IFundingLineRoundingSettings

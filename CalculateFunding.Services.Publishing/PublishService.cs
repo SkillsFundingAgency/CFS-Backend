@@ -296,7 +296,13 @@ namespace CalculateFunding.Services.Publishing
 
                 _logger.Information($"Generating published funding");
                 IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave =
-                    _publishedFundingGenerator.GeneratePublishedFunding(publishedFundingInput, publishedProviders).ToList();
+                    _publishedFundingGenerator.GeneratePublishedFunding(
+                        publishedFundingInput,
+                        publishedProviders,
+                        author,
+                        jobId,
+                        correlationId)
+                    .ToList();
                 _logger.Information($"A total of {publishedFundingToSave.Count()} published funding versions created to save.");
 
                 foreach ((PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion) publishedFundingItems in publishedFundingToSave)
@@ -312,7 +318,7 @@ namespace CalculateFunding.Services.Publishing
 
                 // Save a version of published funding and set this version to current
                 _logger.Information($"Saving published funding");
-                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released, jobId, correlationId);
+                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, PublishedFundingStatus.Released);
                 _logger.Information($"Finished saving published funding");
 
                 // Save contents to blob storage and search for the feed

@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Publishing.AcceptanceTests.Models;
+﻿using CalculateFunding.Publishing.AcceptanceTests.Contexts;
+using CalculateFunding.Publishing.AcceptanceTests.Models;
 using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
@@ -22,11 +23,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
     {
         private readonly IReleaseManagementRepository _repo;
         private readonly InMemoryReleaseManagementRepository _repoInMemory;
+        private readonly ICurrentJobStepContext _currentJobStepContext;
 
-        public ReleaseManagementRepositoryStepDefinitions(IReleaseManagementRepository releaseManagementRepository)
+        public ReleaseManagementRepositoryStepDefinitions(IReleaseManagementRepository releaseManagementRepository,
+            ICurrentJobStepContext currentJobStepContext)
         {
             _repo = releaseManagementRepository;
             _repoInMemory = (InMemoryReleaseManagementRepository)releaseManagementRepository;
+            _currentJobStepContext = currentJobStepContext;
         }
 
         [Given(@"release management repo has prereq data populated")]
@@ -192,6 +196,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             actualProvider.Should().BeEquivalentTo(expectedProvider);
         }
 
+        [Then(@"there is a total of '([^']*)' released provider records in the release management repoistory")]
+        public void ThenThereIsATotalOfReleasedProviderRecordsInTheReleaseManagementRepoistory(int count)
+        {
+            _repoInMemory.ReleasedProviderCount.Should().Be(count);
+        }
+
+
         [Then(@"there is a released provider version record created in the release management repository")]
         public async Task ThenThereIsAReleasedProviderVersionRecordCreatedInTheReleaseManagementRepository(Table table)
         {
@@ -202,15 +213,195 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             actualProvider.Should().BeEquivalentTo(expectedProvider);
         }
 
+        [Then(@"there is a total of '([^']*)' released provider version records in the release management repoistory")]
+        public void ThenThereIsATotalOfReleasedProviderVersionRecordsInTheReleaseManagementRepoistory(int count)
+        {
+            _repoInMemory.ReleasedProviderVersionsCount.Should().Be(count);
+        }
+
+
         [Then(@"there is a released provider version channel record created in the release management repository")]
         public async Task ThenThereIsAReleasedProviderVersionChannelRecordCreatedInTheReleaseManagementRepository(Table table)
         {
-            ReleasedProviderVersionChannel expected = table.CreateInstance<ReleasedProviderVersionChannel>();
+            ExpectedProviderVersionChannel expectedProviderVersionChannel = table.CreateInstance<ExpectedProviderVersionChannel>();
+
+            Channel channel = await _repoInMemory.GetChannelByChannelCode(expectedProviderVersionChannel.Channel);
+
+            ReleasedProviderVersionChannel expected = new ReleasedProviderVersionChannel()
+            {
+                AuthorId = expectedProviderVersionChannel.AuthorId,
+                AuthorName = expectedProviderVersionChannel.AuthorName,
+                ReleasedProviderVersionChannelId = expectedProviderVersionChannel.ReleasedProviderVersionChannelId,
+                ReleasedProviderVersionId = expectedProviderVersionChannel.ReleasedProviderVersionId,
+                StatusChangedDate = expectedProviderVersionChannel.StatusChangedDate,
+                ChannelId = channel.ChannelId,
+            };
 
             ReleasedProviderVersionChannel actual = await _repoInMemory.GetReleasedProviderVersionChannel(expected.ReleasedProviderVersionChannelId);
 
             actual.Should().BeEquivalentTo(expected);
         }
 
+        [Then(@"there are a total of '([^']*)' released provider version channel records created in the release management repository")]
+        public void ThenThereAreATotalOfReleasedProviderVersionChannelRecordsCreatedInTheReleaseManagementRepository(int count)
+        {
+            _repoInMemory.ReleasedProviderVersionChannelCount.Should().Be(count);
+        }
+
+        [Then(@"there is a released provider channel variation created in the release management repository")]
+        public async Task ThenThereIsAReleasedProviderChannelVariationCreatedInTheReleaseManagementRepository(Table table)
+        {
+            ExpectedProviderVariationReason expectedInput = table.CreateInstance<ExpectedProviderVariationReason>();
+
+            VariationReasonSql variationReason = await GetVariationReasonAndAssertNotNull(expectedInput.VariationReason);
+
+            ReleasedProviderChannelVariationReason expected = new ReleasedProviderChannelVariationReason()
+            {
+                ReleasedProviderChannelVariationReasonId = expectedInput.ReleasedProviderChannelVariationReasonId,
+                VariationReasonId = variationReason.VariationReasonId,
+                ReleasedProviderVersionChannelId = expectedInput.ReleasedProviderVersionChannelId,
+            };
+
+            ReleasedProviderChannelVariationReason actual = await _repoInMemory.GetReleasedProviderVersionChannelVariationReason(expected.ReleasedProviderChannelVariationReasonId);
+
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Then(@"there are a total of '([^']*)' released provider version channel variation reason records created in the release management repository")]
+        public void ThenThereAreATotalOfReleasedProviderVersionChannelVariationReasonRecordsCreatedInTheReleaseManagementRepository(int count)
+        {
+            _repoInMemory.ReleasedProviderVersionVariationReasonsCount.Should().Be(count);
+        }
+
+        [Then(@"there is a funding group created in the release management repository")]
+        public async Task ThenThereIsAFundingGroupCreatedInTheReleaseManagementRepository(Table table)
+        {
+            ExpectedFundingGroup expectedInput = table.CreateInstance<ExpectedFundingGroup>();
+
+            Channel channel = await _repoInMemory.GetChannelByChannelCode(expectedInput.Channel);
+            IEnumerable<GroupingReason> groupingReasons = await _repoInMemory.GetGroupingReasons();
+
+            GroupingReason groupingReason = groupingReasons.Single(_ => _.GroupingReasonCode == expectedInput.GroupingReason);
+
+            FundingGroup expected = new FundingGroup()
+            {
+                ChannelId = channel.ChannelId,
+                FundingGroupId = expectedInput.FundingGroupId,
+                GroupingReasonId = groupingReason.GroupingReasonId,
+                OrganisationGroupIdentifierValue = expectedInput.OrganisationGroupIdentifierValue,
+                OrganisationGroupName = expectedInput.OrganisationGroupName,
+                OrganisationGroupSearchableName = expectedInput.OrganisationGroupSearchableName,
+                OrganisationGroupTypeClassification = expectedInput.OrganisationGroupTypeClassification,
+                OrganisationGroupTypeCode = expectedInput.OrganisationGroupTypeCode,
+                OrganisationGroupTypeIdentifier = expectedInput.OrganisationGroupTypeIdentifier,
+                SpecificationId = expectedInput.SpecificationId,
+            };
+
+            FundingGroup actual = await _repoInMemory.GetFundingGroup(expected.FundingGroupId);
+
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Then(@"there are a total of '([^']*)' funding group records created in the release management repository")]
+        public void ThenThereAreATotalOfFundingGroupRecordsCreatedInTheReleaseManagementRepository(int expectedCount)
+        {
+            _repoInMemory.FundingGroupsCount.Should().Be(expectedCount);
+        }
+
+        [Then(@"there is a funding group version created in the release management repository")]
+        public async Task ThenThereIsAFundingGroupVersionCreatedInTheReleaseManagementRepository(Table table)
+        {
+            ExpectedFundingGroupVersion expectedInput = table.CreateInstance<ExpectedFundingGroupVersion>();
+
+            Channel channel = await _repoInMemory.GetChannelByChannelCode(expectedInput.Channel);
+            IEnumerable<GroupingReason> groupingReasons = await _repoInMemory.GetGroupingReasons();
+
+            GroupingReason groupingReason = groupingReasons.Single(_ => _.GroupingReasonCode == expectedInput.GroupingReason);
+
+            if(expectedInput.JobId == "<JobId>")
+            {
+                expectedInput.JobId = _currentJobStepContext.JobId;
+            }
+
+            FundingGroupVersion expected = new FundingGroupVersion()
+            {
+                ChannelId = channel.ChannelId,
+                FundingGroupId = expectedInput.FundingGroupId,
+                GroupingReasonId = groupingReason.GroupingReasonId,
+                CorrelationId = expectedInput.CorrelationId,
+                EarliestPaymentAvailableDate = expectedInput.EarliestPaymentAvailableDate,
+                ExternalPublicationDate = expectedInput.ExternalPublicationDate,
+                FundingGroupVersionId = expectedInput.FundingGroupVersionId,
+                FundingId = expectedInput.FundingId,
+                FundingPeriodId = expectedInput.FundingPeriodId,
+                FundingStreamId = expectedInput.FundingStreamId,
+                JobId = expectedInput.JobId,
+                MajorVersion = expectedInput.MajorVersion,
+                MinorVersion = expectedInput.MinorVersion,
+                SchemaVersion = expectedInput.SchemaVersion,
+                StatusChangedDate = expectedInput.StatusChangedDate,
+                TemplateVersion = expectedInput.TemplateVersion,
+                TotalFunding = expectedInput.TotalFunding,
+            };
+
+            FundingGroupVersion actual = await _repoInMemory.GetFundingGroupVersion(expected.FundingGroupVersionId);
+
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Then(@"there are a total of '([^']*)' funding group version records created in the release management repository")]
+        public void ThenThereAreATotalOfFundingGroupVersionRecordsCreatedInTheReleaseManagementRepository(int expectedCount)
+        {
+            _repoInMemory.FundingGroupsVersionsCount.Should().Be(expectedCount);
+        }
+
+        [Then(@"there is a funding group variation reason created in the release management repository")]
+        public async Task ThenThereIsAFundingGroupVariationReasonCreatedInTheReleaseManagementRepository(Table table)
+        {
+            ExpectedFundingGroupVariationReason expectedInput = table.CreateInstance<ExpectedFundingGroupVariationReason>();
+            VariationReasonSql variationReason = await GetVariationReasonAndAssertNotNull(expectedInput.VariationReason);
+
+            FundingGroupVersionVariationReason expected = new FundingGroupVersionVariationReason()
+            {
+                FundingGroupVersionVariationReasonId = expectedInput.FundingGroupVersionVariationReasonId,
+                VariationReasonId = variationReason.VariationReasonId,
+                 FundingGroupVersionId = expectedInput.FundingGroupVersionId,
+            };
+
+            FundingGroupVersionVariationReason actual = await _repoInMemory.GetFundingGroupVersionVariationReason(expected.FundingGroupVersionVariationReasonId);
+
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        private async Task<VariationReasonSql> GetVariationReasonAndAssertNotNull(string variationReasonCode)
+        {
+            var variationReasons = await _repoInMemory.GetVariationReasons();
+            VariationReason variationReason = variationReasons.SingleOrDefault(_ => _.VariationReasonCode == variationReasonCode);
+
+            variationReason.Should().NotBeNull($"Unable to find variation reason '{variationReasonCode}'");
+            return variationReason;
+        }
+
+        [Then(@"there are a total of '([^']*)' funding group version variation reason records created in the release management repository")]
+        public void ThenThereAreATotalOfFundingGroupVersionVariationReasonRecordsCreatedInTheReleaseManagementRepository(int expectedCount)
+        {
+            _repoInMemory.FundingGroupsVariationReasonsCount.Should().Be(expectedCount);
+        }
+
+        [Then(@"there is the provider version associated with the funding group version in the release management repository")]
+        public async Task ThenThereIsTheProviderVersionAssociatedWithTheFundingGroupVersionInTheReleaseManagementRepository(Table table)
+        {
+            FundingGroupProvider expected = table.CreateInstance<FundingGroupProvider>();
+
+            FundingGroupProvider actualProvider = await _repoInMemory.GetFundingGroupProviderById(expected.FundingGroupProviderId);
+
+            actualProvider.Should().BeEquivalentTo(expected);
+        }
+
+        [Then(@"there are a total of '([^']*)' funding group providers created in the release management repository")]
+        public void ThenThereAreATotalOfFundingGroupProvidersCreatedInTheReleaseManagementRepository(int expectedCount)
+        {
+            _repoInMemory.FundingGroupProvidersCount.Should().Be(expectedCount);
+        }
     }
 }

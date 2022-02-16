@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Models;
@@ -9,6 +10,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
     public interface IFundingGroupDataGenerator
     {
-        Task<IEnumerable<GeneratedPublishedFunding>> Generate(IEnumerable<OrganisationGroupResult> organisationGroupsToCreate, SpecificationSummary specification, Channel channel, IEnumerable<string> batchPublishedProviderIds);
+        Task<IEnumerable<GeneratedPublishedFunding>> Generate(IEnumerable<OrganisationGroupResult> organisationGroupsToCreate,
+                                                              SpecificationSummary specification,
+                                                              Channel channel,
+                                                              IEnumerable<string> batchPublishedProviderIds,
+                                                              Reference author,
+                                                              string jobId,
+                                                              string correlationId);
     }
 }

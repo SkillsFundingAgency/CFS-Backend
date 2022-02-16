@@ -44,6 +44,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
     public class PublishIntegrityCheckServiceTests : ServiceTestsBase
     {
         private PublishIntegrityCheckService _publishIntegrityService;
+        private RandomString _jobId;
+        private RandomString _correlationId;
+        private Reference _author;
         private SpecificationSummary _specificationSummary;
         private IPublishingResiliencePolicies _publishingResiliencePolicies;
         private ISpecificationService _specificationService;
@@ -171,6 +174,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedFundingContentsChannelPersistenceService,
                 _publishedFundingRepository
             );
+
+            _jobId = NewRandomString();
+            _correlationId = NewRandomString();
+            _author = new Reference( NewRandomString(), new RandomString());
         }
 
         [TestMethod]
@@ -513,7 +520,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingGenerator
                 .GeneratePublishedFunding(
                     Arg.Is<PublishedFundingInput>(_ => _.SpecificationId == SpecificationId),
-                    Arg.Is<ICollection<PublishedProvider>>(_ => _.All(pp => _publishedProviders.Select(pp => pp.Current.ProviderId).Contains(pp.Current.ProviderId))))
+                    Arg.Is<ICollection<PublishedProvider>>(_ => _.All(pp => _publishedProviders.Select(pp => pp.Current.ProviderId).Contains(pp.Current.ProviderId))),
+                    _author,
+                    _jobId,
+                    _correlationId
+                    )
                 .Returns(publishedFunding);
 
             _publishedFundingVersionDataService.GetPublishedFundingVersion(Arg.Is<string>(FundingStreamId), Arg.Is<string>(FundingPeriodId))
