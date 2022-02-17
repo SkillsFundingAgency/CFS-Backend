@@ -38,6 +38,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionInFundingGroups(string id, int channelId);
         Task<FundingGroupVersion> GetFundingGroupVersion(int fundingGroupId, int majorVersion);
         Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersions(string specificationId, IEnumerable<int> channelIds);
+
+        Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsUsingAmbientTransaction(string specificationId, IEnumerable<int> channelIds);
+
         Task<FundingGroupVersion> CreateFundingGroupVersion(FundingGroupVersion fundingGroupVersion);
         Task<FundingGroupVersionVariationReason> CreateFundingGroupVariationReason(FundingGroupVersionVariationReason reason);
         Task<IEnumerable<Specification>> GetSpecifications();
@@ -88,5 +91,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<IEnumerable<LatestFundingGroupVersion>> GetLatestFundingGroupMajorVersionsBySpecificationId(string specificationId, int channelId);
         Task<IEnumerable<ReleasedProviderSummary>> GetReleasedProviderSummaryBySpecificationId(string specificationId);
         Task<IEnumerable<ReleasedProviderSummary>> GetLatestReleasedProviderSummaryBySpecificationId(string specificationId);
+        Task<FundingGroup> CreateFundingGroupUsingAmbientTransaction(FundingGroup fundingGroup);
     }
 }

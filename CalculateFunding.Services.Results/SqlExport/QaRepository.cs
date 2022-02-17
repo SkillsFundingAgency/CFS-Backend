@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Results.SqlExport
         }
 
         public int ExecuteSql(string sql)
-            => ExecuteNoneQuery(sql);
+            => ExecuteNonQuery(sql);
 
         public async Task<IEnumerable<TableForSpecification>> GetTablesForSpecification(string specificationId)
         {

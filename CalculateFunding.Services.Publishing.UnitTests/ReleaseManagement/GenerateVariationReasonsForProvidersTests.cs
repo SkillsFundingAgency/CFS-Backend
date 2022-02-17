@@ -14,12 +14,12 @@ using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using VariationReason = CalculateFunding.Models.Publishing.VariationReason;
-using System.Linq;
-using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 {
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             Channel channel = NewChannel(_ => _.WithChannelId(channelId));
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId).WithProviderVersionId(providerVersionId));
 
-            FundingVariation fundingVariation = NewFundingVariation(); 
+            FundingVariation fundingVariation = NewFundingVariation();
             FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _.WithFundingVariations(fundingVariation));
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResults = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
 
@@ -158,10 +158,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
             IDictionary<string, IEnumerable<VariationReason>> actual =
                 await _generateVariationReasonsForChannelService.GenerateVariationReasonsForProviders(
-                    batchProviderIds, 
-                    channel, 
-                    specificationSummary, 
-                    fundingConfiguration, 
+                    batchProviderIds,
+                    channel,
+                    specificationSummary,
+                    fundingConfiguration,
                     organisationGroupResults);
 
             IDictionary<string, IEnumerable<VariationReason>> expected = new Dictionary<string, IEnumerable<VariationReason>>
@@ -241,9 +241,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private void GetLatestPublishedProviderVersions(string specificationId, IEnumerable<int> channelIds, IEnumerable<ProviderVersionInChannel> providerVersionInChannels)
         {
             _releaseManagementRepository
-                .Setup(_ => _.GetLatestPublishedProviderVersions(
-                    specificationId, 
-                    It.Is<IEnumerable<int>>(i => i.SequenceEqual(channelIds)) ))
+                .Setup(_ => _.GetLatestPublishedProviderVersionsUsingAmbientTransaction(
+                    specificationId,
+                    It.Is<IEnumerable<int>>(i => i.SequenceEqual(channelIds))))
                 .ReturnsAsync(providerVersionInChannels);
         }
 

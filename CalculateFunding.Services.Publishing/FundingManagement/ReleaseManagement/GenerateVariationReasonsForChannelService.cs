@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(organisationGroupResults, nameof(organisationGroupResults));
 
             Task<IEnumerable<PublishedProvider>> currentProviderStatesRequest = _publishedProvidersLoadContext.GetOrLoadProviders(batchProviderIds);
-            Task<IEnumerable<ProviderVersionInChannel>> latestPublishedVersionInChannelRequest = _repo.GetLatestPublishedProviderVersions(specification.Id, new[] { channel.ChannelId });
+            Task<IEnumerable<ProviderVersionInChannel>> latestPublishedVersionInChannelRequest = _repo.GetLatestPublishedProviderVersionsUsingAmbientTransaction(specification.Id, new[] { channel.ChannelId });
             Task<IDictionary<string, Provider>> providersRequest = _providerService.GetScopedProvidersForSpecification(specification.Id, specification.ProviderVersionId);
             Task<IEnumerable<ProfileVariationPointer>> variationPointersRequest = _specificationService.GetProfileVariationPointers(specification.Id);
 

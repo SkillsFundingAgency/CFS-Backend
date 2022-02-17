@@ -700,19 +700,6 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>>();
             builder.AddScoped<IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>>();
 
-            builder.AddSingleton<IReleaseManagementRepository, ReleaseManagementRepository>((svc) =>
-            {
-                ISqlSettings sqlSettings = new SqlSettings();
-
-                config.Bind("releaseManagementSql", sqlSettings);
-                SqlConnectionFactory factory = new SqlConnectionFactory(sqlSettings);
-
-                SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
-
-                ExternalApiQueryBuilder externalApiQueryBuilder = new ExternalApiQueryBuilder();
-                return new ReleaseManagementRepository(factory, sqlPolicyFactory, externalApiQueryBuilder);
-            });
-
             builder.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
             builder.AddReleaseManagementServices(config);
 

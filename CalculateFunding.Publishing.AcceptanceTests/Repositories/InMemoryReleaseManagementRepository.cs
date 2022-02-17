@@ -654,5 +654,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(latestVersions);
         }
+
+        public Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsUsingAmbientTransaction(string specificationId, IEnumerable<int> channelIds)
+        {
+            return GetLatestPublishedProviderVersions(specificationId, channelIds);
+        }
+
+        public Task<FundingGroup> CreateFundingGroupUsingAmbientTransaction(FundingGroup fundingGroup)
+        {
+            return CreateFundingGroup(fundingGroup);
+        }
     }
 }

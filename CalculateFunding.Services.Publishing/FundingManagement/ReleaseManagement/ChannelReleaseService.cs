@@ -149,8 +149,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 .Distinct()
                 .Select(_ => providersToRelease[_]);
 
+            IEnumerable<string> providersInGroupsToReleasedProviderIds = providersInGroupsToRelease.Select(_ => _.ProviderId);
+
             IEnumerable<ReleasedProvider> releasedProviders = await _releaseProviderPersistenceService.ReleaseProviders(
-                providersInGroupsToRelease.Select(_ => _.ProviderId),
+                providersInGroupsToReleasedProviderIds,
                 specification.Id);
 
             await _providerVersionReleaseService.ReleaseProviderVersions(
@@ -158,12 +160,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 specification.Id);
 
             await _providerVersionToChannelReleaseService.ReleaseProviderVersionChannel(
-                providersToRelease.Values.Select(_=>_.ProviderId),
+                providersInGroupsToRelease.Select(_=>_.ProviderId),
                 channel.ChannelId,
                 currentDateTime);
 
             IDictionary<string, IEnumerable<VariationReason>> variationReasonsForProviders = await _generateVariationReasonsForChannelService.GenerateVariationReasonsForProviders(
-                batchPublishedProviderIds,
+                providersInGroupsToReleasedProviderIds,
                 channel,
                 specification,
                 fundingConfiguration,

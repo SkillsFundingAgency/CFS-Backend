@@ -1,11 +1,11 @@
-﻿using System.Threading.Tasks;
-using CalculateFunding.Functions.Providers.ServiceBus;
+﻿using CalculateFunding.Functions.Providers.ServiceBus;
 using CalculateFunding.Functions.Providers.Timer;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.DebugQueue
 {

@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
         public int ExecuteSql(string sql)
         {
-            return ExecuteNoneQuery(sql);
+            return ExecuteNonQuery(sql);
         }
 
         public async Task<IEnumerable<TableForStreamAndPeriod>> GetTablesForFundingStreamAndPeriod(string fundingStreamId,

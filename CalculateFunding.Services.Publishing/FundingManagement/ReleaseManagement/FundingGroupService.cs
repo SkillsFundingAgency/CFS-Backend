@@ -62,8 +62,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     GroupingReasonId = groupingReasonId
                 };
 
-                FundingGroup fundingGroup = await _releaseManagementRepository.CreateFundingGroup(fundingGroupToBeCreated);
+                FundingGroup fundingGroup = await _releaseManagementRepository.CreateFundingGroupUsingAmbientTransaction(fundingGroupToBeCreated);
                 results.Add(fundingGroup);
+
                 _releaseToChannelSqlMappingContext.FundingGroups.Add(organisationGroupResult, fundingGroup.FundingGroupId);
             }
 

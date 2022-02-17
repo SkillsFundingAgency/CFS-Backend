@@ -186,6 +186,23 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             return fundingGroup;
         }
+        
+        public async Task<FundingGroup> CreateFundingGroupUsingAmbientTransaction(FundingGroup fundingGroup)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            try
+            {
+                fundingGroup.FundingGroupId = await Insert(fundingGroup, _transaction);
+            }
+            catch
+            {
+                _transaction.Rollback();
+                throw;
+            }
+
+            return fundingGroup;
+        }
 
         public async Task<FundingGroup> GetFundingGroup(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue)
         {
@@ -271,7 +288,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             try
             {
-                reason.FundingGroupVersionVariationReasonId = await Insert<FundingGroupVersionVariationReason>(reason);
+                reason.FundingGroupVersionVariationReasonId = await Insert<FundingGroupVersionVariationReason>(reason, _transaction);
             }
             catch
             {
@@ -357,15 +374,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
+            List<ReleasedProvider> results = new List<ReleasedProvider>(releasedProviders.Count());
+
             try
             {
-                // calling the one which doesn't support transactions internally as I think we are going to need to do more inserting here
-                bool success = await BulkInsert(releasedProviders.ToList(), _transaction);
-
-                if (!success)
+                foreach(ReleasedProvider provider in releasedProviders)
                 {
-                    _transaction.Rollback();
-                    throw new RetriableException("Unknown reason for insert failure so retriable exception thrown");
+                    provider.ReleasedProviderId = await Insert(provider, _transaction);
+                    results.Add(provider);
                 }
             }
             catch
@@ -374,7 +390,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 throw;
             }
 
-            return releasedProviders;
+            return results;
         }
 
         public async Task<ReleasedProvider> CreateReleasedProvider(ReleasedProvider releasedProvider)
@@ -563,7 +579,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 });
         }
 
-        public Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersions(string specificationId, IEnumerable<int> channelIds)
+        public async Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersions(string specificationId, IEnumerable<int> channelIds)
+        {
+            return await GetLatestPublishedProviderVersionsInternal(specificationId, channelIds, null);
+        }
+
+        public async Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsUsingAmbientTransaction(string specificationId, IEnumerable<int> channelIds)
+        {
+            return await GetLatestPublishedProviderVersionsInternal(specificationId, channelIds, _transaction);
+        }
+
+        private Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsInternal(string specificationId, IEnumerable<int> channelIds, ISqlTransaction sqlTransaction)
         {
             return QuerySql<ProviderVersionInChannel>(
             @$"
@@ -583,7 +609,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 specificationId,
                 channelIds,
-            });
+            }, 
+            sqlTransaction);
         }
 
         public async Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionInFundingGroups(string specificationId, int channelId)
@@ -603,13 +630,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
 
 				INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
-				INNER JOIN FundingGroupProviders FGP ON FGV.FundingGroupVersionId = FGV.FundingGroupVersionId
+				INNER JOIN FundingGroupProviders FGP ON FGP.FundingGroupVersionId = FGV.FundingGroupVersionId
                 INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionChannelId = FGP.ReleasedProviderVersionChannelId
 				INNER JOIN ReleasedProviderVersions RPV ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
 				INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
 				INNER JOIN GroupingReasons GR ON GR.GroupingReasonId = FGV.GroupingReasonId 
-				WHERE FG.SpecificationId =  {nameof(specificationId)} 
-				AND FG.ChannelId = {nameof(channelId)}",
+				WHERE FG.SpecificationId = @{nameof(specificationId)} 
+				AND FG.ChannelId = @{nameof(channelId)}",
                 new
                 {
                     specificationId,
@@ -691,7 +718,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 dropSql.AppendLine("DELETE FROM [dbo].[ReleasedProviderVersions];");
                 dropSql.AppendLine("DELETE FROM [dbo].[FundingGroups];");
                 dropSql.AppendLine("DELETE FROM [dbo].[ReleasedProviders];");
-                ExecuteNoneQuery(dropSql.ToString());
+                ExecuteNonQuery(dropSql.ToString());
             });
 
             await deleteTask;
@@ -774,5 +801,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     specificationId
                 });
         }
+
+        
     }
 }

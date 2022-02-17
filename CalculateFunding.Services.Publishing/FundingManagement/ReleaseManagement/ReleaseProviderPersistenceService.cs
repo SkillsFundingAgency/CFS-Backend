@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                         .Select(_ => new ReleasedProvider
                         {
                             ProviderId = _,
-                            SpecificationId = specificationId
+                            SpecificationId = specificationId,
                         }));
 
             _releaseToChannelSqlMappingContext.ReleasedProviders.AddOrUpdateRange(releasedProviders.ToDictionary(_ => _.ProviderId));

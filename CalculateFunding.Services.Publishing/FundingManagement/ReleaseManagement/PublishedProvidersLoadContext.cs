@@ -19,9 +19,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     {
         private readonly IPublishedFundingBulkRepository _bulkRepo;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-
         readonly ConcurrentDictionary<string, PublishedProvider> _providers = new ConcurrentDictionary<string, PublishedProvider>();
-        readonly ConcurrentDictionary<(string providerId, int majorVersion), PublishedProviderVersion> _providerVersionsByProviderIdAndMajorVersion 
+        readonly ConcurrentDictionary<(string providerId, int majorVersion), PublishedProviderVersion> _providerVersionsByProviderIdAndMajorVersion
             = new ConcurrentDictionary<(string providerId, int majorVersion), PublishedProviderVersion>();
 
         private string _fundingStreamId;
@@ -111,7 +110,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
         public async Task<PublishedProviderVersion> LoadProviderVersion(string providerId, int majorVersion)
         {
-            PublishedProviderVersion publishedProviderVersion 
+            PublishedProviderVersion publishedProviderVersion
                 = await _publishedFundingRepository.GetReleasedPublishedProviderVersion(_fundingStreamId, _fundingPeriodId, providerId, majorVersion);
             if (publishedProviderVersion == null)
             {

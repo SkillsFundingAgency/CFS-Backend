@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _channelId = new RandomNumberBetween(1, 10);
             _logger = new Mock<ILogger>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
-            _releaseManagementRepository.Setup(r => r.CreateFundingGroup(It.IsAny<FundingGroup>())).ReturnsAsync(new FundingGroup());
+            _releaseManagementRepository.Setup(r => r.CreateFundingGroupUsingAmbientTransaction(It.IsAny<FundingGroup>())).ReturnsAsync(new FundingGroup());
             _context = new Mock<IReleaseToChannelSqlMappingContext>();
             _context.SetupGet(s => s.FundingGroups)
                 .Returns(new Dictionary<OrganisationGroupResult, int>());
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Should()
                 .HaveCount(_results.Count);
 
-            _releaseManagementRepository.Verify(r => r.CreateFundingGroup(It.IsAny<FundingGroup>()), Times.Exactly(2));
+            _releaseManagementRepository.Verify(r => r.CreateFundingGroupUsingAmbientTransaction(It.IsAny<FundingGroup>()), Times.Exactly(2));
         }
 
         [TestMethod]
@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Should()
                 .HaveCount(_results.Count);
 
-            _releaseManagementRepository.Verify(r => r.CreateFundingGroup(It.IsAny<FundingGroup>()), Times.Exactly(1));
+            _releaseManagementRepository.Verify(r => r.CreateFundingGroupUsingAmbientTransaction(It.IsAny<FundingGroup>()), Times.Exactly(1));
         }
 
         [TestMethod]
