@@ -28,9 +28,9 @@ namespace CalculateFunding.Services.Publishing.Errors
                 return Task.FromResult(errorCheck);
             }
 
-            IEnumerable<ProfilingCarryOver> carryOvers = publishedProvider.Current.CarryOvers.Where(c => c?.Amount != 0);
+            IEnumerable<ProfilingCarryOver> carryOvers = publishedProvider.Current.CarryOvers?.Where(c => c?.Amount != 0);
 
-            if (carryOvers.Any())
+            if (carryOvers.AnyWithNullCheck())
             {
                 foreach (ProfilingCarryOver carryOver in carryOvers)
                 {
