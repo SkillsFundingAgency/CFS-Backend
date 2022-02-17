@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.Sql;
 using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
@@ -41,6 +42,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IReleaseApprovedProvidersService, ReleaseApprovedProvidersService>();
             builder.AddScoped<IReleaseProvidersToChannelsService, ReleaseProvidersToChannelsService>();
             builder.AddScoped<IChannelReleaseService, ChannelReleaseService>();
+            builder.AddSingleton<ICurrentDateTime, CurrentDateTimeService>();
             builder.AddScoped<IProviderVersionToChannelReleaseService, ProviderVersionToChannelReleaseService>();
             builder.AddScoped<IReleaseProviderPersistenceService, ReleaseProviderPersistenceService>();
             builder.AddScoped<IReleaseToChannelSqlMappingContext, ReleaseToChannelSqlMappingContext>();
