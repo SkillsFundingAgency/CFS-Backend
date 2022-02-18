@@ -357,6 +357,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IReProfilingResponseMapper, ReProfilingResponseMapper>();
             builder.AddScoped<IApproveService, ApproveService>();
             builder.AddScoped<IDatasetsDataCopyService, DatasetsDataCopyService>();
+            builder.AddScoped<IFundingConfigurationService, FundingConfigurationService>();
             builder.AddSingleton<IJobTracker, JobTracker>();
             builder.AddScoped<IPublishService, PublishService>();
             builder.AddSingleton<IJobManagement, JobManagement>();

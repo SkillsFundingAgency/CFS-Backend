@@ -9,6 +9,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
         public string FundingStreamId { get; set; }
         public string FundingPeriodId { get; set; }
         public string DefaultTemplateVersion { get; set; }
+        public string SpecToSpecChannelCode { get; set; }
         public IEnumerable<string> AllowedPublishedFundingStreamsIdsToReference { get; set; }
         public IEnumerable<FundingVariation> ReleaseManagementVariations { get; set; }
         public IEnumerable<FundingConfigurationChannel> ReleaseChannels { get; set; }

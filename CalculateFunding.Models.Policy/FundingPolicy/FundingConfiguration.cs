@@ -25,6 +25,9 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         [JsonProperty("defaultTemplateVersion")]
         public string DefaultTemplateVersion { get; set; }
 
+        [JsonProperty("specToSpecChannelCode")]
+        public string SpecToSpecChannelCode { get; set; }
+
         /// <summary>
         /// Variations for running during refresh funding
         /// </summary>

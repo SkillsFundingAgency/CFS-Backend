@@ -838,37 +838,73 @@ this.ScenarioInitialize(scenarioInfo);
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1231, "And ");
 #line hidden
-#line 245
+                TechTalk.SpecFlow.Table table1232 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Field",
+                            "Value"});
+                table1232.AddRow(new string[] {
+                            "FundingGroupProviderId",
+                            "2"});
+                table1232.AddRow(new string[] {
+                            "FundingGroupVersionId",
+                            "2"});
+                table1232.AddRow(new string[] {
+                            "ReleasedProviderVersionChannelId",
+                            "1"});
+#line 244
+ testRunner.And("there is the provider version associated with the funding group version in the re" +
+                        "lease management repository", ((string)(null)), table1232, "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table1233 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Field",
+                            "Value"});
+                table1233.AddRow(new string[] {
+                            "FundingGroupProviderId",
+                            "3"});
+                table1233.AddRow(new string[] {
+                            "FundingGroupVersionId",
+                            "3"});
+                table1233.AddRow(new string[] {
+                            "ReleasedProviderVersionChannelId",
+                            "2"});
+#line 249
+ testRunner.And("there is the provider version associated with the funding group version in the re" +
+                        "lease management repository", ((string)(null)), table1233, "And ");
+#line hidden
+#line 254
+ testRunner.And("there are a total of \'3\' funding group providers created in the release managemen" +
+                        "t repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 256
  testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Informat" +
                         "ion-LocalAuthority-212-1_0\' in the channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 246
+#line 257
  testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Payment-" +
                         "LocalAuthority-10004002-1_0\' in the channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 247
+#line 258
  testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Payment-" +
                         "LocalAuthority-10004002-1_0\' in the channel \'Payment\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 248
+#line 259
  testRunner.And("there are \'3\' files contained in the funding groups blob storage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 250
+#line 261
  testRunner.And("there is content blob created for the released published provider with ID \'PSG-AY" +
                         "-2122-10071688-1_0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 251
+#line 262
  testRunner.And("there are \'1\' files contained in the published providers blob storage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 253
+#line 264
  testRunner.And("there is content blob created for the released provider with ID \'PSG-AY-2122-1007" +
                         "1688-1_0\' in channel \'Payment\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 254
+#line 265
  testRunner.And("there is content blob created for the released provider with ID \'PSG-AY-2122-1007" +
                         "1688-1_0\' in channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 255
+#line 266
  testRunner.And("there are \'2\' files contained in the released providers blob storage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }

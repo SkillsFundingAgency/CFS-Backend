@@ -18,6 +18,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using Microsoft.FeatureManagement;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 
 namespace CalculateFunding.Services.Publishing
@@ -28,6 +32,9 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISpecificationService _specificationService;
         private readonly IAsyncPolicy _datasetsApiClientPolicy;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
+        private readonly IReleaseManagementRepository _releaseManagementRepository;
+        private readonly IFeatureManagerSnapshot _featureManager;
+        private readonly IFundingConfigurationService _fundingConfigurationService;
         private readonly ILogger _logger;
 
         public DatasetsDataCopyService(
@@ -36,7 +43,10 @@ namespace CalculateFunding.Services.Publishing
             IDatasetsApiClient datasetsApiClient,
             ISpecificationService specificationService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
-            IPublishedFundingRepository publishedFundingRepository) : base(jobManagement, logger)
+            IPublishedFundingRepository publishedFundingRepository,
+            IReleaseManagementRepository releaseManagementRepository,
+            IFeatureManagerSnapshot featureManager,
+            IFundingConfigurationService fundingConfigurationService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -44,18 +54,25 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(publishingResiliencePolicies?.DatasetsApiClient, nameof(publishingResiliencePolicies.DatasetsApiClient));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
-            
+            Guard.ArgumentNotNull(featureManager, nameof(featureManager));
+            Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
+            Guard.ArgumentNotNull(fundingConfigurationService, nameof(fundingConfigurationService));
+
             _logger = logger;
             _datasetsApiClient = datasetsApiClient;
             _specificationService = specificationService;
             _datasetsApiClientPolicy = publishingResiliencePolicies.DatasetsApiClient;
             _publishedFundingRepository = publishedFundingRepository;
+            _releaseManagementRepository = releaseManagementRepository;
+            _featureManager = featureManager;
+            _fundingConfigurationService = fundingConfigurationService;
         }
 
         public override async Task Process(Message message)
         {
             string specificationId = message.GetUserProperty<string>("specification-id");
             string relationshipId = message.GetUserProperty<string>("relationship-id");
+            bool isReleaseManagementEnabled = await _featureManager.IsEnabledAsync("EnableReleaseManagementBackend");
 
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
 
@@ -70,7 +87,9 @@ namespace CalculateFunding.Services.Publishing
 
             foreach (DatasetSpecificationRelationshipViewModel relationship in string.IsNullOrWhiteSpace(relationshipId) ? relationships : relationships.Where(_ => _.Id == relationshipId))
             {
-                List<RelationshipDataSetExcelData> excelDataItems = await GetRelationshipDatasetExcelData(specificationId, relationship);
+                List<RelationshipDataSetExcelData> excelDataItems = isReleaseManagementEnabled ?
+                    await GetRelationshipDatasetExcelDataFromReleaseManagement(specificationSummary, relationship) :
+                    await GetRelationshipDatasetExcelData(specificationId, relationship);
 
                 // there are no published providers so exit early
                 if (excelDataItems.IsNullOrEmpty())
@@ -157,6 +176,58 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
+        private async Task<List<RelationshipDataSetExcelData>> GetRelationshipDatasetExcelDataFromReleaseManagement(
+            SpecificationSummary specificationSummary, DatasetSpecificationRelationshipViewModel relationship)
+        {
+            List<RelationshipDataSetExcelData> excelDataItems = new List<RelationshipDataSetExcelData>();
+
+            IEnumerable<ProviderVersionInChannel> publishedProviders = await GetReleasedProvidersFromReleaseManagementDatabase(specificationSummary);
+            string fundingStreamId = specificationSummary.FundingStreams.First().Id;
+            string fundingPeriodId = specificationSummary.FundingPeriod.Id;
+            string specificationId = specificationSummary.GetSpecificationId();
+
+            foreach (ProviderVersionInChannel publishedProvider in publishedProviders)
+            {
+                PublishedProviderVersion publishedProviderVersion =
+                    await _publishedFundingRepository.GetReleasedPublishedProviderVersionByMajorVersion(
+                        fundingStreamId,
+                        fundingPeriodId,
+                        publishedProvider.ProviderId,
+                        specificationId,
+                        publishedProvider.MajorVersion);
+
+                if (publishedProviderVersion == null)
+                {
+                    throw new InvalidOperationException(
+                        $"GetReleasedPublishedProviderVersionByMajorVersion: Provider {publishedProvider.ProviderId} with major version {publishedProvider.MajorVersion} not found for specification {specificationId}.");
+                }
+
+                PopulateExcelDataItems(relationship, publishedProviderVersion, excelDataItems);
+            }
+
+            return excelDataItems;
+        }
+
+        private async Task<IEnumerable<ProviderVersionInChannel>> GetReleasedProvidersFromReleaseManagementDatabase(SpecificationSummary specificationSummary)
+        {
+            IDictionary<string, FundingConfiguration> fundingConfigurations =
+                await _fundingConfigurationService.GetFundingConfigurations(specificationSummary);
+
+            FundingConfiguration fundingConfiguration = fundingConfigurations[specificationSummary.FundingStreams.First().Id];
+            string channelCode = fundingConfiguration.SpecToSpecChannelCode;
+
+            if (string.IsNullOrWhiteSpace(channelCode))
+            {
+                throw new InvalidOperationException($"No channel code was specified for funding configuration id {fundingConfiguration.Id}");
+            }
+
+            Channel channel = await _releaseManagementRepository.GetChannelByChannelCode(channelCode);
+            IEnumerable<ProviderVersionInChannel> providers =
+                await _releaseManagementRepository.GetLatestPublishedProviderVersions(specificationSummary.GetSpecificationId(),
+                    new List<int>(1) { channel.ChannelId });
+            return providers;
+        }
+
         private async Task<List<RelationshipDataSetExcelData>> GetRelationshipDatasetExcelData(string specificationId, DatasetSpecificationRelationshipViewModel relationship)
         {
             List<RelationshipDataSetExcelData> excelDataItems = new List<RelationshipDataSetExcelData>();
@@ -168,29 +239,7 @@ namespace CalculateFunding.Services.Publishing
                     foreach (PublishedProvider publishedProvider in publishedProviders)
                     {
                         PublishedProviderVersion publishedProviderVersion = publishedProvider.Released;
-                        RelationshipDataSetExcelData excelDataItem = new RelationshipDataSetExcelData(publishedProviderVersion.Provider.UKPRN);
-
-                        if (relationship.PublishedSpecificationConfiguration != null &&
-                            relationship.PublishedSpecificationConfiguration.FundingLines.AnyWithNullCheck())
-                        {
-                            foreach (PublishedSpecificationItem item in relationship.PublishedSpecificationConfiguration.FundingLines)
-                            {
-                                FundingLine fundingLine = publishedProviderVersion.FundingLines.FirstOrDefault(f => f.TemplateLineId == item.TemplateId);
-                                excelDataItem.FundingLines.Add($"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{item.TemplateId}_{item.Name}", fundingLine?.Value);
-                            }
-                        }
-
-                        if (relationship.PublishedSpecificationConfiguration != null &&
-                            relationship.PublishedSpecificationConfiguration.Calculations.AnyWithNullCheck())
-                        {
-                            foreach (PublishedSpecificationItem item in relationship.PublishedSpecificationConfiguration.Calculations)
-                            {
-                                FundingCalculation calculation = publishedProviderVersion.Calculations.FirstOrDefault(f => f.TemplateCalculationId == item.TemplateId);
-                                excelDataItem.Calculations.Add($"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{item.TemplateId}_{item.Name}", calculation?.Value);
-                            }
-                        }
-
-                        excelDataItems.Add(excelDataItem);
+                        PopulateExcelDataItems(relationship, publishedProviderVersion, excelDataItems);
                     }
 
                     return Task.CompletedTask;
@@ -198,6 +247,41 @@ namespace CalculateFunding.Services.Publishing
                 100);
 
             return excelDataItems;
+        }
+
+        private static void PopulateExcelDataItems(DatasetSpecificationRelationshipViewModel relationship,
+            PublishedProviderVersion publishedProviderVersion, List<RelationshipDataSetExcelData> excelDataItems)
+        {
+            RelationshipDataSetExcelData excelDataItem =
+                new RelationshipDataSetExcelData(publishedProviderVersion.Provider.UKPRN);
+
+            if (relationship.PublishedSpecificationConfiguration != null &&
+                relationship.PublishedSpecificationConfiguration.FundingLines.AnyWithNullCheck())
+            {
+                foreach (PublishedSpecificationItem item in relationship.PublishedSpecificationConfiguration.FundingLines)
+                {
+                    FundingLine fundingLine =
+                        publishedProviderVersion.FundingLines.FirstOrDefault(f => f.TemplateLineId == item.TemplateId);
+                    excelDataItem.FundingLines.Add(
+                        $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{item.TemplateId}_{item.Name}",
+                        fundingLine?.Value);
+                }
+            }
+
+            if (relationship.PublishedSpecificationConfiguration != null &&
+                relationship.PublishedSpecificationConfiguration.Calculations.AnyWithNullCheck())
+            {
+                foreach (PublishedSpecificationItem item in relationship.PublishedSpecificationConfiguration.Calculations)
+                {
+                    FundingCalculation calculation =
+                        publishedProviderVersion.Calculations.FirstOrDefault(f => f.TemplateCalculationId == item.TemplateId);
+                    excelDataItem.Calculations.Add(
+                        $"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{item.TemplateId}_{item.Name}",
+                        calculation?.Value);
+                }
+            }
+
+            excelDataItems.Add(excelDataItem);
         }
 
         private async Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetDatasetSpecificationRelationship(string specificationId)

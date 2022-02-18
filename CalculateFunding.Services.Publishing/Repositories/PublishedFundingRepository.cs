@@ -344,6 +344,42 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return (await _repository.TryReadDocumentByIdPartitionedAsync<PublishedProviderVersion>(id, partitionKey))?.Content;
         }
 
+        public async Task<PublishedProviderVersion> GetReleasedPublishedProviderVersionByMajorVersion(string fundingStreamId,
+            string fundingPeriodId,
+            string providerId,
+            string specificationId,
+            int majorVersion)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+
+            string partitionKey = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
+
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @"SELECT
+                                        *
+                               FROM     publishedProviders c
+                               WHERE    c.documentType = 'PublishedProviderVersion'
+                               AND      c.content.specificationId = @specificationId
+                               AND      c.content.status = 'Released'
+                               AND      c.content.majorVersion = @majorVersion
+                               AND      c.content.minorVersion = 0
+                               AND      c.deleted = false",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@majorVersion", majorVersion)
+                }
+            };
+
+            return (await _repository
+                .QueryPartitionedEntity<PublishedProviderVersion>(cosmosDbQuery, partitionKey: partitionKey))
+                .SingleOrDefault();
+        }
+
         public async Task<HttpStatusCode> UpsertPublishedFunding(PublishedFunding publishedFunding)
         {
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));

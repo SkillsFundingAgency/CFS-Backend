@@ -79,6 +79,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(result);
         }
 
+        public Task<PublishedProviderVersion> GetReleasedPublishedProviderVersionByMajorVersion(string fundingStreamId, string fundingPeriodId,
+            string providerId, string specificationId, int majorVersion)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ServiceHealth> IsHealthOk()
         {
             throw new NotImplementedException();
@@ -401,9 +407,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<PublishedProviderVersion> GetReleasedPublishedProviderVersion(
-            string fundingStreamId, 
-            string fundingPeriodId, 
-            string providerId, 
+            string fundingStreamId,
+            string fundingPeriodId,
+            string providerId,
             int majorVersion)
         {
             PublishedProvider publishedProvider = _repo.PublishedProviders.SelectMany(c => c.Value).Where(p =>

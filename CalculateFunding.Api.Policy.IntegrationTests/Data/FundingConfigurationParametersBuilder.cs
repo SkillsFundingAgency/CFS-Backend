@@ -10,6 +10,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
         private string _fundingStreamId;
         private string _fundingPeriodId;
         private string _defaultTemplateVersion;
+        private string _specToSpecChannelCode;
         private IEnumerable<string> _allowedPublishedFundingStreamsIdsToReference;
         private IEnumerable<FundingVariation> _releaseManagementVariationTypes;
         private IEnumerable<FundingConfigurationChannel> _releaseChannels;
@@ -30,6 +31,12 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
         public FundingConfigurationParametersBuilder WithDefaultTemplateVersion(string defaultTemplateVersion)
         {
             _defaultTemplateVersion = defaultTemplateVersion;
+            return this;
+        }
+
+        public FundingConfigurationParametersBuilder WithSpecToSpecChannelCode(string specToSpecChannelCode)
+        {
+            _specToSpecChannelCode = specToSpecChannelCode;
             return this;
         }
 
@@ -66,6 +73,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 DefaultTemplateVersion = _defaultTemplateVersion ?? NewRandomString(),
+                SpecToSpecChannelCode = _specToSpecChannelCode ?? NewRandomString(),
                 AllowedPublishedFundingStreamsIdsToReference = _allowedPublishedFundingStreamsIdsToReference ?? Array.Empty<string>(),
                 ReleaseManagementVariations = _releaseManagementVariationTypes ?? Array.Empty<FundingVariation>(),
                 ReleaseChannels = _releaseChannels ?? Array.Empty<FundingConfigurationChannel>(),

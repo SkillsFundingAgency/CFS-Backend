@@ -10,6 +10,7 @@ namespace CalculateFunding.Services.Policy.Validators
         private string _defaultTemplateVersion;
         private string _fundingStreamId;
         private string _fundingPeriodId;
+        private string _specToSpecChannel;
         private ApprovalMode? _approvalMode;
         private ProviderSource? _providerSource;
         private PaymentOrganisationSource? _paymentOrganisationSource;
@@ -66,6 +67,13 @@ namespace CalculateFunding.Services.Policy.Validators
             return this;
         }
 
+        public FundingConfigurationBuilder WithSpecToSpecChannel(string specToSpecChannel)
+        {
+            _specToSpecChannel = specToSpecChannel;
+
+            return this;
+        }
+
         public FundingConfigurationBuilder WithUpdateCoreProviderVersion(UpdateCoreProviderVersion? updateCoreProviderVersion)
         {
             _updateCoreProviderVersion = updateCoreProviderVersion;
@@ -86,6 +94,7 @@ namespace CalculateFunding.Services.Policy.Validators
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 DefaultTemplateVersion = _defaultTemplateVersion,
+                SpecToSpecChannelCode = _specToSpecChannel,
                 ApprovalMode = _approvalMode.GetValueOrDefault(NewRandomEnum(ApprovalMode.Undefined)),
                 ErrorDetectors = _errorDetectors,
                 ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum(ProviderSource.CFS)),

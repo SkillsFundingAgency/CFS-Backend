@@ -75,5 +75,10 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         public IEnumerable<ReleaseActionGroup> ReleaseActionGroups { get; set; }
 
         public bool EnableCarryForward { get; set; }
+
+        /// <summary>
+        /// Indicates which channel should be used for spec to spec
+        /// </summary>
+        public string SpecToSpecChannelCode { get; set; }
     }
 }

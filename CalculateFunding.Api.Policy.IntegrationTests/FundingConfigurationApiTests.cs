@@ -27,7 +27,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
         private IPoliciesApiClient _policiesClient;
 
         [ClassInitialize]
-        public static void FixtureSetup(TestContext testConext)
+        public static void FixtureSetup(TestContext testContext)
         {
             SetUpConfiguration();
             SetUpServices((sc, c) =>
@@ -86,17 +86,19 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
             string releaseActionGroupDescription = NewRandomString();
             string releaseActionGroupChannel = "Statement";
 
+            string specToSpecChannelCode = NewRandomString();
 
-            FundingStreamParameters fundingStreamParameters = NewFundingStreamPatameters(_ =>
+
+            FundingStreamParameters fundingStreamParameters = NewFundingStreamParameters(_ =>
                                                                 _.WithId(fundingStreamId)
                                                                  .WithName(fundingStreamId)
                                                                  .WithShortName(fundingStreamId));
 
-            FundingPeriodParameters fundingPeriodParameters = NewFundingPeriodPatameters(_ =>
+            FundingPeriodParameters fundingPeriodParameters = NewFundingPeriodParameters(_ =>
                                                             _.WithId(fundingPeriodId)
                                                              .WithName(fundingPeriodId));
 
-            FundingTemplateParameters fundingTemplateParameters = NewFundingTemplatePatameters(_ =>
+            FundingTemplateParameters fundingTemplateParameters = NewFundingTemplateParameters(_ =>
                                                             _.WithId($"{fundingStreamId}-{fundingPeriodId}-RA-{fundingVersion}")
                                                              .WithFundingStreamId(fundingStreamId)
                                                              .WithFundingPeriodId(fundingPeriodId)
@@ -104,10 +106,11 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
                                                              .WithFundingVersion(fundingVersion)
                                                              .WithTemplateVersion(defaultTemplateVersion));
 
-            FundingConfigurationParameters fundingConfigurationPatameters = NewFundingConfigurationPatameters(_ =>
+            FundingConfigurationParameters fundingConfigurationParameters = NewFundingConfigurationParameters(_ =>
                          _.WithFundingStreamId(fundingStreamId)
                          .WithFundingPeriodId(fundingPeriodId)
                          .WithDefaultTemplateVersion(defaultTemplateVersion)
+                         .WithSpecToSpecChannelCode(specToSpecChannelCode)
                          .WithReleaseManagementVariations(
                              NewFundingVariation(v => v
                                 .WithName(variationNameOne)
@@ -129,7 +132,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
                                 .WithDescription(releaseActionGroupDescription)
                                 .WithReleaseChannelCodes(new[] { releaseActionGroupChannel }))));
 
-            FundingStreamParameters allowedFundingStreamParameters = NewFundingStreamPatameters(_ =>
+            FundingStreamParameters allowedFundingStreamParameters = NewFundingStreamParameters(_ =>
                                                                 _.WithId(allowedPublishedFundingStreamId)
                                                                  .WithName(allowedPublishedFundingStreamId)
                                                                  .WithShortName(allowedPublishedFundingStreamId));
@@ -138,7 +141,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
             await AndFundingStream(allowedFundingStreamParameters);
             await AndFundingPeriod(fundingPeriodParameters);
             await AndFundingTemplate(fundingTemplateParameters);
-            await AndFundingConfiguration(fundingConfigurationPatameters);
+            await AndFundingConfiguration(fundingConfigurationParameters);
 
             ApiResponse<FundingConfiguration> response = await _policiesClient.GetFundingConfiguration(fundingStreamId, fundingPeriodId);
 
@@ -148,7 +151,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
                 .BeTrue($"Get funding configuration request failed with status code {response.StatusCode}");
 
             FundingConfiguration fundingConfiguration = response?.Content;
-            
+
             fundingConfiguration
                 .Should()
                 .NotBeNull();
@@ -157,13 +160,13 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
                 .ReleaseManagementVariations
                 .AsJson()
                 .Should()
-                .Be(fundingConfigurationPatameters.ReleaseManagementVariations.AsJson());
+                .Be(fundingConfigurationParameters.ReleaseManagementVariations.AsJson());
 
             fundingConfiguration
                 .ReleaseChannels
                 .AsJson()
                 .Should()
-                .Be(fundingConfigurationPatameters.ReleaseChannels.AsJson());
+                .Be(fundingConfigurationParameters.ReleaseChannels.AsJson());
 
             FundingVariation fundingVariationTwo = NewFundingVariation(v => v
                                         .WithName(variationNameTwo)
@@ -187,6 +190,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
 
             FundingConfigurationUpdateViewModel fundingConfigurationUpdateViewModel = NewFundingConfigurationUpdateViewModel(_ =>
                                 _.WithDefaultTemplateVersion(defaultTemplateVersion)
+                                .WithSpecToSpecChannelCode(specToSpecChannelCode)
                                 .WithApprovalMode(ApprovalMode.All)
                                 .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.Manual)
                                 .WithAllowedPublishedFundingStreamsIdsToReference(allowedPublishedFundingStreamId)
@@ -247,28 +251,28 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
             return _policiesClient.SaveFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfigurationUpdateViewModel);
         }
 
-        private async Task AndFundingConfiguration(FundingConfigurationParameters fundingConfigurationPatameters)
+        private async Task AndFundingConfiguration(FundingConfigurationParameters fundingConfigurationParameters)
         {
-            await _fundingConfigurationDataContext.CreateContextData(fundingConfigurationPatameters);
+            await _fundingConfigurationDataContext.CreateContextData(fundingConfigurationParameters);
         }
 
-        private async Task AndFundingStream(FundingStreamParameters fundingStreamPatameters)
+        private async Task AndFundingStream(FundingStreamParameters fundingStreamParameters)
         {
-            await GivenFundingStream(fundingStreamPatameters);
+            await GivenFundingStream(fundingStreamParameters);
         }
-        private async Task GivenFundingStream(FundingStreamParameters fundingStreamPatameters)
+        private async Task GivenFundingStream(FundingStreamParameters fundingStreamParameters)
         {
-            await _fundingStreamDataContext.CreateContextData(fundingStreamPatameters);
-        }
-
-        private async Task AndFundingPeriod(FundingPeriodParameters fundingPeriodPatameters)
-        {
-            await _fundingPeriodDataContext.CreateContextData(fundingPeriodPatameters);
+            await _fundingStreamDataContext.CreateContextData(fundingStreamParameters);
         }
 
-        private async Task AndFundingTemplate(FundingTemplateParameters fundingTemplatePatameters)
+        private async Task AndFundingPeriod(FundingPeriodParameters fundingPeriodParameters)
         {
-            await _fundingTemplateDataContext.CreateContextData(fundingTemplatePatameters);
+            await _fundingPeriodDataContext.CreateContextData(fundingPeriodParameters);
+        }
+
+        private async Task AndFundingTemplate(FundingTemplateParameters fundingTemplateParameters)
+        {
+            await _fundingTemplateDataContext.CreateContextData(fundingTemplateParameters);
         }
 
         private FundingConfigurationUpdateViewModel NewFundingConfigurationUpdateViewModel(Action<FundingConfigurationUpdateViewModelBuilder> setUp = null)
@@ -278,28 +282,28 @@ namespace CalculateFunding.Api.Policy.IntegrationTests
             return builder.Build();
         }
 
-        private FundingConfigurationParameters NewFundingConfigurationPatameters(Action<FundingConfigurationParametersBuilder> setUp = null)
+        private FundingConfigurationParameters NewFundingConfigurationParameters(Action<FundingConfigurationParametersBuilder> setUp = null)
         {
             FundingConfigurationParametersBuilder builder = new FundingConfigurationParametersBuilder();
             setUp?.Invoke(builder);
             return builder.Build();
         }
 
-        private FundingStreamParameters NewFundingStreamPatameters(Action<FundingStreamParametersBuilder> setUp = null)
+        private FundingStreamParameters NewFundingStreamParameters(Action<FundingStreamParametersBuilder> setUp = null)
         {
             FundingStreamParametersBuilder builder = new FundingStreamParametersBuilder();
             setUp?.Invoke(builder);
             return builder.Build();
         }
 
-        private FundingPeriodParameters NewFundingPeriodPatameters(Action<FundingPeriodParametersBuilder> setUp = null)
+        private FundingPeriodParameters NewFundingPeriodParameters(Action<FundingPeriodParametersBuilder> setUp = null)
         {
             FundingPeriodParametersBuilder builder = new FundingPeriodParametersBuilder();
             setUp?.Invoke(builder);
             return builder.Build();
         }
 
-        private FundingTemplateParameters NewFundingTemplatePatameters(Action<FundingTemplateParametersBuilder> setUp = null)
+        private FundingTemplateParameters NewFundingTemplateParameters(Action<FundingTemplateParametersBuilder> setUp = null)
         {
             FundingTemplateParametersBuilder builder = new FundingTemplateParametersBuilder();
             setUp?.Invoke(builder);

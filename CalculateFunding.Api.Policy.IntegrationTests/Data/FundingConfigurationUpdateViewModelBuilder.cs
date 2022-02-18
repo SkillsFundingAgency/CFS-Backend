@@ -8,6 +8,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
     public class FundingConfigurationUpdateViewModelBuilder : TestEntityBuilder
     {
         private string _defaultTemplateVersion;
+        private string _specToSpecChannelCode;
         private ApprovalMode? _approvalMode;
         private UpdateCoreProviderVersion? _updateCoreProviderVersion;
         private IEnumerable<string> _errorDetectors;
@@ -27,6 +28,13 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
         public FundingConfigurationUpdateViewModelBuilder WithDefaultTemplateVersion(string defaultTemplateVersion)
         {
             _defaultTemplateVersion = defaultTemplateVersion;
+
+            return this;
+        }
+
+        public FundingConfigurationUpdateViewModelBuilder WithSpecToSpecChannelCode(string specToSpecChannelCode)
+        {
+            _specToSpecChannelCode = specToSpecChannelCode;
 
             return this;
         }
@@ -67,6 +75,7 @@ namespace CalculateFunding.Api.Policy.IntegrationTests.Data
             return new FundingConfigurationUpdateViewModel
             {
                 DefaultTemplateVersion = _defaultTemplateVersion,
+                SpecToSpecChannelCode = _specToSpecChannelCode,
                 ApprovalMode = _approvalMode.GetValueOrDefault(NewRandomEnum(ApprovalMode.Undefined)),
                 ErrorDetectors = _errorDetectors,
                 UpdateCoreProviderVersion = _updateCoreProviderVersion.GetValueOrDefault(NewRandomEnum(UpdateCoreProviderVersion.Manual)),

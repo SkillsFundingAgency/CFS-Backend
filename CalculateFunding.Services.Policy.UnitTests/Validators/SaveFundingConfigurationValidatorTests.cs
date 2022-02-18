@@ -46,6 +46,27 @@ namespace CalculateFunding.Services.Policy.Validators
             string defaultTemplateVersion = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            string specToSpecChannel = NewRandomString();
+
+            GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.Undefined)
+                .WithFundingStreamId(fundingStreamId)
+                .WithDefaultTemplateVersion(defaultTemplateVersion)
+                .WithSpecToSpecChannel(specToSpecChannel));
+            AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
+            AndTheFundingStreamExists(fundingStreamId);
+
+            WhenTheFundingConfigurationIsValidated();
+            
+            ThenTheValidationResultShouldBe(false);
+        }
+
+        [TestMethod]
+        public void FailsValidationIfNoSpecToSpecChannelSupplied()
+        {
+            string defaultTemplateVersion = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string specToSpecChannel = NewRandomString();
 
             GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.Undefined)
                 .WithFundingStreamId(fundingStreamId)
@@ -54,7 +75,7 @@ namespace CalculateFunding.Services.Policy.Validators
             AndTheFundingStreamExists(fundingStreamId);
 
             WhenTheFundingConfigurationIsValidated();
-            
+
             ThenTheValidationResultShouldBe(false);
         }
 
@@ -65,10 +86,12 @@ namespace CalculateFunding.Services.Policy.Validators
             string defaultTemplateVersion = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            string specToSpecChannel = NewRandomString();
 
             GivenTheFundingConfiguration(_ => _.WithFundingStreamId(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
-                .WithDefaultTemplateVersion(defaultTemplateVersion));
+                .WithDefaultTemplateVersion(defaultTemplateVersion)
+                .WithSpecToSpecChannel(specToSpecChannel));
             AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, expectedFlag);
             AndTheFundingStreamExists(fundingStreamId);
 
@@ -83,11 +106,13 @@ namespace CalculateFunding.Services.Policy.Validators
             string defaultTemplateVersion = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            string specToSpecChannel = NewRandomString();
 
             GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.All)
                 .WithFundingStreamId(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithDefaultTemplateVersion(defaultTemplateVersion)
+                .WithSpecToSpecChannel(specToSpecChannel)
                 .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.ToLatest)
                 .WithProviderSource(CalculateFunding.Models.Providers.ProviderSource.CFS));
             AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
@@ -105,12 +130,14 @@ namespace CalculateFunding.Services.Policy.Validators
             string defaultTemplateVersion = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            string specToSpecChannel = NewRandomString();
             string allowedPublishedFundingStreamsIdsToReference = NewRandomString();
 
             GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.All)
                 .WithFundingStreamId(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithDefaultTemplateVersion(defaultTemplateVersion)
+                .WithSpecToSpecChannel(specToSpecChannel)
                 .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.ToLatest)
                 .WithProviderSource(CalculateFunding.Models.Providers.ProviderSource.FDZ)
                 .WithAllowedPublishedFundingStreamsIdsToReference(allowedPublishedFundingStreamsIdsToReference));
@@ -129,11 +156,13 @@ namespace CalculateFunding.Services.Policy.Validators
             string defaultTemplateVersion = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            string specToSpecChannel = NewRandomString();
 
             GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.All)
                 .WithFundingStreamId(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithDefaultTemplateVersion(defaultTemplateVersion)
+                .WithSpecToSpecChannel(specToSpecChannel)
                 .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.ToLatest)
                 .WithProviderSource(CalculateFunding.Models.Providers.ProviderSource.FDZ));
             AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);

@@ -20,6 +20,12 @@ namespace CalculateFunding.Services.Publishing.Interfaces
                 string providerId,
                 string version);
 
+        Task<PublishedProviderVersion> GetReleasedPublishedProviderVersionByMajorVersion(string fundingStreamId,
+            string fundingPeriodId,
+            string providerId,
+            string specificationId,
+            int majorVersion);
+
         Task<HttpStatusCode> UpsertPublishedFunding(PublishedFunding publishedFunding);
 
         Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId, string[] publishedProviderIds = null);
