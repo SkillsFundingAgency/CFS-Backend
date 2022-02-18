@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Results.SqlExport
             IEnumerable<uint> informationFundingLineTemplateLineIds = _fundingLines.Where(_ => _.Type == Common.TemplateMetadata.Enums.FundingLineType.Information).Select(_ => _.TemplateLineId);
 
             IEnumerable<decimal?> fundingLineValues = dto.FundingLineResults.Where(_ => informationFundingLineTemplateLineIds.Contains(uint.Parse(_.FundingLine.Id)))
-                .OrderBy(_ => _.FundingLine.Id)
+                .OrderBy(_ => uint.Parse(_.FundingLine.Id))
                 .Select(_ => _.Value);
 
             DataTable.Rows.Add(new[]
