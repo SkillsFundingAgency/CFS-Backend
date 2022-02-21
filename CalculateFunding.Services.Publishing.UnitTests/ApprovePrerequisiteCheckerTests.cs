@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationId} has prerequisites which aren't complete.");
+                    _.Message == $"Approve All Providers with specification id: '{specificationId}' has prerequisites which aren't complete.");
 
             // Assert
             _logger

@@ -21,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
     {
         private const string SpecificationId = "specification-id";
         private const string FundingStreamId = "funding-stream-id";
+        private const string JobId = "jobId";
         
         private Mock<ISqlImporter> _import;
         private Mock<IQaSchemaService> _schema;
@@ -107,16 +108,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         {
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
+            string jobId = NewRandomString();
 
             _importService.Job = new JobViewModel
             {
-                JobDefinitionId = sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion ? JobConstants.DefinitionNames.RunSqlImportJob : JobConstants.DefinitionNames.RunReleasedSqlImportJob
+                JobDefinitionId = sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion ? JobConstants.DefinitionNames.RunSqlImportJob : JobConstants.DefinitionNames.RunReleasedSqlImportJob,
+                Id = jobId
             };
 
             await WhenTheImportIsRun(NewMessage(_ => _.WithUserProperty(SpecificationId, specificationId)
-                .WithUserProperty(FundingStreamId, fundingStreamId)));
+                .WithUserProperty(FundingStreamId, fundingStreamId)
+                .WithUserProperty(JobId, jobId)));
             
-            ThenTheSchemaWasReCreated(specificationId, fundingStreamId, sqlExportSource);
+            ThenTheSchemaWasReCreated(specificationId, fundingStreamId, jobId, sqlExportSource);
             AndTheImportWasRun(specificationId, fundingStreamId, sqlExportSource);
         }
 
@@ -132,8 +136,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private void ThenTheSchemaWasReCreated(
             string specificationId, 
             string fundingStreamId,
+            string jobId,
             SqlExportSource sqlExportSource)
-            => _schema.Verify(_ => _.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId, sqlExportSource),
+            => _schema.Verify(_ => _.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId, jobId, sqlExportSource),
                 Times.Once);
 
         private void AndTheImportWasRun(

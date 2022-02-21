@@ -7,6 +7,7 @@ namespace CalculateFunding.Services.Publishing.Undo
     public class PublishedFundingUndoJobParameters
     {
         public const string ForCorrelationIdPropertyName = "for-correlation-id";
+        public const string ForSpecificationIdPropertyName = "specification-id";
         public const string IsHardDeletePropertyName = "is-hard-delete";
 
         public PublishedFundingUndoJobParameters()
@@ -19,13 +20,16 @@ namespace CalculateFunding.Services.Publishing.Undo
             
             IsHardDelete = Convert.ToBoolean(GetUserProperty(message, IsHardDeletePropertyName));
             ForCorrelationId = GetUserProperty(message, ForCorrelationIdPropertyName);
+            ForSpecificationId = GetUserProperty(message, ForSpecificationIdPropertyName);
             JobId = GetUserProperty(message, "jobId");
         }
 
         public bool IsHardDelete { get; }
         
         public string ForCorrelationId { get; }
-        
+
+        public string ForSpecificationId { get; }
+
         public string JobId { get; }
 
         public static implicit operator PublishedFundingUndoJobParameters(Message message)

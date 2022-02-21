@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Undo;
 using CalculateFunding.Services.Publishing.Undo.Tasks;
 using FluentAssertions;
@@ -20,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
                 Task = new PublishedFundingUndoContextInitialisationTask(Cosmos.Object,
                     BlobStore.Object,
                     ProducerConsumerFactory,
+                    PrerequisiteCheckerLocator.Object,
                     Logger,
                     JobTracker.Object);
             }
@@ -30,6 +32,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
                 UndoTaskDetails expectedPublishedProviderVersionDetails = NewUndoTaskDetails();
                 
                 GivenThePublishedProviderVersionsCorrelationDetails(expectedPublishedProviderVersionDetails);
+
+                PrerequisiteCheckerLocator.Setup(_ => _.GetPreReqChecker(CalculateFunding.Models.Publishing.PrerequisiteCheckerType.UndoPublishing))
+                .Returns(new Mock<IPrerequisiteChecker>().Object);
 
                 await WhenTheTaskIsRun();
 

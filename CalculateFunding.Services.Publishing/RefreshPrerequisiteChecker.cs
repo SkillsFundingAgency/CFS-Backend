@@ -23,6 +23,8 @@ namespace CalculateFunding.Services.Publishing
 {
     public class RefreshPrerequisiteChecker : BasePrerequisiteChecker, IPrerequisiteChecker
     {
+        public override string Name => "Refresh";
+
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
         private readonly ISpecificationService _specificationService;
         private readonly ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
@@ -77,6 +79,7 @@ namespace CalculateFunding.Services.Publishing
 
             await BasePerformChecks(specification, specification.Id, jobId, new string[]
             {
+                JobConstants.DefinitionNames.PublishedFundingUndoJob,
                 JobConstants.DefinitionNames.CreateInstructAllocationJob,
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
@@ -123,7 +126,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (specificationFundingStatus == SpecificationFundingStatus.SharesAlreadyChosenFundingStream)
             {
-                string errorMessage = $"Specification with id: '{specification.Id} already shares chosen funding streams";
+                string errorMessage = $"Specification with id: '{specification.Id}' already shares chosen funding streams";
 
                 _logger.Error(errorMessage);
                 return new string[] { errorMessage };

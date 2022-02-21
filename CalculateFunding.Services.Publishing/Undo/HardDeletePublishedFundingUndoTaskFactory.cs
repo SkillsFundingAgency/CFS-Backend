@@ -14,8 +14,9 @@ namespace CalculateFunding.Services.Publishing.Undo
             IPublishedFundingUndoBlobStoreRepository blobStore, 
             IProducerConsumerFactory producerConsumerFactory, 
             ILogger logger,
-            IJobTracker jobTracker) 
-            : base(cosmos, blobStore, producerConsumerFactory, logger, jobTracker)
+            IJobTracker jobTracker,
+            IPrerequisiteCheckerLocator prerequisiteCheckerLocator) 
+            : base(cosmos, blobStore, producerConsumerFactory, logger, jobTracker, prerequisiteCheckerLocator)
         {
         }
 

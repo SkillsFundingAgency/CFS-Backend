@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentValidation;
 
@@ -11,6 +13,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
     public class ApplyCustomProfileRequestValidator : AbstractValidator<ApplyCustomProfileRequest>
     {
         public ApplyCustomProfileRequestValidator(
+            IJobsRunning jobsRunning,
             IPublishedFundingRepository publishedFunding,
             IPublishingResiliencePolicies resiliencePolicies,
             IPoliciesService policiesService)
@@ -18,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            Guard.ArgumentNotNull(jobsRunning, nameof(jobsRunning));
 
             RuleFor(_ => _.FundingStreamId)
                 .NotEmpty()
@@ -42,6 +46,18 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             RuleFor(_ => _.ProfilePeriods)
                 .NotEmpty()
                 .WithMessage("You must supply at least one profile period");
+
+            RuleFor(_ => _)
+                .CustomAsync(async (request, ctx, ct) =>
+                {
+                    IEnumerable<string> jobDefinitions = new string[] { JobConstants.DefinitionNames.PublishedFundingUndoJob };
+                    IEnumerable<string> jobTypesRunning = await jobsRunning.GetJobTypes(request.SpecificationId, jobDefinitions);
+
+                    if (!jobTypesRunning.IsNullOrEmpty())
+                    {
+                        ctx.AddFailure(nameof(request.SpecificationId), $"There is currently an Undo Publishing job running for specification id '{request.SpecificationId}'");
+                    }
+                });
 
             RuleFor(_ => _)
                 .CustomAsync(async (request, ctx, ct) =>

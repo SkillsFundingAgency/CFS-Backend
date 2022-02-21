@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         Task<SchemaContext> ReCreateTablesForSpecificationAndFundingStream(
             string specificationId,
             string fundingStreamId,
+            string jobId,
             SqlExportSource sqlExportSource);
     }
 }

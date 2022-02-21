@@ -9,6 +9,7 @@
         ReleaseAllProviders,
         ReleaseBatchProviders,
         ReleaseProvidersToChannels,
-
+        UndoPublishing,
+        SqlImport
     }
 }

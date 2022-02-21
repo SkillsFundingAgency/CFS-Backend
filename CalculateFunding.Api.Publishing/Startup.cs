@@ -549,8 +549,8 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<IPublishedFundingUndoJobService, PublishedFundingUndoJobService>();
             builder.AddScoped<IPublishedFundingUndoJobCreation, PublishedFundingUndoJobCreation>();
             builder.AddScoped<IPublishedFundingUndoTaskFactoryLocator, PublishedFundingUndoTaskFactoryLocator>();
-            builder.AddSingleton<IPublishedFundingUndoTaskFactory, SoftDeletePublishedFundingUndoTaskFactory>();
-            builder.AddSingleton<IPublishedFundingUndoTaskFactory, HardDeletePublishedFundingUndoTaskFactory>();
+            builder.AddScoped<IPublishedFundingUndoTaskFactory, SoftDeletePublishedFundingUndoTaskFactory>();
+            builder.AddScoped<IPublishedFundingUndoTaskFactory, HardDeletePublishedFundingUndoTaskFactory>();
             builder.AddSingleton<IPublishedFundingUndoCosmosRepository>(ctx =>
             {
                 CosmosDbSettings settings = new CosmosDbSettings();

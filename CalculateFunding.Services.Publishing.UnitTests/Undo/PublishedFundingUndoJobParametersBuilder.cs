@@ -8,6 +8,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
     {
         private bool? _isHardDelete;
         private string _forCorrelationId;
+        private string _specificationId;
 
         public PublishedFundingUndoJobParametersBuilder WithIsHardDelete(bool isHardDelete)
         {
@@ -23,6 +24,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             return this;
         }
 
+        public PublishedFundingUndoJobParametersBuilder WithSpecificationId(string specificationId)
+        {
+            _specificationId = specificationId;
+
+            return this;
+        }
+
         public PublishedFundingUndoJobParameters Build()
         {
             return new PublishedFundingUndoJobParameters(new Message
@@ -32,6 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                     {PublishedFundingUndoJobParameters.ForCorrelationIdPropertyName, _forCorrelationId ?? NewRandomString()},
                     {PublishedFundingUndoJobParameters.IsHardDeletePropertyName, _isHardDelete.GetValueOrDefault(NewRandomFlag())},
                     {"jobId", NewRandomString()},
+                    {PublishedFundingUndoJobParameters.ForSpecificationIdPropertyName, _specificationId ?? NewRandomString()}
                 }
             });
         }

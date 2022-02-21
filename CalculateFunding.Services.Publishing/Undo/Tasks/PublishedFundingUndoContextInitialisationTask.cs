@@ -6,19 +6,27 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using Serilog;
+using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Undo.Tasks
 {
     public class PublishedFundingUndoContextInitialisationTask : UndoTaskBase, IPublishedFundingUndoJobTask
     {
+        private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
+        
         public PublishedFundingUndoContextInitialisationTask(IPublishedFundingUndoCosmosRepository cosmos, 
             IPublishedFundingUndoBlobStoreRepository blobStore,
             IProducerConsumerFactory producerConsumerFactory,
+            IPrerequisiteCheckerLocator prerequisiteCheckerLocator,
             ILogger logger,
             IJobTracker jobTracker) 
             : base(cosmos, blobStore, producerConsumerFactory, logger, jobTracker)
         {
+            Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
+
+            _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
         }
 
         public async Task Run(PublishedFundingUndoTaskContext taskContext)
@@ -33,7 +41,13 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
 
             if (taskContext.UndoTaskDetails != null)
             {
+                IPrerequisiteChecker undoPublishingPrereqChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.UndoPublishing);
+
+                taskContext.UndoTaskDetails.SpecificationId = taskContext.Parameters.ForSpecificationId;
+                
                 taskContext.UndoTaskDetails.CorrelationId = correlationId;
+
+                await undoPublishingPrereqChecker.PerformChecks(taskContext.UndoTaskDetails, taskContext.Parameters.JobId, null, null);
             }
 
             EnsureContextInitialised(taskContext);

@@ -109,6 +109,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishBatchPrerequisiteChecker, IPrerequisiteChecker>();
             RegisterTypeAs<ApproveAllProvidersPrerequisiteChecker, IPrerequisiteChecker>();
             RegisterTypeAs<ApproveBatchProvidersPrerequisiteChecker, IPrerequisiteChecker>();
+            RegisterTypeAs<UndoPublishingPrerequisiteChecker, IPrerequisiteChecker>();
 
             IPrerequisiteChecker[] prerequisiteCheckers = typeof(IPrerequisiteChecker).Assembly.GetTypes()
                             .Where(_ => _.Implements(typeof(IPrerequisiteChecker)))

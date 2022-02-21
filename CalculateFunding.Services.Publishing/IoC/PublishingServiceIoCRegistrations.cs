@@ -80,6 +80,8 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddScoped<IPrerequisiteChecker, ApproveAllProvidersPrerequisiteChecker>();
             serviceCollection.AddScoped<IPrerequisiteChecker, ApproveBatchProvidersPrerequisiteChecker>();
             serviceCollection.AddScoped<IPrerequisiteChecker, PublishProviderToChannelsPrerequisiteChecker>();
+            serviceCollection.AddScoped<IPrerequisiteChecker, UndoPublishingPrerequisiteChecker>();
+            serviceCollection.AddScoped<IPrerequisiteChecker, SqlImportPreRequisiteChecker>();
 
             serviceCollection.AddSingleton<IPublishedFundingChangeDetectorService, PublishedFundingChangeDetectorService>();
 

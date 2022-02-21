@@ -6,6 +6,8 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 {
     public class ApplyCustomProfileRequest
     {
+        public string SpecificationId { get; set; }
+
         public string FundingStreamId { get; set; }
 
         public string FundingPeriodId { get; set; }

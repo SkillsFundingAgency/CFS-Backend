@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Refresh with specification id: '{specificationSummary.Id}' has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Refresh with specification id: '{specificationSummary.Id}' has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -174,7 +174,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Refresh with specification id: '{specificationSummary.Id}' has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
             IEnumerable<Provider> providers = new[] { new Provider { ProviderId = "ProviderId" } };
 
-            string errorMessage = $"Specification with id: '{specificationId} already shares chosen funding streams";
+            string errorMessage = $"Specification with id: '{specificationId}' already shares chosen funding streams";
             
             GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.SharesAlreadyChosenFundingStream);
 
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Refresh with specification id: '{specificationSummary.Id}' has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -244,7 +244,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Refresh with specification id: '{specificationSummary.Id}' has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -273,7 +273,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Refresh with specification id: '{specificationSummary.Id}' has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -335,7 +335,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Refresh with specification id: '{specificationSummary.Id}' has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -374,7 +374,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Refresh with specification id: '{specificationSummary.Id}' has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -534,7 +534,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Refresh with specification id: '{specificationSummary.Id}' has prerequisites which aren't complete.");
 
             _logger
                 .Received()

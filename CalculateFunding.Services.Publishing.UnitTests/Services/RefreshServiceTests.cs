@@ -778,7 +778,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .And
                 .Message
                 .Should()
-                .Be($"Specification with id: '{SpecificationId} has prerequisites which aren't complete.");
+                .Be($"Refresh with specification id: '{SpecificationId}' has prerequisites which aren't complete.");
 
             string[] prereqValidationErrors = new string[] { $"{runningJobType} is still running", "Specification must have providers in scope." };
 
@@ -1184,6 +1184,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             return new string[]
             {
+                JobConstants.DefinitionNames.PublishedFundingUndoJob,
                 JobConstants.DefinitionNames.CreateInstructAllocationJob,
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,

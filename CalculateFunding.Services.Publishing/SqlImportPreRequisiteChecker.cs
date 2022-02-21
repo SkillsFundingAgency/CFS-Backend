@@ -11,25 +11,16 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishProviderToChannelsPrerequisiteChecker 
+    public class SqlImportPreRequisiteChecker
         : BasePrerequisiteChecker, IPrerequisiteChecker
     {
-        public override string Name => "Publish Provider to Channel";
+        public override string Name => "Sql Import";
 
-        private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
-        private readonly ILogger _logger;
-
-        public PublishProviderToChannelsPrerequisiteChecker(
-            ISpecificationFundingStatusService specificationFundingStatusService,
+        public SqlImportPreRequisiteChecker(
             IJobsRunning jobsRunning,
             IJobManagement jobManagement,
             ILogger logger) : base(jobsRunning, jobManagement, logger)
         {
-            Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
-            Guard.ArgumentNotNull(logger, nameof(logger));
-
-            _specificationFundingStatusService = specificationFundingStatusService;
-            _logger = logger;
         }
 
         public virtual async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
@@ -39,12 +30,7 @@ namespace CalculateFunding.Services.Publishing
 
             await BasePerformChecks(prereqObject, specification.Id, jobId, new string[]
             {
-                JobConstants.DefinitionNames.PublishedFundingUndoJob,
-                JobConstants.DefinitionNames.RefreshFundingJob, 
-                JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
-                JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
-                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
-                JobConstants.DefinitionNames.PublishBatchProviderFundingJob
+                JobConstants.DefinitionNames.PublishedFundingUndoJob
             }, publishedProviders);
         }
 
@@ -55,7 +41,7 @@ namespace CalculateFunding.Services.Publishing
     
         public override bool IsCheckerType(PrerequisiteCheckerType type)
         {
-            return type == PrerequisiteCheckerType.ReleaseProvidersToChannels;
+            return type == PrerequisiteCheckerType.SqlImport;
         }
     }
 }

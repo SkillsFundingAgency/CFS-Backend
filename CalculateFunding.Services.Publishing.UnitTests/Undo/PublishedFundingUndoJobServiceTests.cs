@@ -92,7 +92,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         public void GuardsAgainstMissingJobIdInMessage()
         {
             GivenTheMessageProperties(("is-hard-delete", NewRandomFlag().ToString()),
-                ("for-correlation-id", NewRandomString()));
+                ("for-correlation-id", NewRandomString()),
+                ("specification-id", NewRandomString()));
 
             Func<Task> invocation = WhenTheJobIsRun;
 
@@ -131,6 +132,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 
             GivenTheMessageProperties(("jobId", jobId),
                 ("for-correlation-id", NewRandomString()),
+                ("specification-id", NewRandomString()),
                 ("is-hard-delete", isHardDelete.ToString()));
             AndTheTaskFactoryIsForTheSuppliedParameters();
             AndTheJobCanBeTracked(jobId);
@@ -147,9 +149,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         {
             string jobId = NewRandomString();
             string correlationId = NewRandomString();
+            string specificationId = NewRandomString();
 
             GivenTheMessageProperties(("jobId", jobId),
                 ("for-correlation-id", correlationId),
+                ("specification-id", specificationId),
                 ("is-hard-delete", NewRandomFlag().ToString()));
             AndTheTaskFactoryIsForTheSuppliedParameters();
             AndTheJobCanBeTracked(jobId);
@@ -185,6 +189,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             Func<Task> invocation = () => WhenTheJobIsQueued(null,
                 NewRandomFlag(),
                 NewUser(),
+                NewRandomString(),
                 NewRandomString());
 
             invocation
@@ -202,6 +207,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             Func<Task> invocation = () => WhenTheJobIsQueued(NewRandomString(),
                 NewRandomFlag(),
                 null,
+                NewRandomString(),
                 NewRandomString());
 
             invocation
@@ -216,9 +222,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         private async Task<Job> WhenTheJobIsQueued(string forCorrelationId,
             bool isHardDelete,
             Reference user,
+            string specificationId,
             string correlationId)
         {
             return await _service.QueueJob(forCorrelationId,
+                specificationId,
                 isHardDelete,
                 user,
                 correlationId);

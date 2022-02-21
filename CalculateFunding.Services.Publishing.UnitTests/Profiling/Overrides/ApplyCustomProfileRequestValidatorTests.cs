@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Profiling.Custom;
 using FluentAssertions;
@@ -17,11 +19,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
     {
         private Mock<IPublishedFundingRepository> _publishedFunding;
         private Mock<IPoliciesService> _policiesService;
+        private Mock<IJobsRunning> _jobRunning;
         private string _fundingLineCode;
         private string _providerId;
         private string _fundingStreamId;
         private string _fundingPeriodId;
         private decimal _carryOverAmount;
+        private string _specificationId;
 
         private ValidationResult _result;
 
@@ -32,8 +36,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         {
             _publishedFunding = new Mock<IPublishedFundingRepository>();
             _policiesService = new Mock<IPoliciesService>();
+            _jobRunning = new Mock<IJobsRunning>();
 
-            _validator = new ApplyCustomProfileRequestValidator(_publishedFunding.Object,
+             _validator = new ApplyCustomProfileRequestValidator(_jobRunning.Object,
+                _publishedFunding.Object,
                 new ResiliencePolicies
                 {
                     PublishedFundingRepository = Policy.NoOpAsync()
@@ -44,6 +50,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             _fundingPeriodId = NewRandomString();
             _fundingStreamId = NewRandomString();
             _providerId = NewRandomString();
+            _specificationId = NewRandomString();
             _carryOverAmount = NewRandomNumber();
         }
 
@@ -56,6 +63,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProviderId = null));
 
             ThenTheValidationResultsContainsTheErrors(("ProviderId", "You must supply a provider id"));
+        }
+
+        [TestMethod]
+        public async Task FailsValidationIfUndoPublishingJobRunning()
+        {
+            GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenUndoPublishingJobRunning();
+            GivenTheFundingConfiguration(true);
+
+            await WhenTheRequestIsValidated(NewOtherwiseValidRequest());
+
+            ThenTheValidationResultsContainsTheErrors(("SpecificationId", $"There is currently an Undo Publishing job running for specification id '{_specificationId}'"));
         }
 
         [TestMethod]
@@ -217,6 +236,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 .ReturnsAsync(publishedProvider);
         }
 
+        private void GivenUndoPublishingJobRunning()
+        {
+
+            _jobRunning.Setup(_ => _.GetJobTypes(_specificationId,
+                                        It.Is<IEnumerable<string>>(jobTypes => jobTypes.First() == JobConstants.DefinitionNames.PublishedFundingUndoJob
+                                )))
+                .ReturnsAsync(new string[] { JobConstants.DefinitionNames.PublishedFundingUndoJob });
+        }
+
         private void GivenTheFundingConfiguration(bool enableUserEditableCustomProfiles, bool enableCarryForward = true)
         {
             _policiesService.Setup(_ => _.GetFundingConfiguration(_fundingStreamId, _fundingPeriodId))
@@ -263,6 +291,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 .WithFundingStreamId(_fundingStreamId)
                 .WithFundingLineCode(_fundingLineCode)
                 .WithCarryOver(_carryOverAmount)
+                .WithSpecificationId(_specificationId)
                 .WithProfilePeriods(NewProfilePeriod(pp =>
                     pp.WithOccurence(1)
                         .WithYear(2020)

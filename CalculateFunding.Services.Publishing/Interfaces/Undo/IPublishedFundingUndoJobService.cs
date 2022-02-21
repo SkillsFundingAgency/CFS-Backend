@@ -9,6 +9,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces.Undo
     public interface IPublishedFundingUndoJobService : IJobProcessingService
     {
         Task<Job> QueueJob(string forCorrelationId,
+            string specificationId,
             bool isHardDelete,
             Reference user,
             string correlationId);

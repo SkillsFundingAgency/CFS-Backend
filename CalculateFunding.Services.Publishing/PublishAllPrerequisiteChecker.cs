@@ -14,6 +14,8 @@ namespace CalculateFunding.Services.Publishing
 {
     public class PublishAllPrerequisiteChecker : BasePrerequisiteChecker, IPrerequisiteChecker
     {
+        public override string Name => "Publish All Providers"; 
+        
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
         private readonly ILogger _logger;
 
@@ -37,7 +39,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(specification, nameof(specification));
 
             await BasePerformChecks(prereqObject, specification.Id, jobId, new string[]
-            { 
+            {
+                JobConstants.DefinitionNames.PublishedFundingUndoJob,
                 JobConstants.DefinitionNames.RefreshFundingJob, 
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,

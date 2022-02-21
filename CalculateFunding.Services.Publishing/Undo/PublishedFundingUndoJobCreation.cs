@@ -17,6 +17,7 @@ namespace CalculateFunding.Services.Publishing.Undo
     {
         private const string PublishedFundingUndoJob = JobConstants.DefinitionNames.PublishedFundingUndoJob;
         private const string ForCorrelationIdPropertyName = PublishedFundingUndoJobParameters.ForCorrelationIdPropertyName;
+        private const string ForSpecificationIdPropertyName = PublishedFundingUndoJobParameters.ForSpecificationIdPropertyName;
         private const string IsHardDeletePropertyName = PublishedFundingUndoJobParameters.IsHardDeletePropertyName;
         
         private readonly IJobsApiClient _jobs;
@@ -37,6 +38,7 @@ namespace CalculateFunding.Services.Publishing.Undo
         }
 
         public async Task<Job> CreateJob(string forCorrelationId,
+            string specificationId,
             bool isHardDelete,
             Reference user,
             string correlationId)
@@ -48,9 +50,11 @@ namespace CalculateFunding.Services.Publishing.Undo
                     InvokerUserDisplayName = user.Name,
                     InvokerUserId = user.Id,
                     JobDefinitionId = PublishedFundingUndoJob,
+                    SpecificationId = specificationId,
                     Properties = new Dictionary<string, string>
                     {
                         {ForCorrelationIdPropertyName, forCorrelationId},
+                        {ForSpecificationIdPropertyName, specificationId },
                         {IsHardDeletePropertyName, isHardDelete.ToString()},
                         {"user-id", user.Id},
                         {"user-name", user.Name}

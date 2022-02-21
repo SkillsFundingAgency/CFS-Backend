@@ -19,12 +19,13 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _service = service;
         }
         
-        [HttpGet("api/publishing/undo/{forCorrelationId}/{hardDelete}")]
+        [HttpGet("api/publishing/undo/{forCorrelationId}/{specificationId}/{hardDelete}")]
         [ApiExplorerSettings(IgnoreApi = true)]
         [ProducesResponseType(typeof(Job), 200)]
-        public async Task<IActionResult> DeleteSpecification([FromRoute] string forCorrelationId, [FromRoute] bool hardDelete)
+        public async Task<IActionResult> UndoPublishing([FromRoute] string forCorrelationId, [FromRoute] string specificationId, [FromRoute] bool hardDelete)
         {
             return Ok(await _service.QueueJob(forCorrelationId,
+                specificationId,
                 hardDelete,
                 Request.GetUser(),
                 Request.GetCorrelationId()));

@@ -11,6 +11,8 @@ namespace CalculateFunding.Services.Publishing
 {
     public class ApproveBatchProvidersPrerequisiteChecker : BasePrerequisiteChecker, IPrerequisiteChecker
     {
+        public override string Name => "Approve Batch Providers";
+
         public ApproveBatchProvidersPrerequisiteChecker(
             IJobsRunning jobsRunning,
             IJobManagement jobManagement,
@@ -28,8 +30,9 @@ namespace CalculateFunding.Services.Publishing
                 specificationId, 
                 specificationId, 
                 jobId, 
-                new string[] 
-                { 
+                new string[]
+                {
+                    JobConstants.DefinitionNames.PublishedFundingUndoJob,
                     JobConstants.DefinitionNames.RefreshFundingJob, 
                     JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                     JobConstants.DefinitionNames.PublishBatchProviderFundingJob,

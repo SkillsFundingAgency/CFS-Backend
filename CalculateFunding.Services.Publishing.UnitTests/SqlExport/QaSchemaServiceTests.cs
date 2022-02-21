@@ -3,21 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Services.SqlExport;
 using CalculateFunding.Services.SqlExport.Models;
+using FluentAssertions;
 using Microsoft.FeatureManagement;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 {
@@ -30,6 +37,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private Mock<IQaRepositoryLocator> _qaRepoLocator;
         private Mock<IProfilingApiClient> _profiling;
         private Mock<IFeatureManagerSnapshot> _featureManagerSnapshot;
+        private Mock<IPrerequisiteCheckerLocator> _prerequisiteCheckerLocator;
+        private Mock<IJobsRunning> _jobRunning;
+        private Mock<IJobManagement> _jobManagement;
+        private Mock<ILogger> _logger;
 
         private QaSchemaService _schemaService;
 
@@ -41,9 +52,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             _profiling = new Mock<IProfilingApiClient>();
             _qa = new Mock<IQaRepository>();
             _qaRepoLocator = new Mock<IQaRepositoryLocator>();
+            _prerequisiteCheckerLocator = new Mock<IPrerequisiteCheckerLocator>();
             _qaRepoLocator.Setup(_ => _.GetService(It.IsAny<SqlExportSource>())).Returns(_qa.Object);
 
             _featureManagerSnapshot = new Mock<IFeatureManagerSnapshot>();
+            _jobRunning = new Mock<IJobsRunning>();
+            _jobManagement = new Mock<IJobManagement>();
+            _logger = new Mock<ILogger>();
+
+            _prerequisiteCheckerLocator.Setup(_ => _.GetPreReqChecker(CalculateFunding.Models.Publishing.PrerequisiteCheckerType.SqlImport))
+                .Returns(new SqlImportPreRequisiteChecker(_jobRunning.Object,
+                    _jobManagement.Object,
+                    _logger.Object));
 
             _sqlNameGenerator.Setup(_ => _.GenerateIdentifier(It.IsAny<string>()))
                 .Returns<string>(input => input);
@@ -61,7 +81,38 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                     PoliciesApiClient = Policy.NoOpAsync()
                 },
                 ReleaseManagementRepository.Object,
-                _featureManagerSnapshot.Object);
+                _featureManagerSnapshot.Object,
+                _prerequisiteCheckerLocator.Object);
+        }
+
+        [TestMethod]
+        public void FailsPrequisiteCheckIfUndoPublishingJobRunning()
+        {
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string jobId = NewRandomString();
+            string templateVersion = NewRandomString();
+
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
+                .WithFundingStreamIds(fundingStreamId)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithTemplateIds((fundingStreamId, templateVersion)));
+
+            _jobRunning.Setup(_ => _.GetJobTypes(specificationId,
+                    It.Is<IEnumerable<string>>(jobTypes => jobTypes.First() == JobConstants.DefinitionNames.PublishedFundingUndoJob)))
+                .ReturnsAsync(new string[] { JobConstants.DefinitionNames.PublishedFundingUndoJob });
+
+            GivenTheSpecification(specificationId, specificationSummary);
+
+            Func<Task> invocation = () => WhenTheSchemaIsRecreated(specificationId, fundingStreamId, jobId, SqlExportSource.CurrentPublishedProviderVersion);
+            
+            invocation
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .WithMessage($"Sql Import with specification id: '{specificationId}' has prerequisites which aren't complete.");
+
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, false, "PublishedFundingUndoJob is still running"));
         }
 
         [DataTestMethod]
@@ -76,6 +127,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            string jobId = NewRandomString();
             string templateVersion = NewRandomString();
             string schemaVersion = NewRandomString();
             string fundingTemplateContents = NewRandomString();
@@ -130,7 +182,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             AndTheProfiling(fundingStreamId, fundingPeriodId, profilePatternOne, profilePatternTwo);
             AndTheFeature("EnableLatestReleasedVersionChannelPopulation", latestReleasedVersionChannelPopulationEnabled);
 
-            await WhenTheSchemaIsRecreated(specificationId, fundingStreamId, sqlExportSource);
+            await WhenTheSchemaIsRecreated(specificationId, fundingStreamId, jobId, sqlExportSource);
 
             Dictionary<string, SqlColumnDefinition> providerColumns = new List<SqlColumnDefinition>() {
                 new SqlColumnDefinition
@@ -370,8 +422,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private async Task WhenTheSchemaIsRecreated(
             string specificationId,
             string fundingStreamId,
+            string jobId,
             SqlExportSource sqlExportSource)
-            => await _schemaService.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId, sqlExportSource);
+            => await _schemaService.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId, jobId, sqlExportSource);
 
         private FundingStreamPeriodProfilePattern NewFundingStreamPeriodProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)
         {

@@ -14,6 +14,8 @@ namespace CalculateFunding.Services.Publishing
 {
     public class PublishBatchPrerequisiteChecker : PublishAllPrerequisiteChecker, IPrerequisiteChecker
     {
+        public override string Name => "Publish Batch Providers";
+
         public PublishBatchPrerequisiteChecker(
             ISpecificationFundingStatusService specificationFundingStatusService,
             IJobsRunning jobsRunning,
@@ -29,7 +31,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(specification, nameof(specification));
 
             await BasePerformChecks(prereqObject, specification.Id, jobId, new string[]
-            { 
+            {
+                JobConstants.DefinitionNames.PublishedFundingUndoJob,
                 JobConstants.DefinitionNames.RefreshFundingJob, 
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,

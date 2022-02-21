@@ -14,23 +14,28 @@ namespace CalculateFunding.Services.Publishing.Undo
         protected readonly IProducerConsumerFactory ProducerConsumerFactory;
         protected readonly ILogger Logger;
         protected readonly IJobTracker JobTracker;
+        protected readonly IPrerequisiteCheckerLocator PrerequisiteCheckerLocator;
 
         protected PublishedFundingUndoTaskFactoryBase(IPublishedFundingUndoCosmosRepository cosmos,
             IPublishedFundingUndoBlobStoreRepository blobStore,
             IProducerConsumerFactory producerConsumerFactory,
-            ILogger logger, IJobTracker jobTracker)
+            ILogger logger, 
+            IJobTracker jobTracker,
+            IPrerequisiteCheckerLocator prerequisiteCheckerLocator)
         {
             Guard.ArgumentNotNull(cosmos, nameof(cosmos));
             Guard.ArgumentNotNull(blobStore, nameof(blobStore));
             Guard.ArgumentNotNull(producerConsumerFactory, nameof(producerConsumerFactory));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(jobTracker, nameof(jobTracker));
+            Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
 
             Cosmos = cosmos;
             BlobStore = blobStore;
             ProducerConsumerFactory = producerConsumerFactory;
             Logger = logger;
             JobTracker = jobTracker;
+            PrerequisiteCheckerLocator = prerequisiteCheckerLocator;
         }   
         
         public virtual IPublishedFundingUndoJobTask CreateContextInitialisationTask()
@@ -38,6 +43,7 @@ namespace CalculateFunding.Services.Publishing.Undo
             return new PublishedFundingUndoContextInitialisationTask(Cosmos,
                 BlobStore,
                 ProducerConsumerFactory,
+                PrerequisiteCheckerLocator,
                 Logger,
                 JobTracker);
         }

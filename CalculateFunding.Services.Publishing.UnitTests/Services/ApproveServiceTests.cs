@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .And
                 .Message
                 .Should()
-                .Be($"Specification with id: '{specificationId} has prerequisites which aren't complete.");
+                .Be($"Approve All Providers with specification id: '{specificationId}' has prerequisites which aren't complete.");
 
             string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.RefreshFundingJob} is still running" };
 
@@ -154,7 +154,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .And
                 .Message
                 .Should()
-                .Be($"Specification with id: '{specificationId} has prerequisites which aren't complete.");
+                .Be($"Approve Batch Providers with specification id: '{specificationId}' has prerequisites which aren't complete.");
 
             string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.RefreshFundingJob} is still running" };
 
@@ -453,6 +453,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void AndCalculationEngineApproveProviderRunning(string specificationId)
         {
             string[] jobTypes = new string[] {
+                JobConstants.DefinitionNames.PublishedFundingUndoJob,
                 JobConstants.DefinitionNames.RefreshFundingJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                 JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
@@ -468,6 +469,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void AndCalculationEngineApproveSpecificationRunning(string specificationId)
         {
             string[] jobTypes = new string[] { 
+                JobConstants.DefinitionNames.PublishedFundingUndoJob,
                 JobConstants.DefinitionNames.RefreshFundingJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                 JobConstants.DefinitionNames.PublishBatchProviderFundingJob,

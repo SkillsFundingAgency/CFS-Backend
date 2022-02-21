@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         private string _fundingStreamId;
         private string _fundingPeriodId;
         private string _fundingLineCode;
+        private string _specificationId;
         private string _customProfileName;
         private decimal? _carryOver;
         private IEnumerable<ProfilePeriod> _profilePeriods;
@@ -64,6 +65,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             return this;
         }
 
+        public ApplyCustomProfileRequestBuilder WithSpecificationId(string specificationId)
+        {
+            _specificationId = specificationId;
+
+            return this;
+        }
+
         public ApplyCustomProfileRequest Build()
         {
             return new ApplyCustomProfileRequest
@@ -73,6 +81,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 FundingLineCode = _fundingLineCode ?? NewRandomString(),
                 CustomProfileName = _customProfileName ?? NewRandomString(),
+                SpecificationId = _specificationId ?? NewRandomString(),
                 CarryOver = _carryOver,
                 ProfilePeriods = _profilePeriods
             };

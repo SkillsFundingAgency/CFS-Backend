@@ -38,6 +38,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         {
             string forCorrelationId = NewRandomString();
             string correlationId = NewRandomString();
+            string specificationId = NewRandomString();
             bool isHardDelete = NewRandomFlag();
             Reference user = NewReference();
             
@@ -47,9 +48,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 isHardDelete,
                 user,
                 correlationId,
+                specificationId,
                 expectedJob);
 
             Job actualJob = await _jobCreation.CreateJob(forCorrelationId,
+                specificationId,
                 isHardDelete,
                 user,
                 correlationId);
@@ -63,15 +66,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             bool isHardDelete,
             Reference user,
             string correlationId,
+            string specificationId,
             Job expectedJob)
         {
             _jobs.Setup(_ => _.CreateJob(It.Is<JobCreateModel>(jcm =>
                     jcm.CorrelationId == correlationId &&
                     jcm.JobDefinitionId == JobConstants.DefinitionNames.PublishedFundingUndoJob &&
-                    jcm.SpecificationId == null &&
+                    jcm.SpecificationId == specificationId &&
                     jcm.InvokerUserId == user.Id &&
                     HasUserProperties(jcm.Properties,
                         "for-correlation-id", forCorrelationId,
+                        "specification-id", specificationId,
                         "is-hard-delete", isHardDelete.ToString(),
                         "user-id", user.Id,
                         "user-name", user.Name

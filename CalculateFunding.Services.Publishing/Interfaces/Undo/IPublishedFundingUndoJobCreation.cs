@@ -7,6 +7,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces.Undo
     public interface IPublishedFundingUndoJobCreation
     {
         Task<Job> CreateJob(string forCorrelationId,
+            string specificationId,
             bool isHardDelete,
             Reference user,
             string correlationId);

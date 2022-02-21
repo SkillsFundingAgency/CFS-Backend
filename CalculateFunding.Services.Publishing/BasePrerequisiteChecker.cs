@@ -17,6 +17,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly IJobsRunning _jobsRunning;
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
+
+        public abstract string Name { get; }
         
         public BasePrerequisiteChecker(IJobsRunning jobsRunning, IJobManagement jobManagement, ILogger logger)
         {
@@ -44,7 +46,7 @@ namespace CalculateFunding.Services.Publishing
                 _logger.Error(string.Join(Environment.NewLine, results));
             }
 
-            results.AddRange(await PerformChecks(prereqObject, publishedProviders, providers) ?? new string[0]);
+            results.AddRange(await PerformChecks(prereqObject, publishedProviders, providers) ?? Array.Empty<string>());
 
             if (!results.IsNullOrEmpty())
             {
@@ -53,7 +55,7 @@ namespace CalculateFunding.Services.Publishing
                     await _jobManagement.UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", results));
                 }
 
-                string errorMessage = $"Specification with id: '{specificationId} has prerequisites which aren't complete.";
+                string errorMessage = $"{Name} with specification id: '{specificationId}' has prerequisites which aren't complete.";
                 throw new JobPrereqFailedException(errorMessage, results);
             }
         }

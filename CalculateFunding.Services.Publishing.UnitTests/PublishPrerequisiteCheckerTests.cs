@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{_specification.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Publish All Providers with specification id: '{_specification.Id}' has prerequisites which aren't complete.");
 
             // Assert
             _logger
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<JobPrereqFailedException>()
                 .Where(_ =>
-                    _.Message == $"Specification with id: '{_specification.Id} has prerequisites which aren't complete.");
+                    _.Message == $"Publish All Providers with specification id: '{_specification.Id}' has prerequisites which aren't complete.");
 
             // Assert
             _logger

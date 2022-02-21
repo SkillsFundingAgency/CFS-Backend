@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 
         protected Mock<IPublishedFundingUndoCosmosRepository> Cosmos;
         protected Mock<IPublishedFundingUndoBlobStoreRepository> BlobStore;
+        protected Mock<IPrerequisiteCheckerLocator> PrerequisiteCheckerLocator;
         protected ProducerConsumerFactory ProducerConsumerFactory;
         protected Mock<IJobTracker> JobTracker;
         protected ILogger Logger;
@@ -32,6 +33,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         {
             Cosmos = new Mock<IPublishedFundingUndoCosmosRepository>();
             BlobStore = new Mock<IPublishedFundingUndoBlobStoreRepository>();
+            PrerequisiteCheckerLocator = new Mock<IPrerequisiteCheckerLocator>();
             ProducerConsumerFactory = new ProducerConsumerFactory();
             JobTracker = new Mock<IJobTracker>();
             Logger = Serilog.Core.Logger.None;

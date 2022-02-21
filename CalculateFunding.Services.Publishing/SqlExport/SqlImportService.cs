@@ -4,9 +4,11 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
+using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
@@ -26,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
         public SqlImportService(ISqlImporter import, 
             IQaSchemaService schema, 
-            IJobManagement jobManagement, 
+            IJobManagement jobManagement,
             ILogger logger) 
             : base(jobManagement, logger)
         {
@@ -85,6 +87,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             SchemaContext schemaContext = await _schema.ReCreateTablesForSpecificationAndFundingStream(
                 specificationId, 
                 fundingStreamId,
+                Job.Id,
                 sqlExportSource);
             
             await _import.ImportData(specificationId, fundingStreamId, schemaContext, sqlExportSource);

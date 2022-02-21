@@ -19,7 +19,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 BlobStore.Object,
                 ProducerConsumerFactory,
                 Logger,
-                JobTracker.Object);
+                JobTracker.Object,
+                PrerequisiteCheckerLocator.Object);
         }
 
         [TestMethod]

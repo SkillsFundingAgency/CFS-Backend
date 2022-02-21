@@ -33,6 +33,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.External\CalculateFunding.Models.External.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Publishing\CalculateFunding.Models.Publishing.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.SqlExport\CalculateFunding.Services.SqlExport.csproj" />

@@ -40,6 +40,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         private readonly AsyncPolicy _policiesResilience;
         private readonly IReleaseManagementRepository _releaseManagementRepository;
         private readonly IFeatureManagerSnapshot _featureManagerSnapshot;
+        private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
 
         public QaSchemaService(IPoliciesApiClient policies,
             ISpecificationsApiClient specificationsApiClient,
@@ -50,7 +51,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             ISqlNameGenerator sqlNames,
             IPublishingResiliencePolicies resiliencePolicies,
             IReleaseManagementRepository releaseManagementRepository,
-            IFeatureManagerSnapshot featureManagerSnapshot)
+            IFeatureManagerSnapshot featureManagerSnapshot,
+            IPrerequisiteCheckerLocator prerequisiteCheckerLocator)
         {
             Guard.ArgumentNotNull(policies, nameof(policies));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -61,6 +63,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             Guard.ArgumentNotNull(sqlNames, nameof(sqlNames));
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(featureManagerSnapshot, nameof(featureManagerSnapshot));
+            Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
 
             _policies = policies;
             _specifications = specificationsApiClient;
@@ -73,6 +76,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             _policiesResilience = resiliencePolicies.PoliciesApiClient;
             _releaseManagementRepository = releaseManagementRepository;
             _featureManagerSnapshot = featureManagerSnapshot;
+            _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
 
             //TODO; extract all of the different table builders so that this can more easily tested
             //at the moment it needs a god test with too much setup to make much sense to anyone
@@ -81,6 +85,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         public async Task<SchemaContext> ReCreateTablesForSpecificationAndFundingStream(
             string specificationId,
             string fundingStreamId,
+            string jobId,
             SqlExportSource sqlExportSource)
         {
             ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(()
@@ -92,6 +97,17 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             {
                 throw new NonRetriableException(
                     $"Did not locate a specification {specificationId}. Unable to complete Qa Schema Generation");
+            }
+
+            IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(CalculateFunding.Models.Publishing.PrerequisiteCheckerType.SqlImport);
+
+            try
+            {
+                await prerequisiteChecker.PerformChecks(specification, jobId, null, null);
+            }
+            catch (CalculateFunding.Models.Publishing.JobPrereqFailedException ex)
+            {
+                throw new NonRetriableException(ex.Message, ex);
             }
 
             SchemaContext schemaContext = new SchemaContext();

@@ -4,6 +4,8 @@ namespace CalculateFunding.Services.Publishing.Undo
 {
     public class UndoTaskDetails
     {
+        public string SpecificationId { get; set; }
+
         public string FundingStreamId { get; set; }
 
         public string FundingPeriodId { get; set; }
