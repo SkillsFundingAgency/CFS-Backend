@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.CalcEngine
                     .FirstOrDefault(x => x.AttributeType.Name == "DatasetRelationshipAttribute");
                 if (relationshipAttribute != null)
                 {
-                    _datasetSetters.Add(GetProperty(relationshipAttribute, "Name"), relationshipProperty);
+                    _datasetSetters.Add(GetProperty(relationshipAttribute, "Id"), relationshipProperty);
                 }
             }
 
@@ -164,16 +164,16 @@ namespace CalculateFunding.Services.CalcEngine
             object datasetsInstance = CreateInstance(_datasetsSetter.PropertyType);
             _datasetsSetter.SetValue(instance, datasetsInstance);
 
-            HashSet<string> datasetNamesUsed = new HashSet<string>();
+            HashSet<string> datasetIdsUsed = new HashSet<string>();
             foreach (KeyValuePair<string, ProviderSourceDataset> datasetItem in datasets)
             {
-                if (datasetItem.Value != null && !string.IsNullOrWhiteSpace(datasetItem.Value.DataRelationship?.Name))
+                if (datasetItem.Value != null && !string.IsNullOrWhiteSpace(datasetItem.Key))
                 {
                     Type type = GetDatasetType(datasetItem.Value);
 
-                    if (_datasetSetters.TryGetValue(datasetItem.Value.DataRelationship.Name, out PropertyInfo setter))
+                    if (_datasetSetters.TryGetValue(datasetItem.Key, out PropertyInfo setter))
                     {
-                        datasetNamesUsed.Add(datasetItem.Value.DataRelationship.Name);
+                        datasetIdsUsed.Add(datasetItem.Key);
 
                         SetDatasetInstanceValue(datasetItem.Value, type, setter, datasetsInstance);
                     }
@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.CalcEngine
                 SetInstanceAggregationsValues(instance, aggregationValues);
             }
 
-            SetMissingDatasetDefaultObjects(datasetNamesUsed, _datasetSetters, datasetsInstance);
+            SetMissingDatasetDefaultObjects(datasetIdsUsed, _datasetSetters, datasetsInstance);
 
             // get all calculation results
             dynamic calculations = instance;
@@ -210,9 +210,9 @@ namespace CalculateFunding.Services.CalcEngine
         /// <summary>
         /// Add default object for any missing datasets to help reduce null exceptions
         /// </summary>
-        private void SetMissingDatasetDefaultObjects(HashSet<string> datasetNamesUsed, Dictionary<string, PropertyInfo> datasetSetters, object datasetsInstance)
+        private void SetMissingDatasetDefaultObjects(HashSet<string> datasetIdsUsed, Dictionary<string, PropertyInfo> datasetSetters, object datasetsInstance)
         {
-            foreach (string key in datasetSetters.Keys.Where(x => !datasetNamesUsed.Contains(x)))
+            foreach (string key in datasetSetters.Keys.Where(x => !datasetIdsUsed.Contains(x)))
             {
                 if (datasetSetters.TryGetValue(key, out PropertyInfo setter))
                 {
