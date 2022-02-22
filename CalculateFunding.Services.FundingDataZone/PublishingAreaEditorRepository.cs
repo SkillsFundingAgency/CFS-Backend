@@ -274,8 +274,8 @@ namespace CalculateFunding.Services.FundingDataZone
 		p.[FurtherEducationTypename]
 	FROM
 		Provider p
-	INNER JOIN PaymentOrganisation po ON p.[PaymentOrganisationId] = po.[PaymentOrganisationId]
-	INNER JOIN PaymentOrganisation clone ON clone.[Ukprn] = po.[Ukprn] AND clone.[ProviderSnapshotId] = @cloneProviderSnapshot
+	LEFT OUTER JOIN PaymentOrganisation po ON p.[PaymentOrganisationId] = po.[PaymentOrganisationId]
+	LEFT OUTER JOIN PaymentOrganisation clone ON clone.[Ukprn] = po.[Ukprn] AND clone.[ProviderSnapshotId] = @cloneProviderSnapshot
 	WHERE
 		p.[ProviderSnapshotId] = @providerSnapShot
 
