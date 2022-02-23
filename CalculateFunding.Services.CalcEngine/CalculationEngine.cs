@@ -93,7 +93,14 @@ namespace CalculateFunding.Services.CalcEngine
             {
                 foreach (CalculationResult calcResult in calculationResultItems)
                 {
-                    CalculationSummaryModel calculationSummaryModel = calculations.First(c => c.Id == calcResult.Calculation.Id);
+                    CalculationSummaryModel calculationSummaryModel = calculations.FirstOrDefault(c => c.Id == calcResult.Calculation.Id);
+
+                    if (calculationSummaryModel == null)
+                    {
+                        string error = $"Unable to locate calculation with id:'{calcResult.Calculation.Id}' returned after assembly execution.";
+                        _logger.Error(error);
+                        throw new InvalidOperationException(error);
+                    }
 
                     calcResult.CalculationType = calculationSummaryModel.CalculationType;
                     calcResult.CalculationDataType = calculationSummaryModel.CalculationValueType.ToCalculationDataType();

@@ -236,6 +236,132 @@ namespace CalculateFunding.Services.Calculator
             fundingLineCalcResult.FundingLineFundingStreamId.Should().Be(fundingStreamId);
         }
 
+        [TestMethod]
+        public void CalculateProviderResult_WhenCalculationsAreNotEmptyButCalculationMissing_ShouldThrowInvalidOperation()
+        {
+            // Arrange
+
+            List<Reference> policySpecificationsForFundingCalc = new List<Reference>()
+            {
+                new Reference("Spec1", "SpecOne"),
+                new Reference("Spec2", "SpecTwo")
+            };
+
+            Reference fundingCalcReference = new Reference("CalcF1", "Funding calc 1");
+
+            Reference numbercalcReference = new Reference("CalcF2", "Funding calc 2");
+
+            Reference booleancalcReference = new Reference("CalcF3", "Funding calc 3");
+
+            Reference numbercalcMissingReference = new Reference("CalcF4", "Funding calc 4");
+
+            Reference fundingLineCalcReference = new Reference("FL1", "Funding line calc 1");
+
+            CalculationResult fundingCalcReturned = new CalculationResult()
+            {
+                Calculation = fundingCalcReference,
+                Value = 10000
+            };
+            CalculationResult fundingCalcReturned2 = new CalculationResult()
+            {
+                Calculation = numbercalcReference,
+                Value = 20000
+            };
+            CalculationResult fundingCalcReturned3 = new CalculationResult()
+            {
+                Calculation = booleancalcReference,
+                Value = true
+            };
+            CalculationResult fundingCalcReturned4 = new CalculationResult()
+            {
+                Calculation = numbercalcMissingReference,
+                Value = 30000
+            };
+
+            CalculationResultContainer calculationResultContainer = new CalculationResultContainer();
+
+            List<CalculationResult> calculationResults = new List<CalculationResult>()
+            {
+                fundingCalcReturned,
+                fundingCalcReturned2,
+                fundingCalcReturned3,
+                fundingCalcReturned4
+            };
+
+            calculationResultContainer.CalculationResults = calculationResults;
+
+            string fundingStreamId = "FS1";
+
+            FundingLineResult fundingLineResult = new FundingLineResult
+            {
+                Value = 1000,
+                FundingLine = fundingLineCalcReference,
+                FundingLineFundingStreamId = fundingStreamId
+            };
+
+            List<FundingLineResult> fundingLineResults = new List<FundingLineResult>
+            {
+                fundingLineResult
+            };
+
+            calculationResultContainer.FundingLineResults = fundingLineResults;
+
+            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
+            mockAllocationModel
+                .Execute(Arg.Any<Dictionary<string, ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Returns(calculationResultContainer);
+
+            IEnumerable<string> indicativeOpenerProviderStatuses = new string[] { "StatusOne", "StatusTwo" };
+
+            CalculationEngine calculationEngine = CreateCalculationEngine();
+            ProviderSummary providerSummary = CreateDummyProviderSummary("StatusTwo");
+            BuildProject buildProject = CreateBuildProject();
+
+
+            var nonMatchingCalculationModel = new CalculationSummaryModel()
+            {
+                Id = "Non matching calculation",
+                Name = "Non matching calculation",
+                CalculationType = CalculationType.Template,
+                CalculationValueType = CalculationValueType.Number
+            };
+            IEnumerable<CalculationSummaryModel> calculationSummaryModels = new[]
+            {
+                new CalculationSummaryModel()
+                {
+                    Id = fundingCalcReference.Id,
+                    Name = fundingCalcReference.Name,
+                    CalculationType = CalculationType.Template,
+                    CalculationValueType = CalculationValueType.Number
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = numbercalcReference.Id,
+                    Name = numbercalcReference.Name,
+                    CalculationType = CalculationType.Template,
+                    CalculationValueType = CalculationValueType.Number
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = booleancalcReference.Id,
+                    Name = booleancalcReference.Name,
+                    CalculationType = CalculationType.Template,
+                    CalculationValueType = CalculationValueType.Boolean
+                },
+                nonMatchingCalculationModel
+            };
+
+            // Act
+            Action invocation = () => calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject.SpecificationId, calculationSummaryModels,
+                providerSummary, new Dictionary<string, ProviderSourceDataset>(), indicativeOpenerProviderStatuses: indicativeOpenerProviderStatuses);
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage($"Unable to locate calculation with id:'{numbercalcMissingReference.Id}' returned after assembly execution.");
+        }
+
+
         private static string GenerateId(string providerId, string specificationId)
         {
             return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{providerId}-{specificationId}"));
