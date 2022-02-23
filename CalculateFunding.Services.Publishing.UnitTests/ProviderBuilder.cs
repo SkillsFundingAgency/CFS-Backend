@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
-using Microsoft.Azure.Search.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -18,6 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _authority;
         private string _laCode;
         private string _urn;
+        private string _upin;
         private string _ukprn;
         private string _providerType;
         private string _providerSubType;
@@ -135,6 +135,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public ProviderBuilder WithURN(string urn)
         {
             _urn = urn;
+
+            return this;
+        }
+
+        public ProviderBuilder WithUPIN(string upin)
+        {
+            _upin = upin;
 
             return this;
         }
@@ -257,6 +264,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ReasonEstablishmentClosed = _reasonEstablishmentClosed,
                 PaymentOrganisationIdentifier = _paymentOrganisationIdentifier ?? NewRandomString(),
                 PaymentOrganisationName = NewRandomString(),
+                Street = NewRandomString(),
+                Locality = NewRandomString(),
+                Address3 = NewRandomString(),
+                ProviderTypeCode = NewRandomString(),
+                ProviderSubTypeCode = NewRandomString(),
+                PreviousLaCode = NewRandomString(),
+                PreviousLaName = NewRandomString(),
+                PreviousEstablishmentNumber = NewRandomString(),
+                UPIN = _upin,
+                ProviderProfileIdType = NewRandomString(),
+                NavVendorNo = NewRandomString(),
+                CrmAccountId = NewRandomString(),
+                PhaseOfEducation = NewRandomString(),
+                MiddleSuperOutputAreaName = NewRandomString(),
+                MiddleSuperOutputAreaCode = NewRandomString(),
+                LowerSuperOutputAreaName = NewRandomString(),
+                LowerSuperOutputAreaCode = NewRandomString(),
+                LondonRegionCode = NewRandomString(),
+                LondonRegionName = NewRandomString(),
+                LocalGovernmentGroupTypeCode = NewRandomString(),
+                LocalGovernmentGroupTypeName = NewRandomString()
             };
     }
 }

@@ -159,6 +159,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 },
                 VariationReason.DistrictNameFieldUpdated,
                 VariationReason.NameFieldUpdated);
+            yield return VariationExample(_ => _.Street = NewRandomString());
+            yield return VariationExample(_ => _.Locality = NewRandomString());
+            yield return VariationExample(_ => _.Address3 = NewRandomString());
+            yield return VariationExample(_ => _.ProviderTypeCode = NewRandomString());
+            yield return VariationExample(_ => _.ProviderSubTypeCode = NewRandomString());
+            yield return VariationExample(_ => _.PreviousLaCode = NewRandomString());
+            yield return VariationExample(_ => _.PreviousLaName = NewRandomString());
+            yield return VariationExample(_ => _.PreviousEstablishmentNumber = NewRandomString());
         }
 
         private static object[] VariationExample(Action<Provider> differences,

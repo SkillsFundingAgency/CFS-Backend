@@ -122,6 +122,7 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("predecessors")]
         public IEnumerable<string> Predecessors { get; set; }
 
+
         [JsonProperty("trustName")]
         public string TrustName { get; set; }
 
@@ -238,5 +239,29 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("paymentOrganisationName")]
         [VariationReasonValue(VariationReason.PaymentOrganisationNameFieldUpdated)]
         public string PaymentOrganisationName { get; set; }
+
+        [JsonProperty("street")]
+        public string Street { get; set; }
+
+        [JsonProperty("locality")]
+        public string Locality { get; set; }
+
+        [JsonProperty("address3")]
+        public string Address3 { get; set; }
+
+        [JsonProperty("providerTypeCode")]
+        public string ProviderTypeCode { get; set; }
+
+        [JsonProperty("providerSubTypeCode")]
+        public string ProviderSubTypeCode { get; set; }
+
+        [JsonProperty("previousLaCode")]
+        public string PreviousLaCode { get; set; }
+
+        [JsonProperty("previousLaName")]
+        public string PreviousLaName { get; set; }
+
+        [JsonProperty("previousEstablishmentNumber")]
+        public string PreviousEstablishmentNumber { get; set; }
     }
 }

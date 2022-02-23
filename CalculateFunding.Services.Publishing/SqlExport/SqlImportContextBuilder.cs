@@ -151,30 +151,20 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             string fundingStreamId,
             SqlExportSource sqlExportSource)
             {
-            var queryText = @$"SELECT
-                              *
-                        FROM publishedProvider p
-                        WHERE p.documentType = 'PublishedProvider'
-                        {FilterQuery(sqlExportSource)}
-                        AND p.content.current.fundingStreamId = @fundingStreamId
-                        AND p.content.current.specificationId = @specificationId
-                        AND p.deleted = false";
-
-            return _cosmos.GetFeedIterator(new CosmosDbQuery
-            {
-                QueryText = @$"SELECT
-                              *
-                        FROM publishedProvider p
-                        WHERE p.documentType = 'PublishedProvider'
-                        {FilterQuery(sqlExportSource)}
-                        AND p.content.current.fundingStreamId = @fundingStreamId
-                        AND p.content.current.specificationId = @specificationId
-                        AND p.deleted = false",
-                Parameters = Parameters(
-                      ("@fundingStreamId", fundingStreamId),
-                      ("@specificationId", specificationId))
-            },
-              100);
+                return _cosmos.GetFeedIterator(new CosmosDbQuery
+                {
+                    QueryText = @$"SELECT
+                                  *
+                            FROM publishedProvider p
+                            WHERE p.documentType = 'PublishedProvider'
+                            {FilterQuery(sqlExportSource)}
+                            AND p.content.current.fundingStreamId = @fundingStreamId
+                            AND p.content.current.specificationId = @specificationId
+                            AND p.deleted = false",
+                    Parameters = Parameters(
+                          ("@fundingStreamId", fundingStreamId),
+                          ("@specificationId", specificationId))
+                }, 100);
             }
 
         private static CosmosDbQueryParameter[] Parameters(params (string Name, object Value)[] parameters)

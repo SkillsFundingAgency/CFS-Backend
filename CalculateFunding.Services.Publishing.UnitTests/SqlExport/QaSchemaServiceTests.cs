@@ -286,6 +286,300 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                     Name = "IsIndicative",
                     Type = "[bit]",
                     AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "TrustStatus",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "UPIN",
+                    Type = "[varchar](32)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "EstablishmentNumber",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "DfeEstablishmentNumber",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ProviderProfileIdType",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "NavVendorNo",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "CrmAccountId",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LegalName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "PhaseOfEducation",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ReasonEstablishmentOpened",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ReasonEstablishmentClosed",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Predecessors",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Successors",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Town",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Postcode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "CompaniesHouseNumber",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "GroupIdNumber",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "RscRegionName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "RscRegionCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "GovernmentOfficeRegionName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "GovernmentOfficeRegionCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "DistrictName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "DistrictCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "WardName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "WardCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "CensusWardName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "CensusWardCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "MiddleSuperOutputAreaName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "MiddleSuperOutputAreaCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LowerSuperOutputAreaName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LowerSuperOutputAreaCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ParliamentaryConstituencyName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ParliamentaryConstituencyCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LondonRegionCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LondonRegionName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "CountryCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "CountryName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LocalGovernmentGroupTypeCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LocalGovernmentGroupTypeName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Street",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Locality",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "Address3",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ProviderTypeCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "ProviderSubTypeCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "PreviousLaCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "PreviousLaName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "PreviousEstablishmentNumber",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "FurtherEducationTypeCode",
+                    Type = "[varchar](256)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "FurtherEducationTypeName",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = true
                 }
             }.ToDictionary(_ => _.Name);
 
