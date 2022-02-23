@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -42,9 +43,9 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             if (_sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion
                 && _latestReleasedVersionChannelPopulationEnabled)
             {
-                foreach (ProviderVersionInChannel _providerVersionInChannel in _providerVersionInChannels)
+                foreach (string channelCode in Enumerable.Distinct(_providerVersionInChannels.Select(_=> _.ChannelCode)))
                 {
-                    dataColumns.Add(NewDataColumn<string>($"Latest{_providerVersionInChannel.ChannelCode}ReleaseVersion", 8));
+                    dataColumns.Add(NewDataColumn<string>($"Latest{channelCode}ReleaseVersion", 8));
                 }
             }
 
