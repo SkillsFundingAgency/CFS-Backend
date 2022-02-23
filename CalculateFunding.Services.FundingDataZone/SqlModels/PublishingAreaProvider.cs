@@ -150,6 +150,7 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
         public string LocalGovernmentGroupTypeName { get; set; }
 
         [Display(Name = "Trust status")]
+        [Required]
         public string TrustStatus { get; set; }
 
         [Display(Name = "Parent organisation")]
