@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Policies.Models;
+﻿using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Extensions;
 using FluentAssertions;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -48,6 +48,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         [Given(@"a funding configuration exists for funding stream '(.*)' in funding period '(.*)' in resources")]
         public void GivenAFundingConfigurationExistsForFundingStreamInFundingPeriodInResource(string fundingStreamId, string fundingPeriodId)
         {
+            GivenAFundingConfigurationExistsForFundingStreamInFundingPeriodInResourceInFile(fundingStreamId, fundingPeriodId, null);
+        }
+
+        [Given(@"a funding configuration exists for funding stream '(.*)' in funding period '(.*)' in resources in file modifier '(.*)'")]
+        public void GivenAFundingConfigurationExistsForFundingStreamInFundingPeriodInResourceInFile(string fundingStreamId, string fundingPeriodId, string fileModifier)
+        {
             fundingStreamId
                 .Should()
                 .NotBeNullOrWhiteSpace();
@@ -59,7 +65,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _policiesStepContext.CreateFundingStreamId = fundingStreamId;
             _policiesStepContext.CreateFundingPeriodId = fundingPeriodId;
 
-            string contents = GetTestDataContents($"ReleaseManagementData.FundingConfigurations.{fundingStreamId}-{fundingPeriodId}.json");
+            if (!string.IsNullOrWhiteSpace(fileModifier))
+            {
+                fileModifier = $"-{fileModifier}";
+            }
+
+            string contents = GetTestDataContents($"ReleaseManagementData.FundingConfigurations.{fundingStreamId}-{fundingPeriodId}{fileModifier}.json");
 
             FundingConfiguration fundingConfiguration = JsonConvert.DeserializeObject<FundingConfiguration>(contents);
 

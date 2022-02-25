@@ -186,7 +186,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             return fundingGroup;
         }
-        
+
         public async Task<FundingGroup> CreateFundingGroupUsingAmbientTransaction(FundingGroup fundingGroup)
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
@@ -204,7 +204,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return fundingGroup;
         }
 
-        public async Task<FundingGroup> GetFundingGroup(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue)
+        public async Task<FundingGroup> GetFundingGroupUsingAmbientTransaction(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue)
         {
             return await QuerySingleSql<FundingGroup>(@"SELECT * FROM FundingGroups WHERE
 							ChannelId = @channelId
@@ -219,7 +219,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                                 groupingReasonId,
                                 organisationGroupTypeClassification,
                                 organisationGroupIdentifierValue
-                            });
+                            }, _transaction);
         }
 
         public async Task<FundingGroupVersion> GetFundingGroupVersion(int fundingGroupId, int majorVersion)
@@ -378,7 +378,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             try
             {
-                foreach(ReleasedProvider provider in releasedProviders)
+                foreach (ReleasedProvider provider in releasedProviders)
                 {
                     provider.ReleasedProviderId = await Insert(provider, _transaction);
                     results.Add(provider);
@@ -609,7 +609,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 specificationId,
                 channelIds,
-            }, 
+            },
             sqlTransaction);
         }
 
@@ -644,7 +644,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 });
         }
 
-        public async Task<ReleasedProviderVersion> CreateReleasedProviderVersionsUsingAmbientTransaction(ReleasedProviderVersion providerVersion)
+        public async Task<ReleasedProviderVersion> CreateReleasedProviderVersionUsingAmbientTransaction(ReleasedProviderVersion providerVersion)
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
@@ -756,14 +756,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         public async Task<IEnumerable<LatestFundingGroupVersion>> GetLatestFundingGroupMajorVersionsBySpecificationId(string specificationId, int channelId)
         {
             return await QuerySql<LatestFundingGroupVersion>($@"
-               SELECT FGV.FundingGroupVersionId, FGV.MajorVersion, FGV.FundingId
-                FROM FundingGroupVersions FGV
-                INNER JOIN 
-                (SELECT FundingGroupId, MAX(MajorVersion) AS LatestVersion FROM FundingGroupVersions 
-                GROUP BY FundingGroupId) LatestFundingGroupVersion ON FGV.FundingGroupId = LatestFundingGroupVersion.FundingGroupId AND FGV.MajorVersion = LatestFundingGroupVersion.LatestVersion
-                INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
-				WHERE FGV.ChannelId =  @{nameof(channelId)}
-				AND FG.SpecificationId =  @{nameof(specificationId)}",
+                    SELECT FGV.FundingGroupId, FGV.FundingGroupVersionId, FGV.MajorVersion, FS.FundingStreamCode, FP.FundingPeriodCode, GR.GroupingReasonCode, FG.OrganisationGroupTypeCode, FG.OrganisationGroupIdentifierValue
+                    FROM FundingGroupVersions FGV
+                    INNER JOIN
+                        (SELECT FundingGroupId, MAX(MajorVersion) AS LatestVersion FROM FundingGroupVersions 
+                        GROUP BY FundingGroupId) LatestFundingGroupVersion ON FGV.FundingGroupId = LatestFundingGroupVersion.FundingGroupId AND FGV.MajorVersion = LatestFundingGroupVersion.LatestVersion
+                    INNER JOIN FundingStreams FS ON FGV.FundingStreamId = FS.FundingStreamId
+                    INNER JOIN FundingPeriods FP ON FGV.FundingPeriodId = FP.FundingPeriodId
+                    INNER JOIN GroupingReasons GR ON FGV.GroupingReasonId = GR.GroupingReasonId
+                    INNER JOIN FundingGroups FG ON FGV.FundingGroupId = FG.FundingGroupId
+				    WHERE FG.ChannelId =  @{nameof(channelId)}
+				    AND FG.SpecificationId =  @{nameof(specificationId)}",
                 new
                 {
                     specificationId,
@@ -802,6 +805,86 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 });
         }
 
-        
+        public Task<IEnumerable<ReleasedProvider>> GetReleasedProvidersUsingAmbientTransaction(string specificationId)
+        {
+            return GetReleasedProvidersInternal(specificationId, _transaction);
+        }
+
+        public Task<IEnumerable<ReleasedProvider>> GetReleasedProviders(string specificationId)
+        {
+            return GetReleasedProvidersInternal(specificationId);
+        }
+
+        private async Task<IEnumerable<ReleasedProvider>> GetReleasedProvidersInternal(string specificationId, ISqlTransaction transaction = null)
+        {
+            return await QuerySql<ReleasedProvider>($"SELECT * FROM ReleasedProviders WHERE SpecificationId = @{nameof(specificationId)}",
+                new { specificationId },
+                transaction);
+        }
+
+        public Task<IEnumerable<ReleasedProvider>> GetReleasedProvidersUsingAmbientTransaction(string specificationId, IEnumerable<string> providerIds)
+        {
+            return GetReleasedProvidersInternal(specificationId, providerIds, _transaction);
+        }
+
+        public Task<IEnumerable<ReleasedProvider>> GetReleasedProviders(string specificationId, IEnumerable<string> providerIds)
+        {
+            return GetReleasedProvidersInternal(specificationId, providerIds);
+        }
+
+        public async Task<IEnumerable<ReleasedProvider>> GetReleasedProvidersInternal(string specificationId, IEnumerable<string> providerIds, ISqlTransaction transaction = null)
+        {
+            return await QuerySql<ReleasedProvider>(
+                $@"SELECT * FROM ReleasedProviders WHERE SpecificationId = @{nameof(specificationId)}
+                WHERE ProviderId IN (@{nameof(providerIds)})",
+                new { specificationId, providerIds },
+                transaction);
+        }
+
+        public async Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersions(string specificationId)
+        {
+            return await GetLatestReleasedProviderVersions(specificationId);
+        }
+
+        public async Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersions(string specificationId, IEnumerable<string> providerIds)
+        {
+            return await GetLatestReleasedProviderVersionsInternal(specificationId, providerIds);
+        }
+
+        private async Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersionsInternal(string specificationId, ISqlTransaction transaction = null)
+        {
+            return await QuerySql<LatestReleasedProviderVersion>(@$"
+                SELECT ReleasedProviderVersionId, LRPV.LatestMajorVersion, RP.ProviderId FROM ReleasedProviderVersions RPV
+                INNER JOIN (
+                SELECT ReleasedProviderId, MAX(MajorVersion) as LatestMajorVersion FROM ReleasedProviderVersions 
+                GROUP BY ReleasedProviderId) LRPV ON RPV.ReleasedProviderId = LRPV.ReleasedProviderId AND RPV.MajorVersion = LRPV.LatestMajorVersion
+                INNER JOIN ReleasedProviders RP ON RPV.ReleasedProviderId = RP.ReleasedProviderId
+                WHERE RP.SpecificationId = @{nameof(specificationId)}
+                ", new { specificationId },
+                transaction);
+        }
+
+        public async Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersionsInternal(string specificationId, IEnumerable<string> providerIds, ISqlTransaction transaction = null)
+        {
+            return await QuerySql<LatestReleasedProviderVersion>(@$"
+                SELECT ReleasedProviderVersionId, LRPV.LatestMajorVersion, RP.ProviderId FROM ReleasedProviderVersions RPV
+                INNER JOIN (
+                SELECT ReleasedProviderId, MAX(MajorVersion) as LatestMajorVersion FROM ReleasedProviderVersions 
+                GROUP BY ReleasedProviderId) LRPV ON RPV.ReleasedProviderId = LRPV.ReleasedProviderId AND RPV.MajorVersion = LRPV.LatestMajorVersion
+                INNER JOIN ReleasedProviders RP ON RPV.ReleasedProviderId = RP.ReleasedProviderId
+                WHERE RP.SpecificationId = @{nameof(specificationId)}   
+                AND RP.ProviderIds IN (@{nameof(providerIds)})
+                ", new { specificationId }, transaction);
+        }
+
+        public Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersionsUsingAmbientTransaction(string specificationId)
+        {
+            return GetLatestReleasedProviderVersionsInternal(specificationId, _transaction);
+        }
+
+        public Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersionsUsingAmbientTransaction(string specificationId, IEnumerable<string> providerIds)
+        {
+            return GetLatestReleasedProviderVersionsInternal(specificationId, providerIds, _transaction);
+        }
     }
 }

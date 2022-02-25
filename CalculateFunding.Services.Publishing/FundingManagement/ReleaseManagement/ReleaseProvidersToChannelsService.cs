@@ -35,6 +35,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IReleaseManagementSpecificationService _releaseManagementSpecificationService;
         private readonly IChannelReleaseService _channelReleaseService;
         private readonly IReleaseToChannelSqlMappingContext _releaseToChannelSqlMappingContext;
+        private readonly IExistingReleasedProvidersLoadService _existingReleasedProvidersLoadService;
+        private readonly IExistingReleasedProviderVersionsLoadService _existingReleasedProviderVersionsLoadService;
 
         public ReleaseProvidersToChannelsService(
             ISpecificationService specificationService,
@@ -48,7 +50,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IReleaseManagementRepository releaseManagementRepository,
             IReleaseManagementSpecificationService releaseManagementSpecificationService,
             IChannelReleaseService channelReleaseService,
-            IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext) : base(jobManagement, logger)
+            IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext,
+            IExistingReleasedProvidersLoadService existingReleasedProvidersLoadService,
+            IExistingReleasedProviderVersionsLoadService existingReleasedProviderVersionsLoadService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
@@ -60,6 +64,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(releaseManagementSpecificationService, nameof(releaseManagementSpecificationService));
             Guard.ArgumentNotNull(channelReleaseService, nameof(channelReleaseService));
             Guard.ArgumentNotNull(releaseToChannelSqlMappingContext, nameof(releaseToChannelSqlMappingContext));
+            Guard.ArgumentNotNull(existingReleasedProvidersLoadService, nameof(existingReleasedProvidersLoadService));
+            Guard.ArgumentNotNull(existingReleasedProviderVersionsLoadService, nameof(existingReleasedProviderVersionsLoadService));
 
             _specificationService = specificationService;
             _policiesService = policiesService;
@@ -72,6 +78,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _releaseManagementSpecificationService = releaseManagementSpecificationService;
             _channelReleaseService = channelReleaseService;
             _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
+            _existingReleasedProvidersLoadService = existingReleasedProvidersLoadService;
+            _existingReleasedProviderVersionsLoadService = existingReleasedProviderVersionsLoadService;
         }
 
         public async Task<IActionResult> QueueReleaseProviderVersions(
@@ -182,6 +190,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IEnumerable<string> providerIdsReleased = await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(specification);
 
             await RefreshLoadContextWithProvidersApprovedNowReleased(providerIdsReleased);
+
+            await _existingReleasedProvidersLoadService.LoadExistingReleasedProviders(specificationId, releaseProvidersToChannelRequest.ProviderIds);
+            await _existingReleasedProviderVersionsLoadService.LoadExistingReleasedProviderVersions(specificationId, releaseProvidersToChannelRequest.ProviderIds);
 
             foreach (KeyValuePair<string, SqlModels.Channel> channel in channels)
             {

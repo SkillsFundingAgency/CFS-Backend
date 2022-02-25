@@ -40,6 +40,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<IReleaseManagementSpecificationService> _releaseManagementSpecificationService;
         private Mock<IChannelReleaseService> _channelReleaseService;
         private Mock<IReleaseToChannelSqlMappingContext> _releaseContext;
+        private Mock<IExistingReleasedProvidersLoadService> _existingReleasedProvidersLoadService;
+        private Mock<IExistingReleasedProviderVersionsLoadService> _existingReleasedProviderVersionsLoadService;
 
         [TestInitialize]
         public void SetUp()
@@ -57,6 +59,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _releaseManagementSpecificationService = new Mock<IReleaseManagementSpecificationService>();
             _channelReleaseService = new Mock<IChannelReleaseService>();
             _releaseContext = new Mock<IReleaseToChannelSqlMappingContext>();
+            _existingReleasedProvidersLoadService = new Mock<IExistingReleasedProvidersLoadService>();
+            _existingReleasedProviderVersionsLoadService = new Mock<IExistingReleasedProviderVersionsLoadService>();
 
             _releaseProvidersToChannelsService = new ReleaseProvidersToChannelsService(
                 _specificationService.Object,
@@ -70,7 +74,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _releaseManagementRepository.Object,
                 _releaseManagementSpecificationService.Object,
                 _channelReleaseService.Object,
-                _releaseContext.Object
+                _releaseContext.Object,
+                _existingReleasedProvidersLoadService.Object,
+                _existingReleasedProviderVersionsLoadService.Object
                 );
         }
 
@@ -118,7 +124,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest = new ReleaseProvidersToChannelRequest();
 
-            Job job = new Job {Id = jobId };
+            Job job = new Job { Id = jobId };
 
             _jobManagement
                 .Setup(_ => _.QueueJob(It.Is<JobCreateModel>(j =>
@@ -155,7 +161,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 {
                     Id = specificationId,
                     IsSelectedForFunding = true,
-                    FundingPeriod = new Reference {  Id = "FundingPeriod", Name = "FundingPeriod "},
+                    FundingPeriod = new Reference { Id = "FundingPeriod", Name = "FundingPeriod " },
                     FundingStreams = new List<Reference> { new Reference { Id = "FundingStream", Name = "FundingStream" } }
                 });
 

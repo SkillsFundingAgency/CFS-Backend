@@ -1,56 +1,54 @@
-﻿using BoDi;
+﻿using AutoMapper;
+using BoDi;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.FundingDataZone;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Profiling;
+using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.Storage;
+using CalculateFunding.Generators.OrganisationGroup;
+using CalculateFunding.Generators.OrganisationGroup.Interfaces;
+using CalculateFunding.Generators.Schema10;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Extensions;
 using CalculateFunding.Publishing.AcceptanceTests.Repositories;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Providers;
+using CalculateFunding.Services.Publishing.Reporting;
+using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
+using CalculateFunding.Services.Publishing.Specifications;
+using CalculateFunding.Services.Publishing.Variations;
+using CalculateFunding.Tests.Common;
+using FluentAssertions.Common;
+using FluentValidation;
+using Microsoft.Extensions.Configuration;
+using Microsoft.FeatureManagement;
 using Polly;
 using Serilog;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using TechTalk.SpecFlow;
-using PublishingResiliencePolicies = CalculateFunding.Services.Publishing.ResiliencePolicies;
-using PublishedProviderContentsGenerator10 = CalculateFunding.Generators.Schema10.PublishedProviderContentsGenerator;
-using PublishedProviderContentsGenerator11 = CalculateFunding.Generators.Schema11.PublishedProviderContentsGenerator;
-using PublishedProviderContentsGenerator12 = CalculateFunding.Generators.Schema12.PublishedProviderContentsGenerator;
 using PublishedFundingContentsGenerator10 = CalculateFunding.Generators.Schema10.PublishedFundingContentsGenerator;
 using PublishedFundingContentsGenerator11 = CalculateFunding.Generators.Schema11.PublishedFundingContentsGenerator;
 using PublishedFundingContentsGenerator12 = CalculateFunding.Generators.Schema12.PublishedFundingContentsGenerator;
-using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
-using FluentValidation;
-using AutoMapper;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Generators.Schema10;
-using Microsoft.Extensions.Configuration;
-using CalculateFunding.Common.CosmosDb;
-using System.Linq;
-using FluentAssertions.Common;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Services.Publishing.Variations;
-using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.ServiceBus.Interfaces;
-using CalculateFunding.Common.ApiClient.Profiling;
-using CalculateFunding.Common.ApiClient.FundingDataZone;
-using CalculateFunding.Common.Storage;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Publishing.Providers;
-using CalculateFunding.Common.ApiClient.Providers;
-using CalculateFunding.Generators.OrganisationGroup.Interfaces;
-using CalculateFunding.Generators.OrganisationGroup;
-using CalculateFunding.Services.Publishing.Specifications;
-using CalculateFunding.Services.Publishing.Reporting;
-using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
-using Microsoft.FeatureManagement;
-using CalculateFunding.Tests.Common;
-using CalculateFunding.Services.Core.Services;
+using PublishedProviderContentsGenerator10 = CalculateFunding.Generators.Schema10.PublishedProviderContentsGenerator;
+using PublishedProviderContentsGenerator11 = CalculateFunding.Generators.Schema11.PublishedProviderContentsGenerator;
+using PublishedProviderContentsGenerator12 = CalculateFunding.Generators.Schema12.PublishedProviderContentsGenerator;
+using PublishingResiliencePolicies = CalculateFunding.Services.Publishing.ResiliencePolicies;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 {
@@ -163,7 +161,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 IPublishedFundingContentsGeneratorResolver contentsGeneratorResolver = ctx.Resolve<IPublishedFundingContentsGeneratorResolver>();
                 IPublishingResiliencePolicies publishingResiliencePolicies = ctx.Resolve<IPublishingResiliencePolicies>();
                 IPublishingEngineOptions publishingEngineOptions = ctx.Resolve<IPublishingEngineOptions>();
-               
+
                 IReleaseManagementBlobStepContext releaseManagementBlobStepContext = ctx.Resolve<IReleaseManagementBlobStepContext>();
                 ReleaseManagementBlobStepContext stepContext = (ReleaseManagementBlobStepContext)releaseManagementBlobStepContext;
 
@@ -173,8 +171,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                     publishingEngineOptions);
             }));
 
-            RegisterFactoryAs<IPublishedProviderVersionService>((svc) => {
-            ILogger logger = svc.Resolve<ILogger>();
+            RegisterFactoryAs<IPublishedProviderVersionService>((svc) =>
+            {
+                ILogger logger = svc.Resolve<ILogger>();
                 IReleaseManagementBlobStepContext releaseManagementBlobStepContext = svc.Resolve<IReleaseManagementBlobStepContext>();
                 ReleaseManagementBlobStepContext stepContext = (ReleaseManagementBlobStepContext)releaseManagementBlobStepContext;
 
@@ -382,6 +381,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<FundingGroupDataPersistenceService, IFundingGroupDataPersistenceService>();
             RegisterTypeAs<FundingGroupProviderPersistenceService, IFundingGroupProviderPersistenceService>();
             RegisterTypeAs<ProviderVariationReasonsReleaseService, IProviderVariationReasonsReleaseService>();
+            RegisterTypeAs<ExistingReleasedProvidersLoadService, IExistingReleasedProvidersLoadService>();
+            RegisterTypeAs<ExistingReleasedProviderVersionsLoadService, IExistingReleasedProviderVersionsLoadService>();
 
             RegisterFactoryAs<IPublishedFundingContentsChannelPersistenceService>((svc) =>
             {

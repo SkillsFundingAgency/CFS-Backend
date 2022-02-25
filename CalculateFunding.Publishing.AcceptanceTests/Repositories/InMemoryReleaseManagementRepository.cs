@@ -3,6 +3,7 @@ using CalculateFunding.Models.External.V4;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,10 +14,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class InMemoryReleaseManagementRepository : IReleaseManagementRepository
     {
-        readonly ConcurrentDictionary<string, FundingPeriod> _fundingPeriods = new();
-        readonly ConcurrentDictionary<string, FundingStream> _fundingStreams = new();
+        readonly ConcurrentDictionary<int, FundingPeriod> _fundingPeriods = new();
+        readonly ConcurrentDictionary<int, FundingStream> _fundingStreams = new();
         readonly ConcurrentDictionary<string, Specification> _specifications = new();
-        readonly ConcurrentDictionary<string, GroupingReason> _groupingReasons = new();
+        readonly ConcurrentDictionary<int, GroupingReason> _groupingReasons = new();
         readonly ConcurrentDictionary<int, VariationReason> _variationReasons = new();
 
         readonly ConcurrentDictionary<string, Channel> _channels = new();
@@ -41,6 +42,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         int _releasedProviderVersionChannelsNextId = 1;
         int _releaseProviderVariationReasonsNextId = 1;
         int _variationReasonsNextId = 1;
+
+        public InMemoryReleaseManagementRepository()
+        {
+        }
 
         public int ReleasedProviderVersionChannelCount { get { return _releasedProviderVersionChannels.Count; } }
         public int ReleasedProviderCount { get { return _releasedProviders.Count; } }
@@ -85,6 +90,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<FundingGroup> CreateFundingGroup(FundingGroup fundingGroup)
         {
+            CheckUniqueConstraints(fundingGroup);
+
+
             if (fundingGroup.FundingGroupId <= 0)
             {
                 fundingGroup.FundingGroupId = _fundingGroupNextId++;
@@ -95,8 +103,29 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 throw new InvalidOperationException($"Funding group with id '{fundingGroup.FundingGroupId}' already exists");
             }
 
+            if (fundingGroup.FundingGroupId > _fundingGroupNextId)
+            {
+                _fundingGroupNextId = fundingGroup.FundingGroupId + 1;
+            }
+
             return Task.FromResult(fundingGroup);
 
+        }
+
+        private void CheckUniqueConstraints(FundingGroup fundingGroup)
+        {
+            bool existingGroup = _fundingGroups.Values.Where(_ =>
+                _.OrganisationGroupIdentifierValue == fundingGroup.OrganisationGroupIdentifierValue
+                && _.ChannelId == fundingGroup.ChannelId
+                && _.GroupingReasonId == fundingGroup.GroupingReasonId
+                && _.OrganisationGroupTypeCode == fundingGroup.OrganisationGroupTypeCode
+                ).Any();
+
+            if (existingGroup)
+            {
+                string outputObject = JsonConvert.SerializeObject(fundingGroup, Formatting.Indented);
+                throw new InvalidOperationException($"A group already exists with this composite key: {outputObject}");
+            }
         }
 
         public Task<FundingGroupProvider> CreateFundingGroupProvider(FundingGroupProvider fundingGroupProvider)
@@ -117,6 +146,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             if (!_fundingGroupProviders.TryAdd(fundingGroupProvider.FundingGroupProviderId, fundingGroupProvider))
             {
                 throw new InvalidOperationException($"Funding group provider already exists with ID '{fundingGroupProvider.FundingGroupProviderId}'");
+            }
+
+            if (fundingGroupProvider.FundingGroupProviderId >= _fundingGroupProvidersNextId)
+            {
+                _fundingGroupProvidersNextId = fundingGroupProvider.FundingGroupProviderId + 1;
             }
 
             return Task.FromResult(fundingGroupProvider);
@@ -171,7 +205,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<FundingGroupVersion> CreateFundingGroupVersion(FundingGroupVersion fundingGroupVersion)
         {
-            throw new NotImplementedException();
+            return CreateFundingGroupVersionUsingAmbientTransaction(fundingGroupVersion);
         }
 
         public Task<FundingGroupVersion> CreateFundingGroupVersionUsingAmbientTransaction(FundingGroupVersion fundingGroupVersion)
@@ -186,6 +220,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             if (!_fundingGroupVersions.TryAdd(fundingGroupVersion.FundingGroupVersionId, fundingGroupVersion))
             {
                 throw new InvalidOperationException($"Funding group version with ID '{fundingGroupVersion.FundingGroupVersionId}' already exists");
+            }
+
+            if (fundingGroupVersion.FundingGroupVersionId >= _fundingGroupVersionNextId)
+            {
+                _fundingGroupVersionNextId = fundingGroupVersion.FundingGroupVersionId + 1;
             }
 
             return Task.FromResult(fundingGroupVersion);
@@ -213,7 +252,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<FundingPeriod> CreateFundingPeriod(FundingPeriod fundingPeriod)
         {
-            _fundingPeriods.TryAdd(fundingPeriod.FundingPeriodCode, fundingPeriod);
+            _fundingPeriods.TryAdd(fundingPeriod.FundingPeriodId, fundingPeriod);
+
             return Task.FromResult(fundingPeriod);
         }
 
@@ -224,7 +264,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<FundingStream> CreateFundingStream(FundingStream fundingStream)
         {
-            _fundingStreams.TryAdd(fundingStream.FundingStreamCode, fundingStream);
+            _fundingStreams.TryAdd(fundingStream.FundingStreamId, fundingStream);
             return Task.FromResult(fundingStream);
         }
 
@@ -235,7 +275,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<GroupingReason> CreateGroupingReason(GroupingReason groupingReason)
         {
-            if (!_groupingReasons.TryAdd(groupingReason.GroupingReasonCode, groupingReason))
+            if (_groupingReasons.Values.Any(_ => _.GroupingReasonCode == groupingReason.GroupingReasonCode))
+            {
+                throw new InvalidOperationException($"Grouping reason with code '{groupingReason.GroupingReasonCode}' already exists");
+            }
+
+            if (!_groupingReasons.TryAdd(groupingReason.GroupingReasonId, groupingReason))
             {
                 throw new InvalidOperationException($"Grouping reason with ID '{groupingReason.GroupingReasonId}' already exists");
             }
@@ -243,9 +288,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(groupingReason);
         }
 
-        public Task<ReleasedProvider> CreateReleasedProvider(ReleasedProvider releasedProvider)
+        public async Task<ReleasedProvider> CreateReleasedProvider(ReleasedProvider releasedProvider)
         {
-            throw new NotImplementedException();
+            return (await CreateReleasedProvidersUsingAmbientTransaction(new[] { releasedProvider })).First();
         }
 
         public Task<ReleasedProviderChannelVariationReason> GetReleasedProviderVersionChannelVariationReason(int releasedProviderChannelVariationReasonId)
@@ -264,7 +309,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             List<ReleasedProviderChannelVariationReason> results = new();
 
-            foreach (var providerVariation in providerVariations)
+            foreach (ReleasedProviderChannelVariationReason providerVariation in providerVariations)
             {
                 EnsureReleaseProviderVersionChannelExists(providerVariation.ReleasedProviderVersionChannelId);
                 EnsureVariationReasonExists(providerVariation.VariationReasonId);
@@ -290,7 +335,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             List<ReleasedProvider> result = new List<ReleasedProvider>();
 
-            foreach (var releasedProvider in releasedProviders)
+            foreach (ReleasedProvider releasedProvider in releasedProviders)
             {
                 if (releasedProvider.ReleasedProviderId <= 0)
                 {
@@ -325,14 +370,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(group);
         }
 
-        public Task<ReleasedProviderVersion> CreateReleasedProviderVersion(ReleasedProviderVersion releasedProviderVersion)
+        public async Task<ReleasedProviderVersion> CreateReleasedProviderVersion(ReleasedProviderVersion releasedProviderVersion)
         {
-            throw new NotImplementedException();
+            return await CreateReleasedProviderVersionUsingAmbientTransaction(releasedProviderVersion);
         }
 
         public Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannel(ReleasedProviderVersionChannel providerVersionChannel)
         {
-            throw new NotImplementedException();
+            return CreateReleasedProviderVersionChannelsUsingAmbientTransaction(providerVersionChannel);
         }
 
         public Task<ReleasedProviderVersionChannel> GetReleasedProviderVersionChannel(int releasedProviderVersionChannelId)
@@ -355,6 +400,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             if (!_releasedProviderVersionChannels.TryAdd(providerVersionChannel.ReleasedProviderVersionChannelId, providerVersionChannel))
             {
                 throw new InvalidOperationException($"A released provider version channel already exists with ID '{providerVersionChannel.ReleasedProviderVersionChannelId}'");
+            }
+
+            if (providerVersionChannel.ReleasedProviderVersionChannelId > _releasedProviderVersionChannelsNextId)
+            {
+                _releasedProviderVersionChannelsNextId = providerVersionChannel.ReleasedProviderVersionChannelId + 1;
             }
 
             return Task.FromResult(providerVersionChannel);
@@ -382,9 +432,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             }
         }
 
-        public Task<ReleasedProviderVersion> CreateReleasedProviderVersionsUsingAmbientTransaction(ReleasedProviderVersion providerVersion)
+        public Task<ReleasedProviderVersion> CreateReleasedProviderVersionUsingAmbientTransaction(ReleasedProviderVersion providerVersion)
         {
-
             if (providerVersion.ReleasedProviderVersionId <= 0)
             {
                 providerVersion.ReleasedProviderVersionId = _releasedProviderVersionsNextId++;
@@ -392,11 +441,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             EnsureReleasedProviderExists(providerVersion.ReleasedProviderId);
 
-            if (!_releasedProviderVersions.TryAdd(providerVersion.ReleasedProviderId, providerVersion))
+            if (!_releasedProviderVersions.TryAdd(providerVersion.ReleasedProviderVersionId, providerVersion))
             {
-                throw new InvalidOperationException($"Release provider already exists with ID '{providerVersion.ReleasedProviderVersionId}'");
+                throw new InvalidOperationException($"Released provider version already exists with ID '{providerVersion.ReleasedProviderVersionId}'");
             }
 
+            if (_releasedProviderVersionsNextId < providerVersion.ReleasedProviderVersionId)
+            {
+                _releasedProviderVersionsNextId = providerVersion.ReleasedProviderVersionId + 1;
+            }
 
             return Task.FromResult(providerVersion);
         }
@@ -467,7 +520,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(_channels.Values.AsEnumerable());
         }
 
-        public Task<FundingGroup> GetFundingGroup(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue)
+        public Task<FundingGroup> GetFundingGroupUsingAmbientTransaction(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue)
         {
             FundingGroup fundingGroup = _fundingGroups.Values
                 .SingleOrDefault(_ => _.ChannelId == channelId
@@ -506,7 +559,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public async Task<FundingPeriod> GetFundingPeriodByCode(string code)
         {
-            _fundingPeriods.TryGetValue(code, out FundingPeriod fundingPeriod);
+            FundingPeriod fundingPeriod = _fundingPeriods.Values.SingleOrDefault(_ => _.FundingPeriodCode == code);
             return await Task.FromResult(fundingPeriod);
         }
 
@@ -517,7 +570,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public async Task<FundingStream> GetFundingStreamByCode(string code)
         {
-            _fundingStreams.TryGetValue(code, out FundingStream fundingStream);
+            FundingStream fundingStream = _fundingStreams.Values.SingleOrDefault(_ => _.FundingStreamCode == code);
             return await Task.FromResult(fundingStream);
         }
 
@@ -649,7 +702,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 {
                     MajorVersion = _.MajorVersion,
                     FundingGroupVersionId = _.FundingGroupVersionId,
-                    FundingId = _.FundingId,
+                    FundingPeriodCode = _fundingPeriods[_.FundingPeriodId].FundingPeriodCode,
+                    FundingStreamCode = _fundingStreams[_.FundingStreamId].FundingStreamCode,
+                    FundingGroupId = _.FundingGroupId,
+                    GroupingReasonCode = _groupingReasons[_.GroupingReasonId].GroupingReasonCode,
+                    OrganisationGroupIdentifierValue = _fundingGroups[_.FundingGroupId].OrganisationGroupIdentifierValue,
+                    OrganisationGroupTypeCode = _fundingGroups[_.FundingGroupId].OrganisationGroupTypeCode,
                 });
 
             return Task.FromResult(latestVersions);
@@ -663,6 +721,89 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<FundingGroup> CreateFundingGroupUsingAmbientTransaction(FundingGroup fundingGroup)
         {
             return CreateFundingGroup(fundingGroup);
+        }
+
+        public Task<IEnumerable<ReleasedProvider>> GetReleasedProviders(string specificationId)
+        {
+            return Task.FromResult(_releasedProviders.Values.Where(_ => _.SpecificationId == specificationId));
+        }
+
+        public Task<IEnumerable<ReleasedProvider>> GetReleasedProviders(string specificationId, IEnumerable<string> providerIds)
+        {
+            return Task.FromResult(_releasedProviders.Values
+                .Where(_ =>
+                    _.SpecificationId == specificationId
+                    && providerIds.Contains(_.ProviderId)));
+        }
+
+        public Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersionsUsingAmbientTransaction(string specificationId)
+        {
+            return Task.FromResult(GetLatestReleasedProviderVersionsInternal(specificationId));
+        }
+
+        public Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersions(string specificationId)
+        {
+            return Task.FromResult(GetLatestReleasedProviderVersionsInternal(specificationId));
+        }
+
+        public Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersions(string specificationId, IEnumerable<string> providerIds)
+        {
+            return Task.FromResult(GetLatestReleasedProviderVersionsInternal(specificationId, providerIds));
+        }
+
+        public Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersionsUsingAmbientTransaction(string specificationId, IEnumerable<string> providerIds)
+        {
+            return Task.FromResult(GetLatestReleasedProviderVersionsInternal(specificationId, providerIds));
+        }
+
+        private IEnumerable<LatestReleasedProviderVersion> GetLatestReleasedProviderVersionsInternal(string specificationId, IEnumerable<string> providerIds = null)
+        {
+            Dictionary<int, ReleasedProvider> releasedProvidersForSpecification;
+            if (providerIds.AnyWithNullCheck())
+            {
+                releasedProvidersForSpecification = _releasedProviders.Values
+                    .Where(_ => _.SpecificationId == specificationId
+                            && providerIds.Contains(_.ProviderId))
+                    .ToDictionary(_ => _.ReleasedProviderId);
+            }
+            else
+            {
+                releasedProvidersForSpecification = _releasedProviders.Values
+                    .Where(_ => _.SpecificationId == specificationId)
+                    .ToDictionary(_ => _.ReleasedProviderId);
+            }
+
+            int[] releasedProviderIds = releasedProvidersForSpecification.Values.Select(_ => _.ReleasedProviderId).ToArray();
+
+            IEnumerable<ReleasedProviderVersion> allReleasedProviderVersionsForSpec = _releasedProviderVersions.Values
+                    .Where(_ => releasedProviderIds.Contains(_.ReleasedProviderId));
+
+            IEnumerable<IGrouping<int, ReleasedProviderVersion>> versionsByReleasedProviderId = allReleasedProviderVersionsForSpec.GroupBy(_ => _.ReleasedProviderId);
+
+            List<LatestReleasedProviderVersion> latestReleasedProviderVersions = new List<LatestReleasedProviderVersion>();
+
+            foreach (IGrouping<int, ReleasedProviderVersion> group in versionsByReleasedProviderId)
+            {
+                ReleasedProviderVersion latestVersion = group.MaxBy(_ => _.MajorVersion);
+                latestReleasedProviderVersions.Add(new LatestReleasedProviderVersion()
+                {
+                    LatestMajorVersion = latestVersion.MajorVersion,
+                    ProviderId = releasedProvidersForSpecification[latestVersion.ReleasedProviderId].ProviderId,
+                    ReleasedProviderVersionId = latestVersion.ReleasedProviderVersionId,
+                });
+            }
+
+            return latestReleasedProviderVersions;
+        }
+
+        public Task<IEnumerable<ReleasedProvider>> GetReleasedProvidersUsingAmbientTransaction(string specificationId)
+        {
+            return GetReleasedProviders(specificationId);
+        }
+
+        public Task<IEnumerable<ReleasedProvider>> GetReleasedProvidersUsingAmbientTransaction(string specificationId, IEnumerable<string> providerIds)
+        {
+            return GetReleasedProviders(specificationId, providerIds);
         }
     }
 }

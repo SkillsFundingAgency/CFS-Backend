@@ -2,7 +2,6 @@
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
@@ -12,8 +11,6 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResu
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Newtonsoft.Json;
-using Polly;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -66,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             string correlationId)
         {
             Reference fundingStream = specification.FundingStreams.First();
-            
+
             List<PublishedProvider> publishedProviders =
                 await _publishedProviderLoader.GetAllPublishedProviders(organisationGroupsToCreate, specification.Id, channel.ChannelId, batchPublishedProviderIds);
 
@@ -115,7 +112,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             List<GeneratedPublishedFunding> result = new List<GeneratedPublishedFunding>();
 
-            Dictionary<string, LatestFundingGroupVersion> latestFundingVersions = latestFundingGroupsForChannel.ToDictionary(_ => _.FundingId);
+            Dictionary<string, LatestFundingGroupVersion> latestFundingVersions =
+                latestFundingGroupsForChannel
+                .ToDictionary(_ => $"{_.FundingStreamCode}_{_.FundingPeriodCode}_{_.GroupingReasonCode}_{_.OrganisationGroupTypeCode}_{_.OrganisationGroupIdentifierValue}");
+
 
             foreach ((PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion) publishedFunding in publishedFundings)
             {
@@ -129,13 +129,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     throw new NonRetriableException($"Organisation group result not found for ${JsonConvert.SerializeObject(publishedFunding.PublishedFundingVersion)}");
                 }
 
-                publishedFunding.PublishedFundingVersion.MajorVersion = GetMajorVersionForRelease(publishedFunding.PublishedFundingVersion.FundingId, latestFundingVersions);
+                publishedFunding.PublishedFundingVersion.MajorVersion = GetMajorVersionForRelease(publishedFunding.PublishedFundingVersion, latestFundingVersions);
                 publishedFunding.PublishedFundingVersion.FundingId = _publishedFundingIdGeneratorResolver
                     .GetService(publishedFunding.PublishedFundingVersion.SchemaVersion)
                     .GetFundingId(publishedFunding.PublishedFundingVersion);
 
 
-                result.Add( new GeneratedPublishedFunding()
+                result.Add(new GeneratedPublishedFunding()
                 {
                     PublishedFunding = publishedFunding.PublishedFunding,
                     PublishedFundingVersion = publishedFunding.PublishedFundingVersion,
@@ -146,9 +146,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             return result;
         }
 
-        private int GetMajorVersionForRelease(string fundingId, Dictionary<string, LatestFundingGroupVersion> latestFundingVersions)
+        private int GetMajorVersionForRelease(PublishedFundingVersion publishedFundingVersion, Dictionary<string, LatestFundingGroupVersion> latestFundingVersions)
         {
-            if(latestFundingVersions.TryGetValue(fundingId, out var latestFunding))
+            if (latestFundingVersions.TryGetValue($"{publishedFundingVersion.FundingStreamId}_{publishedFundingVersion.FundingPeriod.Id}_{publishedFundingVersion.GroupingReason}_{publishedFundingVersion.OrganisationGroupTypeCode}_{publishedFundingVersion.OrganisationGroupIdentifierValue}", out LatestFundingGroupVersion latestFunding))
             {
                 // Existing version, so increase the major version by 1
                 return latestFunding.MajorVersion + 1;

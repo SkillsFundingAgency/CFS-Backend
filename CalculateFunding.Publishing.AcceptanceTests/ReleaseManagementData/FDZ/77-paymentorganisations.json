@@ -1,0 +1,14 @@
+[
+  {
+    "PaymentOrganisationId": 283227,
+    "ProviderSnapshotId": 184,
+    "Name": "WANDSWORTH LONDON BOROUGH COUNCIL",
+    "Ukprn": "10004002",
+    "Upin": null,
+    "TrustCode": "",
+    "LaCode": "212",
+    "Urn": null,
+    "PaymentOrganisationType": "LA",
+    "CompanyHouseNumber":  null
+  }
+]

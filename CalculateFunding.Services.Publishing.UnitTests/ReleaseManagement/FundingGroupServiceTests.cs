@@ -114,7 +114,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
         private void GivenNoExistingFundingGroups()
         {
-            _releaseManagementRepository.Setup(r => r.GetFundingGroup(
+            _releaseManagementRepository.Setup(r => r.GetFundingGroupUsingAmbientTransaction(
                 It.Is<int>(s => s == _channelId),
                 It.Is<string>(s => s == _specificationId),
                 It.IsAny<int>(),
@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
         private void GivenExistingFundingGroup(FundingGroup fundingGroup, string identifier)
         {
-            _releaseManagementRepository.Setup(r => r.GetFundingGroup(
+            _releaseManagementRepository.Setup(r => r.GetFundingGroupUsingAmbientTransaction(
                 It.Is<int>(s => s == _channelId),
                 It.Is<string>(s => s == _specificationId),
                 It.IsAny<int>(),

@@ -29,17 +29,33 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
         public async Task ReleaseProviderVersions(IEnumerable<PublishedProviderVersion> publishedProviderVersions, string specificationId)
         {
-            IEnumerable<PublishedProviderVersion> newProviderVersions = publishedProviderVersions
-                .Where(_ => !_releaseToChannelSqlMappingContext.ReleasedProviderVersions.ContainsKey(_.ProviderId));
+            Dictionary<string, ReleasedProviderVersion> existingProviders = _releaseToChannelSqlMappingContext.ReleasedProviderVersions;
 
-            if (!VerifyProvidersExistInContext(newProviderVersions))
+            List<PublishedProviderVersion> providersToCreate = new List<PublishedProviderVersion>(publishedProviderVersions.Count());
+
+            foreach (PublishedProviderVersion provider in publishedProviderVersions)
+            {
+                if (ProviderHasNeverBeenReleased(existingProviders, provider))
+                {
+                    providersToCreate.Add(provider);
+                }
+                else
+                {
+                    if (NewVersionOfProviderPreviouslyReleasedIsInThisBatch(existingProviders, provider))
+                    {
+                        providersToCreate.Add(provider);
+                    }
+                }
+            }
+
+            if (!VerifyProvidersExistInContext(providersToCreate))
             {
                 throw new KeyNotFoundException("Providers missing from sql mapping context");
             }
 
-            foreach (PublishedProviderVersion providerVersion in newProviderVersions)
+            foreach (PublishedProviderVersion providerVersion in providersToCreate)
             {
-                ReleasedProviderVersion releasedProviderVersion = await _releaseManagementRepository.CreateReleasedProviderVersionsUsingAmbientTransaction(new ReleasedProviderVersion
+                ReleasedProviderVersion releasedProviderVersion = await _releaseManagementRepository.CreateReleasedProviderVersionUsingAmbientTransaction(new ReleasedProviderVersion
                 {
                     MajorVersion = providerVersion.MajorVersion,
                     MinorVersion = providerVersion.MinorVersion,
@@ -49,13 +65,25 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     CoreProviderVersionId = providerVersion.Provider.ProviderVersionId,
                 });
 
-                _releaseToChannelSqlMappingContext.ReleasedProviderVersions.Add(providerVersion.ProviderId, releasedProviderVersion);
+                // Add or update the record in released provider versions to indicate the latest group, as the overall release will release the latest major version for this provider
+                // The provider version may already be in the dictionary from the start of the release process from an older major version previously released
+                _releaseToChannelSqlMappingContext.ReleasedProviderVersions[providerVersion.ProviderId] = releasedProviderVersion;
+            }
+
+            static bool NewVersionOfProviderPreviouslyReleasedIsInThisBatch(Dictionary<string, ReleasedProviderVersion> existingProviders, PublishedProviderVersion provider)
+            {
+                return existingProviders[provider.ProviderId].MajorVersion != provider.MajorVersion;
+            }
+
+            static bool ProviderHasNeverBeenReleased(Dictionary<string, ReleasedProviderVersion> existingProviders, PublishedProviderVersion provider)
+            {
+                return !existingProviders.ContainsKey(provider.ProviderId);
             }
         }
 
         private bool VerifyProvidersExistInContext(IEnumerable<PublishedProviderVersion> newProviderVersions)
         {
-            var missingProviders = new List<PublishedProviderVersion>();
+            List<PublishedProviderVersion> missingProviders = new List<PublishedProviderVersion>();
 
             foreach (PublishedProviderVersion providerVersion in newProviderVersions)
             {

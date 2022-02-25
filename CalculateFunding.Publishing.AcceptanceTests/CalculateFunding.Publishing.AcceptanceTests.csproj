@@ -8,8 +8,11 @@
 
   <ItemGroup>
     <None Remove="ReleaseManagementData\FDZ\76-paymentorganisations.json" />
-    <None Remove="ReleaseManagementData\FundingConfigurations\PSG-AY-2122.json" />
+    <None Remove="ReleaseManagementData\FDZ\77-paymentorganisations.json" />
+    <None Remove="ReleaseManagementData\FundingConfigurations\PSG-AY-2122-Batch.json" />
     <None Remove="ReleaseManagementData\PublishedProviders\publishedprovider-10071688-AY-2122-PSG.json" />
+    <None Remove="ReleaseManagementData\PublishedProviders\publishedprovider-10071689-AY-2122-PSG.json" />
+    <None Remove="ReleaseManagementData\PublishedProviders\publishedprovider-10071690-AY-2122-PSG.json" />
     <None Remove="Resources\16191.2.json" />
     <None Remove="Resources\DSG1.0.json" />
     <None Remove="Resources\DSG1.0.Variations.json" />
@@ -19,6 +22,8 @@
     <None Remove="Resources\Input\ProviderVersions\1619-providers-1_0.json" />
     <None Remove="Resources\Input\ProviderVersions\gag-providers-1_0.json" />
     <None Remove="Resources\Input\ProviderVersions\PSG-2021-10-11-76.json" />
+    <None Remove="Resources\Input\ProviderVersions\PSG-2021-10-11-77.json" />
+    <None Remove="Resources\Input\ProviderVersions\PSG-2021-10-11-78.json" />
     <None Remove="Resources\Input\PublishedProviders\1619-AS-2021-1000000.json" />
     <None Remove="Resources\Input\PublishedProviders\1619-AS-2021-1000002.json" />
     <None Remove="Resources\Input\PublishedProviders\GAG-AC-2021-1000002.json" />
@@ -67,11 +72,15 @@
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshGAG - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsgVariations - Copy.feature.cs" />
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\ReleaseManagement\ReleaseManagement-InitialRelease - Copy.feature.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="ReleaseManagementData\FDZ\76-paymentorganisations.json" />
-    <EmbeddedResource Include="ReleaseManagementData\FundingConfigurations\PSG-AY-2122.json" />
+    <EmbeddedResource Include="ReleaseManagementData\FDZ\77-paymentorganisations.json" />
+    <EmbeddedResource Include="ReleaseManagementData\FundingConfigurations\PSG-AY-2122-Batch.json" />
+    <EmbeddedResource Include="ReleaseManagementData\PublishedProviders\publishedprovider-10071689-AY-2122-PSG.json" />
+    <EmbeddedResource Include="ReleaseManagementData\PublishedProviders\publishedprovider-10071690-AY-2122-PSG.json" />
     <EmbeddedResource Include="ReleaseManagementData\PublishedProviders\publishedprovider-10071688-AY-2122-PSG.json" />
     <EmbeddedResource Include="Resources\16191.2.json" />
     <EmbeddedResource Include="Resources\GAG1.2.json" />
@@ -81,6 +90,8 @@
     <EmbeddedResource Include="Resources\Input\CalculationResults\gag-approve-all-funding-calculations.json" />
     <EmbeddedResource Include="Resources\Input\ProviderVersions\1619-providers-1_0.json" />
     <EmbeddedResource Include="Resources\Input\ProviderVersions\gag-providers-1_0.json" />
+    <EmbeddedResource Include="Resources\Input\ProviderVersions\PSG-2021-10-11-78.json" />
+    <EmbeddedResource Include="Resources\Input\ProviderVersions\PSG-2021-10-11-77.json" />
     <EmbeddedResource Include="Resources\Input\ProviderVersions\PSG-2021-10-11-76.json" />
     <EmbeddedResource Include="Resources\Input\PublishedProviders\1619-AS-2021-1000000.json" />
     <EmbeddedResource Include="Resources\Input\PublishedProviders\1619-AS-2021-1000002.json" />
@@ -190,6 +201,9 @@
     <Compile Update="Features\Refresh\RefreshPsgVariations.feature.cs">
       <DependentUpon>RefreshPsgVariations.feature</DependentUpon>
     </Compile>
+    <Compile Update="Features\ReleaseManagement\ReleaseManagement-SubsequentRelease.feature.cs">
+      <DependentUpon>ReleaseManagement-SubsequentRelease.feature</DependentUpon>
+    </Compile>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -281,10 +295,10 @@
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Features\ReleaseManagement\" />
+    <SpecFlowFeatureFiles Update="Features\ReleaseManagement\ReleaseManagement-SubsequentRelease.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>

@@ -52,6 +52,8 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IFundingGroupProviderPersistenceService, FundingGroupProviderPersistenceService>();
             builder.AddScoped<IGenerateVariationReasonsForChannelService, GenerateVariationReasonsForChannelService>();
             builder.AddScoped<IProviderVariationReasonsReleaseService, ProviderVariationReasonsReleaseService>();
+            builder.AddScoped<IExistingReleasedProvidersLoadService, ExistingReleasedProvidersLoadService>();
+            builder.AddScoped<IExistingReleasedProviderVersionsLoadService, ExistingReleasedProviderVersionsLoadService>();
             builder.AddSingleton<IPublishedProviderChannelVersionService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();

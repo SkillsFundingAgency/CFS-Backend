@@ -1,0 +1,345 @@
+{
+  "id": "publishedprovider-10071689-AY-2122-PSG",
+  "documentType": "PublishedProvider",
+  "content": {
+    "id": "publishedprovider-10071689-AY-2122-PSG",
+    "publishedProviderId": "PSG-AY-2122-10071689",
+    "current": {
+      "id": "publishedprovider-10071689-AY-2122-PSG-3",
+      "fundingId": "PSG-AY-2122-10071689-1_0",
+      "publishedProviderId": "PSG-AY-2122-10071689",
+      "fundingStreamId": "PSG",
+      "fundingPeriodId": "AY-2122",
+      "profilePatternKeys": [
+        {
+          "FundingLineCode": "TotalAllocation",
+          "Key": null
+        }
+      ],
+      "customProfiles": null,
+      "hasCustomProfiles": false,
+      "specificationId": "3812005f-13b3-4d00-a118-d6cb0e2b2402",
+      "templateVersion": "1.2",
+      "entityId": "publishedprovider-10071689-AY-2122-PSG",
+      "status": "Released",
+      "providerId": "10071689",
+      "partitionKey": "publishedprovider-10071689-AY-2122-PSG",
+      "fundingLines": [
+        {
+          "name": "Total Allocation",
+          "fundingLineCode": "TotalAllocation",
+          "value": 17780,
+          "templateLineId": 1,
+          "type": "Payment",
+          "distributionPeriods": [
+            {
+              "value": 10372,
+              "distributionPeriodId": "FY-2122",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "October",
+                  "year": 2021,
+                  "occurrence": 1,
+                  "profiledValue": 10372,
+                  "distributionPeriodId": "FY-2122"
+                }
+              ]
+            },
+            {
+              "value": 7408,
+              "distributionPeriodId": "FY-2223",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "April",
+                  "year": 2022,
+                  "occurrence": 1,
+                  "profiledValue": 7408,
+                  "distributionPeriodId": "FY-2223"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "calculations": [
+        {
+          "templateCalculationId": 2,
+          "value": 17780
+        },
+        {
+          "templateCalculationId": 3,
+          "value": 178
+        },
+        {
+          "templateCalculationId": 4,
+          "value": 17
+        },
+        {
+          "templateCalculationId": 5,
+          "value": 1000
+        },
+        {
+          "templateCalculationId": 6,
+          "value": 10
+        }
+      ],
+      "referenceData": null,
+      "totalFunding": 17780,
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "provider": {
+        "providerVersionId": "PSG-2021-10-11-77",
+        "providerId": "10071689",
+        "trustStatus": 0,
+        "name": "St Anselm's Catholic Primary School",
+        "urn": "101052",
+        "ukprn": "10071689",
+        "upin": null,
+        "establishmentNumber": "3644",
+        "furtherEducationTypeCode": null,
+        "furtherEducationTypeName": null,
+        "dfeEstablishmentNumber": "2123644",
+        "authority": "Wandsworth",
+        "providerType": "Local authority maintained schools",
+        "providerSubType": "Voluntary aided school",
+        "dateOpened": "1900-01-01T00:00:00+00:00",
+        "dateClosed": "1900-01-01T00:00:00+00:00",
+        "providerProfileIdType": null,
+        "laCode": "212",
+        "navVendorNo": null,
+        "crmAccountId": null,
+        "legalName": null,
+        "status": "Open",
+        "phaseOfEducation": "Primary",
+        "reasonEstablishmentOpened": "Not applicable",
+        "reasonEstablishmentClosed": "Not applicable",
+        "successor": null,
+        "successors": [],
+        "predecessors": [],
+        "trustName": "",
+        "trustCode": "",
+        "town": "London",
+        "postcode": "SW17 8RW",
+        "companiesHouseNumber": "",
+        "groupIdNumber": "",
+        "rscRegionName": "South-East England and South London",
+        "rscRegionCode": "6",
+        "governmentOfficeRegionName": "London",
+        "governmentOfficeRegionCode": "H",
+        "districtName": "Wandsworth",
+        "districtCode": "E09000032",
+        "wardName": "Bedford",
+        "wardCode": "E05000611",
+        "censusWardName": "",
+        "censusWardCode": "999999",
+        "middleSuperOutputAreaName": "Wandsworth 029",
+        "middleSuperOutputAreaCode": "E02000951",
+        "lowerSuperOutputAreaName": "Wandsworth 029A",
+        "lowerSuperOutputAreaCode": "E01004481",
+        "parliamentaryConstituencyName": "Tooting",
+        "parliamentaryConstituencyCode": "E14000998",
+        "countryCode": "GB",
+        "countryName": "United Kingdom",
+        "localGovernmentGroupTypeCode": "",
+        "localGovernmentGroupTypeName": "",
+        "paymentOrganisationIdentifier": "10004002",
+        "paymentOrganisationName": "WANDSWORTH LONDON BOROUGH COUNCIL"
+      },
+      "predecessors": [],
+      "variationReasons": [
+        "FundingUpdated",
+        "ProfilingUpdated"
+      ],
+      "errors": null,
+      "HasErrors": false,
+      "jobId": "61fade41-8eab-4c4b-ac75-36c0579d7c69",
+      "correlationId": "e89fca64-feb4-49d3-8417-85753dfd7dab",
+      "carryOvers": null,
+      "profilingAudits": null,
+      "isIndicative": false,
+      "version": 3,
+      "date": "2021-10-13T11:47:11.5540879+01:00",
+      "author": {
+        "id": "fa05a04d-bee2-40c0-a7ed-17d40da9354d",
+        "name": "Colin STRONACH"
+      },
+      "comment": "Add by system because published provider doesn't already exist",
+      "publishStatus": "Updated"
+    },
+    "released": {
+      "id": "publishedprovider-10071689-AY-2122-PSG-3",
+      "fundingId": "PSG-AY-2122-10071689-1_0",
+      "publishedProviderId": "PSG-AY-2122-10071689",
+      "fundingStreamId": "PSG",
+      "fundingPeriodId": "AY-2122",
+      "profilePatternKeys": [
+        {
+          "FundingLineCode": "TotalAllocation",
+          "Key": null
+        }
+      ],
+      "customProfiles": null,
+      "hasCustomProfiles": false,
+      "specificationId": "3812005f-13b3-4d00-a118-d6cb0e2b2402",
+      "templateVersion": "1.2",
+      "entityId": "publishedprovider-10071689-AY-2122-PSG",
+      "status": "Released",
+      "providerId": "10071689",
+      "partitionKey": "publishedprovider-10071689-AY-2122-PSG",
+      "fundingLines": [
+        {
+          "name": "Total Allocation",
+          "fundingLineCode": "TotalAllocation",
+          "value": 17780,
+          "templateLineId": 1,
+          "type": "Payment",
+          "distributionPeriods": [
+            {
+              "value": 10372,
+              "distributionPeriodId": "FY-2122",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "October",
+                  "year": 2021,
+                  "occurrence": 1,
+                  "profiledValue": 10372,
+                  "distributionPeriodId": "FY-2122"
+                }
+              ]
+            },
+            {
+              "value": 7408,
+              "distributionPeriodId": "FY-2223",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "April",
+                  "year": 2022,
+                  "occurrence": 1,
+                  "profiledValue": 7408,
+                  "distributionPeriodId": "FY-2223"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "calculations": [
+        {
+          "templateCalculationId": 2,
+          "value": 17780
+        },
+        {
+          "templateCalculationId": 3,
+          "value": 178
+        },
+        {
+          "templateCalculationId": 4,
+          "value": 17
+        },
+        {
+          "templateCalculationId": 5,
+          "value": 1000
+        },
+        {
+          "templateCalculationId": 6,
+          "value": 10
+        }
+      ],
+      "referenceData": null,
+      "totalFunding": 17780,
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "provider": {
+        "providerVersionId": "PSG-2021-10-11-77",
+        "providerId": "10071689",
+        "trustStatus": 0,
+        "name": "St Anselm's Catholic Primary School",
+        "urn": "101052",
+        "ukprn": "10071689",
+        "upin": null,
+        "establishmentNumber": "3644",
+        "furtherEducationTypeCode": null,
+        "furtherEducationTypeName": null,
+        "dfeEstablishmentNumber": "2123644",
+        "authority": "Wandsworth",
+        "providerType": "Local authority maintained schools",
+        "providerSubType": "Voluntary aided school",
+        "dateOpened": "1900-01-01T00:00:00+00:00",
+        "dateClosed": "1900-01-01T00:00:00+00:00",
+        "providerProfileIdType": null,
+        "laCode": "212",
+        "navVendorNo": null,
+        "crmAccountId": null,
+        "legalName": null,
+        "status": "Open",
+        "phaseOfEducation": "Primary",
+        "reasonEstablishmentOpened": "Not applicable",
+        "reasonEstablishmentClosed": "Not applicable",
+        "successor": null,
+        "successors": [],
+        "predecessors": [],
+        "trustName": "",
+        "trustCode": "",
+        "town": "London",
+        "postcode": "SW17 8RW",
+        "companiesHouseNumber": "",
+        "groupIdNumber": "",
+        "rscRegionName": "South-East England and South London",
+        "rscRegionCode": "6",
+        "governmentOfficeRegionName": "London",
+        "governmentOfficeRegionCode": "H",
+        "districtName": "Wandsworth",
+        "districtCode": "E09000032",
+        "wardName": "Bedford",
+        "wardCode": "E05000611",
+        "censusWardName": "",
+        "censusWardCode": "999999",
+        "middleSuperOutputAreaName": "Wandsworth 029",
+        "middleSuperOutputAreaCode": "E02000951",
+        "lowerSuperOutputAreaName": "Wandsworth 029A",
+        "lowerSuperOutputAreaCode": "E01004481",
+        "parliamentaryConstituencyName": "Tooting",
+        "parliamentaryConstituencyCode": "E14000998",
+        "countryCode": "GB",
+        "countryName": "United Kingdom",
+        "localGovernmentGroupTypeCode": "",
+        "localGovernmentGroupTypeName": "",
+        "paymentOrganisationIdentifier": "10004002",
+        "paymentOrganisationName": "WANDSWORTH LONDON BOROUGH COUNCIL"
+      },
+      "predecessors": [],
+      "variationReasons": [
+        "FundingUpdated",
+        "ProfilingUpdated"
+      ],
+      "errors": null,
+      "HasErrors": false,
+      "jobId": "61fade41-8eab-4c4b-ac75-36c0579d7c69",
+      "correlationId": "e89fca64-feb4-49d3-8417-85753dfd7dab",
+      "carryOvers": null,
+      "profilingAudits": null,
+      "isIndicative": false,
+      "version": 3,
+      "date": "2021-10-13T11:47:11.5540879+01:00",
+      "author": {
+        "id": "fa05a04d-bee2-40c0-a7ed-17d40da9354d",
+        "name": "Colin STRONACH"
+      },
+      "comment": "Add by system because published provider doesn't already exist",
+      "publishStatus": "Updated"
+    },
+    "partitionKey": "publishedprovider-10071689-AY-2122-PSG"
+  },
+  "createdAt": "2021-10-12T17:03:31.4823077+01:00",
+  "updatedAt": "2021-10-13T11:47:11.6725678+01:00",
+  "deleted": false,
+  "_rid": "bMZRAIs+xrFSFAAAAAAACA==",
+  "_self": "dbs/bMZRAA==/colls/bMZRAIs+xrE=/docs/bMZRAIs+xrFSFAAAAAAACA==/",
+  "_etag": "\"0f00962b-0000-0d00-0000-61c333cf0000\"",
+  "_attachments": "attachments/",
+  "_ts": 1640182735
+}

@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             {
                 int groupingReasonId = GetGroupingReasonId(specificationId, channelId, groupingReasons, organisationGroupResult);
 
-                FundingGroup existingFundingGroup = await _releaseManagementRepository.GetFundingGroup(
+                FundingGroup existingFundingGroup = await _releaseManagementRepository.GetFundingGroupUsingAmbientTransaction(
                     channelId,
                     specificationId,
                     groupingReasonId,
@@ -46,6 +46,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 if (existingFundingGroup != null)
                 {
                     results.Add(existingFundingGroup);
+                    _releaseToChannelSqlMappingContext.FundingGroups.Add(organisationGroupResult, existingFundingGroup.FundingGroupId);
                     continue;
                 }
 

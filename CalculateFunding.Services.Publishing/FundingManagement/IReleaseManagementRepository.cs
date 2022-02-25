@@ -32,8 +32,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<FundingStream> CreateFundingStream(FundingStream fundingStream);
         Task<FundingPeriod> CreateFundingPeriod(FundingPeriod fundingPeriod);
         Task<FundingGroup> CreateFundingGroup(FundingGroup fundingGroup);
-        Task<FundingGroup> GetFundingGroup(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue);
-        Task<ReleasedProviderVersion> CreateReleasedProviderVersionsUsingAmbientTransaction(ReleasedProviderVersion providerVersion);
+        Task<FundingGroup> GetFundingGroupUsingAmbientTransaction(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue);
+        Task<IEnumerable<ReleasedProvider>> GetReleasedProvidersUsingAmbientTransaction(string specificationId);
+        Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersionsUsingAmbientTransaction(string specificationId);
+        Task<IEnumerable<ReleasedProvider>> GetReleasedProvidersUsingAmbientTransaction(string specificationId, IEnumerable<string> providerIds);
+        Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersions(string specificationId);
+        Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersions(string specificationId, IEnumerable<string> providerIds);
+        Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersionsUsingAmbientTransaction(string specificationId, IEnumerable<string> providerIds);
+        Task<ReleasedProviderVersion> CreateReleasedProviderVersionUsingAmbientTransaction(ReleasedProviderVersion providerVersion);
         Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannelsUsingAmbientTransaction(ReleasedProviderVersionChannel providerVersionChannel);
         Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionInFundingGroups(string id, int channelId);
         Task<FundingGroupVersion> GetFundingGroupVersion(int fundingGroupId, int majorVersion);
@@ -76,7 +82,27 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<IEnumerable<ReleasedDataAllocationHistory>> GetPublishedProviderTransactionHistory(string specificationId, string providerId);
         Task<ReleasedProvider> CreateReleasedProvider(ReleasedProvider releasedProvider);
         Task<ReleasedProviderVersion> CreateReleasedProviderVersion(ReleasedProviderVersion releasedProviderVersion);
+
+        /// <summary>
+        /// Get all released providers
+        /// </summary>
+        /// <returns></returns>
         Task<IEnumerable<ReleasedProvider>> GetReleasedProviders();
+
+        /// <summary>
+        /// Get all released providers for a given specification
+        /// </summary>
+        /// <param name="specificationId">Specification ID</param>
+        /// <returns></returns>
+        Task<IEnumerable<ReleasedProvider>> GetReleasedProviders(string specificationId);
+
+        /// <summary>
+        /// Get released providers for a specification and a set of provider IDs
+        /// </summary>
+        /// <param name="specificationId">Specification ID</param>
+        /// <param name="providerIds">List of provider IDs</param>
+        /// <returns></returns>
+        Task<IEnumerable<ReleasedProvider>> GetReleasedProviders(string specificationId, IEnumerable<string> providerIds);
         Task<IEnumerable<ReleasedProviderVersion>> GetReleasedProviderVersions();
         Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersions();
         Task<ReleasedProviderChannelVariationReason> CreateReleasedProviderChannelVariationReason(ReleasedProviderChannelVariationReason reason);
