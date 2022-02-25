@@ -61,25 +61,6 @@ namespace CalculateFunding.Services.Policy.Validators
         }
 
         [TestMethod]
-        public void FailsValidationIfNoSpecToSpecChannelSupplied()
-        {
-            string defaultTemplateVersion = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string fundingPeriodId = NewRandomString();
-            string specToSpecChannel = NewRandomString();
-
-            GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.Undefined)
-                .WithFundingStreamId(fundingStreamId)
-                .WithDefaultTemplateVersion(defaultTemplateVersion));
-            AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
-            AndTheFundingStreamExists(fundingStreamId);
-
-            WhenTheFundingConfigurationIsValidated();
-
-            ThenTheValidationResultShouldBe(false);
-        }
-
-        [TestMethod]
         [DynamicData(nameof(FlagExamples), DynamicDataSourceType.Method)]
         public void IsInvalidIfDefaultTemplateDoesNotExist(bool expectedFlag)
         {

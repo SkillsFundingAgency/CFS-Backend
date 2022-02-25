@@ -65,9 +65,6 @@ namespace CalculateFunding.Services.Policy.Validators
                             context.AddFailure("Default template not found");
                 });
 
-            RuleFor(model => model.SpecToSpecChannelCode).NotNull();
-            RuleFor(model => model.SpecToSpecChannelCode).NotEmpty();
-
             RuleFor(_ => _.UpdateCoreProviderVersion)
                 .Must(v => v == UpdateCoreProviderVersion.Manual)
                 .When(_ => _.ProviderSource != CalculateFunding.Models.Providers.ProviderSource.FDZ, ApplyConditionTo.CurrentValidator)
