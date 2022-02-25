@@ -1,16 +1,15 @@
-﻿Feature: ReleaseManagement-Subsequent release
+﻿Feature: ReleaseManagement-Subsequent release - single channel
 
-Release providers to one or more channels - one or more provider already has a version released in more or more channels
+Release providers to one or more channels - one or more provider already has a version released in more than one channel
 
 @releasemanagement
-Scenario Outline: Release a new major version of a provider which has already been released in two channels
+Scenario Outline: Release a new major version of a provider to a single channel which has already been released in multiple channels
 	Given funding is released for providers
 		| ProviderId |
 		| 10071690   |
 	And release management repo has prereq data populated
 	And funding is released for channels
 		| Statement |
-		| Payment   |
 	And the following specification exists
 		| Field                | Value                |
 		| Id                   | <SpecificationId>    |
@@ -297,15 +296,7 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| StatusChangedDate                | <CurrentDateTime> |
 		| AuthorId                         | <AuthorId>        |
 		| AuthorName                       | <AuthorName>      |
-	And there is a released provider version channel record created in the release management repository
-		| Field                            | Value             |
-		| ReleasedProviderVersionChannelId | 6                 |
-		| ReleasedProviderVersionId        | 3                 |
-		| Channel                          | Payment           |
-		| StatusChangedDate                | <CurrentDateTime> |
-		| AuthorId                         | <AuthorId>        |
-		| AuthorName                       | <AuthorName>      |
-	And there are a total of '6' released provider version channel records created in the release management repository
+	And there are a total of '5' released provider version channel records created in the release management repository
 
 	And there is a released provider channel variation created in the release management repository
 		| Field                                    | Value          |
@@ -317,17 +308,7 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| ReleasedProviderChannelVariationReasonId | 2                |
 		| VariationReason                          | ProfilingUpdated |
 		| ReleasedProviderVersionChannelId         | 5                |
-	And there is a released provider channel variation created in the release management repository
-		| Field                                    | Value          |
-		| ReleasedProviderChannelVariationReasonId | 3              |
-		| VariationReason                          | FundingUpdated |
-		| ReleasedProviderVersionChannelId         | 6              |
-	And there is a released provider channel variation created in the release management repository
-		| Field                                    | Value            |
-		| ReleasedProviderChannelVariationReasonId | 4                |
-		| VariationReason                          | ProfilingUpdated |
-		| ReleasedProviderVersionChannelId         | 6                |
-	And there are a total of '4' released provider version channel variation reason records created in the release management repository
+	And there are a total of '2' released provider version channel variation reason records created in the release management repository
 
 	And there is a funding group created in the release management repository
 		| Field                               | Value                             |
@@ -353,18 +334,6 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| OrganisationGroupName               | Wandsworth           |
 		| OrganisationGroupSearchableName     | Wandsworth           |
 		| OrganisationGroupTypeClassification | GeographicalBoundary |
-	And there is a funding group created in the release management repository
-		| Field                               | Value                             |
-		| FundingGroupId                      | 3                                 |
-		| SpecificationId                     | <SpecificationId>                 |
-		| Channel                             | Payment                           |
-		| GroupingReason                      | Payment                           |
-		| OrganisationGroupTypeCode           | LocalAuthority                    |
-		| OrganisationGroupTypeIdentifier     | UKPRN                             |
-		| OrganisationGroupIdentifierValue    | 10004002                          |
-		| OrganisationGroupName               | WANDSWORTH LONDON BOROUGH COUNCIL |
-		| OrganisationGroupSearchableName     | WANDSWORTH_LONDON_BOROUGH_COUNCIL |
-		| OrganisationGroupTypeClassification | LegalEntity                       |
 	And there are a total of '3' funding group records created in the release management repository
 
 	And there is a funding group version created in the release management repository
@@ -405,26 +374,7 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| TotalFunding                 | 17780                                          |
 		| ExternalPublicationDate      | <CurrentDateTime>                              |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                              |
-	And there is a funding group version created in the release management repository
-		| Field                        | Value                                           |
-		| FundingGroupVersionId        | 9                                               |
-		| FundingGroupId               | 3                                               |
-		| Channel                      | Payment                                         |
-		| GroupingReason               | Payment                                         |
-		| StatusChangedDate            | <CurrentDateTime>                               |
-		| MajorVersion                 | 3                                               |
-		| MinorVersion                 | 0                                               |
-		| TemplateVersion              | 1.2                                             |
-		| SchemaVersion                | 1.2                                             |
-		| JobId                        | <JobId>                                         |
-		| CorrelationId                | <CorrelationId>                                 |
-		| FundingStreamId              | 1                                               |
-		| FundingPeriodId              | 1                                               |
-		| FundingId                    | PSG-AY-2122-Payment-LocalAuthority-10004002-3_0 |
-		| TotalFunding                 | 17780                                           |
-		| ExternalPublicationDate      | <CurrentDateTime>                               |
-		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
-	And there are a total of '9' funding group version records created in the release management repository
+	And there are a total of '8' funding group version records created in the release management repository
 
 	And there is a funding group variation reason created in the release management repository
 		| Field                                | Value          |
@@ -446,17 +396,7 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| FundingGroupVersionVariationReasonId | 4                |
 		| FundingGroupVersionId                | 8                |
 		| VariationReason                      | ProfilingUpdated |
-	And there is a funding group variation reason created in the release management repository
-		| Field                                | Value          |
-		| FundingGroupVersionVariationReasonId | 5              |
-		| FundingGroupVersionId                | 9              |
-		| VariationReason                      | FundingUpdated |
-	And there is a funding group variation reason created in the release management repository
-		| Field                                | Value            |
-		| FundingGroupVersionVariationReasonId | 6                |
-		| FundingGroupVersionId                | 9                |
-		| VariationReason                      | ProfilingUpdated |
-	And there are a total of '6' funding group version variation reason records created in the release management repository
+	And there are a total of '4' funding group version variation reason records created in the release management repository
 
 	And there is the provider version associated with the funding group version in the release management repository
 		| Field                            | Value |
@@ -468,24 +408,17 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| FundingGroupProviderId           | 8     |
 		| FundingGroupVersionId            | 8     |
 		| ReleasedProviderVersionChannelId | 5     |
-	And there is the provider version associated with the funding group version in the release management repository
-		| Field                            | Value |
-		| FundingGroupProviderId           | 9     |
-		| FundingGroupVersionId            | 9     |
-		| ReleasedProviderVersionChannelId | 6     |
-	And there are a total of '9' funding group providers created in the release management repository
+	And there are a total of '8' funding group providers created in the release management repository
 
 	And there is content blob created for the funding group with ID 'PSG-AY-2122-Information-LocalAuthority-212-3_0' in the channel 'Statement'
 	And there is content blob created for the funding group with ID 'PSG-AY-2122-Payment-LocalAuthority-10004002-3_0' in the channel 'Statement'
-	And there is content blob created for the funding group with ID 'PSG-AY-2122-Payment-LocalAuthority-10004002-3_0' in the channel 'Payment'
-	And there are '3' files contained in the funding groups blob storage
+	And there are '2' files contained in the funding groups blob storage
 
 	And there is content blob created for the released published provider with ID 'PSG-AY-2122-10071690-3_0'
 	And there are '1' files contained in the published providers blob storage
 
-	And there is content blob created for the released provider with ID 'PSG-AY-2122-10071690-3_0' in channel 'Payment'
 	And there is content blob created for the released provider with ID 'PSG-AY-2122-10071690-3_0' in channel 'Statement'
-	And there are '2' files contained in the released providers blob storage
+	And there are '1' files contained in the released providers blob storage
 
 Examples:
 	| FundingStreamId | FundingPeriodId | SpecificationId                      | Specification Name | ProviderVersionId | ProviderSnapshotId | CurrentDateTime     | AuthorId | AuthorName  | CorrelationId |

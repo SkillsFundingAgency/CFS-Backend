@@ -73,6 +73,7 @@
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsgVariations - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\ReleaseManagement\ReleaseManagement-InitialRelease - Copy.feature.cs" />
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\ReleaseManagement\ReleaseManagement-SubsequentRelease - Copy.feature.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -201,8 +202,11 @@
     <Compile Update="Features\Refresh\RefreshPsgVariations.feature.cs">
       <DependentUpon>RefreshPsgVariations.feature</DependentUpon>
     </Compile>
-    <Compile Update="Features\ReleaseManagement\ReleaseManagement-SubsequentRelease.feature.cs">
-      <DependentUpon>ReleaseManagement-SubsequentRelease.feature</DependentUpon>
+    <Compile Update="Features\ReleaseManagement\ReleaseManagement-SubsequentRelease-OneChannel.feature.cs">
+      <DependentUpon>ReleaseManagement-SubsequentRelease-OneChannel.feature</DependentUpon>
+    </Compile>
+    <Compile Update="Features\ReleaseManagement\ReleaseManagement-SubsequentRelease-MultipleChannels.feature.cs">
+      <DependentUpon>ReleaseManagement-SubsequentRelease-MultipleChannels.feature</DependentUpon>
     </Compile>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -295,7 +299,11 @@
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\ReleaseManagement\ReleaseManagement-SubsequentRelease.feature">
+    <SpecFlowFeatureFiles Update="Features\ReleaseManagement\ReleaseManagement-SubsequentRelease-OneChannel.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\ReleaseManagement\ReleaseManagement-SubsequentRelease-MultipleChannels.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
