@@ -32,6 +32,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     NewDataColumn<string>("PublishedProviderId", 128)
                 }.Concat(_profilePeriodPatterns
                     .SelectMany(ProfilePeriodColumns))
+                .Concat(new [] { NewDataColumn<string>("Carry_Over_Value", allowNull: true) })
                 .ToArray();
 
         private IEnumerable<DataColumn> ProfilePeriodColumns(ProfilePeriodPattern profile)
@@ -62,18 +63,20 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             object[] profilePeriods = ProfilePeriodColumnValues(profiling).ToArray();
 
-            int templatePeriodCount = DataTable.Columns.Count - 1;
+            int templatePeriodCount = DataTable.Columns.Count - 2;
 
             if (templatePeriodCount != profilePeriods.Length)
             {
                 throw new NonRetriableException($"Unable to import data into table {TableName} for funding line code {fundingLine.FundingLineCode}.\n Funding" +
                                                 $" line for provider {dto.ProviderId} has {profilePeriods.Length/6} profile periods but the template expected {templatePeriodCount/6}");
             }
+
+            object[] fundingLineCarryOver = { dto?.CarryOvers?.Where(_ => _.FundingLineCode == fundingLine.FundingLineCode)?.Sum(_ => _.Amount) };
             
-            DataTable.Rows.Add(new[]
+            DataTable.Rows.Add(new object[]
             {
                 dto.PublishedProviderId
-            }.Concat(profilePeriods).ToArray());
+            }.Concat(profilePeriods).Concat(fundingLineCarryOver).ToArray());
         }
 
         protected override void EnsureTableNameIsSet(PublishedProviderVersion dto)

@@ -304,6 +304,13 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     });
                 }
 
+                fundingSqlFields.Add(new SqlColumnDefinition
+                {
+                    Name = "Carry_Over_Value",
+                    Type = "[decimal](30, 2)",
+                    AllowNulls = true
+                });
+
                 profiling.Add(fundingLineCode, fundingSqlFields);
             }
 
