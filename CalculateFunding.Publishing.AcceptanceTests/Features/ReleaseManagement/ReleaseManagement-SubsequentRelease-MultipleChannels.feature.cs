@@ -20,7 +20,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features.ReleaseManagement
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute()]
-    public partial class ReleaseManagement_SubsequentReleaseFeature
+    public partial class ReleaseManagement_SubsequentRelease_MultipleChannelsFeature
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -29,7 +29,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features.ReleaseManagement
         
         private string[] _featureTags = ((string[])(null));
         
-#line 1 "ReleaseManagement-SubsequentRelease.feature"
+#line 1 "ReleaseManagement-SubsequentRelease-MultipleChannels.feature"
 #line hidden
         
         public virtual Microsoft.VisualStudio.TestTools.UnitTesting.TestContext TestContext
@@ -48,7 +48,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features.ReleaseManagement
         public static void FeatureSetup(Microsoft.VisualStudio.TestTools.UnitTesting.TestContext testContext)
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/ReleaseManagement", "ReleaseManagement-Subsequent release", "Release providers to one or more channels - one or more provider already has a ve" +
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/ReleaseManagement", "ReleaseManagement-Subsequent release - multiple channels", "Release providers to one or more channels - one or more provider already has a ve" +
                     "rsion released in more or more channels", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
@@ -64,9 +64,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features.ReleaseManagement
         public virtual void TestInitialize()
         {
             if (((testRunner.FeatureContext != null) 
-                        && (testRunner.FeatureContext.FeatureInfo.Title != "ReleaseManagement-Subsequent release")))
+                        && (testRunner.FeatureContext.FeatureInfo.Title != "ReleaseManagement-Subsequent release - multiple channels")))
             {
-                global::CalculateFunding.Publishing.AcceptanceTests.Features.ReleaseManagement.ReleaseManagement_SubsequentReleaseFeature.FeatureSetup(null);
+                global::CalculateFunding.Publishing.AcceptanceTests.Features.ReleaseManagement.ReleaseManagement_SubsequentRelease_MultipleChannelsFeature.FeatureSetup(null);
             }
         }
         
@@ -1572,7 +1572,7 @@ this.ScenarioInitialize(scenarioInfo);
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
         [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Release a new major version of a provider which has already been released in two " +
             "channels: PSG")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "ReleaseManagement-Subsequent release")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "ReleaseManagement-Subsequent release - multiple channels")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("releasemanagement")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "PSG")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingStreamId", "PSG")]

@@ -14,7 +14,7 @@
 
   <ItemGroup>
 
-    <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.7.4" />
+    <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.9.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="8.0.3" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="6.0.2" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="8.3.1" />
@@ -25,11 +25,11 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Profiling" Version="3.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="5.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.3" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
-    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.2.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="5.5.1" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.4.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.2.3" />
 
   </ItemGroup>
 

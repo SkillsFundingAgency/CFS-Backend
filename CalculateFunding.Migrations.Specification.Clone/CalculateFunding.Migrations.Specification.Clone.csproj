@@ -16,7 +16,7 @@
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="4.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
 
     
   </ItemGroup>

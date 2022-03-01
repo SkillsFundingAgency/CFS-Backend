@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using CalculateFunding.Common.Utility;
+﻿using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.AspNet.OperationFilters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -11,6 +8,9 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using System;
+using System.IO;
+using System.Reflection;
 
 namespace CalculateFunding.Services.Core.AspNet.Extensions
 {
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Core.AspNet.Extensions
                 {
                     Guard.IsNullOrWhiteSpace(title, nameof(title));
 
-                    options.SwaggerEndpoint($"/swagger/{version}/swagger.json", "CosmosDbScaling Microservice API");
+                    options.SwaggerEndpoint($"/swagger/{version}/swagger.json", title);
                     options.DocumentTitle = title;
                 }
             });

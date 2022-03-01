@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="4.2.1" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.6.0" />
-	<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
+	<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.6.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="3.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />

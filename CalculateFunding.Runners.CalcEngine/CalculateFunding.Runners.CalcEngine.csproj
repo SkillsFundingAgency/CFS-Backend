@@ -9,8 +9,8 @@
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.0.0-preview.8" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="5.1.3" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="6.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.2" />

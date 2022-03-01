@@ -11,14 +11,14 @@
     <PackageReference Include="Microsoft.Azure.EventHubs" Version="4.3.2" />
     <PackageReference Include="Microsoft.Azure.EventHubs.Processor" Version="4.3.2" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-	<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="6.0.0" />
+	<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="6.0.2" />
 	<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventHubs" Version="4.3.0" />
 	<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="4.2.1" />
-	<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SignalRService" Version="1.6.0" />
+	<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SignalRService" Version="1.7.0" />
 	<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.0" />
 	<PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
-	<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Core" Version="3.0.30" />
+	<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Core" Version="3.0.31" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
   <ItemGroup>
