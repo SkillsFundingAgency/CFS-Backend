@@ -51,6 +51,17 @@ namespace CalculateFunding.Api.Publishing.Controllers
             await _publishedSearchService.SearchPublishedProviderIds(searchModel);
 
         /// <summary>
+        /// Get Funding Value
+        /// </summary>
+        /// <param name="searchModel"></param>
+        /// <returns></returns>
+        [Route("api/publishedprovider/fundingvalue-search")]
+        [HttpPost]
+        [ProducesResponseType(200, Type = typeof(double))]
+        public async Task<IActionResult> GetFundingValue([FromBody] SearchModel searchModel) =>
+            await _publishedSearchService.GetFundingValue(searchModel);
+
+        /// <summary>
         /// Reindex published providers in search index
         /// </summary>
         /// <returns></returns>

@@ -10,5 +10,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IActionResult> SearchPublishedProviders(SearchModel searchModel);
         Task<IActionResult> SearchPublishedProviderIds(PublishedProviderIdSearchModel searchModel);
         Task<IActionResult> SearchPublishedProviderLocalAuthorities(string searchText, string fundingStreamId, string fundingPeriodId);
+
+        Task<IActionResult> GetFundingValue(SearchModel searchModel);
     }
 }

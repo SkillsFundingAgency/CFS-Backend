@@ -193,6 +193,97 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
+        public async Task<IActionResult> GetFundingValue(SearchModel searchModel)
+        {
+            if (searchModel == null)
+            {
+                _logger.Error("A null or invalid search model was provided for searching published providers and retrieving funding value");
+
+                return new BadRequestObjectResult("An invalid search model was provided");
+            }
+
+            try
+            {
+                IDictionary<string, string[]> searchModelDictionary = searchModel.Filters;
+                List<Filter> filters = searchModelDictionary
+                    .Select(keyValueFilterPair => new Filter(
+                        keyValueFilterPair.Key,
+                        keyValueFilterPair.Value,
+                        NonStringFields.Contains(keyValueFilterPair.Key),
+                        "eq"))
+                    .ToList();
+                FilterHelper filterHelper = new FilterHelper(filters);
+
+                int searchResultsBatchSize = 1000;
+                IList<string> selectFields = new[] { "fundingValue" };
+                IList<string> orderByFields = new[] { "id" };
+                string filter = filterHelper.BuildAndFilterQuery();
+
+                SearchResults<PublishedProviderIndex> searchResults = await Task.Run(() =>
+                {
+                    return SearchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                    {
+                        Top = searchResultsBatchSize,
+                        IncludeTotalResultCount = true,
+                        Select = selectFields,
+                        OrderBy = orderByFields,
+                        Filter = filter
+                    });
+                });
+
+                ConcurrentBag<double> results = new ConcurrentBag<double>();
+                searchResults.Results.ForEach(_ => results.Add(_.Result.FundingValue));
+
+                if (searchResults.TotalCount > searchResultsBatchSize)
+                {
+                    SemaphoreSlim throttler = new SemaphoreSlim(10, 10);
+                    List<Task> searchTasks = new List<Task>();
+                    int count = searchResultsBatchSize;
+
+                    while (count < searchResults.TotalCount)
+                    {
+                        SearchParameters searchParams = new SearchParameters
+                        {
+                            Skip = count,
+                            Top = searchResultsBatchSize,
+                            IncludeTotalResultCount = true,
+                            Select = selectFields,
+                            OrderBy = orderByFields,
+                            Filter = filter
+                        };
+
+                        await throttler.WaitAsync();
+                        searchTasks.Add(
+                            Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    SearchResults<PublishedProviderIndex> nextSearchResults =
+                                        await SearchRepository.Search(searchModel.SearchTerm, searchParams);
+                                    nextSearchResults.Results.ForEach(_ => results.Add(_.Result.FundingValue));
+                                }
+                                finally
+                                {
+                                    throttler.Release();
+                                }
+                            }));
+
+                        count += searchResultsBatchSize;
+                    }
+
+                    await TaskHelper.WhenAllAndThrow(searchTasks.ToArray());
+                }
+
+                return new OkObjectResult(results.Sum());
+            }
+            catch (FailedToQuerySearchException exception)
+            {
+                _logger.Error(exception, $"Failed to query search with term: {searchModel.SearchTerm}");
+
+                return new InternalServerErrorResult($"Failed to query search, with exception: {exception.Message}");
+            }
+        }
+
         public async Task<IActionResult> SearchPublishedProviders(SearchModel searchModel)
         {
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
@@ -231,6 +322,21 @@ namespace CalculateFunding.Services.Publishing
                     else
                     {
                         results.TotalCount = (int)(searchResult.TotalCount ?? 0);
+
+                        CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex> searchResultPublishedProviderVersion = searchResult.Results?.FirstOrDefault();
+
+                        Dictionary<string, IEnumerable<ReleaseChannel>> releaseChannelLookupByProviderId = null;
+
+                        if (searchResultPublishedProviderVersion != null)
+                        {
+                            releaseChannelLookupByProviderId = await _publishedProvidersSearchService.GetPublishedProviderReleaseChannelsLookup(new ReleaseChannelSearch
+                            {
+                                SpecificationId = searchResultPublishedProviderVersion.Result.SpecificationId,
+                                FundingStreamId = searchResultPublishedProviderVersion.Result.FundingStreamId,
+                                FundingPeriodId = searchResultPublishedProviderVersion.Result.FundingPeriodId
+                            });
+                        }
+
                         results.Results = searchResult.Results?.Select(m => new PublishedSearchResult
                         {
                             Id = m.Result.Id,
@@ -252,30 +358,12 @@ namespace CalculateFunding.Services.Publishing
                             Errors = m.Result.Errors,
                             OpenedDate = m.Result.DateOpened,
                             MajorVersion = m.Result.MajorVersion,
-                            MinorVersion = m.Result.MinorVersion
+                            MinorVersion = m.Result.MinorVersion,
+                            ReleaseChannels = releaseChannelLookupByProviderId != null ? 
+                                GetReleaseChannels(releaseChannelLookupByProviderId, m.Result.UKPRN) :
+                                null
                         });
                     }
-                }
-
-                if (results.Results != null)
-                {
-                    Dictionary<string, IEnumerable<ReleaseChannel>> releaseChannelLookupByProviderId =
-                        await _publishedProvidersSearchService.GetPublishedProviderReleaseChannelsLookup(Enumerable.DistinctBy(results.Results?
-                            .Select(_ => new ReleaseChannelSearch
-                            {
-                                SpecificationId = _.SpecificationId,
-                                FundingStreamId = _.FundingStreamId,
-                                FundingPeriodId = _.FundingPeriodId
-                            }), _ => _.SpecificationId));
-
-                    IEnumerable<PublishedSearchResult> enrichedResults = results.Results.Select(_ =>
-                    {
-                        PublishedSearchResult result = JsonExtensions.DeepCopy(_);
-                        result.ReleaseChannels = GetReleaseChannels(releaseChannelLookupByProviderId, _.UKPRN);
-                        return result;
-                    });
-
-                    results.Results = enrichedResults;
                 }
 
                 return new OkObjectResult(results);

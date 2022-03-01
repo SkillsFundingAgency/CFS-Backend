@@ -543,7 +543,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _searchRepository.Search(Arg.Is(search.SearchTerm), Arg.Any<SearchParameters>(), Arg.Any<bool>())
                 .Returns(results);
 
-            _publishedProvidersSearchService.GetPublishedProviderReleaseChannelsLookup(Arg.Any<IEnumerable<ReleaseChannelSearch>>())
+            _publishedProvidersSearchService.GetPublishedProviderReleaseChannelsLookup(Arg.Any<ReleaseChannelSearch>())
                 .Returns(new Dictionary<string, IEnumerable<ReleaseChannel>>());
         }
 

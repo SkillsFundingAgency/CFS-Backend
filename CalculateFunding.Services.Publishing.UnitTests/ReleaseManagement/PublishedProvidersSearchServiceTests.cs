@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     .WithMinorVersion(_publishedProviderTwoMinorVersion)
                     .WithProviderId(_providerIdTwo)));
 
-            List<ReleaseChannelSearch> request = NewRequest(NewReleaseChannelSearch(_specificationOneId, _fundingStreamId, _fundingPeriodId));
+            ReleaseChannelSearch request = NewReleaseChannelSearch(_specificationOneId, _fundingStreamId, _fundingPeriodId);
 
             Dictionary<string, IEnumerable<ReleaseChannel>> result = await _sut.GetPublishedProviderReleaseChannelsLookup(request);
 
@@ -152,7 +152,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     .WithMinorVersion(_publishedProviderTwoMinorVersion)
                     .WithProviderId(_providerIdTwo)));
 
-            List<ReleaseChannelSearch> request = NewRequest(NewReleaseChannelSearch(_specificationOneId, _fundingStreamId, _fundingPeriodId));
+            ReleaseChannelSearch request = NewReleaseChannelSearch(_specificationOneId, _fundingStreamId, _fundingPeriodId);
 
             Dictionary<string, IEnumerable<ReleaseChannel>> result = await _sut.GetPublishedProviderReleaseChannelsLookup(request);
 
@@ -198,7 +198,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
             GivenFundingConfiguration(fundingConfiguration);
 
-            List<ReleaseChannelSearch> request = NewRequest(NewReleaseChannelSearch(_specificationOneId, _fundingStreamId, _fundingPeriodId));
+            ReleaseChannelSearch request = NewReleaseChannelSearch(_specificationOneId, _fundingStreamId, _fundingPeriodId);
 
             Dictionary<string, IEnumerable<ReleaseChannel>> result = await _sut.GetPublishedProviderReleaseChannelsLookup(request);
 
@@ -211,97 +211,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .HaveCount(fundingConfiguration.ReleaseChannels.Count(_ => _.IsVisible));
 
             _repo.Verify(_ => _.GetChannelByChannelCode(It.IsAny<string>()), Times.Never);
-        }
-
-        [TestMethod]
-        public async Task ReturnsDistinctReleaseChannelsWhenMultipleSpecifications()
-        {
-            FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _
-                .WithReleaseChannels(
-                    NewFundingConfigurationChannel(_ => _
-                        .WithChannelCode(_channelCodeOne)
-                        .WithIsVisible(true)),
-                    NewFundingConfigurationChannel(_ => _
-                        .WithChannelCode(_channelCodeTwo)
-                        .WithIsVisible(true))));
-
-            GivenFundingConfiguration(fundingConfiguration);
-
-            GivenLatestProviderVersionInChannels(
-                _specificationOneId,
-                fundingConfiguration,
-                NewProviderVersionInChannel(_ => _
-                    .WithChannelCode(_channelCodeOne)
-                    .WithChannelName(_channelCodeOne)
-                    .WithChannelId(_channelIdOne)
-                    .WithMajorVersion(_publishedProviderOneMajorVersion)
-                    .WithMinorVersion(_publishedProviderOneMinorVersion)
-                    .WithProviderId(_providerIdOne)),
-                NewProviderVersionInChannel(_ => _
-                    .WithChannelCode(_channelCodeTwo)
-                    .WithChannelName(_channelCodeTwo)
-                    .WithChannelId(_channelIdTwo)
-                    .WithMajorVersion(_publishedProviderTwoMajorVersion)
-                    .WithMinorVersion(_publishedProviderTwoMinorVersion)
-                    .WithProviderId(_providerIdTwo)));
-
-            GivenLatestProviderVersionInChannels(
-                _specificationTwoId,
-                fundingConfiguration,
-                NewProviderVersionInChannel(_ => _
-                    .WithChannelCode(_channelCodeOne)
-                    .WithChannelName(_channelCodeOne)
-                    .WithChannelId(_channelIdOne)
-                    .WithMajorVersion(_publishedProviderOneMajorVersion)
-                    .WithMinorVersion(_publishedProviderOneMinorVersion)
-                    .WithProviderId(_providerIdOne)),
-                NewProviderVersionInChannel(_ => _
-                    .WithChannelCode(_channelCodeTwo)
-                    .WithChannelName(_channelCodeTwo)
-                    .WithChannelId(_channelIdTwo)
-                    .WithMajorVersion(_publishedProviderTwoMajorVersion)
-                    .WithMinorVersion(_publishedProviderTwoMinorVersion)
-                    .WithProviderId(_providerIdTwo)));
-
-            List<ReleaseChannelSearch> request = NewRequest(
-                NewReleaseChannelSearch(_specificationOneId, _fundingStreamId, _fundingPeriodId),
-                NewReleaseChannelSearch(_specificationTwoId, _fundingStreamId, _fundingPeriodId));
-
-            Dictionary<string, IEnumerable<ReleaseChannel>> result = await _sut.GetPublishedProviderReleaseChannelsLookup(request);
-
-            result
-                .Should()
-                .NotBeNull();
-
-            result
-                .Should()
-                .HaveCount(fundingConfiguration.ReleaseChannels.Count(_ => _.IsVisible));
-
-            result[_providerIdOne]
-                .Should()
-                .BeEquivalentTo(new List<ReleaseChannel>
-                {
-                    new ReleaseChannel
-                    {
-                        ChannelCode = _channelCodeOne,
-                        ChannelName = _channelCodeOne,
-                        MajorVersion = _publishedProviderOneMajorVersion,
-                        MinorVersion = _publishedProviderOneMinorVersion
-                    }
-                });
-
-            result[_providerIdTwo]
-                .Should()
-                .BeEquivalentTo(new List<ReleaseChannel>
-                {
-                    new ReleaseChannel
-                    {
-                        ChannelCode = _channelCodeTwo,
-                        ChannelName = _channelCodeTwo,
-                        MajorVersion = _publishedProviderTwoMajorVersion,
-                        MinorVersion = _publishedProviderTwoMinorVersion
-                    }
-                });
         }
 
         [TestMethod]
@@ -335,7 +244,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     .WithMinorVersion(_publishedProviderTwoMinorVersion)
                     .WithProviderId(_providerIdTwo)));
 
-            List<ReleaseChannelSearch> request = NewRequest(NewReleaseChannelSearch(_specificationOneId, _fundingStreamId, _fundingPeriodId));
+            ReleaseChannelSearch request = NewReleaseChannelSearch(_specificationOneId, _fundingStreamId, _fundingPeriodId);
 
             Func<Task> result = async () => await _sut.GetPublishedProviderReleaseChannelsLookup(request);
 
@@ -357,11 +266,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             _policiesService.Setup(_ => _.GetFundingConfiguration(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(fundingConfiguration);
-        }
-
-        private List<ReleaseChannelSearch> NewRequest(params ReleaseChannelSearch[] releaseChannelSearches)
-        {
-            return releaseChannelSearches.ToList();
         }
 
         private ReleaseChannelSearch NewReleaseChannelSearch(string specificationId, string fundingStreamId, string fundingPeriodId)

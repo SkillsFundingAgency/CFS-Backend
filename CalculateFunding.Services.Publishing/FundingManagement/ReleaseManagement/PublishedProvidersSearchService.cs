@@ -16,7 +16,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IReleaseManagementRepository _releaseManagementRepository;
         private readonly IPoliciesService _policiesService;
 
-        public PublishedProvidersSearchService(IReleaseManagementRepository releaseManagementRepository, IPoliciesService policiesService)
+        public PublishedProvidersSearchService(IReleaseManagementRepository releaseManagementRepository,
+            IPoliciesService policiesService)
         {
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
@@ -26,48 +27,44 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         }
 
         public async Task<Dictionary<string, IEnumerable<ReleaseChannel>>> GetPublishedProviderReleaseChannelsLookup(
-            IEnumerable<ReleaseChannelSearch> searchRequest)
+            ReleaseChannelSearch searchRequest)
         {
             Dictionary<string, IEnumerable<ReleaseChannel>> result = new Dictionary<string, IEnumerable<ReleaseChannel>>();
 
-            foreach (ReleaseChannelSearch releaseChannelSearch in searchRequest)
+            IEnumerable<int> channelIds =
+                    await GetVisibleChannelIdsForFundingConfiguration(searchRequest.FundingStreamId, searchRequest.FundingPeriodId);
+
+            if (channelIds.Any())
             {
-                IEnumerable<int> channelIds =
-                    await GetVisibleChannelIdsForFundingConfiguration(releaseChannelSearch.FundingStreamId, releaseChannelSearch.FundingPeriodId);
+                IEnumerable<ProviderVersionInChannel> versions = await _releaseManagementRepository.GetLatestPublishedProviderVersions(
+                            searchRequest.SpecificationId, channelIds);
 
-                if (channelIds.Any())
+                IEnumerable<IGrouping<string, ProviderVersionInChannel>> versionsGroupedByProviderId = versions.GroupBy(_ => _.ProviderId);
+                foreach (IGrouping<string, ProviderVersionInChannel> provider in versionsGroupedByProviderId)
                 {
-                    IEnumerable<ProviderVersionInChannel> versions =
-                        await _releaseManagementRepository.GetLatestPublishedProviderVersions(
-                            releaseChannelSearch.SpecificationId, channelIds);
-
-                    IEnumerable<IGrouping<string, ProviderVersionInChannel>> versionsGroupedByProviderId = versions.GroupBy(_ => _.ProviderId);
-                    foreach (IGrouping<string, ProviderVersionInChannel> provider in versionsGroupedByProviderId)
+                    if (result.ContainsKey(provider.Key))
                     {
-                        if (result.ContainsKey(provider.Key))
+                        IEnumerable<ReleaseChannel> newReleaseChannels = provider.ToList().Select(_ => new ReleaseChannel
                         {
-                            IEnumerable<ReleaseChannel> newReleaseChannels = provider.ToList().Select(_ => new ReleaseChannel
-                            {
-                                ChannelCode = _.ChannelCode,
-                                ChannelName = _.ChannelName,
-                                MajorVersion = _.MajorVersion,
-                                MinorVersion = _.MinorVersion
-                            });
+                            ChannelCode = _.ChannelCode,
+                            ChannelName = _.ChannelName,
+                            MajorVersion = _.MajorVersion,
+                            MinorVersion = _.MinorVersion
+                        });
 
-                            List<ReleaseChannel> existingReleaseChannels = result[provider.Key].ToList();
-                            existingReleaseChannels.AddRange(newReleaseChannels);
-                            result[provider.Key] = Enumerable.DistinctBy(existingReleaseChannels, _ => new { _.ChannelName, _.ChannelCode, _.MajorVersion, _.MinorVersion });
-                        }
-                        else
+                        List<ReleaseChannel> existingReleaseChannels = result[provider.Key].ToList();
+                        existingReleaseChannels.AddRange(newReleaseChannels);
+                        result[provider.Key] = Enumerable.DistinctBy(existingReleaseChannels, _ => new { _.ChannelName, _.ChannelCode, _.MajorVersion, _.MinorVersion });
+                    }
+                    else
+                    {
+                        result[provider.Key] = provider.ToList().Select(_ => new ReleaseChannel
                         {
-                            result[provider.Key] = provider.ToList().Select(_ => new ReleaseChannel
-                            {
-                                ChannelCode = _.ChannelCode,
-                                ChannelName = _.ChannelName,
-                                MajorVersion = _.MajorVersion,
-                                MinorVersion = _.MinorVersion
-                            });
-                        }
+                            ChannelCode = _.ChannelCode,
+                            ChannelName = _.ChannelName,
+                            MajorVersion = _.MajorVersion,
+                            MinorVersion = _.MinorVersion
+                        });
                     }
                 }
             }

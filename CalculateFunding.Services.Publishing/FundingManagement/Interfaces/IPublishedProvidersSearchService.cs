@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
     public interface IPublishedProvidersSearchService
     {
-        Task<Dictionary<string, IEnumerable<ReleaseChannel>>> GetPublishedProviderReleaseChannelsLookup(IEnumerable<ReleaseChannelSearch> searchRequest);
+        Task<Dictionary<string, IEnumerable<ReleaseChannel>>> GetPublishedProviderReleaseChannelsLookup(ReleaseChannelSearch searchRequest);
     }
 }
