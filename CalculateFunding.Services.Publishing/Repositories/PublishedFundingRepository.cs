@@ -1603,6 +1603,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter> { new CosmosDbQueryParameter("@specificationId", specificationId) };
 
+            additionalFilter.Append(" ");
+
             if (providerType.IsNotNullOrWhitespace())
             {
                 additionalFilter.Append($" and f.content.current.provider.providerType = @providerType ");
@@ -1641,7 +1643,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             {
                 QueryText = $@"SELECT COUNT(1) AS count, f.content.current.fundingStreamId, f.content.current.status, SUM(f.content.current.totalFunding) AS totalFundingSum
                                 FROM f
-                                where f.documentType = 'PublishedProvider' and f.content.current.specificationId = @specificationId and f.deleted = false {additionalFilter}
+                                where IS_NUMBER(f.content.current.totalFunding) and f.documentType = 'PublishedProvider' and f.content.current.specificationId = @specificationId and f.deleted = false {additionalFilter}
                                 GROUP BY f.content.current.fundingStreamId, f.content.current.status",
                 Parameters = cosmosDbQueryParameters
             };
