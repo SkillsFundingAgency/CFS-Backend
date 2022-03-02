@@ -1142,7 +1142,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                         ) AS distributionPeriods
                                         FROM fundingLine IN c.content.released.fundingLines  {joinPredicate}
                                     ),
-                                    'calculations' : c.content.current.calculations
+                                    'calculations' : c.content.released.calculations
                                 }} AS released
                                FROM     publishedProviders c
                                WHERE    c.documentType = 'PublishedProvider'
