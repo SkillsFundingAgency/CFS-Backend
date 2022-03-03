@@ -85,14 +85,20 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 return currentState;
             }
 
-            // if the current funding line value is null or 0 we need to populate the distribution periods
-            foreach (DistributionPeriod distributionPeriod in fundingLine.DistributionPeriods)
+            if (fundingLine.DistributionPeriods.AnyWithNullCheck())
             {
-                distributionPeriod.Value = 0;
-
-                foreach (ProfilePeriod profilePeriod in distributionPeriod.ProfilePeriods)
+                // if the current funding line value is null or 0 we need to populate the distribution periods
+                foreach (DistributionPeriod distributionPeriod in fundingLine.DistributionPeriods)
                 {
-                    profilePeriod.ProfiledValue = 0;
+                    distributionPeriod.Value = 0;
+
+                    if (distributionPeriod.ProfilePeriods.AnyWithNullCheck())
+                    {
+                        foreach (ProfilePeriod profilePeriod in distributionPeriod.ProfilePeriods)
+                        {
+                            profilePeriod.ProfiledValue = 0;
+                        }
+                    }
                 }
             }
 
