@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Core.Constants
 
         public static class Hubs
         {
-            public const string CosmosDbDiagnostics = "cosmosdb-diagnostics";
+            public const string EventHubNameKey = "%EventHubsSettings:EventHubName%";
         }
     }
 }

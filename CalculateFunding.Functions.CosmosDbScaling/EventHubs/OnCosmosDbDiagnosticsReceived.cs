@@ -28,7 +28,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.EventHubs
         }
 
         [FunctionName("OnCosmosDbDiagnosticsReceived")]
-        public async Task Run([EventHubTrigger(EventHubsConstants.Hubs.CosmosDbDiagnostics, Connection = EventHubsConstants.ConnectionStringConfigurationKey)] EventData[] events)
+        public async Task Run([EventHubTrigger(EventHubsConstants.Hubs.EventHubNameKey, Connection = EventHubsConstants.ConnectionStringConfigurationKey)] EventData[] events)
         {
             try
             {
@@ -36,11 +36,11 @@ namespace CalculateFunding.Functions.CosmosDbScaling.EventHubs
             }
             catch (NonRetriableException nrEx)
             {
-                _logger.Error(nrEx, $"An error occurred processing messages on event hub: {EventHubsConstants.Hubs.CosmosDbDiagnostics}");
+                _logger.Error(nrEx, $"An error occurred processing messages on event hub for configuration key: {EventHubsConstants.Hubs.EventHubNameKey}");
             }
             catch (Exception exception)
             {
-                _logger.Error(exception, $"An error occurred processing messages on event hub: {EventHubsConstants.Hubs.CosmosDbDiagnostics}");
+                _logger.Error(exception, $"An error occurred processing messages on event hub for configuration key: {EventHubsConstants.Hubs.EventHubNameKey}");
                 throw;
             }
         }
