@@ -1,7 +1,5 @@
-﻿using System;
+﻿using Azure.Messaging.EventHubs;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 {

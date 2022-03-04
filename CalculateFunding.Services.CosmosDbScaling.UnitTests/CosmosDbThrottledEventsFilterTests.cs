@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
+using Azure.Core.Amqp;
+using Azure.Messaging.EventHubs;
+using CalculateFunding.Services.Core.Extensions;
 using FluentAssertions;
-using Microsoft.Azure.EventHubs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.CosmosDbScaling
@@ -72,12 +75,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
             eventData1.Properties.Add("statusCode", (int)HttpStatusCode.Created);
             eventData1.Properties.Add("collection", "specs");
 
-            EventData eventData2 = new EventData(Encoding.UTF8.GetBytes(""));
+            EventData eventData2 = EventHubsModelFactory.EventData(new BinaryData(Encoding.UTF8.GetBytes("")), null, null,null, enqueuedTime: DateTime.UtcNow.AddMinutes(-outsideEventHubWindowMinutes));
             eventData2.Properties.Add("statusCode", (int)HttpStatusCode.TooManyRequests);
-            eventData2.SystemProperties = new EventData.SystemPropertiesCollection(1, DateTime.UtcNow.AddMinutes(-outsideEventHubWindowMinutes), string.Empty, string.Empty);
             eventData2.Properties.Add("collection", "specs");
 
-            EventData eventData3 = new EventData(Encoding.UTF8.GetBytes(""));
+            EventData eventData3 = EventHubsModelFactory.EventData(new BinaryData(Encoding.UTF8.GetBytes("")), null, null, null, enqueuedTime: DateTime.UtcNow);
             eventData3.Properties.Add("statusCode", (int)HttpStatusCode.TooManyRequests);
             eventData3.Properties.Add("collection", "calcs");
 
@@ -108,11 +110,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public void GetUniqueCosmosDBContainerNamesFromEventData_GivenMultiplEventsForSameCollectionWhereStatusCodeIs429_ReturnsCollectionWithOneItem()
         {
             //Arrange
-            EventData eventData1 = new EventData(Encoding.UTF8.GetBytes(""));
+            EventData eventData1 = EventHubsModelFactory.EventData(new BinaryData(Encoding.UTF8.GetBytes("")), null, null, null, enqueuedTime: DateTime.UtcNow);
             eventData1.Properties.Add("statusCode", (int)HttpStatusCode.TooManyRequests);
             eventData1.Properties.Add("collection", "calcs");
 
-            EventData eventData2 = new EventData(Encoding.UTF8.GetBytes(""));
+            EventData eventData2 = EventHubsModelFactory.EventData(new BinaryData(Encoding.UTF8.GetBytes("")), null, null, null, enqueuedTime: DateTime.UtcNow);
             eventData2.Properties.Add("statusCode", (int)HttpStatusCode.TooManyRequests);
             eventData2.Properties.Add("collection", "calcs");
 

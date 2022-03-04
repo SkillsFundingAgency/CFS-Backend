@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Azure.Messaging.EventHubs;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 {

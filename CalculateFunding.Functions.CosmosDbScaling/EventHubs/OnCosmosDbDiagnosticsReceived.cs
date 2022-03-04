@@ -1,10 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Azure.Messaging.EventHubs;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
-using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Serilog;
 

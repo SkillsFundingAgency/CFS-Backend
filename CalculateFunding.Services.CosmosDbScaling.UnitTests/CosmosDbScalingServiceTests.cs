@@ -19,7 +19,6 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -27,6 +26,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Serilog;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using Azure.Messaging.EventHubs;
 
 namespace CalculateFunding.Services.CosmosDbScaling
 {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using Azure.Messaging.EventHubs;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
-using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.CosmosDbScaling
 {
@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             foreach (EventData eventData in events)
             {
-                if (eventData.Properties.Count == 0 || eventData.GetSystemProperty<DateTime>("x-opt-enqueued-time") < DateTime.UtcNow.AddMinutes(-EventHubWindow))
+                if (eventData.Properties.Count == 0 || eventData.EnqueuedTime < DateTime.UtcNow.AddMinutes(-EventHubWindow))
                 {
                     continue;
                 }
