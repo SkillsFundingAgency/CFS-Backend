@@ -13,5 +13,7 @@ namespace CalculateFunding.Models.Datasets
         public string FundingPeriodId { get; set; }
 
         public string SpecificationId { get; set; }
+
+        public bool IncludeCarryForward { get; set; }
     }
 }

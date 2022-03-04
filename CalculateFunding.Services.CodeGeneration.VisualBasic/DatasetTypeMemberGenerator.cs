@@ -91,6 +91,19 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                         IsAggregable = false
                     },
                     item.IsObsolete || obsoleteItems.AnyWithNullCheck(_ => _.DatasetFieldId == item.TemplateId.ToString() && _.ItemType == ObsoleteItemType.DatasetField)));
+
+                    if (publishedSpecificationConfiguration.IncludeCarryForward)
+                    {
+                        members.Add(GetMember(new FieldDefinition()
+                        {
+                            Name = $"{fundingLinePrefix}_{item.TemplateId}_{item.Name}_CarryOver",
+                            Id = $"{fundingLinePrefix}_{item.TemplateId}_CarryOver",
+                            Description = $"{item.Name} Carry Over",
+                            Type = item.FieldType,
+                            IsAggregable = false
+                        },
+                        item.IsObsolete || obsoleteItems.AnyWithNullCheck(_ => _.DatasetFieldId == item.TemplateId.ToString() && _.ItemType == ObsoleteItemType.DatasetField)));
+                    }
                 }
             }
 

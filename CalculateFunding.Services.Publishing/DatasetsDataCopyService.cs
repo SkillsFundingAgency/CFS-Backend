@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
 
             SpecificationSummary specificationSummary = await _specificationService.GetSpecificationSummaryById(specificationId);
-
+            
             if (specificationSummary == null)
             {
                 LogAndThrowException($"Specification not found for specification id- {specificationId}", true);
@@ -228,7 +228,8 @@ namespace CalculateFunding.Services.Publishing
             return providers;
         }
 
-        private async Task<List<RelationshipDataSetExcelData>> GetRelationshipDatasetExcelData(string specificationId, DatasetSpecificationRelationshipViewModel relationship)
+        private async Task<List<RelationshipDataSetExcelData>> GetRelationshipDatasetExcelData(string specificationId,
+            DatasetSpecificationRelationshipViewModel relationship)
         {
             List<RelationshipDataSetExcelData> excelDataItems = new List<RelationshipDataSetExcelData>();
 
@@ -265,6 +266,20 @@ namespace CalculateFunding.Services.Publishing
                     excelDataItem.FundingLines.Add(
                         $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{item.TemplateId}_{item.Name}",
                         fundingLine?.Value);
+
+                    if (relationship.PublishedSpecificationConfiguration.IncludeCarryForward)
+                    {
+                        IEnumerable<ProfilingCarryOver> profilingCarryOvers = publishedProviderVersion?.CarryOvers?.Where(_ => _.FundingLineCode == fundingLine.FundingLineCode);
+                        if(profilingCarryOvers?.Count() > 1)
+                        {
+                            throw new InvalidOperationException($"Provider {publishedProviderVersion.Provider.UKPRN} has multiple carry over values for {fundingLine.FundingLineCode}");
+                        }
+
+                        excelDataItem.FundingLines.Add(
+                            $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{item.TemplateId}_{item.Name}_CarryOver",
+                            profilingCarryOvers?.SingleOrDefault()?.Amount
+                            );
+                    }
                 }
             }
 

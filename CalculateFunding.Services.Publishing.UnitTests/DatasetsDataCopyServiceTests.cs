@@ -364,10 +364,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [DataTestMethod]
-        [DataRow(true, false)]
-        [DataRow(false, false)]
+        [DataRow(true, false, false)]
+        [DataRow(false, false, false)]
+        [DataRow(false, false, true)]
         public async Task Process_GivenValidProvidersData_AndNoDatasetExists_ShouldCreateNewDatasetVersionAndUpdateTheRelationshipWithNewDatasetVersion_And_CreateDataset(
-            bool hasTargetSpecificationId, bool isReleaseManagementEnabled)
+            bool hasTargetSpecificationId, bool isReleaseManagementEnabled, bool includeFundingLineCarryForward)
         {
             // Arrange
             string fundingPeriodId = NewRandomString();
@@ -413,6 +414,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                     .WithCalculations(
                                         NewPublishedSpecificationItem(f => f.WithName(calculation1).WithTemplateId(calculationTemplateId1)),
                                         NewPublishedSpecificationItem(f => f.WithName(calculation2).WithTemplateId(calculationTemplateId2)))
+                                    .WithIncludeCarryForward(includeFundingLineCarryForward)
                                     )
                  ))
             };
@@ -460,6 +462,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 }
             };
 
+            IEnumerable<int> fundingLineCounts = expectedDatasetData.Select(_ => _.FundingLines.Count() * (includeFundingLineCarryForward ? 2 : 1));
+
             NewDatasetVersionResponseModel datasetVersionResponse = new NewDatasetVersionResponseModel()
             {
                 DatasetId = datasetId,
@@ -486,6 +490,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AssertPublishedProvidersForSpecificationRetrievedForBatchProcessing(_specificationId, isReleaseManagementEnabled, publishedProviders.Count());
             AssertCreateAndPersistNewDatasetHasBeenCalled(relationshipName, targetSpecificationId ?? _specificationId);
             AssertDatasetFileUpload(datasetVersionResponse);
+            AssertDatasetFileUploadHasCorrectFundingLines(datasetVersionResponse, fundingLineCounts);
             AssertThatRelationshipUpdatedWithNewDatasetVersion(relationshipId, datasetId, datasetVersionVersion);
         }
 
@@ -765,6 +770,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                                                 m.DatasetId == datasetVersionResponse.DatasetId &&
                                                                 m.Filename == datasetVersionResponse.Filename &&
                                                                 m.FundingStreamId == datasetVersionResponse.FundingStreamId)), Times.Once);
+        }
+
+        private void AssertDatasetFileUploadHasCorrectFundingLines(NewDatasetVersionResponseModel datasetVersionResponse, IEnumerable<int> fundingLineCounts)
+        {
+            _datasetsApiClient.Verify(x => x.UploadDatasetFile(
+                           It.Is<string>(fileName => fileName == datasetVersionResponse.Filename),
+                           It.Is<DatasetMetadataViewModel>(m => m.ExcelData.Select(_ => _.FundingLines.Count()).SequenceEqual(fundingLineCounts))), Times.Once);
         }
 
         private void AssertDatasetVersionUpdateHasBeenCalled(string fundingStreamId, string relationshipName, string datasetId)

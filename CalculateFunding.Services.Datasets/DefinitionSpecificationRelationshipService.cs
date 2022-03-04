@@ -44,6 +44,7 @@ using Calculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 using CalculationRelationship = CalculateFunding.Models.Graph.CalculationRelationship;
 using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -1325,11 +1326,24 @@ namespace CalculateFunding.Services.Datasets
 
             TemplateMapping templateMapping = await _calcsRepository.GetTemplateMapping(specificationId, fundingStreamId);
 
+            ApiResponse<FundingConfiguration> fundingConfigurationResponse =
+                await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(fundingStreamId, fundingPeriodId));
+
+            if(!fundingConfigurationResponse.StatusCode.IsSuccess() && fundingConfigurationResponse.StatusCode != HttpStatusCode.NotFound)
+            {
+                string errorMessage = $"Failed to fetch funding configuration for FundingStreamId={fundingStreamId}, FundingPeriodId={fundingPeriodId} with StatusCode={fundingConfigurationResponse.StatusCode}";
+                _logger.Error(errorMessage);
+                throw new RetriableException(errorMessage);
+            }
+
+            FundingConfiguration fundingConfiguration = fundingConfigurationResponse.Content;
+
             return new PublishedSpecificationConfiguration()
             {
                 SpecificationId = specificationId,
                 FundingStreamId = fundingStreamId,
                 FundingPeriodId = fundingPeriodId,
+                IncludeCarryForward = fundingConfiguration.EnableCarryForward,
                 FundingLines = await GetFundingLines(metadata, templateId),
                 Calculations = await GetCalculations(metadata, templateId)
             };

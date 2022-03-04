@@ -50,6 +50,7 @@ using FundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
 using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
 using Relationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 using Calculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -430,6 +431,9 @@ namespace CalculateFunding.Services.Datasets.Services
                     new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdTwo, Name = calculationTwo, Type = Common.TemplateMetadata.Enums.CalculationType.Enum}
                 }
             };
+
+            FundingConfiguration fundingConfiguration = new FundingConfiguration();
+            
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel
             {
                 SpecificationId = specificationId,
@@ -518,6 +522,9 @@ namespace CalculateFunding.Services.Datasets.Services
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             policiesApiClient.GetDistinctTemplateMetadataContents(Arg.Is(targetFundingStreamId), Arg.Is(targetFundingPeriodId), Arg.Is(templateId))
                 .Returns(new ApiResponse<TemplateMetadataDistinctContents>(HttpStatusCode.OK, metadataContents, null));
+
+            policiesApiClient.GetFundingConfiguration(Arg.Is(targetFundingStreamId), Arg.Is(targetFundingPeriodId))
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration, null));
 
             IJobManagement jobManagement = CreateJobManagement();
 
@@ -632,6 +639,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 FundingStreamId = targetFundingStreamId,
                 FundingPeriodId = targetFundingPeriodId
             };
+
+            FundingConfiguration fundingConfiguration = new FundingConfiguration();
+
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel
             {
                 DatasetDefinitionId = datasetDefinitionId,
@@ -725,6 +735,9 @@ namespace CalculateFunding.Services.Datasets.Services
             policiesApiClient.GetDistinctTemplateMetadataContents(Arg.Is(targetFundingStreamId), Arg.Is(targetFundingPeriodId), Arg.Is(templateId))
                 .Returns(new ApiResponse<TemplateMetadataDistinctContents>(HttpStatusCode.OK, metadataContents, null));
 
+            policiesApiClient.GetFundingConfiguration(Arg.Is(targetFundingStreamId), Arg.Is(targetFundingPeriodId))
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration, null));
+
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, cacheProvider: cacheProvider,
                 calcsRepository: calcsRepository, relationshipVersionRepository: relationshipVersionRepository,
@@ -785,6 +798,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 FundingStreamId = targetFundingStreamId,
                 FundingPeriodId = targetFundingPeriodId
             };
+
+            FundingConfiguration fundingConfiguration = new FundingConfiguration();
+
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel
             {
                 DatasetDefinitionId = datasetDefinitionId,
@@ -842,6 +858,9 @@ namespace CalculateFunding.Services.Datasets.Services
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             policiesApiClient.GetDistinctTemplateMetadataContents(Arg.Is(targetFundingStreamId), Arg.Is(targetFundingPeriodId), Arg.Is(templateId))
                 .Returns(new ApiResponse<TemplateMetadataDistinctContents>(HttpStatusCode.OK, metadataContents, null));
+
+            policiesApiClient.GetFundingConfiguration(Arg.Is(targetFundingStreamId), Arg.Is(targetFundingPeriodId))
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration, null));
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, cacheProvider: cacheProvider,
@@ -3880,6 +3899,9 @@ namespace CalculateFunding.Services.Datasets.Services
             policiesApiClient.GetDistinctTemplateMetadataContents(Arg.Is(fundingStreamId), Arg.Any<string>(), Arg.Is(templateId))
                 .Returns(new ApiResponse<TemplateMetadataDistinctContents>(HttpStatusCode.OK, metadataContents, null));
 
+            policiesApiClient.GetFundingConfiguration(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, new FundingConfiguration(), null));
+
             datasetRepository
                 .SaveDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
                 .Returns(HttpStatusCode.BadRequest);
@@ -4033,6 +4055,9 @@ namespace CalculateFunding.Services.Datasets.Services
                         new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdTwo, Name = calculationTwo, Type = Common.TemplateMetadata.Enums.CalculationType.Enum}
                     }
                 }, null));
+
+            policiesApiClient.GetFundingConfiguration(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, new FundingConfiguration(), null));
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();
 
@@ -4224,6 +4249,9 @@ namespace CalculateFunding.Services.Datasets.Services
                     new TemplateMetadataCalculation(){TemplateCalculationId = calculationTemplateIdOne, Name = calculationOne, Type = Common.TemplateMetadata.Enums.CalculationType.Number}
                 }
                 }, null));
+
+            policiesApiClient.GetFundingConfiguration(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, new FundingConfiguration(), null));
 
             IEnumerable<Common.ApiClient.Graph.Models.Entity<FundingLine>> fundingLineEntities = new List<Common.ApiClient.Graph.Models.Entity<FundingLine>>
             {

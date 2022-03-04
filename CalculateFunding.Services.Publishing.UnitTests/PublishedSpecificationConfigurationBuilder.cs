@@ -8,6 +8,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _specificationId;
         private string _fundingStreamId;
         private string _fundingPeriodId;
+        private bool _includeCarryForward;
         private PublishedSpecificationItem[] _fundingLines;
         private PublishedSpecificationItem[] _calculations;
 
@@ -46,6 +47,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public PublishedSpecificationConfigurationBuilder WithIncludeCarryForward(bool includeCarryForward)
+        {
+            _includeCarryForward = includeCarryForward;
+
+            return this;
+        }
+
         public PublishedSpecificationConfiguration Build()
         {
             return new PublishedSpecificationConfiguration()
@@ -54,7 +62,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingLines = _fundingLines,
-                Calculations = _calculations
+                Calculations = _calculations,
+                IncludeCarryForward = _includeCarryForward
             };
         }
     }

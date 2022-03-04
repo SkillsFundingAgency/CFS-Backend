@@ -47,6 +47,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
         private DatasetDefinitionDataContext _datasetDefinitionDataContext;
         private SpecificationDatasetRelationshipContext _specificationDatasetRelationshipContext;
         private FundingTemplateDataContext _fundingTemplateDataContext;
+        private FundingConfigurationDataContext _fundingConfigurationDataContext;
 
         private IDatasetsApiClient _datasets;
 
@@ -71,13 +72,15 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
             _datasetDefinitionDataContext = new DatasetDefinitionDataContext(Configuration, ResourceAssembly);
             _specificationDatasetRelationshipContext = new SpecificationDatasetRelationshipContext(Configuration, ResourceAssembly);
             _fundingTemplateDataContext = new FundingTemplateDataContext(Configuration);
+            _fundingConfigurationDataContext = new FundingConfigurationDataContext(Configuration, ResourceAssembly);
 
             TrackForTeardown(_specificationDataContext,
                 _providerVersionBlobContext,
                 _datasetDataContext,
                 _datasetDefinitionDataContext,
                 _specificationDatasetRelationshipContext,
-                _fundingTemplateDataContext);
+                _fundingTemplateDataContext,
+                _fundingConfigurationDataContext);
 
             _datasets = GetService<IDatasetsApiClient>();
 
@@ -101,6 +104,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
             await SetupSpecifications();
             await SetupDataset();
             await SetupTemplateContents();
+            await SetupFundingConfigurationContents();
 
             CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel = new CreateDefinitionSpecificationRelationshipModel
             {
@@ -224,6 +228,12 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
                                                                     .WithTemplateVersion("1.0")));
         }
 
+        private async Task SetupFundingConfigurationContents()
+        {
+            await AndTheFundingConfigurationContents(NewFundingConfigurationTemplate(_ => _.WithFundingPeriodId(_referencedFundingPeriodId)
+                                                                    .WithFundingStreamId(_fundingStreamId)));
+        }
+
         private async Task<DefinitionSpecificationRelationship> WhenTheRelationshipCreated(CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel)
             => (await _datasets.CreateRelationship(createDefinitionSpecificationRelationshipModel))?.Content;
 
@@ -249,6 +259,9 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
         private async Task AndTheTemplateMappingContents(FundingTemplateParameters fundingTemplateParameters)
             => await _fundingTemplateDataContext.CreateContextData(fundingTemplateParameters);
 
+        private async Task AndTheFundingConfigurationContents(FundingConfigurationTemplateParameters fundingConfigurationTemplateParameters)
+            => await _fundingConfigurationDataContext.CreateContextData(fundingConfigurationTemplateParameters);
+
         private CreateDefinitionSpecificationRelationshipModel NewRelationship(Action<CreateDefinitionSpecificationRelationshipModelBuilder> setUp = null)
         {
             CreateDefinitionSpecificationRelationshipModelBuilder createDefinitionSpecificationRelationshipModelBuilder = new CreateDefinitionSpecificationRelationshipModelBuilder();
@@ -265,6 +278,15 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
             setUp?.Invoke(fundingTemplateParametersBuilder);
 
             return fundingTemplateParametersBuilder.Build();
+        }
+
+        private FundingConfigurationTemplateParameters NewFundingConfigurationTemplate(Action<FundingConfigurationTemplateParametersBuilder> setUp = null)
+        {
+            FundingConfigurationTemplateParametersBuilder fundingConfigurationTemplateParametersBuilder = new FundingConfigurationTemplateParametersBuilder();
+
+            setUp?.Invoke(fundingConfigurationTemplateParametersBuilder);
+
+            return fundingConfigurationTemplateParametersBuilder.Build();
         }
 
         private SpecificationTemplateParameters NewSpecification(Action<SpecificationTemplateParametersBuilder> setUp = null)
