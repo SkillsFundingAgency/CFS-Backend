@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -71,7 +72,13 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                                                 $" line for provider {dto.ProviderId} has {profilePeriods.Length/6} profile periods but the template expected {templatePeriodCount/6}");
             }
 
-            object[] fundingLineCarryOver = { dto?.CarryOvers?.Where(_ => _.FundingLineCode == fundingLine.FundingLineCode)?.Sum(_ => _.Amount) };
+            IEnumerable<ProfilingCarryOver> profilingCarryOvers = dto?.CarryOvers?.Where(_ => _.FundingLineCode == fundingLine.FundingLineCode);
+            if (profilingCarryOvers?.Count() > 1)
+            {
+                throw new InvalidOperationException($"Provider {dto?.Provider?.UKPRN} has multiple carry over values for {fundingLine.FundingLineCode}");
+            }
+
+            object[] fundingLineCarryOver = { profilingCarryOvers?.SingleOrDefault()?.Amount };
             
             DataTable.Rows.Add(new object[]
             {

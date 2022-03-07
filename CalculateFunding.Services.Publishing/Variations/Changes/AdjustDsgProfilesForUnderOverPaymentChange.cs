@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 {
                     if (remainingOverPayment > 0)
                     {
-                        RefreshState.AddCarryOver(fundingLineId, ProfilingCarryOverType.DSGReProfiling, remainingOverPayment);
+                        RefreshState.AddOrUpdateCarryOver(fundingLineId, ProfilingCarryOverType.DSGReProfiling, remainingOverPayment);
                     }
                 }
             }
@@ -147,7 +147,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
                 if (carryOver > 0)
                 {
-                    RefreshState.AddCarryOver(fundingLineId, ProfilingCarryOverType.DSGReProfiling, carryOver);
+                    RefreshState.AddOrUpdateCarryOver(fundingLineId, ProfilingCarryOverType.DSGReProfiling, carryOver);
                 }
             }
             else if (runningTotalChange > 0)

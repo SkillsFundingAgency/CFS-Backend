@@ -126,7 +126,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
             if (request.HasCarryOver)
             {
-                currentProviderVersion.AddCarryOver(fundingLineCode,
+                currentProviderVersion.AddOrUpdateCarryOver(fundingLineCode,
                     ProfilingCarryOverType.CustomProfile,
                     request.CarryOver.GetValueOrDefault());
             }

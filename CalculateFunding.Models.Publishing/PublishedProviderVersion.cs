@@ -271,7 +271,15 @@ namespace CalculateFunding.Models.Publishing
         }
 
         public decimal? GetCarryOverTotalForFundingLine(string fundingLineCode)
-            => CarryOvers?.Where(_ => _.FundingLineCode == fundingLineCode).Sum(_ => _.Amount);
+        {
+            IEnumerable<ProfilingCarryOver> profilingCarryOvers = CarryOvers?.Where(_ => _.FundingLineCode == fundingLineCode);
+            if (profilingCarryOvers?.Count() > 1)
+            {
+                throw new InvalidOperationException($"Provider {Provider?.UKPRN} has multiple carry over values for {fundingLineCode}");
+            }
+
+            return profilingCarryOvers?.SingleOrDefault()?.Amount;
+        }
 
         public decimal? GetFundingLineTotal(string fundingLineCode)
             => FundingLines?.FirstOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Value;
@@ -298,6 +306,7 @@ namespace CalculateFunding.Models.Publishing
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode), "Funding Line Id cannot be missing");
             Guard.Ensure(type != ProfilingCarryOverType.Undefined, $"Unsupported {nameof(ProfilingCarryOverType)}");
             Guard.Ensure(amount > 0, "Carry overs must be greater than zero");
+            Guard.Ensure(!(CarryOvers?.Where(_ => _.FundingLineCode == fundingLineCode)?.Any() ?? false), "Carry over for funding line already exists");
 
             CarryOvers ??= new List<ProfilingCarryOver>();
             CarryOvers.Add(new ProfilingCarryOver
@@ -306,6 +315,14 @@ namespace CalculateFunding.Models.Publishing
                 Type = type,
                 Amount = amount
             });
+        }
+
+        public void AddOrUpdateCarryOver(string fundingLineCode,
+            ProfilingCarryOverType type,
+            decimal amount)
+        {
+            RemoveCarryOver(fundingLineCode);
+            AddCarryOver(fundingLineCode, type, amount);
         }
 
         public void RemoveCarryOver(string fundingLineCode)

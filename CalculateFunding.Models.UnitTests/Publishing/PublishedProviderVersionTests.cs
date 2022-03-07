@@ -56,6 +56,20 @@ namespace CalculateFunding.Models.UnitTests.Publishing
         }
 
         [TestMethod]
+        public void AddCarryOversGuardsAgainstAddingExistingFundingLine()
+        {
+            ProfilingCarryOver existingCarryOver = NewCarryOver(_ => _.WithFundingLineCode(NewRandomString()));
+            ProfilingCarryOver newCarryOver = NewCarryOver(_ => _.WithFundingLineCode(existingCarryOver.FundingLineCode));
+            GivenTheCarryOver(existingCarryOver);
+            Action invocation = () => WhenTheFundingLineCarryOverIsAdded(existingCarryOver.FundingLineCode, NewRandomNumber(), NewRandomCarryOverType());
+
+            invocation
+                .Should()
+                .ThrowExactly<InvalidOperationException>()
+                .WithMessage("Carry over for funding line already exists");
+        }
+
+        [TestMethod]
         public void AddCarryOversAddsToInternalCollection()
         {
             string fundingLineId = NewRandomString();
@@ -71,6 +85,44 @@ namespace CalculateFunding.Models.UnitTests.Publishing
                     Type = type,
                     Amount = overPayment,
                     FundingLineCode = fundingLineId
+                });
+        }
+
+        [TestMethod]
+        public void AddOrUpdateCarryOversAddsToInternalCollectionIfDoesntExist()
+        {
+            string fundingLineCode = NewRandomString();
+            decimal overPayment = NewRandomNumber();
+            ProfilingCarryOverType type = NewRandomCarryOverType();
+            WhenTheFundingLineCarryOverIsAddedOrUpdated(fundingLineCode, overPayment, type);
+
+            _publishedProviderVersion.CarryOvers
+                .Should()
+                .BeEquivalentTo(new ProfilingCarryOver
+                {
+                    Type = type,
+                    Amount = overPayment,
+                    FundingLineCode = fundingLineCode
+                });
+        }
+
+        [TestMethod]
+        public void AddOrUpdateCarryOversUpdatesInternalCollectionIfFundlingLineExist()
+        {
+            ProfilingCarryOver existingCarryOver = NewCarryOver();
+            GivenTheCarryOver(existingCarryOver);
+
+            decimal newOverPayment = NewRandomNumber();
+            ProfilingCarryOverType newType = NewRandomCarryOverType();
+            WhenTheFundingLineCarryOverIsAddedOrUpdated(existingCarryOver.FundingLineCode, newOverPayment, newType);
+
+            _publishedProviderVersion.CarryOvers
+                .Should()
+                .BeEquivalentTo(new ProfilingCarryOver
+                {
+                    Type = newType,
+                    Amount = newOverPayment,
+                    FundingLineCode = existingCarryOver.FundingLineCode
                 });
         }
 
@@ -181,6 +233,11 @@ namespace CalculateFunding.Models.UnitTests.Publishing
         private void WhenTheFundingLineCarryOverIsAdded(string fundingLineId, decimal overPayment, ProfilingCarryOverType type)
         {
             _publishedProviderVersion.AddCarryOver(fundingLineId, type, overPayment);
+        }
+
+        private void WhenTheFundingLineCarryOverIsAddedOrUpdated(string fundingLineId, decimal overPayment, ProfilingCarryOverType type)
+        {
+            _publishedProviderVersion.AddOrUpdateCarryOver(fundingLineId, type, overPayment);
         }
 
         private void WhenTheFundingLineCarryOverIsRemoved(string fundingLineId)
