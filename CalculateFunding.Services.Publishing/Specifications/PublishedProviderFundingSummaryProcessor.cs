@@ -66,6 +66,11 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             IEnumerable<Channel> channels = await GetChannels(channelCodes);
 
+            if (publishedProviderIds.IsNullOrEmpty())
+            {
+                publishedProviderIds = await _publishedFundingPolicy.ExecuteAsync(() => _publishedFunding.GetPublishedProviderPublishedProviderIds(specificationSummary.Id));
+            }
+
             IEnumerable<PublishedProviderFundingSummary> approvedOrReleasedPublishedProviders = await GetPublishedProviderFundingSummaries(
                 publishedProviderIds,
                 specificationSummary,
