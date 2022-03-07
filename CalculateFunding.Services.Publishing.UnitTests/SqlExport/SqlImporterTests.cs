@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
@@ -19,7 +20,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
     [TestClass]
     public class SqlImporterTests
     {
-        private Mock<ICosmosDbFeedIterator> _cosmosFeed;
+        private Mock<ICosmosDbFeedIterator> _currentPublishedProviderCosmosFeed;
+        private Mock<ICosmosDbFeedIterator> _releasedPublishedProviderVersionCosmosFeed;
+
         private Mock<ISqlImportContext> _importContext;
         private Mock<ISqlImportContextBuilder> _importContextBuilder;
         private Mock<IPublishingDataTableImporter> _dataTableImporter;
@@ -32,13 +35,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private Mock<IDataTableBuilder<PublishedProviderVersion>> _fundingLineTwoProfilingDataTableBuilder;
         private Mock<IDataTableBuilder<PublishedProviderVersion>> _calculationDataTableBuilder;
         private Mock<IDataTableBuilder<PublishedProviderVersion>> _fundingDataTableBuilder;
-        
+        private Mock<IDataTableBuilder<PublishedProviderVersion>> _providerPaymentFundingLineAllVersions;
+
         private SqlImporter _sqlImporter;
 
         [TestInitialize]
         public void SetUp()
         {
-            _cosmosFeed = new Mock<ICosmosDbFeedIterator>();
+            _currentPublishedProviderCosmosFeed = new Mock<ICosmosDbFeedIterator>();
+            _releasedPublishedProviderVersionCosmosFeed = new Mock<ICosmosDbFeedIterator>();
+
             _importContext = new Mock<ISqlImportContext>();
             _importContextBuilder = new Mock<ISqlImportContextBuilder>();
             _dataTableImporter = new Mock<IPublishingDataTableImporter>();
@@ -54,6 +60,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             _calculationDataTableBuilder = NewDataTableBuilder();
             _publishedProviderVersionDataTableBuilder = NewDataTableBuilder();
             _fundingDataTableBuilder = NewDataTableBuilder();
+            _providerPaymentFundingLineAllVersions = NewDataTableBuilder();
 
             _importContext.Setup(_ => _.Providers)
                 .Returns(_publishedProviderVersionDataTableBuilder.Object);
@@ -75,9 +82,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 .Returns(_paymentFundingLineDataTableBuilder.Object);
             _importContext.Setup(_ => _.InformationFundingLines)
                 .Returns(_informationFundingLineDataTableBuilder.Object);
-            _importContext.Setup(_ => _.Documents)
-                .Returns(_cosmosFeed.Object);
-            
+            _importContext.Setup(_ => _.CurrentPublishedProviderDocuments)
+                .Returns(_currentPublishedProviderCosmosFeed.Object);
+            _importContext.Setup(_ => _.ReleasedPublishedProviderVersionDocuments)
+                .Returns(_releasedPublishedProviderVersionCosmosFeed.Object);
+            _importContext.Setup(_ => _.ProviderPaymentFundingLineAllVersions)
+                .Returns(_providerPaymentFundingLineAllVersions.Object);
+
             _sqlImporter = new SqlImporter(new ProducerConsumerFactory(), 
                 _importContextBuilder.Object,
                 _publishingDataTableImporterLocator.Object,
@@ -113,13 +124,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
             GivenTheImportContextIsCreatedForTheFundingInformation(specificationId, fundingStreamId, sqlExportSource);
             AndThePagesOfPublishedProviders(pageOne, pageTwo, pageThree);
+            AndThePagesOfPublishedProviderVersions(pageOne.Select(_ => _.Current), pageTwo.Select(_ => _.Current), pageThree.Select(_ => _.Current));
 
             await WhenTheSqlImportRuns(specificationId, fundingStreamId, sqlExportSource);
             
             ThenThePublishedProviderVersionsWereAddedToTheImportContextRows(pageOne);
             AndThePublishedProviderVersionsWereAddedToTheImportContextRows(pageTwo);
             AndThePublishedProviderVersionsWereAddedToTheImportContextRows(pageThree);
-            AndTheImportContextWasBulkInsertedIntoSqlServer();
+
+            ThenTheReleasedPublishedProviderVersionsWereAddedToTheImportContextRows(pageOne.Select(_ => _.Current));
+            AndTheReleasedPublishedProviderVersionsWereAddedToTheImportContextRows(pageTwo.Select(_ => _.Current));
+            AndTheReleasedPublishedProviderVersionsWereAddedToTheImportContextRows(pageThree.Select(_ => _.Current));
+
+            AndTheImportContextWasBulkInsertedIntoSqlServer(sqlExportSource);
         }
 
         private void GivenTheImportContextIsCreatedForTheFundingInformation(
@@ -129,7 +146,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             => _importContextBuilder.Setup(_ => _.CreateImportContext(specificationId, fundingStreamId, null, sqlExportSource))
                 .ReturnsAsync(_importContext.Object);
         
-        private void AndTheImportContextWasBulkInsertedIntoSqlServer()
+        private void AndTheImportContextWasBulkInsertedIntoSqlServer(SqlExportSource sqlExportSource)
         {
             _dataTableImporter.Verify(_ => _.ImportDataTable(_calculationDataTableBuilder.Object, SqlBulkCopyOptions.Default));
             _dataTableImporter.Verify(_ => _.ImportDataTable(_informationFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default));
@@ -138,20 +155,37 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingLineOneProfilingDataTableBuilder.Object, SqlBulkCopyOptions.Default));
             _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingLineTwoProfilingDataTableBuilder.Object, SqlBulkCopyOptions.Default));
             _dataTableImporter.Verify(_ => _.ImportDataTable(_publishedProviderVersionDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+
+            if (sqlExportSource == SqlExportSource.ReleasedPublishedProviderVersion)
+            {
+                _dataTableImporter.Verify(_ => _.ImportDataTable(_providerPaymentFundingLineAllVersions.Object, SqlBulkCopyOptions.Default));
+            }
         }
-        
+
         private void ThenThePublishedProviderVersionsWereAddedToTheImportContextRows(IEnumerable<PublishedProvider> publishedProviders)
         {
             foreach (PublishedProvider publishedProvider in publishedProviders)
             {
-                _importContext.Verify(_ => _.AddRows(publishedProvider.Current),
+                _importContext.Verify(_ => _.AddCurrentPublishedProviderRows(publishedProvider.Current),
+                    Times.Once);
+            }
+        }
+
+        private void ThenTheReleasedPublishedProviderVersionsWereAddedToTheImportContextRows(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
+        {
+            foreach (PublishedProviderVersion publishedProviderVersion in publishedProviderVersions)
+            {
+                _importContext.Verify(_ => _.AddReleasedPublishedProviderVersionRows(publishedProviderVersion),
                     Times.Once);
             }
         }
 
         private void AndThePublishedProviderVersionsWereAddedToTheImportContextRows(IEnumerable<PublishedProvider> publishedProviders)
             => ThenThePublishedProviderVersionsWereAddedToTheImportContextRows(publishedProviders);
-        
+
+        private void AndTheReleasedPublishedProviderVersionsWereAddedToTheImportContextRows(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
+                => ThenTheReleasedPublishedProviderVersionsWereAddedToTheImportContextRows(publishedProviderVersions);
+
         private async Task WhenTheSqlImportRuns(
             string specificationId,
             string fundingStreamId,
@@ -160,11 +194,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
         private void AndThePagesOfPublishedProviders(params IEnumerable<PublishedProvider>[] pages)
         {
-            ISetupSequentialResult<Task<IEnumerable<PublishedProvider>>> reads = _cosmosFeed.SetupSequence(_ => 
+            ISetupSequentialResult<Task<IEnumerable<PublishedProvider>>> reads = _currentPublishedProviderCosmosFeed.SetupSequence(_ => 
                 _.ReadNext<PublishedProvider>(It.IsAny<CancellationToken>()));
-            ISetupSequentialResult<bool> hasRecords = _cosmosFeed.SetupSequence(_ => _.HasMoreResults);
+            ISetupSequentialResult<bool> hasRecords = _currentPublishedProviderCosmosFeed.SetupSequence(_ => _.HasMoreResults);
             
             foreach (IEnumerable<PublishedProvider> page in pages)
+            {
+                reads.ReturnsAsync(page);
+                hasRecords.Returns(true);
+            }
+        }
+
+        private void AndThePagesOfPublishedProviderVersions(params IEnumerable<PublishedProviderVersion>[] pages)
+        {
+            ISetupSequentialResult<Task<IEnumerable<PublishedProviderVersion>>> reads = _releasedPublishedProviderVersionCosmosFeed.SetupSequence(_ =>
+                _.ReadNext<PublishedProviderVersion>(It.IsAny<CancellationToken>()));
+            ISetupSequentialResult<bool> hasRecords = _releasedPublishedProviderVersionCosmosFeed.SetupSequence(_ => _.HasMoreResults);
+
+            foreach (IEnumerable<PublishedProviderVersion> page in pages)
             {
                 reads.ReturnsAsync(page);
                 hasRecords.Returns(true);

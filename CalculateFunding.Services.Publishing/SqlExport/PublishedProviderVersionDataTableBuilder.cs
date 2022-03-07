@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -11,7 +10,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 {
     public class PublishedProviderVersionDataTableBuilder : DataTableBuilder<PublishedProviderVersion>
     {
-        private readonly IEnumerable<ProviderVersionInChannel> _providerVersionInChannels;
+        private readonly IEnumerable<ProviderVersionInChannel> _allProviderVersionInChannels;
         private readonly SqlExportSource _sqlExportSource;
         private readonly bool _latestReleasedVersionChannelPopulationEnabled;
 
@@ -20,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             SqlExportSource sqlExportSource,
             bool latestReleasedVersionChannelPopulationEnabled)
         {
-            _providerVersionInChannels = providerVersionInChannels;
+            _allProviderVersionInChannels = providerVersionInChannels;
             _sqlExportSource = sqlExportSource;
             _latestReleasedVersionChannelPopulationEnabled = latestReleasedVersionChannelPopulationEnabled;
         }
@@ -43,9 +42,9 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             if (_sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion
                 && _latestReleasedVersionChannelPopulationEnabled)
             {
-                foreach (string channelCode in Enumerable.Distinct(_providerVersionInChannels.Select(_=> _.ChannelCode)))
+                foreach (string channelCode in Enumerable.Distinct(_allProviderVersionInChannels.Select(_=> _.ChannelCode)))
                 {
-                    dataColumns.Add(NewDataColumn<string>($"Latest{channelCode}ReleaseVersion", 8));
+                    dataColumns.Add(NewDataColumn<string>($"Latest{channelCode}ReleaseVersion", maxLength: 8, allowNull: true));
                 }
             }
 
@@ -74,14 +73,26 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             if (_sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion
                 && _latestReleasedVersionChannelPopulationEnabled)
             {
-                foreach (ProviderVersionInChannel _providerVersionInChannel in _providerVersionInChannels)
+                IEnumerable<string> distinctChannelCodes = Enumerable.Distinct(_allProviderVersionInChannels.Select(_ => _.ChannelCode));
+
+                foreach (var distinctChannelCode in distinctChannelCodes)
                 {
-                    dataRowValues.Add($"{_providerVersionInChannels.SingleOrDefault(_ => _.ChannelCode == _providerVersionInChannel.ChannelCode)?.MajorVersion}.0");
+                    ProviderVersionInChannel providerVersionInChannel = _allProviderVersionInChannels.SingleOrDefault(p => p.ProviderId == dto.ProviderId && p.ChannelCode == distinctChannelCode);
+
+                    if(providerVersionInChannel != null)
+                    {
+                        dataRowValues.Add($"{providerVersionInChannel?.MajorVersion}.0");
+                    }
+                    else
+                    {
+                        dataRowValues.Add(DbNullSafe(null));
+                    }
                 }
             }
 
             dataRowValues.Add(dto.Date.UtcDateTime);
             dataRowValues.Add(dto.Author.Name);
+            
             dataRowValues.Add(dto.IsIndicative);
             dataRowValues.Add(string.Join(";", dto.VariationReasons.Select(s => s)));
 

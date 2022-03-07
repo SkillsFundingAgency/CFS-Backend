@@ -120,7 +120,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 int colNumber = 0;
                 foreach (object item in row.ItemArray)
                 {
-                    if (!(item is DBNull))
+                    if (item is not DBNull)
                     {
                         ExpectedDataTable.Rows[rowNumber][colNumber]
                             .Should()

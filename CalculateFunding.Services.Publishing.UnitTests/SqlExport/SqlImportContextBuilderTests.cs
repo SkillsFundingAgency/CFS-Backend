@@ -6,7 +6,6 @@ using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.TemplateMetadata.Models;
-using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.SqlExport;
@@ -25,6 +24,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
         private Mock<ICosmosDbFeedIterator> _publishedProviders;
 
+        private Mock<ICosmosDbFeedIterator> _publishedProviderVersions;
+
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
 
         private Mock<IFeatureManagerSnapshot> _featureManagerSnapshot;
@@ -36,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         {
             _cosmos = new Mock<ICosmosRepository>();
             _publishedProviders = new Mock<ICosmosDbFeedIterator>();
+            _publishedProviderVersions = new Mock<ICosmosDbFeedIterator>();
             _featureManagerSnapshot = new Mock<IFeatureManagerSnapshot>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
 
@@ -96,7 +98,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             AndTheChannels(channels);
             AndTheFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion, fundingTemplate);
             AndTheTemplateMetadataContents(schemaVersion, fundingTemplateContents, templateMetadataContents);
-            AndTheCosmosDocumentFeed(specificationId, fundingStreamId);
+            AndThePublishedProviderCosmosDocumentFeed(specificationId, fundingStreamId);
+
+
+            AndTheReleasedPublishedProviderVersionFeed(fundingPeriodId, fundingStreamId);
+
 
             ISqlImportContext importContext = await WhenTheImportContextIsBuilt(specificationId, fundingStreamId, schemaContext, sqlExportSource);
 
@@ -175,7 +181,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             SqlExportSource sqlExportSource)
             => await _contextBuilder.CreateImportContext(specificationId, fundingStreamId, schemaContext, sqlExportSource);
 
-        private void AndTheCosmosDocumentFeed(string specificationId,
+        private void AndThePublishedProviderCosmosDocumentFeed(string specificationId,
             string fundingStreamId)
             => _cosmos.Setup(_ => _.GetFeedIterator(It.Is<CosmosDbQuery>(qry
                         => qry.QueryText == @"SELECT
@@ -190,7 +196,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                     100, null))
                 .Returns(_publishedProviders.Object);
 
-        private bool HasParameter(CosmosDbQuery query,
+        private void AndTheReleasedPublishedProviderVersionFeed(string fundingPeriodId,
+            string fundingStreamId)
+            => _cosmos.Setup(_ => _.GetFeedIterator(It.Is<CosmosDbQuery>(qry
+                => qry.QueryText == @"SELECT
+                                  *
+                            FROM publishedProvider p
+                            WHERE p.documentType = 'PublishedProviderVersion'
+                            AND p.deleted = false                            
+                            AND p.content.status = 'Released'
+                            AND p.content.fundingStreamId = @fundingStreamId
+                            AND p.content.fundingPeriodId = @fundingPeriodId" &&
+                   HasParameter(qry, "@fundingPeriodId", fundingPeriodId) &&
+                   HasParameter(qry, "@fundingStreamId", fundingStreamId)),
+            100, null))
+        .Returns(_publishedProviderVersions.Object);
+
+        private static bool HasParameter(CosmosDbQuery query,
             string key,
             object value)
             => query?.Parameters.Count(_ => _.Name == key &&

@@ -583,7 +583,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 }
             }.ToDictionary(_ => _.Name);
 
-            List<SqlColumnDefinition> fundingColumns = new List<SqlColumnDefinition>() {
+            List<SqlColumnDefinition> fundingColumns = new() {
                 new SqlColumnDefinition
                 {
                     Name = "TotalFunding",
@@ -665,11 +665,69 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
             Dictionary<string, SqlColumnDefinition> fundingColumnsDictionary = fundingColumns.ToDictionary(_ => _.Name);
 
+            Dictionary<string, SqlColumnDefinition> providerPaymentFundingLinesAllVersionsAllColumns = new List<SqlColumnDefinition>() {
+                new SqlColumnDefinition
+                {
+                    Name = "ProviderId",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "MajorVersion",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "FundingLineCode",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "FundingLineName",
+                    Type = "[varchar](64)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "FundingValue",
+                    Type = "[decimal](30, 18)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "IsIndicative",
+                    Type = "[bit]",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LastUpdated",
+                    Type = "[datetime]",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LastUpdatedBy",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = false
+                }
+            }.ToDictionary(_ => _.Name);
+
             ThenTheGenerateCreateTableSqlWasCalled($"{fundingStreamTablePrefix}_Providers", fundingStreamId, fundingPeriodId, providerColumns);
 
             ThenTheGenerateCreateTableSqlWasCalled($"{fundingStreamTablePrefix}_Funding", fundingStreamId, fundingPeriodId, fundingColumnsDictionary);
 
-            ThenTheTotalNumberOfDDLScriptsExecutedWas(7);
+            if (sqlExportSource == SqlExportSource.ReleasedPublishedProviderVersion)
+            {
+                ThenTheGenerateCreateTableSqlWasCalled($"{fundingStreamTablePrefix}_ProviderPaymentFundingLinesAllVersions", fundingStreamId, fundingPeriodId, providerPaymentFundingLinesAllVersionsAllColumns);
+            }
+
+            int expectedCreatedTableCount = sqlExportSource == SqlExportSource.ReleasedPublishedProviderVersion ? 8 : 7;
+
+            ThenTheTotalNumberOfDDLScriptsExecutedWas(expectedCreatedTableCount);
         }
 
         private void ThenTheGenerateCreateTableSqlWasCalled(string tableName, string fundingStreamId, string fundingPeriodId, IDictionary<string, SqlColumnDefinition> columns)
@@ -701,17 +759,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             bool featureStatus)
             => _featureManagerSnapshot.Setup(_ => _.IsEnabledAsync(featureName))
                 .ReturnsAsync(featureStatus);
-
-        private static bool ColumnsMatch(IEnumerable<SqlColumnDefinition> actualColumns,
-            IEnumerable<SqlColumnDefinition> expectedColumns)
-        {
-            return expectedColumns.Count() == actualColumns.Count() &&
-                   expectedColumns
-                .All(_ => actualColumns.Count(col =>
-                    col.Name == _.Name &&
-                    col.Type == _.Type &&
-                    col.AllowNulls == _.AllowNulls) == 1);
-        }
 
         private async Task WhenTheSchemaIsRecreated(
             string specificationId,

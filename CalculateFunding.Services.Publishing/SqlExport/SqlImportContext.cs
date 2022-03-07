@@ -9,7 +9,9 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 {
     public class SqlImportContext : ISqlImportContext
     {
-        public ICosmosDbFeedIterator Documents { get; set; }
+        public ICosmosDbFeedIterator CurrentPublishedProviderDocuments { get; set; }
+
+        public ICosmosDbFeedIterator ReleasedPublishedProviderVersionDocuments { get; set; }
 
         public IDataTableBuilder<PublishedProviderVersion> Providers { get; set; }
 
@@ -28,8 +30,9 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         public SchemaContext SchemaContext { get; set; }
 
         public SqlExportSource SqlExportSource { get; set; }
+        public IDataTableBuilder<PublishedProviderVersion> ProviderPaymentFundingLineAllVersions { get; set; }
 
-        public void AddRows(PublishedProviderVersion dto)
+        public void AddCurrentPublishedProviderRows(PublishedProviderVersion dto)
         {
             Providers.AddRows(dto);
             Funding.AddRows(dto);
@@ -46,6 +49,11 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     profiling.AddRows(dto);
                 }
             }
+        }
+
+        public void AddReleasedPublishedProviderVersionRows(PublishedProviderVersion dto)
+        {
+            ProviderPaymentFundingLineAllVersions.AddRows(dto);
         }
 
         private void EnsureProfilingIsSetUp(PublishedProviderVersion dto)

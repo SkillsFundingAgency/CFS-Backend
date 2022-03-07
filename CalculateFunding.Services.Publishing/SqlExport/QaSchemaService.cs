@@ -178,6 +178,11 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             EnsureTable($"{fundingStreamTablePrefix}_InformationFundingLines", informationFundingLineFields, fundingStreamId, fundingPeriodId, qaRepository);
             EnsureTable($"{fundingStreamTablePrefix}_PaymentFundingLines", paymentFundingLineFields, fundingStreamId, fundingPeriodId, qaRepository);
             EnsureTable($"{fundingStreamTablePrefix}_Calculations", calculationFields, fundingStreamId, fundingPeriodId, qaRepository);
+
+            if(sqlExportSource == SqlExportSource.ReleasedPublishedProviderVersion)
+            {
+                EnsureTable($"{fundingStreamTablePrefix}_ProviderPaymentFundingLinesAllVersions", GetSqlColumnDefinitionsForProviderPaymentFundingLinesAllVersions(), fundingStreamId, fundingPeriodId, qaRepository);
+            }
         }
 
         private async Task<IEnumerable<ProviderVersionInChannel>> GetProviderVersionInChannels(
@@ -452,18 +457,73 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             if (sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion && latestReleasedVersionChannelPopulationEnabled) {
 
-                foreach (ProviderVersionInChannel providerVersionInChannel in providerVersionInChannels)
+                foreach (string channelCode in Enumerable.Distinct(providerVersionInChannels.Select(_ => _.ChannelCode)))
                 {
                     fundingColumnDefinitions.Add(new SqlColumnDefinition
                     {
-                        Name = $"Latest{providerVersionInChannel.ChannelCode}ReleaseVersion",
+                        Name = $"Latest{channelCode}ReleaseVersion",
                         Type = "[varchar](8)",
-                        AllowNulls = false
+                        AllowNulls = true
                     });
                 }
             }
 
             return fundingColumnDefinitions;
+        }
+
+        private IEnumerable<SqlColumnDefinition> GetSqlColumnDefinitionsForProviderPaymentFundingLinesAllVersions()
+        {
+            return new List<SqlColumnDefinition>
+            {
+                new SqlColumnDefinition
+                {
+                    Name = "ProviderId",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "MajorVersion",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "FundingLineCode",
+                    Type = "[varchar](32)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "FundingLineName",
+                    Type = "[varchar](64)",
+                    AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "FundingValue",
+                    Type = "[decimal](30, 18)",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "IsIndicative",
+                    Type = "[bit]",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LastUpdated",
+                    Type = "[datetime]",
+                    AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "LastUpdatedBy",
+                    Type = "[nvarchar](256)",
+                    AllowNulls = false
+                }
+            };
         }
 
         private IEnumerable<SqlColumnDefinition> GetSqlColumnDefinitionsForProviderInformation()

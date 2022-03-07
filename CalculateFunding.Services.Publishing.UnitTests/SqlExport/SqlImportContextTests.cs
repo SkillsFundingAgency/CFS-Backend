@@ -117,7 +117,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         {
             foreach (PublishedProviderVersion publishedProviderVersion in publishedProviderVersions)
             {
-                _importContext.AddRows(publishedProviderVersion);
+                _importContext.AddCurrentPublishedProviderRows(publishedProviderVersion);
             }
         }
 

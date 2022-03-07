@@ -64,7 +64,11 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             SqlExportSource sqlExportSource)
         {
             ICosmosDbFeedIterator publishedProviderFeed = GetPublishedProviderFeed(specificationId, fundingStreamId, sqlExportSource);
+
             SpecificationSummary specification = await GetSpecificationSummary(specificationId);
+
+            ICosmosDbFeedIterator releasedPublishedProviderVersionFeed
+                = GetReleasedPublishedProviderVersionFeed(fundingStreamId, specification.FundingPeriod.Id);
 
             IEnumerable<ProviderVersionInChannel> providerVersionInChannels 
                 = await GetProviderVersionInChannels(specification, fundingStreamId);
@@ -81,7 +85,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             return new SqlImportContext
             {
-                Documents = publishedProviderFeed,
+                CurrentPublishedProviderDocuments = publishedProviderFeed,
+                ReleasedPublishedProviderVersionDocuments = releasedPublishedProviderVersionFeed,
                 CalculationNames = calculationNames,
                 Calculations = new CalculationDataTableBuilder(uniqueCalculations),
                 Providers = new ProviderDataTableBuilder(),
@@ -91,6 +96,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     isLatestReleasedVersionChannelPopulationEnabled),
                 InformationFundingLines = new InformationFundingLineDataTableBuilder(),
                 PaymentFundingLines = new PaymentFundingLineDataTableBuilder(),
+                ProviderPaymentFundingLineAllVersions = new ProviderPaymentFundingLineDataTableBuilder(),
                 SchemaContext = schemaContext,
                 SqlExportSource = sqlExportSource
             };
@@ -166,6 +172,27 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                           ("@specificationId", specificationId))
                 }, 100);
             }
+
+        private ICosmosDbFeedIterator GetReleasedPublishedProviderVersionFeed(
+            string fundingStreamId,
+            string fundingPeriodId)
+        {
+            return _cosmos.GetFeedIterator(new CosmosDbQuery
+            {
+                QueryText = @$"SELECT
+                                  *
+                            FROM publishedProvider p
+                            WHERE p.documentType = 'PublishedProviderVersion'
+                            AND p.deleted = false                            
+                            AND p.content.status = 'Released'
+                            AND p.content.fundingStreamId = @fundingStreamId
+                            AND p.content.fundingPeriodId = @fundingPeriodId
+                            ",
+                Parameters = Parameters(
+                      ("@fundingStreamId", fundingStreamId),
+                      ("@fundingPeriodId", fundingPeriodId))
+            }, 100);
+        }
 
         private static CosmosDbQueryParameter[] Parameters(params (string Name, object Value)[] parameters)
             => parameters.Select(_ => new CosmosDbQueryParameter(_.Name, _.Value)).ToArray();
