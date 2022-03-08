@@ -2,9 +2,7 @@
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
-using Newtonsoft.Json;
 using Serilog;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,7 +15,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly ILogger _logger;
         private readonly IReleaseToChannelSqlMappingContext _releaseToChannelSqlMappingContext;
 
-        public FundingGroupService(IReleaseManagementRepository releaseManagementRepository, IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext, ILogger logger)
+        public FundingGroupService(IReleaseManagementRepository releaseManagementRepository,
+            IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -30,60 +30,77 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         public async Task<IEnumerable<FundingGroup>> CreateFundingGroups(string specificationId, int channelId, IEnumerable<OrganisationGroupResult> organisationGroupResults)
         {
             List<FundingGroup> results = new List<FundingGroup>();
+
             IEnumerable<SqlModels.GroupingReason> groupingReasons = await _releaseManagementRepository.GetGroupingReasons();
+            Dictionary<string, int> groupingReasonIdLookupByCode = groupingReasons.ToDictionary(_ => _.GroupingReasonCode, _ => _.GroupingReasonId);
 
-            foreach (OrganisationGroupResult organisationGroupResult in organisationGroupResults)
-            {
-                int groupingReasonId = GetGroupingReasonId(specificationId, channelId, groupingReasons, organisationGroupResult);
+            Dictionary<string, OrganisationGroupResult> orgGroupLookup = organisationGroupResults.ToDictionary(_ =>
+                $"{groupingReasonIdLookupByCode[_.GroupReason.ToString()]}-{_.GroupTypeClassification}-{_.IdentifierValue}");
 
-                FundingGroup existingFundingGroup = await _releaseManagementRepository.GetFundingGroupUsingAmbientTransaction(
-                    channelId,
-                    specificationId,
-                    groupingReasonId,
-                    organisationGroupResult.GroupTypeClassification.ToString(),
-                    organisationGroupResult.IdentifierValue.ToString());
+            IEnumerable<FundingGroup> fundingGroups =
+                await _releaseManagementRepository.GetFundingGroupsBySpecificationAndChannelUsingAmbientTransaction(specificationId,
+                    channelId);
 
-                if (existingFundingGroup != null)
-                {
-                    results.Add(existingFundingGroup);
-                    _releaseToChannelSqlMappingContext.FundingGroups.Add(organisationGroupResult, existingFundingGroup.FundingGroupId);
-                    continue;
-                }
+            IEnumerable<FundingGroup> existingFundingGroups = fundingGroups
+                .Where(_ => orgGroupLookup.ContainsKey(
+                    $"{_.GroupingReasonId}-{_.OrganisationGroupTypeClassification}-{_.OrganisationGroupIdentifierValue}"));
 
-                FundingGroup fundingGroupToBeCreated = new FundingGroup
-                {
-                    SpecificationId = specificationId,
-                    ChannelId = channelId,
-                    OrganisationGroupIdentifierValue = organisationGroupResult.IdentifierValue,
-                    OrganisationGroupName = organisationGroupResult.Name,
-                    OrganisationGroupSearchableName = organisationGroupResult.SearchableName,
-                    OrganisationGroupTypeClassification = organisationGroupResult.GroupTypeClassification.ToString(),
-                    OrganisationGroupTypeCode = organisationGroupResult.GroupTypeCode.ToString(),
-                    OrganisationGroupTypeIdentifier = organisationGroupResult.GroupTypeIdentifier.ToString(),
-                    GroupingReasonId = groupingReasonId
-                };
+            Dictionary<string, FundingGroup> existingFundingGroupsLookup = existingFundingGroups.ToDictionary(_ => $"{_.GroupingReasonId}-{_.OrganisationGroupTypeClassification}-{_.OrganisationGroupIdentifierValue}");
 
-                FundingGroup fundingGroup = await _releaseManagementRepository.CreateFundingGroupUsingAmbientTransaction(fundingGroupToBeCreated);
-                results.Add(fundingGroup);
+            results.AddRange(existingFundingGroups);
 
-                _releaseToChannelSqlMappingContext.FundingGroups.Add(organisationGroupResult, fundingGroup.FundingGroupId);
-            }
+            IEnumerable<FundingGroup> fundingGroupsToCreate = (from organisationGroupResult in organisationGroupResults
+                                                               let groupingReasonId = groupingReasonIdLookupByCode[organisationGroupResult.GroupReason.ToString()]
+                                                               where !existingFundingGroupsLookup.ContainsKey(
+                                                                   $"{groupingReasonId}-{organisationGroupResult.GroupTypeClassification}-{organisationGroupResult.IdentifierValue}")
+                                                               select new FundingGroup
+                                                               {
+                                                                   SpecificationId = specificationId,
+                                                                   ChannelId = channelId,
+                                                                   OrganisationGroupIdentifierValue = organisationGroupResult.IdentifierValue,
+                                                                   OrganisationGroupName = organisationGroupResult.Name,
+                                                                   OrganisationGroupSearchableName = organisationGroupResult.SearchableName,
+                                                                   OrganisationGroupTypeClassification = organisationGroupResult.GroupTypeClassification.ToString(),
+                                                                   OrganisationGroupTypeCode = organisationGroupResult.GroupTypeCode.ToString(),
+                                                                   OrganisationGroupTypeIdentifier = organisationGroupResult.GroupTypeIdentifier.ToString(),
+                                                                   GroupingReasonId = groupingReasonId
+                                                               });
+
+            IEnumerable<FundingGroup> newFundingGroups =
+                await _releaseManagementRepository.BulkCreateFundingGroupsUsingAmbientTransaction(fundingGroupsToCreate);
+
+            results.AddRange(newFundingGroups);
+
+            UpdateMappingContext(specificationId, channelId, organisationGroupResults, results, groupingReasons);
 
             return results;
         }
 
-        private int GetGroupingReasonId(string specificationId, int channelId, IEnumerable<SqlModels.GroupingReason> groupingReasons, OrganisationGroupResult organisationGroupResult)
+        private void UpdateMappingContext(string specificationId, int channelId,
+            IEnumerable<OrganisationGroupResult> organisationGroupResults,
+            IEnumerable<FundingGroup> fundingGroups, IEnumerable<SqlModels.GroupingReason> groupingReasons)
         {
-            SqlModels.GroupingReason groupingReason = groupingReasons.SingleOrDefault(g => g.GroupingReasonCode == organisationGroupResult.GroupReason.ToString());
+            Dictionary<string, int> groupingReasonIdLookup = groupingReasons.ToDictionary(_ => _.GroupingReasonCode, _ => _.GroupingReasonId);
 
-            if (groupingReason == null)
+            foreach (FundingGroup fundingGroup in fundingGroups)
             {
-                string message = $"Grouping reason {organisationGroupResult.GroupReason} not found in sql for entity: {JsonConvert.SerializeObject(organisationGroupResult, Formatting.None)}. SpecificationId: {specificationId} and ChannelId {channelId}";
-                _logger.Error(message);
-                throw new InvalidOperationException(message);
-            }
+                OrganisationGroupResult organisationGroupResult =
+                    organisationGroupResults
+                        .SingleOrDefault(_ =>
+                            groupingReasonIdLookup[_.GroupReason.ToString()] == fundingGroup.GroupingReasonId &&
+                                                 _.GroupTypeClassification.ToString() == fundingGroup.OrganisationGroupTypeClassification &&
+                                                 _.IdentifierValue == fundingGroup.OrganisationGroupIdentifierValue);
 
-            return groupingReason.GroupingReasonId;
+                if (organisationGroupResult == null)
+                {
+                    string message =
+                        $"Organisation group result cannot be found for funding group {fundingGroup.FundingGroupId}: specificationId {specificationId}, channelId {channelId}";
+                    _logger.Error(message);
+                    throw new KeyNotFoundException(message);
+                }
+
+                _releaseToChannelSqlMappingContext.FundingGroups.Add(organisationGroupResult, fundingGroup.FundingGroupId);
+            }
         }
     }
 }

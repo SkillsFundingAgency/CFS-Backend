@@ -8,9 +8,12 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Publishing.FundingManagement.Migration;
+using FundingGroup = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.FundingGroup;
 using SqlGroupingReason = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.GroupingReason;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement
@@ -18,17 +21,21 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
     public class ReleaseManagementRepository : SqlRepository, IReleaseManagementRepository
     {
         private readonly IExternalApiQueryBuilder _externalApiQueryBuilder;
+        private readonly IReleaseManagementDataTableImporter _dataTableImporter;
         private ISqlTransaction _transaction;
 
         public ReleaseManagementRepository(
             ISqlConnectionFactory connectionFactory,
             ISqlPolicyFactory sqlPolicyFactory,
-            IExternalApiQueryBuilder externalApiQueryBuilder
+            IExternalApiQueryBuilder externalApiQueryBuilder,
+            IReleaseManagementDataTableImporter dataTableImporter
             ) : base(connectionFactory, sqlPolicyFactory)
         {
             Guard.ArgumentNotNull(externalApiQueryBuilder, nameof(externalApiQueryBuilder));
+            Guard.ArgumentNotNull(dataTableImporter, nameof(dataTableImporter));
 
             _externalApiQueryBuilder = externalApiQueryBuilder;
+            _dataTableImporter = dataTableImporter;
         }
 
         public void InitialiseTransaction()
@@ -50,8 +57,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             catch
             {
                 _transaction.Rollback();
-                throw;
             }
+        }
+
+        public void RollBack()
+        {
+            if (_transaction == null)
+            {
+                throw new ArgumentNullException("Transaction must be initialised before calling Rollback");
+            }
+
+            _transaction.Rollback();
         }
 
         public async Task<IEnumerable<SqlGroupingReason>> GetGroupingReasons()
@@ -143,15 +159,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
-            {
-                fundingStream.FundingStreamId = await Insert(fundingStream);
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
-            }
+            fundingStream.FundingStreamId = await Insert(fundingStream);
 
             return fundingStream;
         }
@@ -167,15 +175,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
-            {
-                fundingPeriod.FundingPeriodId = await Insert(fundingPeriod, _transaction);
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
-            }
+            fundingPeriod.FundingPeriodId = await Insert(fundingPeriod, _transaction);
 
             return fundingPeriod;
         }
@@ -191,21 +191,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
-            {
-                fundingGroup.FundingGroupId = await Insert(fundingGroup, _transaction);
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
-            }
+            fundingGroup.FundingGroupId = await Insert(fundingGroup, _transaction);
 
             return fundingGroup;
         }
 
         public async Task<FundingGroup> GetFundingGroupUsingAmbientTransaction(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue)
         {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
             return await QuerySingleSql<FundingGroup>(@"SELECT * FROM FundingGroups WHERE
 							ChannelId = @channelId
 							AND SpecificationId = @specificationId
@@ -244,6 +238,20 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return await QuerySql<FundingGroup>(@"SELECT * FROM FundingGroups");
         }
 
+        public async Task<IEnumerable<FundingGroup>> GetFundingGroupsBySpecificationAndChannelUsingAmbientTransaction(string specificationId, int channelId)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            return await QuerySql<FundingGroup>(@"SELECT * FROM FundingGroups WHERE
+                                                    SpecificationId = @specificationId
+                                                    AND ChannelId = @channelId",
+                new
+                {
+                    specificationId,
+                    channelId
+                }, _transaction);
+        }
+
         public async Task<FundingGroupVersion> CreateFundingGroupVersion(FundingGroupVersion fundingGroupVersion)
         {
             fundingGroupVersion.FundingGroupVersionId = await Insert(fundingGroupVersion);
@@ -255,15 +263,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
-            {
-                fundingGroupVersion.FundingGroupVersionId = await Insert(fundingGroupVersion, _transaction);
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
-            }
+            fundingGroupVersion.FundingGroupVersionId = await Insert(fundingGroupVersion, _transaction);
 
             return fundingGroupVersion;
         }
@@ -286,15 +286,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
-            {
-                reason.FundingGroupVersionVariationReasonId = await Insert<FundingGroupVersionVariationReason>(reason, _transaction);
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
-            }
+            reason.FundingGroupVersionVariationReasonId = await Insert<FundingGroupVersionVariationReason>(reason, _transaction);
 
             return reason;
         }
@@ -334,15 +326,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
-            {
-                await Insert(specification, _transaction);
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
-            }
+            await Insert(specification, _transaction);
 
             return specification;
         }
@@ -351,20 +335,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
-            {
-                bool success = await Update(specification, _transaction);
+            bool success = await Update(specification, _transaction);
 
-                if (!success)
-                {
-                    _transaction.Rollback();
-                    throw new RetriableException("Unknown reason for update specification failure so retriable exception thrown");
-                }
-            }
-            catch
+            if (!success)
             {
-                _transaction.Rollback();
-                throw;
+                throw new RetriableException("Unknown reason for update specification failure so retriable exception thrown");
             }
 
             return true;
@@ -376,18 +351,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             List<ReleasedProvider> results = new List<ReleasedProvider>(releasedProviders.Count());
 
-            try
+            foreach (ReleasedProvider provider in releasedProviders)
             {
-                foreach (ReleasedProvider provider in releasedProviders)
-                {
-                    provider.ReleasedProviderId = await Insert(provider, _transaction);
-                    results.Add(provider);
-                }
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
+                provider.ReleasedProviderId = await Insert(provider, _transaction);
+                results.Add(provider);
             }
 
             return results;
@@ -409,16 +376,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
-            {
-                int entityID = await Insert(providerVersionChannel, _transaction);
-                providerVersionChannel.ReleasedProviderVersionChannelId = entityID;
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
-            }
+            int entityId = await Insert(providerVersionChannel, _transaction);
+            providerVersionChannel.ReleasedProviderVersionChannelId = entityId;
 
             return providerVersionChannel;
         }
@@ -464,18 +423,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
+            foreach (ReleasedProviderChannelVariationReason variationReason in variationReasons)
             {
-                foreach (ReleasedProviderChannelVariationReason variationReason in variationReasons)
-                {
-                    int id = await Insert(variationReason, _transaction);
-                    variationReason.ReleasedProviderChannelVariationReasonId = id;
-                }
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
+                int id = await Insert(variationReason, _transaction);
+                variationReason.ReleasedProviderChannelVariationReasonId = id;
             }
 
             return variationReasons;
@@ -648,16 +599,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
-            {
-                int id = await Insert(providerVersion, _transaction);
-                providerVersion.ReleasedProviderVersionId = id;
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
-            }
+            int id = await Insert(providerVersion, _transaction);
+            providerVersion.ReleasedProviderVersionId = id;
 
             return providerVersion;
         }
@@ -666,16 +609,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
 
-            try
-            {
-                int id = await Insert(fundingGroupProvider, _transaction);
-                fundingGroupProvider.FundingGroupProviderId = id;
-            }
-            catch
-            {
-                _transaction.Rollback();
-                throw;
-            }
+            int id = await Insert(fundingGroupProvider, _transaction);
+            fundingGroupProvider.FundingGroupProviderId = id;
 
             return fundingGroupProvider;
         }
@@ -836,14 +771,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             return await QuerySql<ReleasedProvider>(
                 $@"SELECT * FROM ReleasedProviders WHERE SpecificationId = @{nameof(specificationId)}
-                WHERE ProviderId IN (@{nameof(providerIds)})",
+                AND ProviderId IN @{nameof(providerIds)}",
                 new { specificationId, providerIds },
                 transaction);
-        }
-
-        public async Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersions(string specificationId)
-        {
-            return await GetLatestReleasedProviderVersions(specificationId);
         }
 
         public async Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersions(string specificationId, IEnumerable<string> providerIds)
@@ -872,9 +802,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 SELECT ReleasedProviderId, MAX(MajorVersion) as LatestMajorVersion FROM ReleasedProviderVersions 
                 GROUP BY ReleasedProviderId) LRPV ON RPV.ReleasedProviderId = LRPV.ReleasedProviderId AND RPV.MajorVersion = LRPV.LatestMajorVersion
                 INNER JOIN ReleasedProviders RP ON RPV.ReleasedProviderId = RP.ReleasedProviderId
-                WHERE RP.SpecificationId = @{nameof(specificationId)}   
-                AND RP.ProviderIds IN (@{nameof(providerIds)})
-                ", new { specificationId }, transaction);
+                WHERE RP.SpecificationId = @{nameof(specificationId)}
+                AND RP.ProviderId IN @{nameof(providerIds)}
+                ", new { specificationId, providerIds }, transaction);
         }
 
         public Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersionsUsingAmbientTransaction(string specificationId)
@@ -885,6 +815,34 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         public Task<IEnumerable<LatestReleasedProviderVersion>> GetLatestReleasedProviderVersionsUsingAmbientTransaction(string specificationId, IEnumerable<string> providerIds)
         {
             return GetLatestReleasedProviderVersionsInternal(specificationId, providerIds, _transaction);
+        }
+
+        public async Task<IEnumerable<FundingGroup>> BulkCreateFundingGroupsUsingAmbientTransaction(IEnumerable<FundingGroup> fundingGroups)
+        {
+            Guard.ArgumentNotNull(_transaction, nameof(_transaction));
+
+            int nextFundingGroupId = await GetNextFundingGroupId();
+
+            foreach (FundingGroup fundingGroup in fundingGroups)
+            {
+                fundingGroup.FundingGroupId = nextFundingGroupId++;
+            }
+
+            FundingGroupDataTableBuilder fundingGroupsBuilder = new FundingGroupDataTableBuilder();
+            fundingGroupsBuilder.AddRows(fundingGroups.ToArray());
+
+            await _dataTableImporter.ImportDataTable(
+                fundingGroupsBuilder,
+                SqlBulkCopyOptions.KeepIdentity,
+                _transaction);
+
+            return fundingGroups;
+        }
+
+        private async Task<int> GetNextFundingGroupId()
+        {
+            int? result = await QuerySingleSql<int?>("SELECT MAX(FundingGroupId) FROM FundingGroups");
+            return result.HasValue ? result.Value + 1 : 1;
         }
     }
 }

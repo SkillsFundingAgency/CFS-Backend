@@ -385,8 +385,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ExistingReleasedProviderVersionsLoadService, IExistingReleasedProviderVersionsLoadService>();
 
             RegisterFactoryAs<IPublishedFundingContentsChannelPersistenceService>((svc) =>
-            {
-
+            { 
                 IReleaseManagementBlobStepContext releaseManagementBlobStepContextInterface = svc.Resolve<IReleaseManagementBlobStepContext>();
                 ReleaseManagementBlobStepContext releaseManagementBlobStepContext = releaseManagementBlobStepContextInterface as ReleaseManagementBlobStepContext;
                 ILogger logger = svc.Resolve<ILogger>();

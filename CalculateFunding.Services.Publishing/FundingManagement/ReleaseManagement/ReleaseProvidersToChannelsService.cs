@@ -129,13 +129,20 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             ReleaseProvidersToChannelRequest model = message.GetPayloadAsInstanceOf<ReleaseProvidersToChannelRequest>();
 
-            await ReleaseProviderVersions(specificationId,
-                                          model,
-                                          jobId,
-                                          correlationId,
-                                          author);
+            try
+            {
+                await ReleaseProviderVersions(specificationId,
+                    model,
+                    jobId,
+                    correlationId,
+                    author);
 
-            _releaseManagementRepository.Commit();
+                _releaseManagementRepository.Commit();
+            }
+            catch
+            {
+                _releaseManagementRepository.RollBack();
+            }
         }
 
         public async Task ReleaseProviderVersions(

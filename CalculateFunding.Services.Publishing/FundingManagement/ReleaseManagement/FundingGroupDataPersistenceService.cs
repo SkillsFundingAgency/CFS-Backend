@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
                 if (string.IsNullOrWhiteSpace(pfv.FundingId))
                 {
-                    throw new InvalidOperationException("Funding ID is null or emtpy");
+                    throw new InvalidOperationException("Funding ID is null or empty");
                 }
 
                 FundingGroupVersion fundingGroupVersion = new FundingGroupVersion

@@ -66,6 +66,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public void RollBack()
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> ContainsFundingId(int? channelId, string fundingId)
         {
             throw new NotImplementedException();
@@ -539,7 +544,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<IEnumerable<FundingGroup>> GetFundingGroups()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_fundingGroups.Values.AsEnumerable());
         }
 
         public Task<FundingGroupVersion> GetFundingGroupVersion(int fundingGroupId, int majorVersion)
@@ -721,6 +726,27 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<FundingGroup> CreateFundingGroupUsingAmbientTransaction(FundingGroup fundingGroup)
         {
             return CreateFundingGroup(fundingGroup);
+        }
+
+        public async Task<IEnumerable<FundingGroup>> BulkCreateFundingGroupsUsingAmbientTransaction(IEnumerable<FundingGroup> fundingGroups)
+        {
+            List<FundingGroup> results = new();
+
+            foreach (FundingGroup fundingGroup in fundingGroups)
+            {
+                fundingGroup.FundingGroupId = _fundingGroupNextId++;
+                results.Add(await CreateFundingGroup(fundingGroup));
+            }
+
+            return results;
+        }
+
+        public Task<IEnumerable<FundingGroup>> GetFundingGroupsBySpecificationAndChannelUsingAmbientTransaction(string specificationId, int channelId)
+        {
+            return Task.FromResult(_fundingGroups
+                .Select(_ => _.Value)
+                .Where(_ => _.SpecificationId == specificationId && _.ChannelId == channelId)
+                .AsEnumerable());
         }
 
         public Task<IEnumerable<ReleasedProvider>> GetReleasedProviders(string specificationId)

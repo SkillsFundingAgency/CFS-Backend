@@ -110,12 +110,12 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 
         private void AndTheImportContextWasBulkInsertedIntoSqlServer()
         {
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_calculationRunDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_providerSummariesDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_paymentFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_informationFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_templateCalculationsDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_additionalCalculationsDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_calculationRunDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_providerSummariesDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_paymentFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_informationFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_templateCalculationsDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_additionalCalculationsDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
         }
 
         private void ThenTheProviderResultsWereAddedToTheImportContextRows(IEnumerable<ProviderResult> providerResults)

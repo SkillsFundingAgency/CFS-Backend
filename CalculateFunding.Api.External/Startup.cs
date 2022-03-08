@@ -50,10 +50,13 @@ using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
 using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Sql;
+using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.Migration;
 
 namespace CalculateFunding.Api.External
 {
@@ -254,6 +257,17 @@ namespace CalculateFunding.Api.External
                 IPublishedFundingQueryBuilder publishedFundingQueryBuilder = ctx.GetService<IPublishedFundingQueryBuilder>();
 
                 return new PublishedFundingRepository(calcsCosmosRepostory, publishedFundingQueryBuilder);
+            });
+
+            builder.AddScoped<IReleaseManagementDataTableImporter, ReleaseManagementDataTableImporter>((ctx) =>
+            {
+                ISqlSettings sqlSettings = new SqlSettings();
+
+                Configuration.Bind("releaseManagementSql", sqlSettings);
+
+                SqlConnectionFactory sqlConnectionFactory = new SqlConnectionFactory(sqlSettings);
+
+                return new ReleaseManagementDataTableImporter(sqlConnectionFactory);
             });
 
             // Register dependencies

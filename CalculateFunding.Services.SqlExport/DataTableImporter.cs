@@ -7,6 +7,7 @@ namespace CalculateFunding.Services.SqlExport
 {
     public class DataTableImporter : IDataTableImporter
     {
+        private const int BatchSize = 1000;
         private readonly ISqlConnectionFactory _sqlConnectionFactory;
 
         public DataTableImporter(ISqlConnectionFactory sqlConnectionFactory)
@@ -14,7 +15,10 @@ namespace CalculateFunding.Services.SqlExport
             _sqlConnectionFactory = sqlConnectionFactory;
         }
 
-        public async Task ImportDataTable<T>(IDataTableBuilder<T> dataTableBuilder, SqlBulkCopyOptions sqlBulkCopyOptions = SqlBulkCopyOptions.Default)
+        public async Task ImportDataTable<T>(
+            IDataTableBuilder<T> dataTableBuilder,
+            SqlBulkCopyOptions sqlBulkCopyOptions = SqlBulkCopyOptions.Default,
+            ISqlTransaction transaction = null)
         {
             if (dataTableBuilder.HasNoData)
             {
@@ -22,10 +26,11 @@ namespace CalculateFunding.Services.SqlExport
             }
 
             await using SqlConnection connection = NewOpenConnection();
-            using SqlBulkCopy bulkCopy = new(connection, sqlBulkCopyOptions, null)
+
+            using SqlBulkCopy bulkCopy = new(connection, sqlBulkCopyOptions, (SqlTransaction) transaction?.CurrentTransaction)
             {
                 DestinationTableName = dataTableBuilder.TableName,
-                BatchSize = 1000
+                BatchSize = BatchSize
             };
 
             await bulkCopy.WriteToServerAsync(dataTableBuilder.DataTable);
@@ -37,7 +42,7 @@ namespace CalculateFunding.Services.SqlExport
 
             connection.Open();
 
-            return (SqlConnection) connection;
+            return (SqlConnection)connection;
         }
     }
 }

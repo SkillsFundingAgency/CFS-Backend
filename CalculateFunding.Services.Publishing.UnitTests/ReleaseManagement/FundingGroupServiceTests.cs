@@ -2,7 +2,6 @@
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
-using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,7 +9,10 @@ using Moq;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Sql.Interfaces;
+using FundingGroup = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.FundingGroup;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 {
@@ -19,14 +21,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
     {
         private const string Identifier1 = "1";
         private const string Identifier2 = "2";
+        private const OrganisationGroupTypeClassification Classification1 = OrganisationGroupTypeClassification.GeographicalBoundary;
+        private const OrganisationGroupTypeClassification Classification2 = OrganisationGroupTypeClassification.LegalEntity;
+
         private RandomString _specificationId;
         private RandomNumberBetween _channelId;
+
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private Mock<IReleaseToChannelSqlMappingContext> _context;
         private Mock<ILogger> _logger;
-        private FundingGroup _fundingGroupOne;
-        private FundingGroup _fundingGroupTwo;
-        private List<OrganisationGroupResult> _results;
+        private List<OrganisationGroupResult> _orgResults;
         private FundingGroupService _service;
 
         [TestInitialize]
@@ -36,63 +40,88 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _channelId = new RandomNumberBetween(1, 10);
             _logger = new Mock<ILogger>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
-            _releaseManagementRepository.Setup(r => r.CreateFundingGroupUsingAmbientTransaction(It.IsAny<FundingGroup>())).ReturnsAsync(new FundingGroup());
             _context = new Mock<IReleaseToChannelSqlMappingContext>();
             _context.SetupGet(s => s.FundingGroups)
                 .Returns(new Dictionary<OrganisationGroupResult, int>());
-            _fundingGroupOne = new FundingGroup { OrganisationGroupIdentifierValue = Identifier1 };
-            _fundingGroupTwo = new FundingGroup { OrganisationGroupIdentifierValue = Identifier2 };
-            _results = new List<OrganisationGroupResult>
+
+            _orgResults = new List<OrganisationGroupResult>
             {
-                new OrganisationGroupResult { Name = "Name1", GroupReason = OrganisationGroupingReason.Payment, GroupTypeClassification = OrganisationGroupTypeClassification.GeographicalBoundary, GroupTypeCode = OrganisationGroupTypeCode.AcademyTrust, GroupTypeIdentifier = OrganisationGroupTypeIdentifier.AcademyTrustCode, IdentifierValue = Identifier1, SearchableName = "Name1" },
-                new OrganisationGroupResult { Name = "Name2", GroupReason = OrganisationGroupingReason.Information, GroupTypeClassification = OrganisationGroupTypeClassification.GeographicalBoundary, GroupTypeCode = OrganisationGroupTypeCode.AcademyTrust, GroupTypeIdentifier = OrganisationGroupTypeIdentifier.AcademyTrustCode, IdentifierValue = Identifier2, SearchableName = "Name2" }
+                new()
+                {
+                    Name = "Name1",
+                    GroupReason = OrganisationGroupingReason.Payment,
+                    GroupTypeClassification = Classification1,
+                    GroupTypeCode = OrganisationGroupTypeCode.AcademyTrust,
+                    GroupTypeIdentifier = OrganisationGroupTypeIdentifier.AcademyTrustCode,
+                    IdentifierValue = Identifier1,
+                    SearchableName = "Name1"
+                },
+                new()
+                {
+                    Name = "Name2",
+                    GroupReason = OrganisationGroupingReason.Information,
+                    GroupTypeClassification = Classification2,
+                    GroupTypeCode = OrganisationGroupTypeCode.AcademyTrust,
+                    GroupTypeIdentifier = OrganisationGroupTypeIdentifier.AcademyTrustCode,
+                    IdentifierValue = Identifier2,
+                    SearchableName = "Name2"
+                }
             };
+
             _service = new FundingGroupService(_releaseManagementRepository.Object, _context.Object, _logger.Object);
+
         }
 
         [TestMethod]
         public async Task WhenNoExistingFundingGroupsTheyAreCreated()
         {
             GivenGroupingReasons();
-            GivenNoExistingFundingGroups();
+            GivenExistingFundingGroups(new List<FundingGroup>());
 
-            IEnumerable<FundingGroup> result = await _service.CreateFundingGroups(_specificationId, _channelId, _results);
+           await _service.CreateFundingGroups(_specificationId, _channelId, _orgResults);
 
-            result
-                .Should()
-                .HaveCount(_results.Count);
-
-            _releaseManagementRepository.Verify(r => r.CreateFundingGroupUsingAmbientTransaction(It.IsAny<FundingGroup>()), Times.Exactly(2));
+            _releaseManagementRepository.Verify(r => r.BulkCreateFundingGroupsUsingAmbientTransaction(
+                Match.Create<IEnumerable<FundingGroup>>(_ => _.Count() == _orgResults.Count)), Times.Once);
         }
 
         [TestMethod]
-        public async Task WhenSomeExistingFundingGroupsSomeAreCreated()
+        public async Task WhenExistingFundingGroupsNewOnesAreCreated()
         {
             GivenGroupingReasons();
-            GivenExistingFundingGroup(_fundingGroupOne, _fundingGroupOne.OrganisationGroupIdentifierValue);
+            GivenExistingFundingGroups(new List<FundingGroup>
+            {
+                new()
+                {
+                    ChannelId = _channelId,
+                    SpecificationId = _specificationId,
+                    GroupingReasonId = 1,
+                    OrganisationGroupTypeClassification = Classification1.ToString(),
+                    OrganisationGroupIdentifierValue = Identifier1
+                }
+            });
 
-            IEnumerable<FundingGroup> result = await _service.CreateFundingGroups(_specificationId, _channelId, _results);
+            await _service.CreateFundingGroups(_specificationId, _channelId, _orgResults);
 
-            result
-                .Should()
-                .HaveCount(_results.Count);
+            const int expectedCreateCount = 1;
 
-            _releaseManagementRepository.Verify(r => r.CreateFundingGroupUsingAmbientTransaction(It.IsAny<FundingGroup>()), Times.Exactly(1));
+            _releaseManagementRepository.Verify(r => r.BulkCreateFundingGroupsUsingAmbientTransaction(
+                    Match.Create<IEnumerable<FundingGroup>>(_ =>
+                        _.Count() == expectedCreateCount && _.Single().OrganisationGroupIdentifierValue == Identifier2)),
+                Times.Once);
         }
 
         [TestMethod]
-        public void WhenGroupingReasonNotFound_ThrowsAndLogsInvalidOperationException()
+        public void WhenOrganisationGroupNotFound_ThrowsAndLogsInvalidOperationException()
         {
-            GivenNoGroupingReasons();
-            GivenNoExistingFundingGroups();
+            GivenGroupingReasons();
+            GivenWrongFundingGroups();
 
-            Func<Task> result = async () => await _service.CreateFundingGroups(_specificationId, _channelId, _results);
+            Func<Task> result = async () => await _service.CreateFundingGroups(_specificationId, _channelId, _orgResults);
 
             result
                 .Should()
-                .ThrowExactly<InvalidOperationException>();
+                .ThrowExactly<KeyNotFoundException>();
 
-            _releaseManagementRepository.Verify(r => r.CreateFundingGroup(It.IsAny<FundingGroup>()), Times.Never);
             _logger.Verify(l => l.Error(It.IsAny<string>()), Times.Once);
         }
 
@@ -101,37 +130,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseManagementRepository.Setup(r => r.GetGroupingReasons())
                 .ReturnsAsync(new List<Publishing.FundingManagement.SqlModels.GroupingReason>
                 {
-                    new Publishing.FundingManagement.SqlModels.GroupingReason { GroupingReasonId = 1, GroupingReasonCode = "Payment", GroupingReasonName = "Payment" },
-                    new Publishing.FundingManagement.SqlModels.GroupingReason { GroupingReasonId = 2, GroupingReasonCode = "Information", GroupingReasonName = "Information" }
+                    new() { GroupingReasonId = 1, GroupingReasonCode = "Payment", GroupingReasonName = "Payment" },
+                    new() { GroupingReasonId = 2, GroupingReasonCode = "Information", GroupingReasonName = "Information" }
                 });
         }
 
-        private void GivenNoGroupingReasons()
+        private void GivenExistingFundingGroups(IEnumerable<FundingGroup> fundingGroups)
         {
-            _releaseManagementRepository.Setup(r => r.GetGroupingReasons())
-                .ReturnsAsync(new List<Publishing.FundingManagement.SqlModels.GroupingReason>());
+            _releaseManagementRepository.Setup(r => r.GetFundingGroupsBySpecificationAndChannelUsingAmbientTransaction(It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(fundingGroups);
         }
 
-        private void GivenNoExistingFundingGroups()
+        private void GivenWrongFundingGroups()
         {
-            _releaseManagementRepository.Setup(r => r.GetFundingGroupUsingAmbientTransaction(
-                It.Is<int>(s => s == _channelId),
-                It.Is<string>(s => s == _specificationId),
-                It.IsAny<int>(),
-                It.IsAny<string>(),
-                It.IsAny<string>()))
-                .ReturnsAsync((FundingGroup)null);
-        }
-
-        private void GivenExistingFundingGroup(FundingGroup fundingGroup, string identifier)
-        {
-            _releaseManagementRepository.Setup(r => r.GetFundingGroupUsingAmbientTransaction(
-                It.Is<int>(s => s == _channelId),
-                It.Is<string>(s => s == _specificationId),
-                It.IsAny<int>(),
-                It.IsAny<string>(),
-                It.Is<string>(s => s == identifier)))
-                .ReturnsAsync(fundingGroup);
+            _releaseManagementRepository.Setup(r => r.BulkCreateFundingGroupsUsingAmbientTransaction(It.IsAny<IEnumerable<FundingGroup>>()))
+                .ReturnsAsync(new List<FundingGroup> { new()
+                {
+                    FundingGroupId = 3,
+                    OrganisationGroupTypeClassification = new RandomString(),
+                    OrganisationGroupIdentifierValue = new RandomString()
+                }});
         }
     }
 }

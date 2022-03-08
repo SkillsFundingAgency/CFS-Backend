@@ -1,5 +1,6 @@
-﻿using Dapper.Contrib.Extensions;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Dapper.Contrib.Extensions;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
 {

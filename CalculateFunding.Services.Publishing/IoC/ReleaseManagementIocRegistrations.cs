@@ -1,9 +1,11 @@
-﻿using CalculateFunding.Common.Sql;
+﻿using System.Configuration;
+using CalculateFunding.Common.Sql;
 using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.Migration;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Variations;
@@ -29,7 +31,9 @@ namespace CalculateFunding.Services.Publishing.IoC
 
                 SqlPolicyFactory sqlPolicyFactory = new SqlPolicyFactory();
                 IExternalApiQueryBuilder externalApiQueryBuilder = svc.GetService<IExternalApiQueryBuilder>();
-                return new ReleaseManagementRepository(factory, sqlPolicyFactory, externalApiQueryBuilder);
+                IReleaseManagementDataTableImporter importer = new ReleaseManagementDataTableImporter(factory);
+
+                return new ReleaseManagementRepository(factory, sqlPolicyFactory, externalApiQueryBuilder, importer);
             });
 
             builder.AddSingleton<IChannelsService, ChannelsService>();

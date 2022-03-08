@@ -242,7 +242,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     SpecificationId = fundingVersion.SpecificationId,
                 };
 
-                
                 _createFundingGroups.Add(fundingGroup);
                 _fundingGroups.AddOrUpdate(key, fundingGroup, (id, existing) => fundingGroup);
             }

@@ -148,17 +148,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         
         private void AndTheImportContextWasBulkInsertedIntoSqlServer(SqlExportSource sqlExportSource)
         {
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_calculationDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_informationFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_paymentFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingLineOneProfilingDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingLineTwoProfilingDataTableBuilder.Object, SqlBulkCopyOptions.Default));
-            _dataTableImporter.Verify(_ => _.ImportDataTable(_publishedProviderVersionDataTableBuilder.Object, SqlBulkCopyOptions.Default));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_calculationDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_informationFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_paymentFundingLineDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingLineOneProfilingDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_fundingLineTwoProfilingDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
+            _dataTableImporter.Verify(_ => _.ImportDataTable(_publishedProviderVersionDataTableBuilder.Object, SqlBulkCopyOptions.Default, null));
 
             if (sqlExportSource == SqlExportSource.ReleasedPublishedProviderVersion)
             {
-                _dataTableImporter.Verify(_ => _.ImportDataTable(_providerPaymentFundingLineAllVersions.Object, SqlBulkCopyOptions.Default));
+                _dataTableImporter.Verify(_ => _.ImportDataTable(_providerPaymentFundingLineAllVersions.Object, SqlBulkCopyOptions.Default, null));
             }
         }
 
