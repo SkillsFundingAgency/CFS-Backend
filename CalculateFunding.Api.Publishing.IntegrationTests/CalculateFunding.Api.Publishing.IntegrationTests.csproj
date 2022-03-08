@@ -30,7 +30,7 @@
 
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="8.3.1" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="8.4.0" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />

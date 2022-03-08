@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
@@ -22,37 +23,27 @@ namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class PublishedProviderFundingSummaryProcessor : IPublishedProviderFundingSummaryProcessor
     {
-        private readonly IProducerConsumerFactory _producerConsumerFactory;
-        private readonly AsyncPolicy _publishedFundingPolicy;
-        private readonly IPublishedFundingRepository _publishedFunding;
         private readonly IReleaseManagementRepository _releaseManagementRepository;
         private readonly IProvidersForChannelFilterService _providersForChannelFilterService;
         private readonly IChannelOrganisationGroupGeneratorService _channelOrganisationGroupGeneratorService;
-        private readonly ILogger _logger;
+        private readonly IPublishedProviderLookupService _publishedProviderLookupService;
 
         public PublishedProviderFundingSummaryProcessor(IProducerConsumerFactory producerConsumerFactory,
-            IPublishedFundingRepository publishedFunding,
-            IPublishingResiliencePolicies resiliencePolicies,
             IReleaseManagementRepository releaseManagementRepository,
             IProvidersForChannelFilterService providersForChannelFilterService,
             IChannelOrganisationGroupGeneratorService channelOrganisationGroupGeneratorService,
-            ILogger logger)
+            IPublishedProviderLookupService publishedProviderLookupService)
         {
             Guard.ArgumentNotNull(producerConsumerFactory, nameof(producerConsumerFactory));
-            Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
-            Guard.ArgumentNotNull(resiliencePolicies.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(providersForChannelFilterService, nameof(providersForChannelFilterService));
             Guard.ArgumentNotNull(channelOrganisationGroupGeneratorService, nameof(channelOrganisationGroupGeneratorService));
-            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(publishedProviderLookupService, nameof(publishedProviderLookupService));
 
-            _producerConsumerFactory = producerConsumerFactory;
-            _publishedFunding = publishedFunding;
-            _logger = logger;
-            _publishedFundingPolicy = resiliencePolicies.PublishedFundingRepository;
             _releaseManagementRepository = releaseManagementRepository;
             _providersForChannelFilterService = providersForChannelFilterService;
             _channelOrganisationGroupGeneratorService = channelOrganisationGroupGeneratorService;
+            _publishedProviderLookupService = publishedProviderLookupService;
         }
 
         public async Task<ReleaseFundingPublishedProvidersSummary> GetFundingSummaryForApprovedPublishedProvidersByChannel(IEnumerable<string> publishedProviderIds,
@@ -64,18 +55,18 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.ArgumentNotNull(fundingConfiguration, nameof(fundingConfiguration));
             Guard.IsNotEmpty(channelCodes, nameof(channelCodes));
 
-            IEnumerable<Channel> channels = await GetChannels(channelCodes);
-
-            if (publishedProviderIds.IsNullOrEmpty())
+            if (fundingConfiguration.ApprovalMode != ApprovalMode.All && publishedProviderIds.IsNullOrEmpty())
             {
-                publishedProviderIds = await _publishedFundingPolicy.ExecuteAsync(() => _publishedFunding.GetPublishedProviderPublishedProviderIds(specificationSummary.Id));
+                Guard.ArgumentNotNull(publishedProviderIds, nameof(publishedProviderIds));
             }
 
-            IEnumerable<PublishedProviderFundingSummary> approvedOrReleasedPublishedProviders = await GetPublishedProviderFundingSummaries(
-                publishedProviderIds,
-                specificationSummary,
-                new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released }
-                );
+            IEnumerable<Channel> channels = await GetChannels(channelCodes);
+
+            IEnumerable<PublishedProviderFundingSummary> approvedOrReleasedPublishedProviders = await _publishedProviderLookupService.GetPublishedProviderFundingSummaries(
+                    specificationSummary,
+                    new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released },
+                    publishedProviderIds
+            );
 
             List<PublishedProviderFundingSummary> finalSummaries = new List<PublishedProviderFundingSummary>();
 
@@ -200,77 +191,6 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return channels;
         }
 
-        private async Task<IEnumerable<PublishedProviderFundingSummary>> GetPublishedProviderFundingSummaries(
-            IEnumerable<string> publishedProviderIds, SpecificationSummary specificationSummary, PublishedProviderStatus[] statuses)
-        {
-            PublishedProviderFundingSummaryProcessorContext context = new PublishedProviderFundingSummaryProcessorContext(
-                publishedProviderIds,
-                statuses,
-                specificationSummary.Id);
-
-            IProducerConsumer producerConsumer = _producerConsumerFactory.CreateProducerConsumer(ProduceFundingSummaryPublishedProviderIds,
-                GetReleaseFundingSummaryForPublishedProviderIds,
-                20,
-                5,
-                _logger);
-
-            await producerConsumer.Run(context);
-
-            return context.PublishedProviderFundingSummaries;
-        }
-
-        private Task<(bool isComplete, IEnumerable<string> items)> ProduceFundingSummaryPublishedProviderIds(CancellationToken token,
-            dynamic context)
-        {
-            PublishedProviderFundingSummaryProcessorContext countContext = (PublishedProviderFundingSummaryProcessorContext)context;
-
-            while (countContext.HasPages)
-            {
-                return Task.FromResult((false, countContext.NextPage().AsEnumerable()));
-            }
-
-            return Task.FromResult((true, ArraySegment<string>.Empty.AsEnumerable()));
-        }
-
-        private async Task GetReleaseFundingSummaryForPublishedProviderIds(CancellationToken cancellationToken,
-            dynamic context,
-            IEnumerable<string> items)
-        {
-            PublishedProviderFundingSummaryProcessorContext countContext = (PublishedProviderFundingSummaryProcessorContext)context;
-
-            IEnumerable<PublishedProviderFundingSummary> fundings = await _publishedFundingPolicy.ExecuteAsync(() => _publishedFunding.GetReleaseFundingPublishedProviders(items,
-                countContext.SpecificationId,
-                countContext.Statuses));
-
-            countContext.AddFundings(fundings);
-        }
-
-        private class PublishedProviderFundingSummaryProcessorContext : PagedContext<string>
-        {
-            private readonly ConcurrentBag<PublishedProviderFundingSummary> _fundings = new ConcurrentBag<PublishedProviderFundingSummary>();
-
-            public PublishedProviderFundingSummaryProcessorContext(IEnumerable<string> items,
-                PublishedProviderStatus[] statuses,
-                string specificationId)
-                : base(items, 100)
-            {
-                Statuses = statuses;
-                SpecificationId = specificationId;
-            }
-
-            public string SpecificationId { get; }
-
-            public PublishedProviderStatus[] Statuses { get; }
-
-            public void AddFundings(IEnumerable<PublishedProviderFundingSummary> fundings)
-            {
-                foreach (PublishedProviderFundingSummary funding in fundings)
-                {
-                    _fundings.Add(funding);
-                }
-            }
-
-            public IEnumerable<PublishedProviderFundingSummary> PublishedProviderFundingSummaries => _fundings.AsEnumerable();
-        }
+        
     }
 }

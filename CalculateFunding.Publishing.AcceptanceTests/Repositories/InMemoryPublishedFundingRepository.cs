@@ -578,7 +578,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<IEnumerable<PublishedProviderFundingSummary>> GetReleaseFundingPublishedProviders(IEnumerable<string> publishedProviderIds, string specificationId, params PublishedProviderStatus[] statuses)
         {
-            throw new NotImplementedException();
+            IEnumerable<PublishedProviderFundingSummary> result = null;
+            if (_repo.PublishedProviders.ContainsKey(specificationId))
+            {
+                result = _repo.PublishedProviders[specificationId].Values.Select(_ => new PublishedProviderFundingSummary { 
+                    Provider = _.Current.Provider
+                });
+            }
+
+            return Task.FromResult(result);
         }
 
         public Task<IEnumerable<PublishedProviderVersion>> GetUnreleasedPublishedProviderVersions(string specificationId, string providerId)

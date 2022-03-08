@@ -30,9 +30,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private readonly int StatementChannelId = 2;
 
         private string _specificationId;
-        private string[] _pageOne;
-        private string[] _pageTwo;
-        private string[] _pageThree;
+        private string[] _providersOne;
+        private string[] _providersTwo;
+        private string[] _providersThree;
         private string[] _publishedProviderIds;
         private SpecificationSummary _specificationSummary;
         private FundingConfiguration _fundingConfiguration;
@@ -43,36 +43,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private Mock<IReleaseManagementRepository> _releaseManagementRepo;
         private Mock<IProvidersForChannelFilterService> _channelFilterService;
         private Mock<IChannelOrganisationGroupGeneratorService> _organisationGroupGenerator;
+        private Mock<IPublishedProviderLookupService> _publishedProvidersLookupService;
 
         [TestInitialize]
         public void SetUp()
         {
-            _publishedFunding = new Mock<IPublishedFundingRepository>();
             _releaseManagementRepo = new Mock<IReleaseManagementRepository>();
             _channelFilterService = new Mock<IProvidersForChannelFilterService>();
             _organisationGroupGenerator = new Mock<IChannelOrganisationGroupGeneratorService>();
-
+            _publishedProvidersLookupService = new Mock<IPublishedProviderLookupService>();
             _specificationId = NewRandomString();
             _specificationSummary = NewSpecificationSummary(_ => _.WithId(_specificationId));
             _fundingConfiguration = NewFundingConfiguration();
 
-            _pageOne = NewRandomPublishedProviderIdsPage().ToArray();
-            _pageTwo = NewRandomPublishedProviderIdsPage().ToArray();
-            _pageThree = NewRandomPublishedProviderIdsPage().ToArray();
-            _publishedProviderIds = Join(_pageOne, _pageTwo, _pageThree);
+            _providersOne = NewRandomPublishedProviderIds().ToArray();
+            _providersTwo = NewRandomPublishedProviderIds().ToArray();
+            _providersThree = NewRandomPublishedProviderIds().ToArray();
+            _publishedProviderIds = Join(_providersOne, _providersTwo, _providersThree);
 
             SetUpChannels();
 
             _summaryProcessor = new PublishedProviderFundingSummaryProcessor(new ProducerConsumerFactory(),
-                _publishedFunding.Object,
-                new ResiliencePolicies
-                {
-                    PublishedFundingRepository = Policy.NoOpAsync()
-                },
                 _releaseManagementRepo.Object,
                 _channelFilterService.Object,
                 _organisationGroupGenerator.Object,
-                Logger.None);
+                _publishedProvidersLookupService.Object);
         }
 
         /// <summary>
@@ -410,7 +405,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .WithSpecificationId(_specificationId)
                 .WithStatus("Approved")
                 .WithProvider(
-                    NewProvider(p => p.WithProviderType(NewRandomString()).WithProviderSubType(NewRandomString()).WithProviderId(_pageOne.First())))
+                    NewProvider(p => p.WithProviderType(NewRandomString()).WithProviderSubType(NewRandomString()).WithProviderId(_providersOne.First())))
                 .WithIsIndicative(true)
                 .WithMajorVersion(majorVersionOne)
                 .WithMinorVersion(majorVersionOne)
@@ -419,7 +414,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .WithSpecificationId(_specificationId)
                 .WithStatus("Released")
                 .WithProvider(
-                    NewProvider(p => p.WithProviderType(NewRandomString()).WithProviderSubType(NewRandomString()).WithProviderId(_pageTwo.Last())))
+                    NewProvider(p => p.WithProviderType(NewRandomString()).WithProviderSubType(NewRandomString()).WithProviderId(_providersTwo.Last())))
                 .WithIsIndicative(false)
                 .WithMajorVersion(majorVersionTwo)
                 .WithMinorVersion(majorVersionTwo)
@@ -428,16 +423,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .WithSpecificationId(_specificationId)
                 .WithStatus("Approved")
                 .WithProvider(
-                    NewProvider(p => p.WithProviderType(NewRandomString()).WithProviderSubType(NewRandomString()).WithProviderId(_pageThree.Skip(1).First())))
+                    NewProvider(p => p.WithProviderType(NewRandomString()).WithProviderSubType(NewRandomString()).WithProviderId(_providersThree.Skip(1).First())))
                 .WithIsIndicative(false)
                 .WithMajorVersion(majorVersionThree)
                 .WithMinorVersion(majorVersionThree)
                 .WithTotalFunding(totalFunding3));
 
-            GivenThePublishedProvidersFundingSummary(_pageOne, new[] { fundingOne });
-            AndThePublishedProviderFundingSummary(_pageTwo, new[] { fundingTwo });
-            AndThePublishedProviderFundingSummary(_pageThree, new[] { fundingThree });
-
+            GivenThePublishedProvidersFundingSummary(_publishedProviderIds, new[] { fundingOne, fundingTwo, fundingThree });
+            
             return AsArray(fundingOne, fundingTwo, fundingThree);
         }
 
@@ -445,19 +438,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             => await _summaryProcessor.GetFundingSummaryForApprovedPublishedProvidersByChannel(
                 _publishedProviderIds, _specificationSummary, _fundingConfiguration, channelCodes);
 
-        private void AndThePublishedProviderFundingSummary(IEnumerable<string> publishedProviderIds,
-            IEnumerable<PublishedProviderFundingSummary> fundings)
-        {
-            GivenThePublishedProvidersFundingSummary(publishedProviderIds, fundings);
-        }
-
         private void GivenThePublishedProvidersFundingSummary(IEnumerable<string> publishedProviderIds,
             IEnumerable<PublishedProviderFundingSummary> fundings)
         {
-            _publishedFunding.Setup(_ => _.GetReleaseFundingPublishedProviders(It.Is<IEnumerable<string>>(ids => ids.SequenceEqual(publishedProviderIds)),
-                    It.Is<string>(spec => spec == _specificationId),
-                    It.Is<PublishedProviderStatus[]>(sts => sts.SequenceEqual(new List<PublishedProviderStatus> { PublishedProviderStatus.Approved, PublishedProviderStatus.Released }))))
-                .ReturnsAsync(fundings);
+            IEnumerable<PublishedProviderStatus> statuses = new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released };
+
+            _publishedProvidersLookupService.Setup(_ => _.GetPublishedProviderFundingSummaries(
+                    It.Is<SpecificationSummary>(s => s.Id == _specificationId),
+                    It.Is<PublishedProviderStatus[]>(ps => ps.SequenceEqual(statuses)),
+                    It.Is<IEnumerable<string>>(p => p.SequenceEqual(_publishedProviderIds))
+                ))
+
+            .ReturnsAsync(fundings);
         }
 
         private void GivenProviderVersionInChannels(IEnumerable<ProviderVersionInChannel> providerVersionInChannels)
@@ -479,7 +471,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
         private string[] Join(params string[][] pages) => pages.SelectMany(_ => _).ToArray();
 
-        private IEnumerable<string> NewRandomPublishedProviderIdsPage()
+        private IEnumerable<string> NewRandomPublishedProviderIds()
         {
             for (int id = 0; id < 100; id++)
             {

@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
@@ -12,8 +13,11 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Polly;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -24,6 +28,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 {
     public class ReleaseProvidersToChannelsService : JobProcessingService, IReleaseProvidersToChannelsService
     {
+        private readonly ISpecificationIdServiceRequestValidator _specificationIdValidator;
         private readonly ISpecificationService _specificationService;
         private readonly IPoliciesService _policiesService;
         private readonly IChannelsService _channelService;
@@ -37,6 +42,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IReleaseToChannelSqlMappingContext _releaseToChannelSqlMappingContext;
         private readonly IExistingReleasedProvidersLoadService _existingReleasedProvidersLoadService;
         private readonly IExistingReleasedProviderVersionsLoadService _existingReleasedProviderVersionsLoadService;
+        private readonly IPublishedProviderLookupService _publishedProviderLookupService;
 
         public ReleaseProvidersToChannelsService(
             ISpecificationService specificationService,
@@ -52,7 +58,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IChannelReleaseService channelReleaseService,
             IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext,
             IExistingReleasedProvidersLoadService existingReleasedProvidersLoadService,
-            IExistingReleasedProviderVersionsLoadService existingReleasedProviderVersionsLoadService) : base(jobManagement, logger)
+            IExistingReleasedProviderVersionsLoadService existingReleasedProviderVersionsLoadService,
+            IPublishedProviderLookupService publishedProviderLookupService,
+            ISpecificationIdServiceRequestValidator specificationIdValidator) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
@@ -66,6 +74,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(releaseToChannelSqlMappingContext, nameof(releaseToChannelSqlMappingContext));
             Guard.ArgumentNotNull(existingReleasedProvidersLoadService, nameof(existingReleasedProvidersLoadService));
             Guard.ArgumentNotNull(existingReleasedProviderVersionsLoadService, nameof(existingReleasedProviderVersionsLoadService));
+            Guard.ArgumentNotNull(publishedProviderLookupService, nameof(publishedProviderLookupService));
+            Guard.ArgumentNotNull(specificationIdValidator, nameof(specificationIdValidator));
 
             _specificationService = specificationService;
             _policiesService = policiesService;
@@ -80,16 +90,28 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
             _existingReleasedProvidersLoadService = existingReleasedProvidersLoadService;
             _existingReleasedProviderVersionsLoadService = existingReleasedProviderVersionsLoadService;
+            _publishedProviderLookupService = publishedProviderLookupService;
+            _specificationIdValidator = specificationIdValidator;
         }
 
-        public async Task<IActionResult> QueueReleaseProviderVersions(
-            string specificationId,
+        public async Task<IActionResult> QueueRelease(string specificationId,
             ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest,
             Reference author,
             string correlationId)
         {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.ArgumentNotNull(releaseProvidersToChannelRequest, nameof(releaseProvidersToChannelRequest));
+            ValidationResult validationResult = _specificationIdValidator.Validate(specificationId);
+
+            if (!validationResult.IsValid)
+            {
+                return validationResult.AsBadRequest();
+            }
+
+            IActionResult actionResult = await IsSpecificationReadyForPublish(specificationId, releaseProvidersToChannelRequest);
+            
+            if (!actionResult.IsOk())
+            {
+                return actionResult;
+            }
 
             Job job = await QueueJob(new JobCreateModel
             {
@@ -114,6 +136,18 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             {
                 JobId = job.Id
             });
+        }
+
+        public async Task<IActionResult> QueueReleaseProviderVersions(
+            string specificationId,
+            ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest,
+            Reference author,
+            string correlationId)
+        {
+            return await QueueRelease(specificationId,
+                releaseProvidersToChannelRequest,
+                author,
+                correlationId);
         }
 
         public override async Task Process(Message message)
@@ -188,6 +222,23 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStreamId, specification.FundingPeriod.Id);
 
+            if (fundingConfiguration.ApprovalMode != ApprovalMode.All && releaseProvidersToChannelRequest.ProviderIds.IsNullOrEmpty())
+            {
+                throw new InvalidOperationException("Providers are required when the specification is configured to be batch mode.");
+            }
+
+            IEnumerable<PublishedProviderFundingSummary> publishedProviderFundingSummaries = await _publishedProviderLookupService.GetPublishedProviderFundingSummaries(
+                    specification,
+                    new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released },
+                    releaseProvidersToChannelRequest.ProviderIds);
+
+            if (publishedProviderFundingSummaries.IsNullOrEmpty())
+            {
+                throw new InvalidOperationException("No providers found to release.");
+            }
+
+            releaseProvidersToChannelRequest.ProviderIds = publishedProviderFundingSummaries.Select(_ => _.Provider.UKPRN);
+
             IEnumerable<KeyValuePair<string, SqlModels.Channel>> channels = await _channelService.GetAndVerifyChannels(releaseProvidersToChannelRequest?.Channels);
 
             _publishProvidersLoadContext.SetSpecDetails(fundingStreamId, specification.FundingPeriod.Id);
@@ -212,6 +263,37 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                                                                         correlationId);
             }
         }
+
+        private async Task<IActionResult> IsSpecificationReadyForPublish(string specificationId, ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest)
+        {
+            SpecificationSummary specificationSummary = await _specificationService.GetSpecificationSummaryById(specificationId);
+
+            if (specificationSummary == null)
+            {
+                return new NotFoundResult();
+            }
+
+            if (!specificationSummary.IsSelectedForFunding)
+            {
+                return new PreconditionFailedResult($"Specification with id : {specificationId} has not been selected for funding");
+            }
+
+            if (releaseProvidersToChannelRequest == null || releaseProvidersToChannelRequest.Channels.IsNullOrEmpty())
+            {
+                return new PreconditionFailedResult($"You must select one or more channels to publish to for specification with id : {specificationId}.");
+            }
+
+            FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(
+            specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id);
+
+            if (fundingConfiguration.ApprovalMode != ApprovalMode.All && releaseProvidersToChannelRequest.ProviderIds.IsNullOrEmpty())
+            {
+                return new PreconditionFailedResult($"Providers are required for specification with id : {specificationId} as it is configured to use batch mode.");
+            }
+
+            return new OkObjectResult(null);
+        }
+
 
         private async Task RefreshLoadContextWithProvidersApprovedNowReleased(IEnumerable<string> providerIdsReleased)
         {

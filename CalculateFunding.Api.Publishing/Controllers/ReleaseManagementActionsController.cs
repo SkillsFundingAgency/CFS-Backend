@@ -25,7 +25,8 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _publishedProviderStatusService = publishedProviderStatusService;
         }
 
-        [HttpPost("api/specifications/{specificationId}/releaseProvidersToChannels")]
+        [HttpPost("api/specifications/{specificationId}/release-providers")]
+        [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
         public async Task<IActionResult> QueueReleaseProviderVersions(
             [FromRoute] string specificationId,
             ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest)
@@ -34,6 +35,18 @@ namespace CalculateFunding.Api.Publishing.Controllers
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
 
             return await _releaseProvidersToChannelsService.QueueReleaseProviderVersions(specificationId, releaseProvidersToChannelRequest, user, correlationId);
+        }
+
+        [HttpPost("api/specifications/{specificationId}/release")]
+        [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
+        public async Task<IActionResult> QueueRelease(
+            [FromRoute] string specificationId,
+            ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest)
+        {
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+
+            return await _releaseProvidersToChannelsService.QueueRelease(specificationId, releaseProvidersToChannelRequest, user, correlationId);
         }
 
         /// <summary>

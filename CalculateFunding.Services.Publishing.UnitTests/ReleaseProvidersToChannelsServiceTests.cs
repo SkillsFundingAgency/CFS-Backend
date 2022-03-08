@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.JobManagement;
@@ -6,12 +7,16 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Publishing.FundingManagement;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Validators;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -19,6 +24,7 @@ using Moq;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -43,6 +49,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<IExistingReleasedProvidersLoadService> _existingReleasedProvidersLoadService;
         private Mock<IExistingReleasedProviderVersionsLoadService> _existingReleasedProviderVersionsLoadService;
 
+        private Mock<IPublishedProviderLookupService> _publishedProvidersLookupService;
+        private ISpecificationIdServiceRequestValidator _specificationIdServiceRequestValidator;
+
         [TestInitialize]
         public void SetUp()
         {
@@ -61,6 +70,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _releaseContext = new Mock<IReleaseToChannelSqlMappingContext>();
             _existingReleasedProvidersLoadService = new Mock<IExistingReleasedProvidersLoadService>();
             _existingReleasedProviderVersionsLoadService = new Mock<IExistingReleasedProviderVersionsLoadService>();
+            _publishedProvidersLookupService = new Mock<IPublishedProviderLookupService>();
+            _specificationIdServiceRequestValidator = new PublishSpecificationValidator();
 
             _releaseProvidersToChannelsService = new ReleaseProvidersToChannelsService(
                 _specificationService.Object,
@@ -76,43 +87,52 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _channelReleaseService.Object,
                 _releaseContext.Object,
                 _existingReleasedProvidersLoadService.Object,
-                _existingReleasedProviderVersionsLoadService.Object
+                _existingReleasedProviderVersionsLoadService.Object,
+                _publishedProvidersLookupService.Object,
+                _specificationIdServiceRequestValidator
                 );
         }
 
         [TestMethod]
-        public void QueueReleaseProviderVersions_ThrowsArgumentNullException_WhenSpecificationIdSetAsNull()
+        public async Task QueueReleaseProviderVersions_ThrowsArgumentNullException_WhenSpecificationIdSetAsNull()
         {
             // Arrange
 
             // Act
-            Func<Task> invocation
-                = () => WhenQueueReleaseProviderVersionsCalled(null, null);
+            IActionResult actionResult = await WhenQueueReleaseProviderVersionsCalled(string.Empty, null);
 
             // Assert
-            invocation
+            actionResult
                 .Should()
-                .Throw<ArgumentNullException>()
-                .Where(_ =>
-                    _.Message == $"Value cannot be null. (Parameter 'specificationId')");
+                .BeOfType<BadRequestObjectResult>();
         }
 
         [TestMethod]
-        public void QueueReleaseProviderVersions_ThrowsArgumentNullException_WhenReleaseProvidersToChannelRequestSetAsNull()
+        public async Task QueueReleaseProviderVersions_ThrowsArgumentNullException_WhenReleaseProvidersToChannelRequestSetAsNull()
         {
             // Arrange
             string specificationId = NewRandomString();
 
+            _specificationService.Setup(s => s.GetSpecificationSummaryById(It.IsAny<string>()))
+                .ReturnsAsync(new SpecificationSummary
+                {
+                    Id = specificationId,
+                    IsSelectedForFunding = true,
+                    FundingPeriod = new Reference { Id = "FundingPeriod", Name = "FundingPeriod " },
+                    FundingStreams = new List<Reference> { new Reference { Id = "FundingStream", Name = "FundingStream" } }
+                });
+
             // Act
-            Func<Task> invocation
-                = () => WhenQueueReleaseProviderVersionsCalled(specificationId, null);
+            IActionResult actionResult = await WhenQueueReleaseProviderVersionsCalled(specificationId, null);
 
             // Assert
-            invocation
+            actionResult
                 .Should()
-                .Throw<ArgumentNullException>()
-                .Where(_ =>
-                    _.Message == $"Value cannot be null. (Parameter 'releaseProvidersToChannelRequest')");
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
+                .Should()
+                .Be($"You must select one or more channels to publish to for specification with id : {specificationId}.");    
         }
 
         [TestMethod]
@@ -122,9 +142,30 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string specificationId = NewRandomString();
             string jobId = NewRandomString();
 
-            ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest = new ReleaseProvidersToChannelRequest();
+            ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest = new ReleaseProvidersToChannelRequest { Channels = new[] { "Payment" } };
 
             Job job = new Job { Id = jobId };
+
+            _specificationService.Setup(s => s.GetSpecificationSummaryById(It.IsAny<string>()))
+                .ReturnsAsync(new SpecificationSummary
+                {
+                    Id = specificationId,
+                    IsSelectedForFunding = true,
+                    FundingPeriod = new Reference { Id = "FundingPeriod", Name = "FundingPeriod " },
+                    FundingStreams = new List<Reference> { new Reference { Id = "FundingStream", Name = "FundingStream" } }
+                });
+
+            _policiesService.Setup(s => s.GetFundingConfiguration("FundingStream", "FundingPeriod"))
+                .ReturnsAsync(new FundingConfigurationBuilder().WithApprovalMode(ApprovalMode.All).Build());
+
+            IEnumerable<PublishedProviderStatus> statuses = new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released };
+
+            _publishedProvidersLookupService.Setup(s => s.GetPublishedProviderFundingSummaries(
+                It.IsAny<SpecificationSummary>(),
+                It.Is<PublishedProviderStatus[]>(_ => statuses.SequenceEqual(_)),
+                It.IsAny<IEnumerable<string>>()))
+
+            .ReturnsAsync(new List<PublishedProviderFundingSummary> { new PublishedProviderFundingSummary() });
 
             _jobManagement
                 .Setup(_ => _.QueueJob(It.Is<JobCreateModel>(j =>
@@ -164,6 +205,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     FundingPeriod = new Reference { Id = "FundingPeriod", Name = "FundingPeriod " },
                     FundingStreams = new List<Reference> { new Reference { Id = "FundingStream", Name = "FundingStream" } }
                 });
+
+            IEnumerable<PublishedProviderStatus> statuses = new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released };
+
+            _policiesService.Setup(s => s.GetFundingConfiguration("FundingStream", "FundingPeriod"))
+                .ReturnsAsync(new FundingConfigurationBuilder().WithApprovalMode(ApprovalMode.All).Build());
+            
+            _publishedProvidersLookupService.Setup(s => s.GetPublishedProviderFundingSummaries(
+                It.IsAny<SpecificationSummary>(),
+                It.Is<PublishedProviderStatus[]>(_ => statuses.SequenceEqual(_)),
+                It.IsAny<IEnumerable<string>>()))
+            .ReturnsAsync(new List<PublishedProviderFundingSummary> { new PublishedProviderFundingSummary() });
 
             _prerequisiteChecker.Setup(s => s.PerformChecks(
                 It.IsAny<SpecificationSummary>(),

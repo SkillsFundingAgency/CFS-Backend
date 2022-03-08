@@ -9,6 +9,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
     public interface IReleaseProvidersToChannelsService : IProcessingService
     {
         Task<IActionResult> QueueReleaseProviderVersions(string specificationId, ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest, Reference author, string correlationId);
+        
+        Task<IActionResult> QueueRelease(string specificationId, ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest, Reference author, string correlationId);
 
         Task ReleaseProviderVersions(string specificationId,
                                      ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest,

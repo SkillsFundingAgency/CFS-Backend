@@ -304,6 +304,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderContentChannelPersistenceService, IPublishedProviderContentChannelPersistenceService>();
 
             RegisterTypeAs<OrganisationGroupService, IOrganisationGroupService>();
+            RegisterTypeAs<ProducerConsumerFactory, IProducerConsumerFactory>();
+            RegisterTypeAs<PublishedProviderLookupService, IPublishedProviderLookupService>();
             RegisterTypeAs<ChannelOrganisationGroupGeneratorService, IChannelOrganisationGroupGeneratorService>();
             RegisterTypeAs<VariationErrorRecorder, IRecordVariationErrors>();
             RegisterTypeAs<RefreshService, IRefreshService>();
@@ -314,7 +316,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             
             RegisterInstanceAs<IBatchProfilingOptions>(new BatchProfilingOptions(new ConfigurationStub()));
             RegisterTypeAs<BatchProfilingService, IBatchProfilingService>();
-            RegisterTypeAs<ProducerConsumerFactory, IProducerConsumerFactory>();
             RegisterTypeAs<CurrentDateTimeService, ICurrentDateTime>();
         }
 

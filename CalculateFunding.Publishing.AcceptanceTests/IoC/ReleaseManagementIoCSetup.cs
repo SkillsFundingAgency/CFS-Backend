@@ -22,7 +22,9 @@ using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
@@ -31,6 +33,7 @@ using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using CalculateFunding.Services.Publishing.Specifications;
+using CalculateFunding.Services.Publishing.Validators;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Tests.Common;
 using FluentAssertions.Common;
@@ -367,6 +370,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ReleaseManagementSpecificationService, IReleaseManagementSpecificationService>();
             RegisterTypeAs<ChannelReleaseService, IChannelReleaseService>();
             RegisterTypeAs<ProvidersForChannelFilterService, IProvidersForChannelFilterService>();
+            RegisterTypeAs<PublishSpecificationValidator, ISpecificationIdServiceRequestValidator>();
+            RegisterTypeAs<ProducerConsumerFactory, IProducerConsumerFactory>();
+            RegisterTypeAs<PublishedProviderLookupService, IPublishedProviderLookupService>();
             RegisterTypeAs<ChannelOrganisationGroupGeneratorService, IChannelOrganisationGroupGeneratorService>();
             RegisterTypeAs<ChannelOrganisationGroupChangeDetector, IChannelOrganisationGroupChangeDetector>();
             RegisterTypeAs<ReleaseProviderPersistenceService, IReleaseProviderPersistenceService>();
@@ -383,7 +389,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ProviderVariationReasonsReleaseService, IProviderVariationReasonsReleaseService>();
             RegisterTypeAs<ExistingReleasedProvidersLoadService, IExistingReleasedProvidersLoadService>();
             RegisterTypeAs<ExistingReleasedProviderVersionsLoadService, IExistingReleasedProviderVersionsLoadService>();
-
+            
             RegisterFactoryAs<IPublishedFundingContentsChannelPersistenceService>((svc) =>
             { 
                 IReleaseManagementBlobStepContext releaseManagementBlobStepContextInterface = svc.Resolve<IReleaseManagementBlobStepContext>();
