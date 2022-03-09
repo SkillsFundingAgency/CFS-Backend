@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="8.0.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="9.1.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="9.2.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="6.0.2" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="5.2.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.3" />

@@ -59,7 +59,8 @@ namespace CalculateFunding.Services.Calcs.Interfaces
             string correlationId,
             bool skipCalcRun = false,
             bool skipQueueCodeContextCacheUpdate = false,
-            bool overrideCreateModelAuthor = false);
+            bool overrideCreateModelAuthor = false,
+            bool updateBuildProject = false);
 
         Task<IActionResult> GetCalculationsMetadataForSpecification(string specificationId);
 

@@ -217,7 +217,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ValidatedApiResponse<Calculation>> CreateCalculation(string specificationId, CalculationCreateModel calculationCreateModel, bool skipCalcRun, bool skipQueueCodeContextCacheUpdate, bool overrideCreateModelAuthor)
+        public Task<ValidatedApiResponse<Calculation>> CreateCalculation(string specificationId, CalculationCreateModel calculationCreateModel, bool skipCalcRun, bool skipQueueCodeContextCacheUpdate, bool overrideCreateModelAuthor, bool updateBuildProject)
         {
             throw new NotImplementedException();
         }

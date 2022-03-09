@@ -447,7 +447,8 @@ namespace CalculateFunding.Services.Calcs
             string correlationId,
             bool skipCalcRun = false,
             bool skipQueueCodeContextCacheUpdate = false,
-            bool overrideCreateModelAuthor = false)
+            bool overrideCreateModelAuthor = false,
+            bool updateBuildProject = false)
         {
             ApiResponse<SpecificationSummary> specificationApiResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
@@ -476,6 +477,10 @@ namespace CalculateFunding.Services.Calcs
                 if (!skipQueueCodeContextCacheUpdate)
                 {
                     await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
+                }
+                if (updateBuildProject)
+                {
+                    await UpdateBuildProject(specificationSummary);
                 }
 
                 return new OkObjectResult(createCalculationResponse.Calculation.ToResponseModel());

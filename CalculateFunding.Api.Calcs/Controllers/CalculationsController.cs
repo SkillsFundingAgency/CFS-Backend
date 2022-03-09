@@ -238,7 +238,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
             [FromBody] CalculationCreateModel model) =>
             await _calcsService.CreateAdditionalCalculation(specificationId, model, ControllerContext.HttpContext.Request.GetUserOrDefault(), ControllerContext.HttpContext.Request.GetCorrelationId());
 
-        [Route("api/calcs/specifications/{specificationId}/calculations/{skipCalcRun}/{skipQueueCodeContextCacheUpdate}/{overrideCreateModelAuthor}")]
+        [Route("api/calcs/specifications/{specificationId}/calculations/{skipCalcRun}/{skipQueueCodeContextCacheUpdate}/{overrideCreateModelAuthor}/{updateBuildProject?}")]
         [HttpPost]
         [Produces(typeof(CalculationResponseModel))]
         public async Task<IActionResult> CreateAdditionalCalculation(
@@ -246,7 +246,8 @@ namespace CalculateFunding.Api.Calcs.Controllers
             [FromBody] CalculationCreateModel model,
             [FromRoute] bool skipCalcRun,
             [FromRoute] bool skipQueueCodeContextCacheUpdate,
-            [FromRoute] bool overrideCreateModelAuthor)
+            [FromRoute] bool overrideCreateModelAuthor,
+            [FromRoute] bool updateBuildProject = false)
             => await _calcsService.CreateAdditionalCalculation(
                 specificationId, 
                 model, 
@@ -254,7 +255,8 @@ namespace CalculateFunding.Api.Calcs.Controllers
                 ControllerContext.HttpContext.Request.GetCorrelationId(),
                 skipCalcRun: skipCalcRun,
                 skipQueueCodeContextCacheUpdate: skipQueueCodeContextCacheUpdate,
-                overrideCreateModelAuthor: overrideCreateModelAuthor);
+                overrideCreateModelAuthor: overrideCreateModelAuthor,
+                updateBuildProject: updateBuildProject);
 
         [Route("api/calcs/specifications/{specificationId}/calculations/queue-calculation-run")]
         [HttpPost]
