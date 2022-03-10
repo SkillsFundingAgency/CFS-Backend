@@ -7,5 +7,7 @@
         public string Type { get; set; }
 
         public bool AllowNulls { get; set; }
+
+        public bool PrimaryKeyMember { get; set; }
     }
 }

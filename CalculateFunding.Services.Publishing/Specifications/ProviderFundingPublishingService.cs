@@ -37,8 +37,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
             ICreateBatchPublishProviderFundingJobs createBatchPublishProviderFundingJobs,
             IPublishedFundingRepository publishedFundingRepository,
             IFundingConfigurationService fundingConfigurationService,
-            ICreatePublishIntegrityJob createPublishIntegrityJob) : 
-            base(specificationIdValidator, publishedProviderIdsValidator, specifications,resiliencePolicies, fundingConfigurationService)
+            ICreatePublishIntegrityJob createPublishIntegrityJob) :
+            base(specificationIdValidator, publishedProviderIdsValidator, specifications, resiliencePolicies, fundingConfigurationService)
         {
             Guard.ArgumentNotNull(createAllPublishProviderFundingJobs, nameof(createAllPublishProviderFundingJobs));
             Guard.ArgumentNotNull(createBatchPublishProviderFundingJobs, nameof(createBatchPublishProviderFundingJobs));
@@ -96,13 +96,13 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return validationResult.AsBadRequest();
             }
 
-            ApiJob job = await _createPublishIntegrityJob.CreateJob(specificationId, 
-                user, 
-                correlationId, 
+            ApiJob job = await _createPublishIntegrityJob.CreateJob(specificationId,
+                user,
+                correlationId,
                 publishAll ? new Dictionary<string, string>
                         {
                             { "publish-all", "True" }
-                        } : 
+                        } :
                         null);
 
             return ProcessJobResponse(job, specificationId, JobConstants.DefinitionNames.PublishIntegrityCheckJob);
@@ -222,6 +222,159 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 _publishedFundingRepository.GetPublishedProviderErrorSummaries(specificationId));
 
             return new OkObjectResult(errorSummaries);
+        }
+
+        public async Task<IActionResult> FixupPublishProviders(IEnumerable<string> providerIds, string fundingStreamId, string fundingPeriodId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.ArgumentNotNull(providerIds, nameof(providerIds));
+
+
+            foreach (string providerId in providerIds)
+            {
+                PublishedProvider publishedProvider = await _publishedFundingRepository.GetPublishedProvider(fundingStreamId, fundingPeriodId, providerId);
+
+                FundingLine fundingLine = publishedProvider.Current.FundingLines.FirstOrDefault(_ => _.FundingLineCode == "1619-024");
+
+                if (fundingLine.Value == null && fundingLine.DistributionPeriods.IsNullOrEmpty())
+                {
+                    fundingLine.Value = 0;
+                    fundingLine.DistributionPeriods = GetDistributionPeriods();
+                    await _publishedFundingRepository.UpsertPublishedProvider(publishedProvider);
+                }
+            }
+
+            return new OkResult();
+        }
+
+
+        private IEnumerable<DistributionPeriod> GetDistributionPeriods()
+        {
+            return new DistributionPeriod[] {
+                        new DistributionPeriod {DistributionPeriodId = "FY-2122", ProfilePeriods = GetProfilePeriods1(),Value = 0 },
+                        new DistributionPeriod {DistributionPeriodId = "FY-2223", ProfilePeriods = GetProfilePeriods2(),Value = 0 },
+                    };
+        }
+
+        private IEnumerable<ProfilePeriod> GetProfilePeriods1()
+        {
+            return new ProfilePeriod[] {
+                new ProfilePeriod   
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue = "September",
+                        Year=2021,
+                        Occurrence=1,
+                        ProfiledValue = 0,
+                        DistributionPeriodId = "FY-2122"
+                },
+                new ProfilePeriod   
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue = "October",
+                        Year=2021,
+                        Occurrence=1,
+                        ProfiledValue =  0,
+                        DistributionPeriodId = "FY-2122"
+                },
+                new ProfilePeriod                   
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue = "November",
+                        Year=2021,
+                        Occurrence= 1,
+                        ProfiledValue =  0,
+                        DistributionPeriodId =  "FY-2122"
+                },
+                new ProfilePeriod                   
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue = "December",
+                        Year=2021,
+                        Occurrence= 1,
+                        ProfiledValue =  0,
+                        DistributionPeriodId = "FY-2122"
+                },
+                new ProfilePeriod 
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue = "January",
+                        Year= 2022,
+                        Occurrence= 1,
+                        ProfiledValue =  0,
+                        DistributionPeriodId =  "FY-2122"
+                },
+                new ProfilePeriod 
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue = "February",
+                        Year=2022,
+                        Occurrence= 1,
+                        ProfiledValue =  0,
+                        DistributionPeriodId = "FY-2122"
+                },
+                new ProfilePeriod 
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue = "March",
+                        Year=2022,
+                        Occurrence= 1,
+                        ProfiledValue =  0,
+                        DistributionPeriodId =  "FY-2122"
+                } 
+            };
+        }
+
+        private IEnumerable<ProfilePeriod> GetProfilePeriods2()
+        {
+            return new ProfilePeriod[] {
+                new ProfilePeriod 
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue =  "April",
+                        Year= 2022,
+                        Occurrence=1,
+                        ProfiledValue =  0,
+                        DistributionPeriodId =   "FY-2223"
+                },
+                new ProfilePeriod 
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue =  "May",
+                        Year=  2022,
+                        Occurrence= 1,
+                        ProfiledValue =  0,
+                        DistributionPeriodId =  "FY-2223"
+                },
+                new ProfilePeriod 
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue =  "June",
+                        Year=  2022,
+                        Occurrence= 1,
+                        ProfiledValue = 0,
+                        DistributionPeriodId =  "FY-2223"
+                },
+                new ProfilePeriod 
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue =   "July",
+                        Year=  2022,
+                        Occurrence= 1,
+                        ProfiledValue = 0,
+                        DistributionPeriodId =  "FY-2223"
+                },
+                new ProfilePeriod 
+                {
+                        Type = ProfilePeriodType.CalendarMonth,
+                        TypeValue =  "August",
+                        Year=  2022,
+                        Occurrence= 1,
+                        ProfiledValue =  0,
+                        DistributionPeriodId =   "FY-2223"
+                }
+            };
         }
 
         private IActionResult ProcessJobResponse(ApiJob job, string specificationId, string jobType)

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -36,5 +37,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
                 string version);
 
         Task<IActionResult> GetPublishedProviderErrorSummaries(string specificationId);
+
+        Task<IActionResult> FixupPublishProviders(IEnumerable<string> providerIds, string fundingStreamId, string fundingPeriodId);
     }
 }

@@ -485,13 +485,15 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 {
                     Name = "MajorVersion",
                     Type = "[varchar](32)",
-                    AllowNulls = false
+                    AllowNulls = false,
+                    PrimaryKeyMember = true
                 },
                 new SqlColumnDefinition
                 {
                     Name = "FundingLineCode",
                     Type = "[varchar](32)",
-                    AllowNulls = false
+                    AllowNulls = false,
+                    PrimaryKeyMember = true
                 },
                 new SqlColumnDefinition
                 {

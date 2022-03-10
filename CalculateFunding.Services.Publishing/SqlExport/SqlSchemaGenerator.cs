@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using CalculateFunding.Services.SqlExport.Models;
 
@@ -33,6 +34,10 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             string fieldSql = GenerateFieldSql(fields);
 
+            string primaryKey = string.Join(",", fields.Where(_ => _.PrimaryKeyMember).Select(_ => $"[{_.Name}]"));
+
+            primaryKey = primaryKey != "" ? $",{primaryKey}" : "";
+
             string sql = $@" CREATE TABLE[dbo].[{tableName}](
            
                [PublishedProviderId][varchar](128) NOT NULL,
@@ -41,7 +46,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
  CONSTRAINT[PK_{tableName}_1] PRIMARY KEY CLUSTERED
 (
 
-   [PublishedProviderId] ASC
+   [PublishedProviderId]{primaryKey} ASC
 )WITH(PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON[PRIMARY]
 ) ON[PRIMARY];";
 
