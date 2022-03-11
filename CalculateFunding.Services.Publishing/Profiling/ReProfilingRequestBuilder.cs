@@ -49,7 +49,11 @@ namespace CalculateFunding.Services.Publishing.Profiling
             ProfilePeriod[] orderedProfilePeriodsForFundingLine = GetOrderedProfilePeriodsForFundingLine(fundingLineCode,
                 publishedProviderVersion);
 
-            if (orderedProfilePeriodsForFundingLine.IsNullOrEmpty())
+            bool midYearOpener = (midYearType == MidYearType.Opener ||
+                midYearType == MidYearType.OpenerCatchup ||
+                midYearType == MidYearType.Converter);
+
+            if (orderedProfilePeriodsForFundingLine.IsNullOrEmpty() && !midYearOpener)
             {
                 throw new ArgumentOutOfRangeException(nameof(publishedProviderVersion), $"Did not locate profile periods corresponding to funding line id {fundingLineCode} against published provider: {publishedProviderVersion.ProviderId}");
             }
@@ -61,9 +65,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
             // if the paid upto index is the same as the last re-profile index and the funding amount is the same
             bool alreadyProfiledUpToIndex = reProfileAudit?.VariationPointerIndex == paidUpToIndex && existingFundingLineTotal == fundingLineTotal;
 
-            bool midYearOpenerOrClosure = (midYearType == MidYearType.Opener ||
-                midYearType == MidYearType.OpenerCatchup ||
-                midYearType == MidYearType.Converter ||
+            bool midYearOpenerOrClosure = (midYearOpener ||
                 midYearType == MidYearType.Closure);
 
             // we need to do this check first as the check determines whether to run re-profile
@@ -134,7 +136,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
             
         protected int GetProfilePeriodIndexForVariationPointer(ProfileVariationPointer variationPointer, ProfilePeriod[] profilePeriods, string providerId)
         {
-            if (variationPointer == null)
+            if (variationPointer == null || profilePeriods.IsNullOrEmpty())
             {
                 return 0;
             }

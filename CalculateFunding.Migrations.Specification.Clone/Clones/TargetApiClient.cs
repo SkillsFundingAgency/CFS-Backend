@@ -102,7 +102,8 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                         calculationCreateModel, 
                         skipCalcRun: skipCalcRun, 
                         skipQueueCodeContextCacheUpdate: skipQueueCodeContextCacheUpdate,
-                        overrideCreateModelAuthor: overrideCreateModelAuthor));
+                        overrideCreateModelAuthor: overrideCreateModelAuthor,
+                        updateBuildProject: false));
             newAdditionalCalculationResponse.ValidateApiResponse(_logger, $"Create clone additional calculation failed with StatusCode={newAdditionalCalculationResponse.StatusCode} " +
                         $"and ErrorMessage={newAdditionalCalculationResponse.Message} and Dictionary={newAdditionalCalculationResponse.ModelState.AsJson()} with input " +
                         $"{calculationCreateModel.AsJson()}");
