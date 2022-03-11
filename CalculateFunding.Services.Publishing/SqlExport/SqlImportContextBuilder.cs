@@ -201,7 +201,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         {
             if(sqlExportSource == SqlExportSource.ReleasedPublishedProviderVersion)
             {
-                return "AND IS_DEFINED(p.content.released)";
+                return "AND p.content.released != null";
             }
 
             return string.Empty;

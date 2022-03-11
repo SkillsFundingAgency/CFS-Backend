@@ -127,9 +127,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             foreach (PublishedProvider publishedProvider in publishedProviders)
             {
-                importContext.AddCurrentPublishedProviderRows(
-                    importContext.SqlExportSource == SqlExportSource.CurrentPublishedProviderVersion ? 
-                    publishedProvider.Current : 
+                importContext.AddCurrentPublishedProviderRows(importContext.SqlExportSource == SqlExportSource.CurrentPublishedProviderVersion ?
+                    publishedProvider.Current :
                     publishedProvider.Released);
             }
 
