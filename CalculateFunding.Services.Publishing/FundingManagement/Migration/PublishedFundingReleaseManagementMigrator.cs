@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private readonly ConcurrentDictionary<string, FundingGroup> _fundingGroups = new ConcurrentDictionary<string, FundingGroup>();
 
         private readonly ConcurrentBag<FundingGroup> _createFundingGroups = new ConcurrentBag<FundingGroup>();
-        private readonly ConcurrentBag<FundingGroupVersion> _createFundingGroupVersions = new ConcurrentBag<FundingGroupVersion>();
+        private readonly ConcurrentDictionary<string, FundingGroupVersion> _createFundingGroupVersions = new ConcurrentDictionary<string, FundingGroupVersion>();
         private readonly ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
         private readonly ConcurrentBag<ReleasedProvider> _createReleasedProviders = new ConcurrentBag<ReleasedProvider>();
         private readonly ConcurrentBag<ReleasedProviderVersion> _createReleasedProviderVersions = new ConcurrentBag<ReleasedProviderVersion>();
@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await dataImporter.ImportDataTable(fundingGroupsBuilder, SqlBulkCopyOptions.KeepIdentity);
 
             FundingGroupVersionDataTableBuilder fundingGroupVersionsBuilder = new FundingGroupVersionDataTableBuilder();
-            fundingGroupVersionsBuilder.AddRows(_createFundingGroupVersions.ToArray());
+            fundingGroupVersionsBuilder.AddRows(_createFundingGroupVersions.Values.ToArray());
             _logger.Information($"Importing {_createFundingGroupVersions.Count} FundingGroupVersions");
             await dataImporter.ImportDataTable(fundingGroupVersionsBuilder, SqlBulkCopyOptions.KeepIdentity);
 
@@ -263,7 +263,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 ExternalPublicationDate = fundingVersion.ExternalPublicationDate,
             };
 
-            _createFundingGroupVersions.Add(fundingGroupVersion);
+            string fundingGroupKey = $"{fundingVersion.FundingStreamId}-{fundingVersion.FundingPeriod.Id}-{fundingVersion.GroupingReason}-{fundingVersion.OrganisationGroupTypeCode}-{fundingVersion.OrganisationGroupIdentifierValue}-{fundingVersion.MajorVersion}-{channel.ChannelId}";
+
+            if (!_createFundingGroupVersions.TryAdd(fundingGroupKey, fundingGroupVersion))
+            {
+                throw new InvalidOperationException($"Unable to insert duplicate funding group: '{fundingGroupKey}'");
+            }
 
             if (!_fundingGroupVersions.TryAdd($"{channel.ChannelId}_{fundingGroupVersion.FundingId}", fundingGroupVersion))
             {
