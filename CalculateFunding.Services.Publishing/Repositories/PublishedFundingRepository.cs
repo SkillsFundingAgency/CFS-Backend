@@ -1564,13 +1564,14 @@ namespace CalculateFunding.Services.Publishing.Repositories
             {
                 QueryText = @"
                               SELECT 
-                                  DISTINCT e.summaryErrorMessage
+                                  DISTINCT e.SummaryErrorMessage
                               FROM publishedProvider c
                               JOIN e IN c.content.current.errors
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
                               AND c.deleted = false
-                              AND IS_NULL(c.content.current.errors) = false",
+                              AND IS_NULL(c.content.current.errors) = false
+                              AND ARRAY_LENGTH(c.content.current.errors) > 0",
                 Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@specificationId", specificationId),
@@ -1582,7 +1583,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             foreach (dynamic item in queryResults)
             {
-                results.Add((string)item.summaryErrorMessage);
+                results.Add((string)item.SummaryErrorMessage);
             }
 
             return results;
