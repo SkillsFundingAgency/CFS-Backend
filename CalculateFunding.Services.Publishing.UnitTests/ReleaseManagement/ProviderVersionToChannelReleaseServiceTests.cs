@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
@@ -10,7 +11,6 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
@@ -21,9 +21,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private const int channelId = 1;
         private readonly DateTime statusDateTime = DateTime.UtcNow;
         private Reference _author;
+        private Mock<IUniqueIdentifierProvider> _identifierGenerator;
         private ProviderVersionToChannelReleaseService _service;
         private Dictionary<string, ReleasedProviderVersion> _providerVersions;
-        private Dictionary<string, ReleasedProviderVersionChannel> _providerVersionChannels;
+        private Dictionary<string, Guid> _providerVersionChannels;
         private Dictionary<int, Dictionary<string, FundingGroupVersion>> _fundingGroupVersions;
         private List<ReleasedProvider> _releasedProviders;
         private IEnumerable<string> _releasedProviderIds;
@@ -42,8 +43,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseToChannelSqlMappingContext.SetupGet(_ => _.Author)
                 .Returns(_author);
 
-            _service = new ProviderVersionToChannelReleaseService(
-                _releaseManagementRepository.Object, _releaseToChannelSqlMappingContext.Object, _logger.Object);
+            _identifierGenerator = new Mock<IUniqueIdentifierProvider>();
+
+            _service = new ProviderVersionToChannelReleaseService(_releaseManagementRepository.Object,
+                                                                  _releaseToChannelSqlMappingContext.Object,
+                                                                  _identifierGenerator.Object,
+                                                                  _logger.Object);
 
             _releasedProviders = new List<ReleasedProvider>
             {
@@ -59,29 +64,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
             _releasedProviderIds = _releasedProviders.Select(_ => _.ProviderId);
 
-            int id = 1;
 
             _providerVersions = _releasedProviders.ToDictionary(_ => _.ProviderId, _ => new ReleasedProviderVersion
             {
-                ReleasedProviderVersionId = id++
+                ReleasedProviderVersionId = Guid.NewGuid(),
             });
 
-            id = 1;
 
-            _providerVersionChannels = _releasedProviders.ToDictionary(_ => $"{_.ProviderId}_{channelId}", _ => new ReleasedProviderVersionChannel
-            {
-                ChannelId = channelId,
-                ReleasedProviderVersionId = id++,
-                AuthorId = _author.Id,
-                AuthorName = _author.Name,
-                StatusChangedDate = statusDateTime
-            });
+            _providerVersionChannels = _releasedProviders.ToDictionary(_ => $"{_.ProviderId}_{channelId}", _ => Guid.NewGuid());
 
             _fundingGroupVersions = new Dictionary<int, Dictionary<string, FundingGroupVersion>>()
             {
                 { 1,  _releasedProviders.ToDictionary(_ => _.ProviderId, _ => new FundingGroupVersion
                         {
-                            FundingGroupVersionId = new RandomNumberBetween(1, 10)
+                            FundingGroupVersionId = Guid.NewGuid(),
                         })
                 }
             };
@@ -96,7 +92,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             await _service.ReleaseProviderVersionChannel(_releasedProviderIds, channelId, statusDateTime);
 
             _releaseManagementRepository.Verify(
-                r => r.CreateReleasedProviderVersionChannelsUsingAmbientTransaction(It.IsAny<ReleasedProviderVersionChannel>()), Times.Exactly(_releasedProviders.Count));
+                r => r.BulkCreateReleasedProviderVersionChannelsUsingAmbientTransaction(
+                    It.Is<IEnumerable<ReleasedProviderVersionChannel>>(_ => _.Count() == _releasedProviders.Count)),
+                Times.Once());
         }
 
         [TestMethod]
@@ -131,7 +129,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .Setup(s => s.CreateReleasedProviderVersionChannelsUsingAmbientTransaction(It.IsAny<ReleasedProviderVersionChannel>()))
                 .ReturnsAsync(new ReleasedProviderVersionChannel
                 {
-                    ReleasedProviderVersionId = new RandomNumberBetween(1, 10),
+                    ReleasedProviderVersionId = Guid.NewGuid(),
                     ChannelId = new RandomNumberBetween(1, 10),
                     StatusChangedDate = DateTime.UtcNow,
                     AuthorId = Guid.NewGuid().ToString(),
@@ -140,13 +138,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         }
 
         private void GivenContext(
-            Dictionary<string, ReleasedProviderVersionChannel> providerVersionChannels,
+            Dictionary<string, Guid> providerVersionChannels,
             Dictionary<string, ReleasedProviderVersion> providerVersions,
             Dictionary<int, Dictionary<string, FundingGroupVersion>> fundingGroupVersions)
         {
             if (providerVersionChannels == null)
             {
-                providerVersionChannels = new Dictionary<string, ReleasedProviderVersionChannel>();
+                providerVersionChannels = new Dictionary<string, Guid>();
             }
 
             if (providerVersions == null)

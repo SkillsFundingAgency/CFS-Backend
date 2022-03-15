@@ -7,11 +7,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
     [Table("FundingGroupVersions")]
     public class FundingGroupVersion
     {
-        [Dapper.Contrib.Extensions.Key]
-        public int FundingGroupVersionId { get; set; }
+        [ExplicitKey]
+        public Guid FundingGroupVersionId { get; set; }
 
         [Required]
-        public int FundingGroupId { get; set; }
+        public Guid FundingGroupId { get; set; }
 
         [Required]
         public int ChannelId { get; set; }

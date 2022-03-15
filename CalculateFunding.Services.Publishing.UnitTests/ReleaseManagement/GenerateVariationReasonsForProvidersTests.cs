@@ -28,7 +28,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
     {
         private Mock<IDetectProviderVariations> _detectProviderVariations;
         private Mock<IPublishedProvidersLoadContext> _publishedProvidersLoadContext;
-        private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private Mock<IProviderService> _providerService;
         private Mock<ISpecificationService> _specificationService;
         private Mock<IPoliciesService> _policiesService;
@@ -42,7 +41,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             _detectProviderVariations = new Mock<IDetectProviderVariations>();
             _publishedProvidersLoadContext = new Mock<IPublishedProvidersLoadContext>();
-            _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _providerService = new Mock<IProviderService>();
             _specificationService = new Mock<ISpecificationService>();
             _policiesService = new Mock<IPoliciesService>();
@@ -51,7 +49,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _generateVariationReasonsForChannelService = new GenerateVariationReasonsForChannelService(
                 _detectProviderVariations.Object,
                 _publishedProvidersLoadContext.Object,
-                _releaseManagementRepository.Object,
                 _providerService.Object,
                 _specificationService.Object);
         }
@@ -120,8 +117,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 },
             };
 
-            GetLatestPublishedProviderVersions(specificationId, channelIds, providerVersionInChannels);
-
             Provider provider = NewProvider();
             IDictionary<string, Provider> providers = new Dictionary<string, Provider>
             {
@@ -159,6 +154,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             IDictionary<string, IEnumerable<VariationReason>> actual =
                 await _generateVariationReasonsForChannelService.GenerateVariationReasonsForProviders(
                     batchProviderIds,
+                    providerVersionInChannels,
                     channel,
                     specificationSummary,
                     fundingConfiguration,
@@ -236,15 +232,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _providerService
                 .Setup(_ => _.GetScopedProvidersForSpecification(specificationId, providerVersionId))
                 .ReturnsAsync(providers);
-        }
-
-        private void GetLatestPublishedProviderVersions(string specificationId, IEnumerable<int> channelIds, IEnumerable<ProviderVersionInChannel> providerVersionInChannels)
-        {
-            _releaseManagementRepository
-                .Setup(_ => _.GetLatestPublishedProviderVersionsUsingAmbientTransaction(
-                    specificationId,
-                    It.Is<IEnumerable<int>>(i => i.SequenceEqual(channelIds))))
-                .ReturnsAsync(providerVersionInChannels);
         }
 
         private void GetOrLoadProviders(IEnumerable<string> batchProviderIds, IEnumerable<PublishedProvider> publishedProviders)

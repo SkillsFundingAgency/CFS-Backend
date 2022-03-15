@@ -1,6 +1,6 @@
 ﻿using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Models;
@@ -15,30 +15,39 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     {
         private readonly IReleaseManagementRepository _releaseManagementRepository;
         private readonly IReleaseToChannelSqlMappingContext _releaseToChannelSqlMappingContext;
+        private readonly IUniqueIdentifierProvider _fundingGroupIdentifierGenerator;
+        private readonly IUniqueIdentifierProvider _fundingGroupVariationReasonIdentifierGenerator;
 
         public FundingGroupDataPersistenceService(
             IReleaseManagementRepository releaseManagementRepository,
-            IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext)
+            IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext,
+            IUniqueIdentifierProvider fundingGroupIdentifierGenerator,
+            IUniqueIdentifierProvider fundingGroupVariationReasonIdentifierGenerator)
         {
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(releaseToChannelSqlMappingContext, nameof(releaseToChannelSqlMappingContext));
+            Guard.ArgumentNotNull(fundingGroupIdentifierGenerator, nameof(fundingGroupIdentifierGenerator));
+            Guard.ArgumentNotNull(fundingGroupVariationReasonIdentifierGenerator, nameof(fundingGroupVariationReasonIdentifierGenerator));
 
             _releaseManagementRepository = releaseManagementRepository;
             _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
+            _fundingGroupIdentifierGenerator = fundingGroupIdentifierGenerator;
+            _fundingGroupVariationReasonIdentifierGenerator = fundingGroupVariationReasonIdentifierGenerator;
         }
 
         public async Task<IEnumerable<FundingGroupVersion>> ReleaseFundingGroupData(IEnumerable<GeneratedPublishedFunding> fundingGroupData, int channelId)
         {
-            IEnumerable<SqlModels.GroupingReason> groupingReasons = await _releaseManagementRepository.GetGroupingReasons();
-            IEnumerable<FundingStream> fundingStreams = await _releaseManagementRepository.GetFundingStreams();
-            IEnumerable<FundingPeriod> fundingPeriods = await _releaseManagementRepository.GetFundingPeriods();
-            Dictionary<string, SqlModels.VariationReason> variationReasons = (await _releaseManagementRepository.GetVariationReasons()).ToDictionary(_=>_.VariationReasonCode);
+            Dictionary<string, SqlModels.GroupingReason> groupingReasons = (await _releaseManagementRepository.GetGroupingReasonsUsingAmbientTransaction()).ToDictionary(_ => _.GroupingReasonCode);
+            Dictionary<string, FundingStream> fundingStreams = (await _releaseManagementRepository.GetFundingStreamsUsingAmbientTransaction()).ToDictionary(_ => _.FundingStreamCode);
+            Dictionary<string, FundingPeriod> fundingPeriods = (await _releaseManagementRepository.GetFundingPeriodsUsingAmbientTransaction()).ToDictionary(_ => _.FundingPeriodCode);
+            Dictionary<string, SqlModels.VariationReason> variationReasons = (await _releaseManagementRepository.GetVariationReasonsUsingAmbientTransaction()).ToDictionary(_ => _.VariationReasonCode);
 
             List<FundingGroupVersion> fundingGroupVersions = new List<FundingGroupVersion>();
+            List<FundingGroupVersionVariationReason> createVariationReasons = new List<FundingGroupVersionVariationReason>();
 
             foreach (GeneratedPublishedFunding fundingGroupDataItem in fundingGroupData)
             {
-                if (!_releaseToChannelSqlMappingContext.FundingGroups.TryGetValue(fundingGroupDataItem.OrganisationGroupResult, out int fundingGroupId))
+                if (!_releaseToChannelSqlMappingContext.FundingGroups.TryGetValue(fundingGroupDataItem.OrganisationGroupResult, out Guid fundingGroupId))
                 {
                     throw new KeyNotFoundException(
                         $"OrganisationGroupResult not found in sql context for published funding id = {fundingGroupDataItem.PublishedFundingVersion.FundingId}");
@@ -53,10 +62,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
                 FundingGroupVersion fundingGroupVersion = new FundingGroupVersion
                 {
+                    FundingGroupVersionId = _fundingGroupIdentifierGenerator.GenerateIdentifier(),
                     FundingGroupId = fundingGroupId,
                     ChannelId = channelId,
-                    GroupingReasonId = groupingReasons.Single(
-                        _ => _.GroupingReasonCode == pfv.GroupingReason.ToString()).GroupingReasonId,
+                    GroupingReasonId = groupingReasons[pfv.GroupingReason.ToString()].GroupingReasonId,
                     StatusChangedDate = pfv.StatusChangedDate,
                     MajorVersion = pfv.MajorVersion,
                     MinorVersion = pfv.MinorVersion,
@@ -64,19 +73,21 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     SchemaVersion = pfv.SchemaVersion,
                     JobId = pfv.JobId,
                     CorrelationId = pfv.CorrelationId,
-                    FundingStreamId = fundingStreams.Single(
-                        _ => _.FundingStreamCode == pfv.FundingStreamId).FundingStreamId,
-                    FundingPeriodId = fundingPeriods.Single(
-                        _ => _.FundingPeriodCode == pfv.FundingPeriod.Id).FundingPeriodId,
+                    FundingStreamId = fundingStreams[pfv.FundingStreamId].FundingStreamId,
+                    FundingPeriodId = fundingPeriods[pfv.FundingPeriod.Id].FundingPeriodId,
                     FundingId = pfv.FundingId,
                     TotalFunding = pfv.TotalFunding ?? 0m,
                     ExternalPublicationDate = pfv.ExternalPublicationDate,
                     EarliestPaymentAvailableDate = pfv.EarliestPaymentAvailableDate
                 };
 
-                FundingGroupVersion savedFundingGroupVersion = await _releaseManagementRepository.CreateFundingGroupVersionUsingAmbientTransaction(fundingGroupVersion);
-
-                await PersistVariationReasons(variationReasons, pfv, savedFundingGroupVersion);
+                createVariationReasons.AddRange(pfv.VariationReasons.Select(variationReason =>
+                    new FundingGroupVersionVariationReason
+                    {
+                        FundingGroupVersionVariationReasonId = _fundingGroupVariationReasonIdentifierGenerator.GenerateIdentifier(),
+                        FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
+                        VariationReasonId = variationReasons[variationReason.ToString()].VariationReasonId
+                    }));
 
                 if (!_releaseToChannelSqlMappingContext.FundingGroupVersions.TryGetValue(channelId, out Dictionary<string, FundingGroupVersion> fundingGroupVersionsForChannel))
                 {
@@ -84,26 +95,24 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     _releaseToChannelSqlMappingContext.FundingGroupVersions.Add(channelId, fundingGroupVersionsForChannel);
                 }
 
-                _releaseToChannelSqlMappingContext.FundingGroupVersions[channelId].Add(pfv.FundingId, savedFundingGroupVersion);
+                fundingGroupVersionsForChannel.Add(pfv.FundingId, fundingGroupVersion);
 
-                fundingGroupVersions.Add(savedFundingGroupVersion);
+                fundingGroupVersions.Add(fundingGroupVersion);
+            }
+
+            if (fundingGroupVersions.Any())
+            {
+                await _releaseManagementRepository.BulkCreateFundingGroupVersionsUsingAmbientTransaction(
+                    fundingGroupVersions);
+            }
+
+            if (createVariationReasons.Any())
+            {
+                await _releaseManagementRepository.BulkCreateFundingGroupVersionVariationReasonsUsingAmbientTransaction(
+                    createVariationReasons);
             }
 
             return fundingGroupVersions;
-        }
-
-        private async Task PersistVariationReasons(Dictionary<string, SqlModels.VariationReason> variationReasons, PublishedFundingVersion pfv, FundingGroupVersion savedFundingGroupVersion)
-        {
-            foreach (CalculateFunding.Models.Publishing.VariationReason variationReason in pfv.VariationReasons)
-            {
-                FundingGroupVersionVariationReason fgvvr = new FundingGroupVersionVariationReason
-                {
-                    FundingGroupVersionId = savedFundingGroupVersion.FundingGroupVersionId,
-                    VariationReasonId = variationReasons[variationReason.ToString()].VariationReasonId
-                };
-
-                await _releaseManagementRepository.CreateFundingGroupVariationReasonUsingAmbientTransaction(fgvvr);
-            }
         }
     }
 }

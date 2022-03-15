@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Extensions;
 using CalculateFunding.Publishing.AcceptanceTests.Models;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -339,7 +338,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _publishedFundingRepositoryStepContext.CurrentPublishedProvider = null;
         }
 
-        [Given(@"published provider '([^']*)' exists for funding string '([^']*)' in period '([^']*)' in cosmos from json")]
+        [Given(@"published provider '([^']*)' exists for funding stream '([^']*)' in period '([^']*)' in cosmos from json")]
         public void GivenPublishedProviderExistsForFundingStringInPeriodInCosmosFromJson(string providerId, string fundingStreamId, string fundingPeriodId)
         {
             string contents = GetTestDataContents($"ReleaseManagementData.PublishedProviders.publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}.json");
@@ -352,6 +351,21 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             _publishedFundingRepositoryStepContext.Repo.AddPublishedProvider(_currentSpecificationStepContext.SpecificationId, publishedProvider.Content);
         }
+
+        [Given(@"published provider version with major version '([^']*)' for provider id '([^']*)' exists for funding stream '([^']*)' in period '([^']*)' in cosmos from json")]
+        public void GivenPublishedProviderVersionWithMajorVersionForProviderIdExistsForFundingStreamInPeriodInCosmosFromJson(string majorVersion, string providerId, string fundingStreamId, string fundingPeriodId)
+        {
+            string contents = GetTestDataContents($"ReleaseManagementData.PublishedProviders.publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}-{majorVersion}_0.json");
+            if (string.IsNullOrWhiteSpace(contents))
+            {
+                throw new InvalidOperationException($"Content for published provider version is empty or null for provider id '{providerId}', major version '{majorVersion}'");
+            }
+
+            DocumentEntity<PublishedProviderVersion> publishedProvider = JsonConvert.DeserializeObject<DocumentEntity<PublishedProviderVersion>>(contents);
+
+            _publishedFundingRepositoryStepContext.Repo.AddPublishedProviderVersion(_currentSpecificationStepContext.SpecificationId, publishedProvider.Content);
+        }
+
 
 
         [Given(@"published provider exists '([^']*)' in cosmos from json")]

@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+﻿using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Tests.Common.Helpers;
@@ -14,6 +15,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
     [TestClass]
     public class ReleaseProviderPersistenceServiceTests
     {
+        private Mock<IUniqueIdentifierProvider> _identifierGenerator;
         private ReleaseProviderPersistenceService _service;
         private Mock<IReleaseToChannelSqlMappingContext> _releaseToChannelSqlMappingContext;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
@@ -27,8 +29,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseToChannelSqlMappingContext = new Mock<IReleaseToChannelSqlMappingContext>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _releaseToChannelSqlMappingContext.SetupGet(_ => _.ReleasedProviders).Returns(new Dictionary<string, ReleasedProvider>());
+            _identifierGenerator = new Mock<IUniqueIdentifierProvider>();
             _service = new ReleaseProviderPersistenceService(_releaseToChannelSqlMappingContext.Object,
-                _releaseManagementRepository.Object);
+                _releaseManagementRepository.Object,
+                _identifierGenerator.Object
+                );
         }
 
         [TestMethod]
@@ -57,16 +62,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private void GivenReleasedProvidersInContext(params string[] providersInContext)
         {
             _releaseToChannelSqlMappingContext.SetupGet(_ => _.ReleasedProviders)
-                .Returns(_providers.Where(_ => 
-                        providersInContext.Any(pic => pic == _)).Select(_ => 
+                .Returns(_providers.Where(_ =>
+                        providersInContext.Any(pic => pic == _)).Select(_ =>
                             new ReleasedProvider { ProviderId = _ }).ToDictionary(_ => _.ProviderId));
         }
 
         private void ThenProvidersAreReleased(params string[] providers)
         {
-            _releaseManagementRepository.Verify(_ => 
-                _.CreateReleasedProvidersUsingAmbientTransaction(It.Is<IEnumerable<ReleasedProvider>>(_ => 
-                    _.Select(rp => rp.ProviderId).SequenceEqual(providers))), Times.Once);
+            _releaseManagementRepository.Verify(_ =>
+                _.BulkCreateReleasedProvidersUsingAmbientTransaction(It.Is<IEnumerable<ReleasedProvider>>(
+                    rps => rps.Select(s => s.ProviderId).SequenceEqual(providers))), Times.Once());
         }
 
         private void AndTheContextIsUpdated(params string[] providers)

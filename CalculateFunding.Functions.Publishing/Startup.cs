@@ -126,6 +126,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IQaRepositoryLocator, QaRepositoryLocator>();
             builder.AddScoped<IPublishingDataTableImporterLocator, PublishingDataTableImporterLocator>();
 
+            builder.AddSingleton<IUniqueIdentifierProvider, UniqueIdentifierProvider>();
+
             builder.AddScoped<IPublishingDataTableImporter, CurrentDataTableImporter>((ctx) =>
             {
                 ISqlSettings sqlSettings = new SqlSettings();

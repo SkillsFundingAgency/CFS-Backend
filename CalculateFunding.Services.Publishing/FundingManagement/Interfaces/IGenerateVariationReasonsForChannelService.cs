@@ -9,10 +9,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 {
     public interface IGenerateVariationReasonsForChannelService
     {
-        Task<IDictionary<string, IEnumerable<CalculateFunding.Models.Publishing.VariationReason>>> GenerateVariationReasonsForProviders(IEnumerable<string> providerIds,
-                                                                                                                                        Channel channel,
-                                                                                                                                        SpecificationSummary specification,
-                                                                                                                                        FundingConfiguration fundingConfiguration,
-                                                                                                                                        IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResults);
+        Task<IDictionary<string, IEnumerable<CalculateFunding.Models.Publishing.VariationReason>>> GenerateVariationReasonsForProviders(
+            IEnumerable<string> providerIds,
+            IEnumerable<ProviderVersionInChannel> existingLatestProviderVersions,
+            Channel channel,
+            SpecificationSummary specification,
+            FundingConfiguration fundingConfiguration,
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResults);
     }
 }

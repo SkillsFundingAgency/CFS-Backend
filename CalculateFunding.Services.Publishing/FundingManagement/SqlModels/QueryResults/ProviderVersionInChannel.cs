@@ -1,7 +1,11 @@
-﻿namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
+﻿using System;
+
+namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
 {
     public class ProviderVersionInChannel
     {
+        public Guid ReleasedProviderVersionChannelId { get; set; }
+
         public int ChannelId { get; set; }
 
         public string ChannelCode { get; set; }

@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+﻿using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Tests.Common.Helpers;
@@ -20,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private Mock<IReleaseToChannelSqlMappingContext> _releaseToChannelSqlMappingContext;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private Mock<ILogger> _logger;
+        private Mock<IUniqueIdentifierProvider> _identifierGenerator;
         private ProviderVariationReasonsReleaseService _service;
         private readonly Channel _channel = new Channel
         {
@@ -38,11 +40,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         };
         private readonly List<Publishing.FundingManagement.SqlModels.VariationReason> _variationReasons = new List<Publishing.FundingManagement.SqlModels.VariationReason>
         {
-            new Publishing.FundingManagement.SqlModels.VariationReason { VariationReasonCode = "AuthorityFieldUpdated" },
-            new Publishing.FundingManagement.SqlModels.VariationReason { VariationReasonCode = "CalculationValuesUpdated" },
-            new Publishing.FundingManagement.SqlModels.VariationReason { VariationReasonCode = "CompaniesHouseNumberFieldUpdated" },
+            new() { VariationReasonCode = "AuthorityFieldUpdated" },
+            new() { VariationReasonCode = "CalculationValuesUpdated" },
+            new() { VariationReasonCode = "CompaniesHouseNumberFieldUpdated" },
         };
-        private Dictionary<string, ReleasedProviderVersionChannel> _providerVersionChannels;
+        private Dictionary<string, Guid> _providerVersionChannels;
 
         [TestInitialize]
         public void Initialise()
@@ -51,19 +53,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _logger = new Mock<ILogger>();
 
-            int id = 1;
-
-            _providerVersionChannels = _publishedVariationReasons.ToDictionary(_ => $"{_.Key}_{_channel.ChannelId}", _ => new ReleasedProviderVersionChannel
-            {
-                ReleasedProviderVersionChannelId = id++,
-                ChannelId = _channel.ChannelId
-            });
+            _providerVersionChannels = _publishedVariationReasons.ToDictionary(_ => $"{_.Key}_{_channel.ChannelId}", _ => Guid.NewGuid());
 
             _releaseManagementRepository.Setup(s => s.CreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(It.IsAny<IEnumerable<ReleasedProviderChannelVariationReason>>()))
                 .ReturnsAsync(new List<ReleasedProviderChannelVariationReason>());
 
-            _service = new ProviderVariationReasonsReleaseService(
-                _releaseToChannelSqlMappingContext.Object, _releaseManagementRepository.Object, _logger.Object);
+            _identifierGenerator = new Mock<IUniqueIdentifierProvider>();
+
+            _service = new ProviderVariationReasonsReleaseService(_releaseToChannelSqlMappingContext.Object,
+                                                                  _releaseManagementRepository.Object,
+                                                                  _identifierGenerator.Object,
+                                                                  _logger.Object);
 
         }
 
@@ -127,7 +127,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private void VariationReasonsArePersisted()
         {
             _releaseManagementRepository.Verify(_ =>
-                            _.CreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(It.IsAny<IEnumerable<ReleasedProviderChannelVariationReason>>()), Times.Exactly(_publishedVariationReasons.Count));
+                _.BulkCreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(
+                    It.Is<IEnumerable<ReleasedProviderChannelVariationReason>>(_ =>
+                        _.Count() == _publishedVariationReasons.SelectMany(s => s.Value).Count())), Times.Once());
         }
 
         private void VariationReasonsAreNotPersisted()
@@ -142,11 +144,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .ReturnsAsync(variationReasons);
         }
 
-        private void GivenContext(Dictionary<string, ReleasedProviderVersionChannel> providerVersionChannels)
+        private void GivenContext(Dictionary<string, Guid> providerVersionChannels)
         {
             if (providerVersionChannels == null)
             {
-                providerVersionChannels = new Dictionary<string, ReleasedProviderVersionChannel>();
+                providerVersionChannels = new Dictionary<string, Guid>();
             }
 
             _releaseToChannelSqlMappingContext.SetupGet(s => s.ReleasedProviderVersionChannels)

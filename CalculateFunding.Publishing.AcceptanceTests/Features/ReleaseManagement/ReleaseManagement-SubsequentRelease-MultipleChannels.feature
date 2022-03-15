@@ -27,7 +27,8 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| SpecificationName | <SpecificationName> |
 		| FundingStreamId   | <FundingStreamId>   |
 		| FundingPeriodId   | <FundingPeriodId>   |
-	And published provider '10071690' exists for funding string '<FundingStreamId>' in period '<FundingPeriodId>' in cosmos from json
+	And published provider '10071690' exists for funding stream '<FundingStreamId>' in period '<FundingPeriodId>' in cosmos from json
+	And published provider version with major version '2' for provider id '10071690' exists for funding stream '<FundingStreamId>' in period '<FundingPeriodId>' in cosmos from json
 	And a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>' in resources in file modifier 'Batch'
 	And the funding period exists in the policies service
 		| Field     | Value               |
@@ -46,103 +47,106 @@ Scenario Outline: Release a new major version of a provider which has already be
 	And the current date and time is '<CurrentDateTime>'
 
 	And there is a released provider record in the release management repository
-		| Field              | Value             |
-		| ReleasedProviderId | 1                 |
-		| SpecificationId    | <SpecificationId> |
-		| ProviderId         | 10071690          |
+		| Field              | Value                                |
+		| ReleasedProviderId | 00000000-0000-0000-0000-000000000001 |
+		| SpecificationId    | <SpecificationId>                    |
+		| ProviderId         | 10071690                             |
 
 	And a released provider version exists in the release management repository
-		| Field                     | Value                    |
-		| ReleasedProviderVersionId | 1                        |
-		| ReleasedProviderId        | 1                        |
-		| MajorVersion              | 1                        |
-		| FundingId                 | PSG-AY-2122-10071690-1_0 |
-		| TotalFunding              | 16000                    |
-		| CoreProviderVersionId     | <ProviderVersionId>      |
+		| Field                     | Value                                |
+		| ReleasedProviderVersionId | 00000000-0000-0000-0000-000000000001 |
+		| ReleasedProviderId        | 00000000-0000-0000-0000-000000000001 |
+		| MajorVersion              | 1                                    |
+		| FundingId                 | PSG-AY-2122-10071690-1_0             |
+		| TotalFunding              | 16000                                |
+		| CoreProviderVersionId     | <ProviderVersionId>                  |
 	And a released provider version exists in the release management repository
-		| Field                     | Value                    |
-		| ReleasedProviderVersionId | 2                        |
-		| ReleasedProviderId        | 1                        |
-		| MajorVersion              | 2                        |
-		| FundingId                 | PSG-AY-2122-10071690-1_0 |
-		| TotalFunding              | 17000                    |
-		| CoreProviderVersionId     | <ProviderVersionId>      |
+		| Field                     | Value                                |
+		| ReleasedProviderVersionId | 00000000-0000-0000-0000-000000000002 |
+		| ReleasedProviderId        | 00000000-0000-0000-0000-000000000001 |
+		| MajorVersion              | 2                                    |
+		| FundingId                 | PSG-AY-2122-10071690-1_0             |
+		| TotalFunding              | 17000                                |
+		| CoreProviderVersionId     | <ProviderVersionId>                  |
+	And the next released provider version identifier for new records should be 3
 
 	And a released provider version channel record exists in the release management repository
-		| Field                            | Value             |
-		| ReleasedProviderVersionChannelId | 1                 |
-		| ReleasedProviderVersionId        | 1                 |
-		| Channel                          | Statement         |
-		| StatusChangedDate                | <CurrentDateTime> |
-		| AuthorId                         | <AuthorId>        |
-		| AuthorName                       | <AuthorName>      |
+		| Field                            | Value                                |
+		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000001 |
+		| ReleasedProviderVersionId        | 00000000-0000-0000-0000-000000000001 |
+		| Channel                          | Statement                            |
+		| StatusChangedDate                | <CurrentDateTime>                    |
+		| AuthorId                         | <AuthorId>                           |
+		| AuthorName                       | <AuthorName>                         |
 	And a released provider version channel record exists in the release management repository
-		| Field                            | Value             |
-		| ReleasedProviderVersionChannelId | 2                 |
-		| ReleasedProviderVersionId        | 1                 |
-		| Channel                          | Payment           |
-		| StatusChangedDate                | <CurrentDateTime> |
-		| AuthorId                         | <AuthorId>        |
-		| AuthorName                       | <AuthorName>      |
+		| Field                            | Value                                |
+		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000002 |
+		| ReleasedProviderVersionId        | 00000000-0000-0000-0000-000000000001 |
+		| Channel                          | Payment                              |
+		| StatusChangedDate                | <CurrentDateTime>                    |
+		| AuthorId                         | <AuthorId>                           |
+		| AuthorName                       | <AuthorName>                         |
 	And a released provider version channel record exists in the release management repository
-		| Field                            | Value             |
-		| ReleasedProviderVersionChannelId | 3                 |
-		| ReleasedProviderVersionId        | 2                 |
-		| Channel                          | Statement         |
-		| StatusChangedDate                | <CurrentDateTime> |
-		| AuthorId                         | <AuthorId>        |
-		| AuthorName                       | <AuthorName>      |
+		| Field                            | Value                                |
+		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000003 |
+		| ReleasedProviderVersionId        | 00000000-0000-0000-0000-000000000002 |
+		| Channel                          | Statement                            |
+		| StatusChangedDate                | <CurrentDateTime>                    |
+		| AuthorId                         | <AuthorId>                           |
+		| AuthorName                       | <AuthorName>                         |
 	And a released provider version channel record exists in the release management repository
-		| Field                            | Value             |
-		| ReleasedProviderVersionChannelId | 4                 |
-		| ReleasedProviderVersionId        | 2                 |
-		| Channel                          | Payment           |
-		| StatusChangedDate                | <CurrentDateTime> |
-		| AuthorId                         | <AuthorId>        |
-		| AuthorName                       | <AuthorName>      |
+		| Field                            | Value                                |
+		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000004 |
+		| ReleasedProviderVersionId        | 00000000-0000-0000-0000-000000000002 |
+		| Channel                          | Payment                              |
+		| StatusChangedDate                | <CurrentDateTime>                    |
+		| AuthorId                         | <AuthorId>                           |
+		| AuthorName                       | <AuthorName>                         |
+	And the next released provider version channel identifier for new records should be 5
+
 
 	And a funding group record exists in the release management repository
-		| Field                               | Value                             |
-		| FundingGroupId                      | 1                                 |
-		| SpecificationId                     | <SpecificationId>                 |
-		| Channel                             | Statement                         |
-		| GroupingReason                      | Payment                           |
-		| OrganisationGroupTypeCode           | LocalAuthority                    |
-		| OrganisationGroupTypeIdentifier     | UKPRN                             |
-		| OrganisationGroupIdentifierValue    | 10004002                          |
-		| OrganisationGroupName               | WANDSWORTH LONDON BOROUGH COUNCIL |
-		| OrganisationGroupSearchableName     | WANDSWORTH_LONDON_BOROUGH_COUNCIL |
-		| OrganisationGroupTypeClassification | LegalEntity                       |
+		| Field                               | Value                                |
+		| FundingGroupId                      | 00000000-0000-0000-0000-000000000001 |
+		| SpecificationId                     | <SpecificationId>                    |
+		| Channel                             | Statement                            |
+		| GroupingReason                      | Payment                              |
+		| OrganisationGroupTypeCode           | LocalAuthority                       |
+		| OrganisationGroupTypeIdentifier     | UKPRN                                |
+		| OrganisationGroupIdentifierValue    | 10004002                             |
+		| OrganisationGroupName               | WANDSWORTH LONDON BOROUGH COUNCIL    |
+		| OrganisationGroupSearchableName     | WANDSWORTH_LONDON_BOROUGH_COUNCIL    |
+		| OrganisationGroupTypeClassification | LegalEntity                          |
 	And a funding group record exists in the release management repository
-		| Field                               | Value                |
-		| FundingGroupId                      | 2                    |
-		| SpecificationId                     | <SpecificationId>    |
-		| Channel                             | Statement            |
-		| GroupingReason                      | Information          |
-		| OrganisationGroupTypeCode           | LocalAuthority       |
-		| OrganisationGroupTypeIdentifier     | LACode               |
-		| OrganisationGroupIdentifierValue    | 212                  |
-		| OrganisationGroupName               | Wandsworth           |
-		| OrganisationGroupSearchableName     | Wandsworth           |
-		| OrganisationGroupTypeClassification | GeographicalBoundary |
+		| Field                               | Value                                |
+		| FundingGroupId                      | 00000000-0000-0000-0000-000000000002 |
+		| SpecificationId                     | <SpecificationId>                    |
+		| Channel                             | Statement                            |
+		| GroupingReason                      | Information                          |
+		| OrganisationGroupTypeCode           | LocalAuthority                       |
+		| OrganisationGroupTypeIdentifier     | LACode                               |
+		| OrganisationGroupIdentifierValue    | 212                                  |
+		| OrganisationGroupName               | Wandsworth                           |
+		| OrganisationGroupSearchableName     | Wandsworth                           |
+		| OrganisationGroupTypeClassification | GeographicalBoundary                 |
 	And a funding group record exists in the release management repository
-		| Field                               | Value                             |
-		| FundingGroupId                      | 3                                 |
-		| SpecificationId                     | <SpecificationId>                 |
-		| Channel                             | Payment                           |
-		| GroupingReason                      | Payment                           |
-		| OrganisationGroupTypeCode           | LocalAuthority                    |
-		| OrganisationGroupTypeIdentifier     | UKPRN                             |
-		| OrganisationGroupIdentifierValue    | 10004002                          |
-		| OrganisationGroupName               | WANDSWORTH LONDON BOROUGH COUNCIL |
-		| OrganisationGroupSearchableName     | WANDSWORTH_LONDON_BOROUGH_COUNCIL |
-		| OrganisationGroupTypeClassification | LegalEntity                       |
+		| Field                               | Value                                |
+		| FundingGroupId                      | 00000000-0000-0000-0000-000000000003 |
+		| SpecificationId                     | <SpecificationId>                    |
+		| Channel                             | Payment                              |
+		| GroupingReason                      | Payment                              |
+		| OrganisationGroupTypeCode           | LocalAuthority                       |
+		| OrganisationGroupTypeIdentifier     | UKPRN                                |
+		| OrganisationGroupIdentifierValue    | 10004002                             |
+		| OrganisationGroupName               | WANDSWORTH LONDON BOROUGH COUNCIL    |
+		| OrganisationGroupSearchableName     | WANDSWORTH_LONDON_BOROUGH_COUNCIL    |
+		| OrganisationGroupTypeClassification | LegalEntity                          |
 	And a total of '3' funding group records exist in the release management repository
 
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                           |
-		| FundingGroupVersionId        | 1                                               |
-		| FundingGroupId               | 1                                               |
+		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000001            |
+		| FundingGroupId               | 00000000-0000-0000-0000-000000000001            |
 		| Channel                      | Statement                                       |
 		| GroupingReason               | Payment                                         |
 		| StatusChangedDate            | <CurrentDateTime>                               |
@@ -160,8 +164,8 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                          |
-		| FundingGroupVersionId        | 2                                              |
-		| FundingGroupId               | 2                                              |
+		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000002           |
+		| FundingGroupId               | 00000000-0000-0000-0000-000000000002           |
 		| Channel                      | Statement                                      |
 		| GroupingReason               | Information                                    |
 		| StatusChangedDate            | <CurrentDateTime>                              |
@@ -179,8 +183,8 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                              |
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                           |
-		| FundingGroupVersionId        | 3                                               |
-		| FundingGroupId               | 3                                               |
+		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000003            |
+		| FundingGroupId               | 00000000-0000-0000-0000-000000000003            |
 		| Channel                      | Payment                                         |
 		| GroupingReason               | Payment                                         |
 		| StatusChangedDate            | <CurrentDateTime>                               |
@@ -198,8 +202,8 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                           |
-		| FundingGroupVersionId        | 4                                               |
-		| FundingGroupId               | 1                                               |
+		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000004            |
+		| FundingGroupId               | 00000000-0000-0000-0000-000000000001            |
 		| Channel                      | Statement                                       |
 		| GroupingReason               | Payment                                         |
 		| StatusChangedDate            | <CurrentDateTime>                               |
@@ -217,8 +221,8 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                          |
-		| FundingGroupVersionId        | 5                                              |
-		| FundingGroupId               | 2                                              |
+		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000005           |
+		| FundingGroupId               | 00000000-0000-0000-0000-000000000002           |
 		| Channel                      | Statement                                      |
 		| GroupingReason               | Information                                    |
 		| StatusChangedDate            | <CurrentDateTime>                              |
@@ -236,8 +240,8 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                              |
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                           |
-		| FundingGroupVersionId        | 6                                               |
-		| FundingGroupId               | 3                                               |
+		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000006            |
+		| FundingGroupId               | 00000000-0000-0000-0000-000000000003            |
 		| Channel                      | Payment                                         |
 		| GroupingReason               | Payment                                         |
 		| StatusChangedDate            | <CurrentDateTime>                               |
@@ -253,18 +257,19 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| TotalFunding                 | 17780                                           |
 		| ExternalPublicationDate      | <CurrentDateTime>                               |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
+	And the next funding group version identifier for new records should be 7
 	And a total of '6' funding group version records exist in the release management repository
 
 	And the provider versions associated with the funding group versions exist in the release management repository
-		| FundingGroupProviderId | FundingGroupVersionId | ReleasedProviderVersionChannelId |
-		| 1                      | 1                     | 1                                |
-		| 2                      | 2                     | 1                                |
-		| 3                      | 3                     | 2                                |
-		| 4                      | 4                     | 3                                |
-		| 5                      | 5                     | 3                                |
-		| 6                      | 6                     | 4                                |
+		| FundingGroupProviderId               | FundingGroupVersionId                | ReleasedProviderVersionChannelId     |
+		| 00000000-0000-0000-0000-000000000001 | 00000000-0000-0000-0000-000000000001 | 00000000-0000-0000-0000-000000000001 |
+		| 00000000-0000-0000-0000-000000000002 | 00000000-0000-0000-0000-000000000002 | 00000000-0000-0000-0000-000000000001 |
+		| 00000000-0000-0000-0000-000000000003 | 00000000-0000-0000-0000-000000000003 | 00000000-0000-0000-0000-000000000002 |
+		| 00000000-0000-0000-0000-000000000004 | 00000000-0000-0000-0000-000000000004 | 00000000-0000-0000-0000-000000000003 |
+		| 00000000-0000-0000-0000-000000000005 | 00000000-0000-0000-0000-000000000005 | 00000000-0000-0000-0000-000000000003 |
+		| 00000000-0000-0000-0000-000000000006 | 00000000-0000-0000-0000-000000000006 | 00000000-0000-0000-0000-000000000004 |
 	And a total of '6' funding group providers exist in the release management repository
-
+	And the next funding group provider identifier for new records should be 7
 
 	When funding is released to channels for selected providers
 		| Field         | Value           |
@@ -273,104 +278,109 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| AuthorId      | <AuthorId>      |
 
 	Then there is a released provider record in the release management repository
-		| Field              | Value             |
-		| ReleasedProviderId | 1                 |
-		| SpecificationId    | <SpecificationId> |
-		| ProviderId         | 10071690          |
+		| Field              | Value                                |
+		| ReleasedProviderId | 00000000-0000-0000-0000-000000000001 |
+		| SpecificationId    | <SpecificationId>                    |
+		| ProviderId         | 10071690                             |
 	And there is a total of '1' released provider records in the release management repoistory
 
 	And there is a released provider version record created in the release management repository
-		| Field                     | Value                    |
-		| ReleasedProviderVersionId | 3                        |
-		| ReleasedProviderId        | 1                        |
-		| MajorVersion              | 3                        |
-		| FundingId                 | PSG-AY-2122-10071690-3_0 |
-		| TotalFunding              | 17780                    |
-		| CoreProviderVersionId     | <ProviderVersionId>      |
+		| Field                     | Value                                |
+		| ReleasedProviderVersionId | 00000000-0000-0000-0000-000000000003 |
+		| ReleasedProviderId        | 00000000-0000-0000-0000-000000000001 |
+		| MajorVersion              | 3                                    |
+		| FundingId                 | PSG-AY-2122-10071690-3_0             |
+		| TotalFunding              | 17780                                |
+		| CoreProviderVersionId     | <ProviderVersionId>                  |
 	And there is a total of '3' released provider version records in the release management repoistory
 
 	And there is a released provider version channel record created in the release management repository
-		| Field                            | Value             |
-		| ReleasedProviderVersionChannelId | 5                 |
-		| ReleasedProviderVersionId        | 3                 |
-		| Channel                          | Statement         |
-		| StatusChangedDate                | <CurrentDateTime> |
-		| AuthorId                         | <AuthorId>        |
-		| AuthorName                       | <AuthorName>      |
+		| Field                            | Value                                |
+		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000005 |
+		| ReleasedProviderVersionId        | 00000000-0000-0000-0000-000000000003 |
+		| Channel                          | Statement                            |
+		| StatusChangedDate                | <CurrentDateTime>                    |
+		| AuthorId                         | <AuthorId>                           |
+		| AuthorName                       | <AuthorName>                         |
 	And there is a released provider version channel record created in the release management repository
-		| Field                            | Value             |
-		| ReleasedProviderVersionChannelId | 6                 |
-		| ReleasedProviderVersionId        | 3                 |
-		| Channel                          | Payment           |
-		| StatusChangedDate                | <CurrentDateTime> |
-		| AuthorId                         | <AuthorId>        |
-		| AuthorName                       | <AuthorName>      |
+		| Field                            | Value                                |
+		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000006 |
+		| ReleasedProviderVersionId        | 00000000-0000-0000-0000-000000000003 |
+		| Channel                          | Payment                              |
+		| StatusChangedDate                | <CurrentDateTime>                    |
+		| AuthorId                         | <AuthorId>                           |
+		| AuthorName                       | <AuthorName>                         |
 	And there are a total of '6' released provider version channel records created in the release management repository
 
 	And there is a released provider channel variation created in the release management repository
-		| Field                                    | Value          |
-		| ReleasedProviderChannelVariationReasonId | 1              |
-		| VariationReason                          | FundingUpdated |
-		| ReleasedProviderVersionChannelId         | 5              |
+		| Field                                    | Value                                |
+		| ReleasedProviderChannelVariationReasonId | 00000000-0000-0000-0000-000000000001 |
+		| VariationReason                          | FundingUpdated                       |
+		| ReleasedProviderVersionChannelId         | 00000000-0000-0000-0000-000000000005 |
 	And there is a released provider channel variation created in the release management repository
-		| Field                                    | Value            |
-		| ReleasedProviderChannelVariationReasonId | 2                |
-		| VariationReason                          | ProfilingUpdated |
-		| ReleasedProviderVersionChannelId         | 5                |
+		| Field                                    | Value                                |
+		| ReleasedProviderChannelVariationReasonId | 00000000-0000-0000-0000-000000000002 |
+		| VariationReason                          | ProfilingUpdated                     |
+		| ReleasedProviderVersionChannelId         | 00000000-0000-0000-0000-000000000005 |
 	And there is a released provider channel variation created in the release management repository
-		| Field                                    | Value          |
-		| ReleasedProviderChannelVariationReasonId | 3              |
-		| VariationReason                          | FundingUpdated |
-		| ReleasedProviderVersionChannelId         | 6              |
+		| Field                                    | Value                                |
+		| ReleasedProviderChannelVariationReasonId | 00000000-0000-0000-0000-000000000003 |
+		| VariationReason                          | CalculationValuesUpdated             |
+		| ReleasedProviderVersionChannelId         | 00000000-0000-0000-0000-000000000005 |
 	And there is a released provider channel variation created in the release management repository
-		| Field                                    | Value            |
-		| ReleasedProviderChannelVariationReasonId | 4                |
-		| VariationReason                          | ProfilingUpdated |
-		| ReleasedProviderVersionChannelId         | 6                |
-	And there are a total of '4' released provider version channel variation reason records created in the release management repository
+		| Field                                    | Value                                |
+		| ReleasedProviderChannelVariationReasonId | 00000000-0000-0000-0000-000000000004 |
+		| VariationReason                          | FundingUpdated                       |
+		| ReleasedProviderVersionChannelId         | 00000000-0000-0000-0000-000000000006 |
+	And there is a released provider channel variation created in the release management repository
+		| Field                                    | Value                                |
+		| ReleasedProviderChannelVariationReasonId | 00000000-0000-0000-0000-000000000005 |
+		| VariationReason                          | ProfilingUpdated                     |
+		| ReleasedProviderVersionChannelId         | 00000000-0000-0000-0000-000000000006 |
+	And there are a total of '5' released provider version channel variation reason records created in the release management repository
 
 	And there is a funding group created in the release management repository
-		| Field                               | Value                             |
-		| FundingGroupId                      | 1                                 |
-		| SpecificationId                     | <SpecificationId>                 |
-		| Channel                             | Statement                         |
-		| GroupingReason                      | Payment                           |
-		| OrganisationGroupTypeCode           | LocalAuthority                    |
-		| OrganisationGroupTypeIdentifier     | UKPRN                             |
-		| OrganisationGroupIdentifierValue    | 10004002                          |
-		| OrganisationGroupName               | WANDSWORTH LONDON BOROUGH COUNCIL |
-		| OrganisationGroupSearchableName     | WANDSWORTH_LONDON_BOROUGH_COUNCIL |
-		| OrganisationGroupTypeClassification | LegalEntity                       |
+		| Field                               | Value                                |
+		| FundingGroupId                      | 00000000-0000-0000-0000-000000000001 |
+		| SpecificationId                     | <SpecificationId>                    |
+		| Channel                             | Statement                            |
+		| GroupingReason                      | Payment                              |
+		| OrganisationGroupTypeCode           | LocalAuthority                       |
+		| OrganisationGroupTypeIdentifier     | UKPRN                                |
+		| OrganisationGroupIdentifierValue    | 10004002                             |
+		| OrganisationGroupName               | WANDSWORTH LONDON BOROUGH COUNCIL    |
+		| OrganisationGroupSearchableName     | WANDSWORTH_LONDON_BOROUGH_COUNCIL    |
+		| OrganisationGroupTypeClassification | LegalEntity                          |
 	And there is a funding group created in the release management repository
-		| Field                               | Value                |
-		| FundingGroupId                      | 2                    |
-		| SpecificationId                     | <SpecificationId>    |
-		| Channel                             | Statement            |
-		| GroupingReason                      | Information          |
-		| OrganisationGroupTypeCode           | LocalAuthority       |
-		| OrganisationGroupTypeIdentifier     | LACode               |
-		| OrganisationGroupIdentifierValue    | 212                  |
-		| OrganisationGroupName               | Wandsworth           |
-		| OrganisationGroupSearchableName     | Wandsworth           |
-		| OrganisationGroupTypeClassification | GeographicalBoundary |
+		| Field                               | Value                                |
+		| FundingGroupId                      | 00000000-0000-0000-0000-000000000002 |
+		| SpecificationId                     | <SpecificationId>                    |
+		| Channel                             | Statement                            |
+		| GroupingReason                      | Information                          |
+		| OrganisationGroupTypeCode           | LocalAuthority                       |
+		| OrganisationGroupTypeIdentifier     | LACode                               |
+		| OrganisationGroupIdentifierValue    | 212                                  |
+		| OrganisationGroupName               | Wandsworth                           |
+		| OrganisationGroupSearchableName     | Wandsworth                           |
+		| OrganisationGroupTypeClassification | GeographicalBoundary                 |
 	And there is a funding group created in the release management repository
-		| Field                               | Value                             |
-		| FundingGroupId                      | 3                                 |
-		| SpecificationId                     | <SpecificationId>                 |
-		| Channel                             | Payment                           |
-		| GroupingReason                      | Payment                           |
-		| OrganisationGroupTypeCode           | LocalAuthority                    |
-		| OrganisationGroupTypeIdentifier     | UKPRN                             |
-		| OrganisationGroupIdentifierValue    | 10004002                          |
-		| OrganisationGroupName               | WANDSWORTH LONDON BOROUGH COUNCIL |
-		| OrganisationGroupSearchableName     | WANDSWORTH_LONDON_BOROUGH_COUNCIL |
-		| OrganisationGroupTypeClassification | LegalEntity                       |
+		| Field                               | Value                                |
+		| FundingGroupId                      | 00000000-0000-0000-0000-000000000003 |
+		| SpecificationId                     | <SpecificationId>                    |
+		| Channel                             | Payment                              |
+		| GroupingReason                      | Payment                              |
+		| OrganisationGroupTypeCode           | LocalAuthority                       |
+		| OrganisationGroupTypeIdentifier     | UKPRN                                |
+		| OrganisationGroupIdentifierValue    | 10004002                             |
+		| OrganisationGroupName               | WANDSWORTH LONDON BOROUGH COUNCIL    |
+		| OrganisationGroupSearchableName     | WANDSWORTH_LONDON_BOROUGH_COUNCIL    |
+		| OrganisationGroupTypeClassification | LegalEntity                          |
 	And there are a total of '3' funding group records created in the release management repository
 
 	And there is a funding group version created in the release management repository
 		| Field                        | Value                                           |
-		| FundingGroupVersionId        | 7                                               |
-		| FundingGroupId               | 1                                               |
+		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000007            |
+		| FundingGroupId               | 00000000-0000-0000-0000-000000000001            |
 		| Channel                      | Statement                                       |
 		| GroupingReason               | Payment                                         |
 		| StatusChangedDate            | <CurrentDateTime>                               |
@@ -388,8 +398,8 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
 	And there is a funding group version created in the release management repository
 		| Field                        | Value                                          |
-		| FundingGroupVersionId        | 8                                              |
-		| FundingGroupId               | 2                                              |
+		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000008           |
+		| FundingGroupId               | 00000000-0000-0000-0000-000000000002           |
 		| Channel                      | Statement                                      |
 		| GroupingReason               | Information                                    |
 		| StatusChangedDate            | <CurrentDateTime>                              |
@@ -407,8 +417,8 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                              |
 	And there is a funding group version created in the release management repository
 		| Field                        | Value                                           |
-		| FundingGroupVersionId        | 9                                               |
-		| FundingGroupId               | 3                                               |
+		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000009            |
+		| FundingGroupId               | 00000000-0000-0000-0000-000000000003            |
 		| Channel                      | Payment                                         |
 		| GroupingReason               | Payment                                         |
 		| StatusChangedDate            | <CurrentDateTime>                               |
@@ -427,52 +437,57 @@ Scenario Outline: Release a new major version of a provider which has already be
 	And there are a total of '9' funding group version records created in the release management repository
 
 	And there is a funding group variation reason created in the release management repository
-		| Field                                | Value          |
-		| FundingGroupVersionVariationReasonId | 1              |
-		| FundingGroupVersionId                | 7              |
-		| VariationReason                      | FundingUpdated |
+		| Field                                | Value                                |
+		| FundingGroupVersionVariationReasonId | 00000000-0000-0000-0000-000000000001 |
+		| FundingGroupVersionId                | 00000000-0000-0000-0000-000000000007 |
+		| VariationReason                      | FundingUpdated                       |
 	And there is a funding group variation reason created in the release management repository
-		| Field                                | Value            |
-		| FundingGroupVersionVariationReasonId | 2                |
-		| FundingGroupVersionId                | 7                |
-		| VariationReason                      | ProfilingUpdated |
+		| Field                                | Value                                |
+		| FundingGroupVersionVariationReasonId | 00000000-0000-0000-0000-000000000002 |
+		| FundingGroupVersionId                | 00000000-0000-0000-0000-000000000007 |
+		| VariationReason                      | ProfilingUpdated                     |
 	And there is a funding group variation reason created in the release management repository
-		| Field                                | Value          |
-		| FundingGroupVersionVariationReasonId | 3              |
-		| FundingGroupVersionId                | 8              |
-		| VariationReason                      | FundingUpdated |
+		| Field                                | Value                                |
+		| FundingGroupVersionVariationReasonId | 00000000-0000-0000-0000-000000000003 |
+		| FundingGroupVersionId                | 00000000-0000-0000-0000-000000000008 |
+		| VariationReason                      | FundingUpdated                       |
 	And there is a funding group variation reason created in the release management repository
-		| Field                                | Value            |
-		| FundingGroupVersionVariationReasonId | 4                |
-		| FundingGroupVersionId                | 8                |
-		| VariationReason                      | ProfilingUpdated |
+		| Field                                | Value                                |
+		| FundingGroupVersionVariationReasonId | 00000000-0000-0000-0000-000000000004 |
+		| FundingGroupVersionId                | 00000000-0000-0000-0000-000000000008 |
+		| VariationReason                      | ProfilingUpdated                     |
 	And there is a funding group variation reason created in the release management repository
-		| Field                                | Value          |
-		| FundingGroupVersionVariationReasonId | 5              |
-		| FundingGroupVersionId                | 9              |
-		| VariationReason                      | FundingUpdated |
+		| Field                                | Value                                |
+		| FundingGroupVersionVariationReasonId | 00000000-0000-0000-0000-000000000005 |
+		| FundingGroupVersionId                | 00000000-0000-0000-0000-000000000009 |
+		| VariationReason                      | FundingUpdated                       |
 	And there is a funding group variation reason created in the release management repository
-		| Field                                | Value            |
-		| FundingGroupVersionVariationReasonId | 6                |
-		| FundingGroupVersionId                | 9                |
-		| VariationReason                      | ProfilingUpdated |
-	And there are a total of '6' funding group version variation reason records created in the release management repository
+		| Field                                | Value                                |
+		| FundingGroupVersionVariationReasonId | 00000000-0000-0000-0000-000000000006 |
+		| FundingGroupVersionId                | 00000000-0000-0000-0000-000000000009 |
+		| VariationReason                      | ProfilingUpdated                     |
+	And there is a funding group variation reason created in the release management repository
+		| Field                                | Value                                |
+		| FundingGroupVersionVariationReasonId | 00000000-0000-0000-0000-000000000007 |
+		| FundingGroupVersionId                | 00000000-0000-0000-0000-000000000009 |
+		| VariationReason                      | CalculationValuesUpdated             |
+	And there are a total of '7' funding group version variation reason records created in the release management repository
 
 	And there is the provider version associated with the funding group version in the release management repository
-		| Field                            | Value |
-		| FundingGroupProviderId           | 7     |
-		| FundingGroupVersionId            | 7     |
-		| ReleasedProviderVersionChannelId | 5     |
+		| Field                            | Value                                |
+		| FundingGroupProviderId           | 00000000-0000-0000-0000-000000000007 |
+		| FundingGroupVersionId            | 00000000-0000-0000-0000-000000000007 |
+		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000005 |
 	And there is the provider version associated with the funding group version in the release management repository
-		| Field                            | Value |
-		| FundingGroupProviderId           | 8     |
-		| FundingGroupVersionId            | 8     |
-		| ReleasedProviderVersionChannelId | 5     |
+		| Field                            | Value                                |
+		| FundingGroupProviderId           | 00000000-0000-0000-0000-000000000008 |
+		| FundingGroupVersionId            | 00000000-0000-0000-0000-000000000008 |
+		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000005 |
 	And there is the provider version associated with the funding group version in the release management repository
-		| Field                            | Value |
-		| FundingGroupProviderId           | 9     |
-		| FundingGroupVersionId            | 9     |
-		| ReleasedProviderVersionChannelId | 6     |
+		| Field                            | Value                                |
+		| FundingGroupProviderId           | 00000000-0000-0000-0000-000000000009 |
+		| FundingGroupVersionId            | 00000000-0000-0000-0000-000000000009 |
+		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000006 |
 	And there are a total of '9' funding group providers created in the release management repository
 
 	And there is content blob created for the funding group with ID 'PSG-AY-2122-Information-LocalAuthority-212-3_0' in the channel 'Statement'
@@ -489,6 +504,6 @@ Scenario Outline: Release a new major version of a provider which has already be
 
 Examples:
 	| FundingStreamId | FundingPeriodId | SpecificationId                      | Specification Name | ProviderVersionId | ProviderSnapshotId | CurrentDateTime     | AuthorId | AuthorName  | CorrelationId |
-	| PSG             | AY-2122         | 3812005f-13b3-4d00-a118-d6cb0e2b2402 | PE and Sport Grant | PSG-2021-10-11-77 | 77                 | 2022-02-10 14:18:00 | AuthId   | Author Name | Corr          |
+	| PSG             | AY-2122         | 3812005f-13b3-4d00-a118-d6cb0e2b2402 | PE and Sport Grant | PSG-2021-10-11-78 | 78                 | 2022-02-10 14:18:00 | AuthId   | Author Name | Corr          |
 
 

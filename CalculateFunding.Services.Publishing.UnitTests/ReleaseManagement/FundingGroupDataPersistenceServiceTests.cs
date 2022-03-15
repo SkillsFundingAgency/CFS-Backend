@@ -1,6 +1,6 @@
 ﻿using AutoFixture;
 using CalculateFunding.Generators.OrganisationGroup.Models;
-using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
@@ -19,13 +19,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
     [TestClass]
     public class FundingGroupDataPersistenceServiceTests
     {
-        private const int FundingGroupVersionId = 1;
-        private int _channelId = new RandomNumberBetween(1, 10);
+        private Guid _fundingGroupVersionId;
+        private Mock<IUniqueIdentifierProvider> _fundingGroupIdentifierGenerator;
+        private Mock<IUniqueIdentifierProvider> _fundingGroupVersionIdentifierGenerator;
+        private readonly int _channelId = new RandomNumberBetween(1, 10);
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private Mock<IReleaseToChannelSqlMappingContext> _context;
         private FundingGroupDataPersistenceService _service;
         private Fixture _fixture;
         private IEnumerable<GeneratedPublishedFunding> _fundingGroupData;
+        private List<Guid> _fundingGroupDataIds;
 
         [TestInitialize]
         public void Initialise()
@@ -34,27 +37,45 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _context = new Mock<IReleaseToChannelSqlMappingContext>();
             _fixture = new Fixture();
             _fundingGroupData = _fixture.CreateMany<GeneratedPublishedFunding>();
+
+            _fundingGroupDataIds = new List<Guid>();
+            for (int i = 0; i < _fundingGroupData.Count(); i++)
+            {
+                _fundingGroupDataIds.Add(Guid.NewGuid());
+            }
+
+            _fundingGroupVersionId = Guid.NewGuid();
+
+            _fundingGroupIdentifierGenerator = new Mock<IUniqueIdentifierProvider>();
+            _fundingGroupVersionIdentifierGenerator = new Mock<IUniqueIdentifierProvider>();
+
+
             SetUpRepo();
 
-            _service = new FundingGroupDataPersistenceService(_releaseManagementRepository.Object, _context.Object);
+            _service = new FundingGroupDataPersistenceService(
+                _releaseManagementRepository.Object,
+                _context.Object,
+                _fundingGroupIdentifierGenerator.Object,
+                _fundingGroupVersionIdentifierGenerator.Object
+                );
         }
 
         [TestMethod]
-        public async Task ReleasesFundingGroups_Successfully()
+        public async Task ReleasesFundingGroupVersions_Successfully()
         {
             GivenContext();
 
             await _service.ReleaseFundingGroupData(_fundingGroupData, _channelId);
 
             _releaseManagementRepository.Verify(
-                _ => _.CreateFundingGroupVersionUsingAmbientTransaction(
-                    It.Is<FundingGroupVersion>(f => f.ChannelId == _channelId)),
-                        Times.Exactly(_fundingGroupData.Count()));
+                _ => _.BulkCreateFundingGroupVersionsUsingAmbientTransaction(
+                    It.Is<IEnumerable<FundingGroupVersion>>(f => f.Count() == _fundingGroupData.Count())),
+                Times.Once);
 
             _releaseManagementRepository.Verify(
-                _ => _.CreateFundingGroupVariationReasonUsingAmbientTransaction(
-                    It.Is<FundingGroupVersionVariationReason>(f => f.FundingGroupVersionId == FundingGroupVersionId)),
-                        Times.Exactly(_fundingGroupData.SelectMany(s => s.PublishedFundingVersion.VariationReasons).Count()));
+                _ => _.BulkCreateFundingGroupVersionVariationReasonsUsingAmbientTransaction(
+                    It.Is<IEnumerable<FundingGroupVersionVariationReason>>(f => f.Count() == _fundingGroupData.SelectMany(s => s.PublishedFundingVersion.VariationReasons).Count())),
+                        Times.Once());
         }
 
         [TestMethod]
@@ -77,7 +98,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             SetupVariationReasons();
 
             _releaseManagementRepository.Setup(_ => _.CreateFundingGroupVersionUsingAmbientTransaction(It.IsAny<FundingGroupVersion>()))
-                .ReturnsAsync(new FundingGroupVersion { FundingGroupVersionId = FundingGroupVersionId });
+                .ReturnsAsync(new FundingGroupVersion { FundingGroupVersionId = _fundingGroupVersionId });
 
             _releaseManagementRepository.Setup(_ => _.CreateFundingGroupProviderUsingAmbientTransaction(It.IsAny<FundingGroupProvider>()))
                 .ReturnsAsync(new FundingGroupProvider());
@@ -100,71 +121,71 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     GroupingReasonName = item.ToString()
                 });
             }
-            _releaseManagementRepository.Setup(_ => _.GetGroupingReasons())
+            _releaseManagementRepository.Setup(_ => _.GetGroupingReasonsUsingAmbientTransaction())
                 .ReturnsAsync(groupingReasons);
         }
 
         private void SetupFundingStreams()
         {
             IEnumerable<string> usedFundingStreams = _fundingGroupData.Select(s => s.PublishedFundingVersion.FundingStreamId);
-            List<Publishing.FundingManagement.SqlModels.FundingStream> fundingStreams = new List<Publishing.FundingManagement.SqlModels.FundingStream>();
+            List<FundingStream> fundingStreams = new List<FundingStream>();
             int id = 1;
             foreach (string item in usedFundingStreams)
             {
-                fundingStreams.Add(new Publishing.FundingManagement.SqlModels.FundingStream
+                fundingStreams.Add(new FundingStream
                 {
                     FundingStreamId = id++,
                     FundingStreamCode = item,
                     FundingStreamName = item
                 });
             }
-            _releaseManagementRepository.Setup(_ => _.GetFundingStreams())
+            _releaseManagementRepository.Setup(_ => _.GetFundingStreamsUsingAmbientTransaction())
                 .ReturnsAsync(fundingStreams);
         }
 
         private void SetupFundingPeriods()
         {
             IEnumerable<string> usedFundingPeriods = _fundingGroupData.Select(s => s.PublishedFundingVersion.FundingPeriod.Id);
-            List<Publishing.FundingManagement.SqlModels.FundingPeriod> fundingPeriods = new List<Publishing.FundingManagement.SqlModels.FundingPeriod>();
+            List<FundingPeriod> fundingPeriods = new List<FundingPeriod>();
             int id = 1;
             foreach (string item in usedFundingPeriods)
             {
-                fundingPeriods.Add(new Publishing.FundingManagement.SqlModels.FundingPeriod
+                fundingPeriods.Add(new FundingPeriod
                 {
                     FundingPeriodId = id++,
                     FundingPeriodCode = item,
                     FundingPeriodName = item
                 });
             }
-            _releaseManagementRepository.Setup(_ => _.GetFundingPeriods())
+            _releaseManagementRepository.Setup(_ => _.GetFundingPeriodsUsingAmbientTransaction())
                 .ReturnsAsync(fundingPeriods);
         }
 
         private void SetupVariationReasons()
         {
             IEnumerable<CalculateFunding.Models.Publishing.VariationReason> usedVariationReasons = _fundingGroupData.SelectMany(s => s.PublishedFundingVersion.VariationReasons).Distinct();
-            List<Publishing.FundingManagement.SqlModels.VariationReason> variationReasons = new List<Publishing.FundingManagement.SqlModels.VariationReason>();
+            List<VariationReason> variationReasons = new List<VariationReason>();
             int id = 0;
             foreach (CalculateFunding.Models.Publishing.VariationReason item in usedVariationReasons)
             {
-                variationReasons.Add(new Publishing.FundingManagement.SqlModels.VariationReason
+                variationReasons.Add(new VariationReason
                 {
                     VariationReasonId = id++,
                     VariationReasonCode = item.ToString(),
                     VariationReasonName = item.ToString()
                 });
             }
-            _releaseManagementRepository.Setup(_ => _.GetVariationReasons())
+            _releaseManagementRepository.Setup(_ => _.GetVariationReasonsUsingAmbientTransaction())
                 .ReturnsAsync(variationReasons);
         }
 
         private void GivenContext()
         {
-            Dictionary<OrganisationGroupResult, int> fundingGroups = new Dictionary<OrganisationGroupResult, int>();
-            int id = 0;
+            Dictionary<OrganisationGroupResult, Guid> fundingGroups = new Dictionary<OrganisationGroupResult, Guid>();
+            int i = 0;
             foreach (OrganisationGroupResult item in _fundingGroupData.Select(s => s.OrganisationGroupResult))
             {
-                fundingGroups.Add(item, id++);
+                fundingGroups.Add(item, _fundingGroupDataIds[i++]);
             }
             _context.SetupGet(s => s.FundingGroups)
                 .Returns(fundingGroups);
@@ -175,13 +196,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
         private void GivenContextWithMissingFundingGroup()
         {
-            Dictionary<OrganisationGroupResult, int> fundingGroups = new Dictionary<OrganisationGroupResult, int>();
-            int id = 0;
+            Dictionary<OrganisationGroupResult, Guid> fundingGroups = new Dictionary<OrganisationGroupResult, Guid>();
+
             List<OrganisationGroupResult> organisationGroupResults = _fundingGroupData.Select(s => s.OrganisationGroupResult).ToList();
             organisationGroupResults.RemoveAt(0);
+            int i = 1;
             foreach (OrganisationGroupResult item in organisationGroupResults)
             {
-                fundingGroups.Add(item, id++);
+                fundingGroups.Add(item, _fundingGroupDataIds[i++]);
             }
             _context.SetupGet(s => s.FundingGroups)
                 .Returns(fundingGroups);

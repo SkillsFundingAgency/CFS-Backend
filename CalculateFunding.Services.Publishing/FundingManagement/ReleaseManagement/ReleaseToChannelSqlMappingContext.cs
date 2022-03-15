@@ -2,6 +2,7 @@
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using System;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
@@ -15,8 +16,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         {
             ReleasedProviders = new Dictionary<string, ReleasedProvider>();
             ReleasedProviderVersions = new Dictionary<string, ReleasedProviderVersion>();
-            ReleasedProviderVersionChannels = new Dictionary<string, ReleasedProviderVersionChannel>();
-            FundingGroups = new Dictionary<OrganisationGroupResult, int>();
+            ReleasedProviderVersionChannels = new Dictionary<string, Guid>();
+            FundingGroups = new Dictionary<OrganisationGroupResult, Guid>();
             FundingGroupVersions = new Dictionary<int, Dictionary<string, FundingGroupVersion>>();
         }
 
@@ -24,11 +25,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
         public Dictionary<string, ReleasedProviderVersion> ReleasedProviderVersions { get; }
 
-        public Dictionary<string, ReleasedProviderVersionChannel> ReleasedProviderVersionChannels { get; }
+        public Dictionary<string, Guid> ReleasedProviderVersionChannels { get; }
 
         public Specification Specification { get; set; }
 
-        public Dictionary<OrganisationGroupResult, int> FundingGroups { get; set; }
+        public Dictionary<OrganisationGroupResult, Guid> FundingGroups { get; set; }
 
         public Dictionary<int, Dictionary<string, FundingGroupVersion>> FundingGroupVersions { get; set; }
 

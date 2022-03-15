@@ -1904,13 +1904,13 @@ namespace CalculateFunding.Services.Publishing.Repositories
             await _repository.BulkDeleteAsync(publishedProviders.Select(p => new KeyValuePair<string, PublishedProvider>(p.Id, p)), hardDelete: false);
         }
 
-        public ICosmosDbFeedIterator GetPublishedFundingIterator(int batchSize)
+        public ICosmosDbFeedIterator GetPublishedFundingVersionIterator(int batchSize)
         {
             CosmosDbQuery query = new CosmosDbQuery()
             {
                 QueryText = @"SELECT *
                                 FROM c
-                                WHERE c.documentType = 'PublishedFundingVersion' 
+                                WHERE c.documentType = 'PublishedFundingVersion'
                                 AND c.deleted = false"
             };
 

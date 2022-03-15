@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Dapper.Contrib.Extensions;
+using System;
+using System.ComponentModel.DataAnnotations;
+using TableAttribute = Dapper.Contrib.Extensions.TableAttribute;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
 {
@@ -7,13 +9,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
 
     public class ReleasedProviderChannelVariationReason
     {
-        [Dapper.Contrib.Extensions.Key]
-        public int ReleasedProviderChannelVariationReasonId { get; set; }
+        [ExplicitKey]
+        public Guid ReleasedProviderChannelVariationReasonId { get; set; }
 
         [Required]
         public int VariationReasonId { get; set; }
 
         [Required]
-        public int ReleasedProviderVersionChannelId { get; set; }
+        public Guid ReleasedProviderVersionChannelId { get; set; }
     }
 }

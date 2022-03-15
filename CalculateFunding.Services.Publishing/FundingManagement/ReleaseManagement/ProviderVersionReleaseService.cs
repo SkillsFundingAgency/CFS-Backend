@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using Serilog;
@@ -14,16 +15,21 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly ILogger _logger;
         private readonly IReleaseToChannelSqlMappingContext _releaseToChannelSqlMappingContext;
         private readonly IReleaseManagementRepository _releaseManagementRepository;
+        private readonly IUniqueIdentifierProvider _providerVersionIdentifierGenerator;
 
         public ProviderVersionReleaseService(IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext,
-                IReleaseManagementRepository releaseManagementRepository, ILogger logger)
+                                             IReleaseManagementRepository releaseManagementRepository,
+                                             IUniqueIdentifierProvider providerVersionIdentifierGenerator,
+                                             ILogger logger)
         {
             Guard.ArgumentNotNull(releaseToChannelSqlMappingContext, nameof(releaseToChannelSqlMappingContext));
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
+            Guard.ArgumentNotNull(providerVersionIdentifierGenerator, nameof(providerVersionIdentifierGenerator));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
             _releaseManagementRepository = releaseManagementRepository;
+            _providerVersionIdentifierGenerator = providerVersionIdentifierGenerator;
             _logger = logger;
         }
 
@@ -53,21 +59,33 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 throw new KeyNotFoundException("Providers missing from sql mapping context");
             }
 
+            List<ReleasedProviderVersion> releasedProviderVersionsToCreate = new List<ReleasedProviderVersion>();
+
             foreach (PublishedProviderVersion providerVersion in providersToCreate)
             {
-                ReleasedProviderVersion releasedProviderVersion = await _releaseManagementRepository.CreateReleasedProviderVersionUsingAmbientTransaction(new ReleasedProviderVersion
+                ReleasedProviderVersion releasedProviderVersion = new ReleasedProviderVersion
                 {
+                    ReleasedProviderVersionId = _providerVersionIdentifierGenerator.GenerateIdentifier(),
                     MajorVersion = providerVersion.MajorVersion,
                     MinorVersion = providerVersion.MinorVersion,
                     FundingId = providerVersion.FundingId,
                     TotalFunding = providerVersion.TotalFunding ?? 0m,
-                    ReleasedProviderId = _releaseToChannelSqlMappingContext.ReleasedProviders[providerVersion.ProviderId].ReleasedProviderId,
+                    ReleasedProviderId = _releaseToChannelSqlMappingContext
+                        .ReleasedProviders[providerVersion.ProviderId].ReleasedProviderId,
                     CoreProviderVersionId = providerVersion.Provider.ProviderVersionId,
-                });
+                };
+
+                releasedProviderVersionsToCreate.Add(releasedProviderVersion);
 
                 // Add or update the record in released provider versions to indicate the latest group, as the overall release will release the latest major version for this provider
                 // The provider version may already be in the dictionary from the start of the release process from an older major version previously released
                 _releaseToChannelSqlMappingContext.ReleasedProviderVersions[providerVersion.ProviderId] = releasedProviderVersion;
+            }
+
+            if (releasedProviderVersionsToCreate.Any())
+            {
+                await _releaseManagementRepository.BulkCreateReleasedProviderVersionsUsingAmbientTransaction(
+                    releasedProviderVersionsToCreate);
             }
 
             static bool NewVersionOfProviderPreviouslyReleasedIsInThisBatch(Dictionary<string, ReleasedProviderVersion> existingProviders, PublishedProviderVersion provider)

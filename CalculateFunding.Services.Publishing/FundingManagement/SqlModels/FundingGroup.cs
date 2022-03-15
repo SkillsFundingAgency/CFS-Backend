@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Dapper.Contrib.Extensions;
+using System;
 using System.ComponentModel.DataAnnotations;
-using Dapper.Contrib.Extensions;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
 {
     [Table("FundingGroups")]
     public class FundingGroup
     {
-        [Dapper.Contrib.Extensions.Key]
-        public int FundingGroupId { get; set; }
+        [ExplicitKey]
+        public Guid FundingGroupId { get; set; }
 
         [Required, StringLength(64)]
         public string SpecificationId { get; set; }

@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+﻿using System;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.SqlExport;
 using System.Data;
 
@@ -9,9 +10,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Migration
         protected override DataColumn[] GetDataColumns(FundingGroupProvider dto) =>
             new[]
             {
-                NewDataColumn<int>("FundingGroupProviderId"),
-                NewDataColumn<int>("FundingGroupVersionId"),
-                NewDataColumn<int>("ReleasedProviderVersionChannelId")
+                NewDataColumn<Guid>("FundingGroupProviderId"),
+                NewDataColumn<Guid>("FundingGroupVersionId"),
+                NewDataColumn<Guid>("ReleasedProviderVersionChannelId")
             };
 
         protected override void AddDataRowToDataTable(FundingGroupProvider dto)

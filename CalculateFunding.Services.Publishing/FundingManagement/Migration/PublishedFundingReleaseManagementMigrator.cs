@@ -23,15 +23,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private const int CosmosBatchSize = 100;
         private const int BlobClientThrottleCount = 50;
 
-        private int _nextFundingGroupId = 0;
-        private int _nextFundingGroupVersionId = 0;
-        private int _nextFundingGroupVersionVariationReasonId = 0;
-        private int _nextReleasedProviderId = 0;
-        private int _nextReleasedProviderVersionId = 0;
-        private int _nextReleasedProviderChannelVariationReasonsId = 0;
-        private int _nextReleasedProviderVersionChannelId = 0;
-        private int _nextFundingGroupProviderId = 0;
-
         private readonly IPublishedFundingRepository _cosmosRepo;
         private readonly IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion> _fundingMigrator;
         private readonly IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion> _providerMigrator;
@@ -54,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         /// <summary>
         /// Key is "{releasedProviderId}"
         /// </summary>
-        private readonly ConcurrentDictionary<int, ReleasedProvider> _releasedProvidersById = new ConcurrentDictionary<int, ReleasedProvider>();
+        private readonly ConcurrentDictionary<Guid, ReleasedProvider> _releasedProvidersById = new ConcurrentDictionary<Guid, ReleasedProvider>();
         /// <summary>
         /// Key is "{providerId}_{specificationId}"
         /// </summary>
@@ -124,7 +115,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             await _fundingMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications,
-                _cosmosRepo.GetPublishedFundingIterator(CosmosBatchSize), ProcessPublishedFundingVersions);
+                _cosmosRepo.GetPublishedFundingVersionIterator(CosmosBatchSize), ProcessPublishedFundingVersions);
 
             FundingGroupDataTableBuilder fundingGroupsBuilder = new FundingGroupDataTableBuilder();
             fundingGroupsBuilder.AddRows(_createFundingGroups.ToArray());
@@ -222,7 +213,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             int groupingReasonId = ctx.GroupingReasons[fundingVersion.GroupingReason.ToString()].GroupingReasonId;
 
-            string key = GetFundingGroupDictionaryKey(channelId, fundingVersion.SpecificationId, groupingReasonId, fundingVersion.OrganisationGroupTypeClassification, fundingVersion.OrganisationGroupIdentifierValue);
+            string key = GetFundingGroupDictionaryKey(channelId, fundingVersion.SpecificationId, groupingReasonId, fundingVersion.OrganisationGroupTypeCode, fundingVersion.OrganisationGroupIdentifierValue);
 
             _fundingGroups.TryGetValue(key, out var fundingGroup);
 
@@ -230,7 +221,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 fundingGroup = new FundingGroup()
                 {
-                    FundingGroupId = Interlocked.Increment(ref _nextFundingGroupId),
+                    FundingGroupId = Guid.NewGuid(),
                     ChannelId = channelId,
                     GroupingReasonId = groupingReasonId,
                     OrganisationGroupIdentifierValue = fundingVersion.OrganisationGroupIdentifierValue,
@@ -253,7 +244,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             FundingGroupVersion fundingGroupVersion = new FundingGroupVersion()
             {
-                FundingGroupVersionId = Interlocked.Increment(ref _nextFundingGroupVersionId),
+                FundingGroupVersionId = Guid.NewGuid(),
                 ChannelId = channel.ChannelId,
                 CorrelationId = fundingVersion.CorrelationId ?? ctx.JobId,
                 FundingGroupId = fundingGroup.FundingGroupId,
@@ -272,11 +263,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 ExternalPublicationDate = fundingVersion.ExternalPublicationDate,
             };
 
-            
             _createFundingGroupVersions.Add(fundingGroupVersion);
 
-            _fundingGroupVersions.AddOrUpdate($"{channel.ChannelId}_{fundingGroupVersion.FundingId}", fundingGroupVersion, (id, existing) => { return fundingGroupVersion; });
-            _publishedFundingVersions.AddOrUpdate($"{channel.ChannelId}_{fundingVersion.FundingId}", fundingVersion, (id, existing) => { return fundingVersion; });
+            if (!_fundingGroupVersions.TryAdd($"{channel.ChannelId}_{fundingGroupVersion.FundingId}", fundingGroupVersion))
+            {
+                throw new InvalidOperationException($"Funding group version already exists for ID {fundingGroupVersion.FundingId} in channel {channel.ChannelCode}");
+            }
+
+            if (!_publishedFundingVersions.TryAdd($"{channel.ChannelId}_{fundingVersion.FundingId}", fundingVersion))
+            {
+                throw new InvalidOperationException($"Published funding versions exists for ID {fundingGroupVersion.FundingId} in channel {channel.ChannelCode}");
+            }
 
             PopulateVariationReasonsForFundingGroupVersion(fundingGroupVersion, fundingVersion, ctx);
 
@@ -293,7 +290,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     {
                         FundingGroupVersionVariationReason reason = new FundingGroupVersionVariationReason()
                         {
-                            FundingGroupVersionVariationReasonId = Interlocked.Increment(ref _nextFundingGroupVersionVariationReasonId),
+                            FundingGroupVersionVariationReasonId = Guid.NewGuid(),
                             FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
                             VariationReasonId = value.VariationReasonId,
                         };
@@ -307,7 +304,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 _createFundingGroupVariationReasons.Add(new FundingGroupVersionVariationReason()
                 {
-                    FundingGroupVersionVariationReasonId = Interlocked.Increment(ref _nextFundingGroupVersionVariationReasonId),
+                    FundingGroupVersionVariationReasonId = Guid.NewGuid(),
                     FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
                     VariationReasonId = ctx.VariationReasons["FundingUpdated"].VariationReasonId,
                 });
@@ -317,7 +314,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             {
                 _createFundingGroupVariationReasons.Add(new FundingGroupVersionVariationReason()
                 {
-                    FundingGroupVersionVariationReasonId = Interlocked.Increment(ref _nextFundingGroupVersionVariationReasonId),
+                    FundingGroupVersionVariationReasonId = Guid.NewGuid(),
                     FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
                     VariationReasonId = ctx.VariationReasons["ProfilingUpdated"].VariationReasonId,
                 });
@@ -357,7 +354,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             releasedProvider = new ReleasedProvider
             {
-                ReleasedProviderId = Interlocked.Increment(ref _nextReleasedProviderId),
+                ReleasedProviderId = Guid.NewGuid(),
                 SpecificationId = providerVersion.SpecificationId,
                 ProviderId = providerVersion.ProviderId
             };
@@ -373,7 +370,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             ReleasedProviderVersion releasedProviderVersion = new ReleasedProviderVersion
             {
-                ReleasedProviderVersionId = Interlocked.Increment(ref _nextReleasedProviderVersionId),
+                ReleasedProviderVersionId = Guid.NewGuid(),
                 ReleasedProviderId = releasedProvider.ReleasedProviderId,
                 MajorVersion = providerVersion.MajorVersion,
                 MinorVersion = providerVersion.MinorVersion,
@@ -417,10 +414,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
                     ReleasedProvider releasedProvider = _releasedProvidersById[releasedProviderVersion.ReleasedProviderId];
                     PublishedProviderVersion publishedProviderVersion = _publishedProviderVersions[$"{releasedProvider.ProviderId}_{releasedProvider.SpecificationId}"];
-                    
+
                     ReleasedProviderVersionChannel releasedProviderVersionChannel = new ReleasedProviderVersionChannel
                     {
-                        ReleasedProviderVersionChannelId = Interlocked.Increment(ref _nextReleasedProviderVersionChannelId),
+                        ReleasedProviderVersionChannelId = Guid.NewGuid(),
                         ReleasedProviderVersionId = releasedProviderVersion.ReleasedProviderVersionId,
                         ChannelId = fundingGroupVersion.ChannelId,
                         StatusChangedDate = publishedProviderVersion.Date.UtcDateTime,
@@ -428,14 +425,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                         AuthorName = publishedProviderVersion.Author.Name,
                     };
 
-                    createReleasedProviderVersionChannels.AddOrUpdate($"{releasedProviderVersionChannel.ChannelId}_{releasedProviderVersionChannel.ReleasedProviderVersionId}", 
-                        releasedProviderVersionChannel, 
+                    createReleasedProviderVersionChannels.AddOrUpdate($"{releasedProviderVersionChannel.ChannelId}_{releasedProviderVersionChannel.ReleasedProviderVersionId}",
+                        releasedProviderVersionChannel,
                         (id, existing) => { return releasedProviderVersionChannel; }
                     );
 
                     FundingGroupProvider fundingGroupProvider = new FundingGroupProvider
                     {
-                        FundingGroupProviderId = Interlocked.Increment(ref _nextFundingGroupProviderId),
+                        FundingGroupProviderId = Guid.NewGuid(),
                         FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
                         ReleasedProviderVersionChannelId = releasedProviderVersionChannel.ReleasedProviderVersionChannelId
                     };
@@ -450,7 +447,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                             {
                                 ReleasedProviderChannelVariationReason reason = new ReleasedProviderChannelVariationReason()
                                 {
-                                    ReleasedProviderChannelVariationReasonId = Interlocked.Increment(ref _nextReleasedProviderChannelVariationReasonsId),
+                                    ReleasedProviderChannelVariationReasonId = Guid.NewGuid(),
                                     ReleasedProviderVersionChannelId = releasedProviderVersionChannel.ReleasedProviderVersionChannelId,
                                     VariationReasonId = value.VariationReasonId,
                                 };

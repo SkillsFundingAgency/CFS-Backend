@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+﻿using System;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.SqlExport;
 using System.Data;
 
@@ -10,7 +11,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         protected override DataColumn[] GetDataColumns(ReleasedProvider dto) =>
             new[]
             {
-                NewDataColumn<int>("ReleasedProviderId"),
+                NewDataColumn<Guid>("ReleasedProviderId"),
                 NewDataColumn<string>("SpecificationId", 64),
                 NewDataColumn<string>("ProviderId", 32)
             };

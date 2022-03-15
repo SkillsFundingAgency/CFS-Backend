@@ -491,10 +491,6 @@
     {
       "name": "CalculationValuesUpdated",
       "order": 5
-    },
-    {
-      "name": "IndicativeToLive",
-      "order": 6
     }
   ],
   "defaultTemplateVersion": null,

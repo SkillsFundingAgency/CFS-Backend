@@ -16,6 +16,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class InMemoryPublishedFundingRepository : IPublishedFundingRepository
     {
+        Dictionary<string, PublishedProviderVersion> _publishedProviderVersions = new Dictionary<string, PublishedProviderVersion>();
+
         public InMemoryPublishedFundingRepository(InMemoryCosmosRepository inMemoryCosmosRepository)
         {
             _repo = inMemoryCosmosRepository;
@@ -64,6 +66,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<PublishedProviderVersion> GetPublishedProviderVersion(string fundingStreamId, string fundingPeriodId, string providerId, string version)
         {
+            if (_publishedProviderVersions.TryGetValue(GeneratePublishedProviderVersionKey(providerId, version, fundingStreamId, fundingPeriodId), out PublishedProviderVersion publishedProviderVersion))
+            {
+                return Task.FromResult(publishedProviderVersion);
+            }
+
             PublishedProvider publishedProvider = _repo.PublishedProviders.SelectMany(c => c.Value).Where(p =>
               p.Value.Current.FundingStreamId == fundingStreamId
               && p.Value.Current.FundingPeriodId == fundingPeriodId
@@ -77,6 +84,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             }
 
             return Task.FromResult(result);
+        }
+
+        private string GeneratePublishedProviderVersionKey(string providerId, string version, string fundingStreamId, string fundingPeriodId)
+        {
+            return $"{fundingStreamId}-{fundingPeriodId}-{providerId}-{version}";
         }
 
         public Task<PublishedProviderVersion> GetReleasedPublishedProviderVersionByMajorVersion(string fundingStreamId, string fundingPeriodId,
@@ -406,12 +418,27 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(publishedProvider);
         }
 
+        public void AddPublishedProviderVersion(string specificationId, PublishedProviderVersion publishedProvider)
+        {
+            _publishedProviderVersions.Add(
+                GeneratePublishedProviderVersionKey(publishedProvider.ProviderId, publishedProvider.MajorVersion.ToString(), publishedProvider.FundingStreamId, publishedProvider.FundingPeriodId),
+                publishedProvider);
+        }
+
         public Task<PublishedProviderVersion> GetReleasedPublishedProviderVersion(
             string fundingStreamId,
             string fundingPeriodId,
             string providerId,
             int majorVersion)
         {
+            if (_publishedProviderVersions.TryGetValue(GeneratePublishedProviderVersionKey(providerId, majorVersion.ToString(), fundingStreamId, fundingPeriodId), out PublishedProviderVersion publishedProviderVersion))
+            {
+                if (publishedProviderVersion.Status == PublishedProviderStatus.Released)
+                {
+                    return Task.FromResult(publishedProviderVersion);
+                }
+            }
+
             PublishedProvider publishedProvider = _repo.PublishedProviders.SelectMany(c => c.Value).Where(p =>
                   p.Value.Current.FundingStreamId == fundingStreamId
                   && p.Value.Current.FundingPeriodId == fundingPeriodId
@@ -419,7 +446,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                   && p.Value.Released.MajorVersion == majorVersion
                   && p.Value.Released.Status == PublishedProviderStatus.Released).FirstOrDefault().Value;
 
-            return Task.FromResult(publishedProvider.Released);
+            return Task.FromResult(publishedProvider?.Released);
         }
 
         public Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(IEnumerable<string> fundingStreamIds,
@@ -571,7 +598,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             int batchSize) =>
             throw new NotImplementedException();
 
-        public ICosmosDbFeedIterator GetPublishedFundingIterator(int batchSize)
+        public ICosmosDbFeedIterator GetPublishedFundingVersionIterator(int batchSize)
         {
             throw new NotImplementedException();
         }
@@ -581,7 +608,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             IEnumerable<PublishedProviderFundingSummary> result = null;
             if (_repo.PublishedProviders.ContainsKey(specificationId))
             {
-                result = _repo.PublishedProviders[specificationId].Values.Select(_ => new PublishedProviderFundingSummary { 
+                result = _repo.PublishedProviders[specificationId].Values.Select(_ => new PublishedProviderFundingSummary
+                {
                     Provider = _.Current.Provider
                 });
             }

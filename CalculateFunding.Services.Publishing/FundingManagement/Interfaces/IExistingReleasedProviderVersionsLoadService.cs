@@ -5,6 +5,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 {
     public interface IExistingReleasedProviderVersionsLoadService
     {
-        Task LoadExistingReleasedProviderVersions(string specificationId, IEnumerable<string> providerIds);
+        Task LoadExistingReleasedProviderVersions(string specificationId, IEnumerable<string> providerIds,
+            IEnumerable<string> channelCodes);
     }
 }

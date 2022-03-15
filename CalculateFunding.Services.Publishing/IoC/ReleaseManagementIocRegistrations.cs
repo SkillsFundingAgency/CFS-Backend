@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using CalculateFunding.Common.Sql;
+﻿using CalculateFunding.Common.Sql;
 using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Core.Services;
@@ -59,6 +58,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IProviderVariationReasonsReleaseService, ProviderVariationReasonsReleaseService>();
             builder.AddScoped<IExistingReleasedProvidersLoadService, ExistingReleasedProvidersLoadService>();
             builder.AddScoped<IExistingReleasedProviderVersionsLoadService, ExistingReleasedProviderVersionsLoadService>();
+            builder.AddScoped<IExistingReleasedProvidersForChannelFilterService, ExistingReleasedProvidersForChannelFilterService>();
             builder.AddSingleton<IPublishedProviderChannelVersionService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();

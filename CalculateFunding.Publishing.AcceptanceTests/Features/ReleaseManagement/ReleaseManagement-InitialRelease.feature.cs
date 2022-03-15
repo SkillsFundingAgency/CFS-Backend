@@ -198,7 +198,7 @@ this.ScenarioInitialize(scenarioInfo);
  testRunner.And("the following specification exists in release management", ((string)(null)), table1207, "And ");
 #line hidden
 #line 30
- testRunner.And(string.Format("published provider \'10071688\' exists for funding string \'{0}\' in period \'{1}\' in " +
+ testRunner.And(string.Format("published provider \'10071688\' exists for funding stream \'{0}\' in period \'{1}\' in " +
                             "cosmos from json", fundingStreamId, fundingPeriodId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 31
@@ -270,7 +270,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1211.AddRow(new string[] {
                             "ReleasedProviderId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1211.AddRow(new string[] {
                             "SpecificationId",
                             string.Format("{0}", specificationId)});
@@ -289,10 +289,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1212.AddRow(new string[] {
                             "ReleasedProviderVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1212.AddRow(new string[] {
                             "ReleasedProviderId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1212.AddRow(new string[] {
                             "MajorVersion",
                             "1"});
@@ -318,10 +318,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1213.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1213.AddRow(new string[] {
                             "ReleasedProviderVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1213.AddRow(new string[] {
                             "Channel",
                             "Statement"});
@@ -343,10 +343,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1214.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1214.AddRow(new string[] {
                             "ReleasedProviderVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1214.AddRow(new string[] {
                             "Channel",
                             "Payment"});
@@ -372,13 +372,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1215.AddRow(new string[] {
                             "ReleasedProviderChannelVariationReasonId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1215.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
                 table1215.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
 #line 88
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1215, "And ");
@@ -388,13 +388,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1216.AddRow(new string[] {
                             "ReleasedProviderChannelVariationReasonId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1216.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
                 table1216.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
 #line 93
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1216, "And ");
@@ -404,13 +404,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1217.AddRow(new string[] {
                             "ReleasedProviderChannelVariationReasonId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1217.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
                 table1217.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
 #line 98
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1217, "And ");
@@ -420,13 +420,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1218.AddRow(new string[] {
                             "ReleasedProviderChannelVariationReasonId",
-                            "4"});
+                            "00000000-0000-0000-0000-000000000004"});
                 table1218.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
                 table1218.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
 #line 103
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1218, "And ");
@@ -440,7 +440,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1219.AddRow(new string[] {
                             "FundingGroupId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1219.AddRow(new string[] {
                             "SpecificationId",
                             string.Format("{0}", specificationId)});
@@ -476,7 +476,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1220.AddRow(new string[] {
                             "FundingGroupId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1220.AddRow(new string[] {
                             "SpecificationId",
                             string.Format("{0}", specificationId)});
@@ -512,7 +512,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1221.AddRow(new string[] {
                             "FundingGroupId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1221.AddRow(new string[] {
                             "SpecificationId",
                             string.Format("{0}", specificationId)});
@@ -552,10 +552,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1222.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1222.AddRow(new string[] {
                             "FundingGroupId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1222.AddRow(new string[] {
                             "Channel",
                             "Statement"});
@@ -609,10 +609,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1223.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1223.AddRow(new string[] {
                             "FundingGroupId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1223.AddRow(new string[] {
                             "Channel",
                             "Statement"});
@@ -666,10 +666,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1224.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1224.AddRow(new string[] {
                             "FundingGroupId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1224.AddRow(new string[] {
                             "Channel",
                             "Payment"});
@@ -727,10 +727,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1225.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1225.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1225.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
@@ -743,10 +743,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1226.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1226.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1226.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
@@ -759,10 +759,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1227.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1227.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1227.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
@@ -775,10 +775,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1228.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "4"});
+                            "00000000-0000-0000-0000-000000000004"});
                 table1228.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1228.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
@@ -791,10 +791,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1229.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "5"});
+                            "00000000-0000-0000-0000-000000000005"});
                 table1229.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1229.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
@@ -807,10 +807,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1230.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "6"});
+                            "00000000-0000-0000-0000-000000000006"});
                 table1230.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1230.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
@@ -827,13 +827,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1231.AddRow(new string[] {
                             "FundingGroupProviderId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1231.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1231.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
 #line 239
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1231, "And ");
@@ -843,13 +843,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1232.AddRow(new string[] {
                             "FundingGroupProviderId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1232.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1232.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
 #line 244
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1232, "And ");
@@ -859,13 +859,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1233.AddRow(new string[] {
                             "FundingGroupProviderId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1233.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1233.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
 #line 249
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1233, "And ");
@@ -1042,7 +1042,7 @@ this.ScenarioInitialize(scenarioInfo);
  testRunner.And("the following specification exists in release management", ((string)(null)), table1237, "And ");
 #line hidden
 #line 299
- testRunner.And(string.Format("published provider \'10071689\' exists for funding string \'{0}\' in period \'{1}\' in " +
+ testRunner.And(string.Format("published provider \'10071689\' exists for funding stream \'{0}\' in period \'{1}\' in " +
                             "cosmos from json", fundingStreamId, fundingPeriodId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 300
@@ -1114,7 +1114,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1241.AddRow(new string[] {
                             "ReleasedProviderId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1241.AddRow(new string[] {
                             "SpecificationId",
                             string.Format("{0}", specificationId)});
@@ -1133,10 +1133,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1242.AddRow(new string[] {
                             "ReleasedProviderVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1242.AddRow(new string[] {
                             "ReleasedProviderId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1242.AddRow(new string[] {
                             "MajorVersion",
                             "1"});
@@ -1162,10 +1162,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1243.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1243.AddRow(new string[] {
                             "ReleasedProviderVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1243.AddRow(new string[] {
                             "Channel",
                             "Statement"});
@@ -1187,10 +1187,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1244.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1244.AddRow(new string[] {
                             "ReleasedProviderVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1244.AddRow(new string[] {
                             "Channel",
                             "Payment"});
@@ -1216,13 +1216,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1245.AddRow(new string[] {
                             "ReleasedProviderChannelVariationReasonId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1245.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
                 table1245.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
 #line 357
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1245, "And ");
@@ -1232,13 +1232,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1246.AddRow(new string[] {
                             "ReleasedProviderChannelVariationReasonId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1246.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
                 table1246.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
 #line 362
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1246, "And ");
@@ -1248,13 +1248,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1247.AddRow(new string[] {
                             "ReleasedProviderChannelVariationReasonId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1247.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
                 table1247.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
 #line 367
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1247, "And ");
@@ -1264,13 +1264,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1248.AddRow(new string[] {
                             "ReleasedProviderChannelVariationReasonId",
-                            "4"});
+                            "00000000-0000-0000-0000-000000000004"});
                 table1248.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
                 table1248.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
 #line 372
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1248, "And ");
@@ -1284,7 +1284,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1249.AddRow(new string[] {
                             "FundingGroupId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1249.AddRow(new string[] {
                             "SpecificationId",
                             string.Format("{0}", specificationId)});
@@ -1320,7 +1320,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1250.AddRow(new string[] {
                             "FundingGroupId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1250.AddRow(new string[] {
                             "SpecificationId",
                             string.Format("{0}", specificationId)});
@@ -1356,7 +1356,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1251.AddRow(new string[] {
                             "FundingGroupId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1251.AddRow(new string[] {
                             "SpecificationId",
                             string.Format("{0}", specificationId)});
@@ -1396,10 +1396,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1252.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1252.AddRow(new string[] {
                             "FundingGroupId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1252.AddRow(new string[] {
                             "Channel",
                             "Statement"});
@@ -1453,10 +1453,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1253.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1253.AddRow(new string[] {
                             "FundingGroupId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1253.AddRow(new string[] {
                             "Channel",
                             "Statement"});
@@ -1510,10 +1510,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1254.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1254.AddRow(new string[] {
                             "FundingGroupId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1254.AddRow(new string[] {
                             "Channel",
                             "Payment"});
@@ -1571,10 +1571,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1255.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1255.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1255.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
@@ -1587,10 +1587,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1256.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1256.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1256.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
@@ -1603,10 +1603,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1257.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1257.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1257.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
@@ -1619,10 +1619,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1258.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "4"});
+                            "00000000-0000-0000-0000-000000000004"});
                 table1258.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1258.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
@@ -1635,10 +1635,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1259.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "5"});
+                            "00000000-0000-0000-0000-000000000005"});
                 table1259.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1259.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
@@ -1651,10 +1651,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1260.AddRow(new string[] {
                             "FundingGroupVersionVariationReasonId",
-                            "6"});
+                            "00000000-0000-0000-0000-000000000006"});
                 table1260.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1260.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
@@ -1671,13 +1671,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1261.AddRow(new string[] {
                             "FundingGroupProviderId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1261.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
                 table1261.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
 #line 508
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1261, "And ");
@@ -1687,13 +1687,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1262.AddRow(new string[] {
                             "FundingGroupProviderId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1262.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
                 table1262.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "1"});
+                            "00000000-0000-0000-0000-000000000001"});
 #line 513
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1262, "And ");
@@ -1703,13 +1703,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table1263.AddRow(new string[] {
                             "FundingGroupProviderId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1263.AddRow(new string[] {
                             "FundingGroupVersionId",
-                            "3"});
+                            "00000000-0000-0000-0000-000000000003"});
                 table1263.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
-                            "2"});
+                            "00000000-0000-0000-0000-000000000002"});
 #line 518
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1263, "And ");

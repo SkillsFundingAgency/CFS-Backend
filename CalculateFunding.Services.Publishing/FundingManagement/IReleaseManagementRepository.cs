@@ -17,8 +17,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<SqlModels.GroupingReason> CreateGroupingReason(SqlModels.GroupingReason groupingReason);
 
         Task<IEnumerable<SqlModels.GroupingReason>> GetGroupingReasons();
+        Task<IEnumerable<SqlModels.GroupingReason>> GetGroupingReasonsUsingAmbientTransaction();
 
         Task<IEnumerable<VariationReason>> GetVariationReasons();
+        Task<IEnumerable<VariationReason>> GetVariationReasonsUsingAmbientTransaction();
 
         Task<VariationReason> CreateVariationReason(VariationReason reason);
 
@@ -28,7 +30,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<Channel> CreateChannel(Channel channel);
         Task<bool> UpdateChannel(Channel channel);
         Task<IEnumerable<FundingPeriod>> GetFundingPeriods();
+        Task<IEnumerable<FundingPeriod>> GetFundingPeriodsUsingAmbientTransaction();
         Task<IEnumerable<FundingStream>> GetFundingStreams();
+        Task<IEnumerable<FundingStream>> GetFundingStreamsUsingAmbientTransaction();
         Task<FundingPeriod> GetFundingPeriodByCode(string code);
         Task<FundingStream> GetFundingStreamByCode(string code);
         Task<FundingStream> CreateFundingStream(FundingStream fundingStream);
@@ -121,5 +125,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<FundingGroup> CreateFundingGroupUsingAmbientTransaction(FundingGroup fundingGroup);
         Task<IEnumerable<FundingGroup>> BulkCreateFundingGroupsUsingAmbientTransaction(IEnumerable<FundingGroup> fundingGroups);
         Task<IEnumerable<FundingGroup>> GetFundingGroupsBySpecificationAndChannelUsingAmbientTransaction(string specificationId, int channelId);
+        Task<IEnumerable<FundingGroupVersion>> BulkCreateFundingGroupVersionsUsingAmbientTransaction(IEnumerable<FundingGroupVersion> fundingGroupVersions);
+        Task<IEnumerable<FundingGroupVersionVariationReason>> BulkCreateFundingGroupVersionVariationReasonsUsingAmbientTransaction(IEnumerable<FundingGroupVersionVariationReason> variationReasons);
+        Task<IEnumerable<FundingGroupProvider>> BulkCreateFundingGroupProvidersUsingAmbientTransaction(IEnumerable<FundingGroupProvider> providers);
+        Task<IEnumerable<ReleasedProvider>> BulkCreateReleasedProvidersUsingAmbientTransaction(IEnumerable<ReleasedProvider> releasedProviders);
+        Task<IEnumerable<ReleasedProviderVersion>> BulkCreateReleasedProviderVersionsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersion> releasedProviderVersions);
+        Task<IEnumerable<ReleasedProviderChannelVariationReason>> BulkCreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(IEnumerable<ReleasedProviderChannelVariationReason> variationReasons);
+        Task<IEnumerable<ReleasedProviderVersionChannel>> BulkCreateReleasedProviderVersionChannelsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersionChannel> releasedProviderVersionChannels);
     }
 }

@@ -10,8 +10,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Migration
         protected override DataColumn[] GetDataColumns(ReleasedProviderVersionChannel dto) =>
             new[]
             {
-                NewDataColumn<int>("ReleasedProviderVersionChannelId"),
-                NewDataColumn<int>("ReleasedProviderVersionId"),
+                NewDataColumn<Guid>("ReleasedProviderVersionChannelId"),
+                NewDataColumn<Guid>("ReleasedProviderVersionId"),
                 NewDataColumn<int>("ChannelId"),
                 NewDataColumn<DateTime>("StatusChangedDate"),
                 NewDataColumn<string>("AuthorId", 64),

@@ -1,7 +1,7 @@
+using CalculateFunding.Common.Sql.Interfaces;
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Sql.Interfaces;
 
 namespace CalculateFunding.Services.SqlExport
 {
@@ -25,12 +25,23 @@ namespace CalculateFunding.Services.SqlExport
                 return;
             }
 
-            await using SqlConnection connection = NewOpenConnection();
+            SqlConnection connection;
 
-            using SqlBulkCopy bulkCopy = new(connection, sqlBulkCopyOptions, (SqlTransaction) transaction?.CurrentTransaction)
+            if (transaction == null)
+            {
+                connection = NewOpenConnection();
+            }
+            else
+            {
+                connection = (SqlConnection)transaction.Connection;
+            }
+
+            using SqlBulkCopy bulkCopy = new(connection,
+                                         sqlBulkCopyOptions,
+                                         (SqlTransaction)transaction?.CurrentTransaction)
             {
                 DestinationTableName = dataTableBuilder.TableName,
-                BatchSize = BatchSize
+                BatchSize = BatchSize,
             };
 
             await bulkCopy.WriteToServerAsync(dataTableBuilder.DataTable);

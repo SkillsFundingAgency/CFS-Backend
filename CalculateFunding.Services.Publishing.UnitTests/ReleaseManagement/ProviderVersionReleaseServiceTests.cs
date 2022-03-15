@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
@@ -20,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private ProviderVersionReleaseService _service;
         private Mock<IReleaseToChannelSqlMappingContext> _releaseToChannelSqlMappingContext;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
+        private Mock<IUniqueIdentifierProvider> _identifierGenerator;
         private Mock<ILogger> _logger;
         private IEnumerable<PublishedProviderVersion> _providerVersions;
         private string _specificationId;
@@ -30,9 +32,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _specificationId = new RandomString();
             _releaseToChannelSqlMappingContext = new Mock<IReleaseToChannelSqlMappingContext>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
+            _identifierGenerator = new Mock<IUniqueIdentifierProvider>();
             _logger = new Mock<ILogger>();
             _service = new ProviderVersionReleaseService(_releaseToChannelSqlMappingContext.Object,
-                _releaseManagementRepository.Object, _logger.Object);
+                                                         _releaseManagementRepository.Object,
+                                                         _identifierGenerator.Object,
+                                                         _logger.Object);
         }
 
         [TestMethod]
@@ -146,7 +151,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 MajorVersion = s.MajorVersion,
                 MinorVersion = s.MinorVersion,
                 TotalFunding = s.TotalFunding ?? 0m,
-                ReleasedProviderId = new RandomNumberBetween(1, 1000),
+                ReleasedProviderId = Guid.NewGuid(),
                 CoreProviderVersionId = s.Provider.ProviderVersionId,
             }).ToArray();
 
@@ -157,7 +162,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private void ThenProvidersAreReleased(params PublishedProviderVersion[] providerVersions)
         {
             _releaseManagementRepository.Verify(_ =>
-                _.CreateReleasedProviderVersionUsingAmbientTransaction(It.IsAny<ReleasedProviderVersion>()), Times.Exactly(providerVersions.Count()));
+                    _.BulkCreateReleasedProviderVersionsUsingAmbientTransaction(
+                        It.Is<IEnumerable<ReleasedProviderVersion>>(_ => _.Count() == providerVersions.Count())),
+                Times.Once());
         }
 
         private void AndTheContextIsUpdated(params PublishedProviderVersion[] providers)

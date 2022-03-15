@@ -1,13 +1,12 @@
 ﻿using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
@@ -16,15 +15,19 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     {
         private readonly IReleaseManagementRepository _repo;
         private readonly IReleaseToChannelSqlMappingContext _ctx;
+        private readonly IUniqueIdentifierProvider _fundingGroupIdentifierGenerator;
 
         public FundingGroupProviderPersistenceService(IReleaseManagementRepository releaseManagementRepository,
-            IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext)
+            IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext,
+            IUniqueIdentifierProvider fundingGroupIdentifierGenerator)
         {
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(releaseToChannelSqlMappingContext, nameof(releaseToChannelSqlMappingContext));
+            Guard.ArgumentNotNull(fundingGroupIdentifierGenerator, nameof(fundingGroupIdentifierGenerator));
 
             _repo = releaseManagementRepository;
             _ctx = releaseToChannelSqlMappingContext;
+            _fundingGroupIdentifierGenerator = fundingGroupIdentifierGenerator;
         }
 
         public async Task PersistFundingGroupProviders(int channelId, IEnumerable<GeneratedPublishedFunding> fundingGroupData, IEnumerable<PublishedProviderVersion> providersInGroupsToRelease)
@@ -32,6 +35,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Dictionary<string, PublishedProviderVersion> providers = providersInGroupsToRelease.ToDictionary(_ => _.ProviderId);
 
             IEnumerable<string> batchProviderIds = providersInGroupsToRelease.Select(_ => _.ProviderId);
+
+            List<FundingGroupProvider> createFundingGroupProviders = new List<FundingGroupProvider>();
 
             foreach (GeneratedPublishedFunding group in fundingGroupData)
             {
@@ -50,19 +55,25 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 {
                     string contextKey = $"{providerId}_{channelId}";
 
-                    if (!_ctx.ReleasedProviderVersionChannels.TryGetValue(contextKey, out ReleasedProviderVersionChannel releasedProviderVersionChannel))
+                    if (!_ctx.ReleasedProviderVersionChannels.TryGetValue(contextKey, out Guid releasedProviderVersionChannelId))
                     {
                         throw new InvalidOperationException($"Unable to find ReleasedProviderVersionChannel for context key '{contextKey}'");
                     }
 
                     FundingGroupProvider fundingGroupProvider = new FundingGroupProvider()
                     {
+                        FundingGroupProviderId = _fundingGroupIdentifierGenerator.GenerateIdentifier(),
                         FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
-                        ReleasedProviderVersionChannelId = releasedProviderVersionChannel.ReleasedProviderVersionChannelId,
+                        ReleasedProviderVersionChannelId = releasedProviderVersionChannelId,
                     };
 
-                    await _repo.CreateFundingGroupProviderUsingAmbientTransaction(fundingGroupProvider);
+                    createFundingGroupProviders.Add(fundingGroupProvider);
                 }
+            }
+
+            if (createFundingGroupProviders.Any())
+            {
+                await _repo.BulkCreateFundingGroupProvidersUsingAmbientTransaction(createFundingGroupProviders);
             }
         }
     }

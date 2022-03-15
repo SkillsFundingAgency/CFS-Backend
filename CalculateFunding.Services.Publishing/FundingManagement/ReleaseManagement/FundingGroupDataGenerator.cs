@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             PublishedFundingInput publishedFundingInput = new PublishedFundingInput
             {
-                OrganisationGroupsToSave = organisationGroupsToCreate.Select(_ => ((PublishedFunding)null, _)),// await GeneratePublishedFundingOrganisationGroupResultTuples(organisationGroupsToCreate, specification, fundingStream),
+                OrganisationGroupsToSave = organisationGroupsToCreate.Select(_ => ((PublishedFunding)null, _)),
                 FundingStream = fundingStream,
                 FundingPeriod = await _policiesService.GetFundingPeriodByConfigurationId(specification.FundingPeriod.Id),
                 PublishingDates = _publishedFundingDateService.GetDatesForSpecification(),

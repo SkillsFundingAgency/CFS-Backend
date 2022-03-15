@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Generators.OrganisationGroup.Models;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Tests.Common.Helpers;
@@ -11,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Sql.Interfaces;
 using FundingGroup = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.FundingGroup;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
@@ -31,6 +31,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private Mock<IReleaseToChannelSqlMappingContext> _context;
         private Mock<ILogger> _logger;
         private List<OrganisationGroupResult> _orgResults;
+        private Mock<IUniqueIdentifierProvider> _identifierGenerator;
         private FundingGroupService _service;
 
         [TestInitialize]
@@ -42,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _context = new Mock<IReleaseToChannelSqlMappingContext>();
             _context.SetupGet(s => s.FundingGroups)
-                .Returns(new Dictionary<OrganisationGroupResult, int>());
+                .Returns(new Dictionary<OrganisationGroupResult, Guid>());
 
             _orgResults = new List<OrganisationGroupResult>
             {
@@ -68,7 +69,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 }
             };
 
-            _service = new FundingGroupService(_releaseManagementRepository.Object, _context.Object, _logger.Object);
+            _identifierGenerator = new Mock<IUniqueIdentifierProvider>();
+
+            _service = new FundingGroupService(_releaseManagementRepository.Object,
+                                               _context.Object,
+                                               _identifierGenerator.Object,
+                                               _logger.Object
+                                               );
 
         }
 
@@ -78,7 +85,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GivenGroupingReasons();
             GivenExistingFundingGroups(new List<FundingGroup>());
 
-           await _service.CreateFundingGroups(_specificationId, _channelId, _orgResults);
+            await _service.CreateFundingGroups(_specificationId, _channelId, _orgResults);
 
             _releaseManagementRepository.Verify(r => r.BulkCreateFundingGroupsUsingAmbientTransaction(
                 Match.Create<IEnumerable<FundingGroup>>(_ => _.Count() == _orgResults.Count)), Times.Once);
@@ -146,7 +153,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseManagementRepository.Setup(r => r.BulkCreateFundingGroupsUsingAmbientTransaction(It.IsAny<IEnumerable<FundingGroup>>()))
                 .ReturnsAsync(new List<FundingGroup> { new()
                 {
-                    FundingGroupId = 3,
+                    FundingGroupId = Guid.NewGuid(),
                     OrganisationGroupTypeClassification = new RandomString(),
                     OrganisationGroupIdentifierValue = new RandomString()
                 }});

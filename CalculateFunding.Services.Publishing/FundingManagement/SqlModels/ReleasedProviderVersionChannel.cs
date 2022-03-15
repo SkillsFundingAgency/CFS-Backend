@@ -7,11 +7,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
     [Table("ReleasedProviderVersionChannels")]
     public class ReleasedProviderVersionChannel
     {
-        [Dapper.Contrib.Extensions.Key]
-        public int ReleasedProviderVersionChannelId { get; set; }
+        [ExplicitKey]
+        public Guid ReleasedProviderVersionChannelId { get; set; }
 
         [Required]
-        public int ReleasedProviderVersionId { get; set; }
+        public Guid ReleasedProviderVersionId { get; set; }
 
         [Required]
         public int ChannelId { get; set; }

@@ -1,4 +1,5 @@
 ﻿using Dapper.Contrib.Extensions;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
@@ -6,13 +7,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
     [Table("FundingGroupProviders")]
     public class FundingGroupProvider
     {
-        [Dapper.Contrib.Extensions.Key]
-        public int FundingGroupProviderId { get; set; }
+        [ExplicitKey]
+        public Guid FundingGroupProviderId { get; set; }
 
         [Required]
-        public int FundingGroupVersionId { get; set; }
+        public Guid FundingGroupVersionId { get; set; }
 
         [Required]
-        public int ReleasedProviderVersionChannelId { get; set; }
+        public Guid ReleasedProviderVersionChannelId { get; set; }
     }
 }

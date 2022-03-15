@@ -1,10 +1,12 @@
-﻿namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults
+﻿using System;
+
+namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults
 {
     public class LatestFundingGroupVersion
     {
-        public int FundingGroupId { get; set; }
+        public Guid FundingGroupId { get; set; }
 
-        public int FundingGroupVersionId { get; set; }
+        public Guid FundingGroupVersionId { get; set; }
 
         public string FundingStreamCode { get; set; }
 

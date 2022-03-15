@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.OrganisationGroup.Models;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using Serilog;
@@ -12,17 +13,21 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     public class FundingGroupService : IFundingGroupService
     {
         private readonly IReleaseManagementRepository _releaseManagementRepository;
+        private readonly IUniqueIdentifierProvider _fundingGroupIdentifierGenerator;
         private readonly ILogger _logger;
         private readonly IReleaseToChannelSqlMappingContext _releaseToChannelSqlMappingContext;
 
         public FundingGroupService(IReleaseManagementRepository releaseManagementRepository,
             IReleaseToChannelSqlMappingContext releaseToChannelSqlMappingContext,
+            IUniqueIdentifierProvider fundingGroupIdentifierGenerator,
             ILogger logger)
         {
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
+            Guard.ArgumentNotNull(fundingGroupIdentifierGenerator, nameof(fundingGroupIdentifierGenerator));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _releaseManagementRepository = releaseManagementRepository;
+            _fundingGroupIdentifierGenerator = fundingGroupIdentifierGenerator;
             _logger = logger;
             _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
         }
@@ -55,6 +60,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                                                                    $"{groupingReasonId}-{organisationGroupResult.GroupTypeClassification}-{organisationGroupResult.IdentifierValue}")
                                                                select new FundingGroup
                                                                {
+                                                                   FundingGroupId = _fundingGroupIdentifierGenerator.GenerateIdentifier(),
                                                                    SpecificationId = specificationId,
                                                                    ChannelId = channelId,
                                                                    OrganisationGroupIdentifierValue = organisationGroupResult.IdentifierValue,
@@ -64,12 +70,22 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                                                                    OrganisationGroupTypeCode = organisationGroupResult.GroupTypeCode.ToString(),
                                                                    OrganisationGroupTypeIdentifier = organisationGroupResult.GroupTypeIdentifier.ToString(),
                                                                    GroupingReasonId = groupingReasonId
-                                                               });
+                                                               }).ToArray();
 
-            IEnumerable<FundingGroup> newFundingGroups =
-                await _releaseManagementRepository.BulkCreateFundingGroupsUsingAmbientTransaction(fundingGroupsToCreate);
+            if (fundingGroupsToCreate.Any())
+            {
+                IEnumerable<FundingGroup> newFundingGroups =
+                    await _releaseManagementRepository.BulkCreateFundingGroupsUsingAmbientTransaction(
+                        fundingGroupsToCreate);
 
-            results.AddRange(newFundingGroups);
+                results.AddRange(newFundingGroups);
+            }
+
+            //// Temp change to test GUIDs, change back to bulk after all bulk work is done
+            //foreach (var fundingGroup in fundingGroupsToCreate)
+            //{
+            //    results.Add(await _releaseManagementRepository.CreateFundingGroupUsingAmbientTransaction(fundingGroup));
+            //}
 
             UpdateMappingContext(specificationId, channelId, organisationGroupResults, results, groupingReasons);
 

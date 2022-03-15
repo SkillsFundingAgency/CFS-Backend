@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Models
 {
     internal class ExpectedFundingGroup
     {
-        public int FundingGroupId { get; set; }
+        public Guid FundingGroupId { get; set; }
 
         public string SpecificationId { get; set; }
 

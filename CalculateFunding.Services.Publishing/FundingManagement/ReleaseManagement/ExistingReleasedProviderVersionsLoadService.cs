@@ -21,7 +21,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _repo = releaseManagementRepository;
             _ctx = releaseToChannelSqlMappingContext;
         }
-        public async Task LoadExistingReleasedProviderVersions(string specificationId, IEnumerable<string> providerIds)
+        public async Task LoadExistingReleasedProviderVersions(string specificationId, IEnumerable<string> providerIds,
+            IEnumerable<string> channelCodes)
         {
             IEnumerable<LatestReleasedProviderVersion> existingReleasedProviderVersions;
 
@@ -41,7 +42,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             LoadIntoContextToMakeAvailableInFutureServices(existingReleasedProviderVersions);
         }
 
-        private void LoadIntoContextToMakeAvailableInFutureServices(IEnumerable<LatestReleasedProviderVersion> existingReleasedProviders)
+        private void LoadIntoContextToMakeAvailableInFutureServices(
+            IEnumerable<LatestReleasedProviderVersion> existingReleasedProviders)
         {
             foreach (LatestReleasedProviderVersion existingVersion in existingReleasedProviders)
             {

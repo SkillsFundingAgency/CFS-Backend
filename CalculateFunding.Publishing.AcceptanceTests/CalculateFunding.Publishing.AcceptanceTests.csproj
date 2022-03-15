@@ -9,9 +9,11 @@
   <ItemGroup>
     <None Remove="ReleaseManagementData\FDZ\76-paymentorganisations.json" />
     <None Remove="ReleaseManagementData\FDZ\77-paymentorganisations.json" />
+    <None Remove="ReleaseManagementData\FDZ\78-paymentorganisations.json" />
     <None Remove="ReleaseManagementData\FundingConfigurations\PSG-AY-2122-Batch.json" />
     <None Remove="ReleaseManagementData\PublishedProviders\publishedprovider-10071688-AY-2122-PSG.json" />
     <None Remove="ReleaseManagementData\PublishedProviders\publishedprovider-10071689-AY-2122-PSG.json" />
+    <None Remove="ReleaseManagementData\PublishedProviders\publishedprovider-10071690-AY-2122-PSG-2_0.json" />
     <None Remove="ReleaseManagementData\PublishedProviders\publishedprovider-10071690-AY-2122-PSG.json" />
     <None Remove="Resources\16191.2.json" />
     <None Remove="Resources\DSG1.0.json" />
@@ -79,8 +81,10 @@
   <ItemGroup>
     <EmbeddedResource Include="ReleaseManagementData\FDZ\76-paymentorganisations.json" />
     <EmbeddedResource Include="ReleaseManagementData\FDZ\77-paymentorganisations.json" />
+    <EmbeddedResource Include="ReleaseManagementData\FDZ\78-paymentorganisations.json" />
     <EmbeddedResource Include="ReleaseManagementData\FundingConfigurations\PSG-AY-2122-Batch.json" />
     <EmbeddedResource Include="ReleaseManagementData\PublishedProviders\publishedprovider-10071689-AY-2122-PSG.json" />
+    <EmbeddedResource Include="ReleaseManagementData\PublishedProviders\publishedprovider-10071690-AY-2122-PSG-2_0.json" />
     <EmbeddedResource Include="ReleaseManagementData\PublishedProviders\publishedprovider-10071690-AY-2122-PSG.json" />
     <EmbeddedResource Include="ReleaseManagementData\PublishedProviders\publishedprovider-10071688-AY-2122-PSG.json" />
     <EmbeddedResource Include="Resources\16191.2.json" />

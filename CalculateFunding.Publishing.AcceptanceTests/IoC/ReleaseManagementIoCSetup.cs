@@ -279,6 +279,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ProvidersStepContext, IProvidersStepContext>();
             RegisterTypeAs<JobStepContext, IJobStepContext>();
             RegisterTypeAs<CurrentJobStepContext, ICurrentJobStepContext>();
+            RegisterTypeAs<ReleaseManagementIdentifierGeneratorStepContext, IReleaseManagementIdentifierGeneratorStepContext>();
         }
 
         private void RegisterRepositories()
@@ -375,23 +376,93 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderLookupService, IPublishedProviderLookupService>();
             RegisterTypeAs<ChannelOrganisationGroupGeneratorService, IChannelOrganisationGroupGeneratorService>();
             RegisterTypeAs<ChannelOrganisationGroupChangeDetector, IChannelOrganisationGroupChangeDetector>();
-            RegisterTypeAs<ReleaseProviderPersistenceService, IReleaseProviderPersistenceService>();
-            RegisterTypeAs<ProviderVersionReleaseService, IProviderVersionReleaseService>();
-            RegisterTypeAs<ProviderVersionToChannelReleaseService, IProviderVersionToChannelReleaseService>();
+            RegisterTypeAs<ExistingReleasedProvidersForChannelFilterService, IExistingReleasedProvidersForChannelFilterService>();
+
+            RegisterFactoryAs<IReleaseProviderPersistenceService>((svc) =>
+            {
+                IReleaseManagementRepository releaseManagementRepository = svc.Resolve<IReleaseManagementRepository>();
+                IReleaseToChannelSqlMappingContext context = svc.Resolve<IReleaseToChannelSqlMappingContext>();
+                IReleaseManagementIdentifierGeneratorStepContext releaseManagementIdentifierGeneratorStepContext = svc.Resolve<IReleaseManagementIdentifierGeneratorStepContext>();
+
+                return new ReleaseProviderPersistenceService(context, releaseManagementRepository, releaseManagementIdentifierGeneratorStepContext.ReleasedProvider);
+            });
+
+            RegisterFactoryAs<IProviderVersionReleaseService>((svc) =>
+            {
+                IReleaseManagementRepository releaseManagementRepository = svc.Resolve<IReleaseManagementRepository>();
+                IReleaseToChannelSqlMappingContext context = svc.Resolve<IReleaseToChannelSqlMappingContext>();
+                IReleaseManagementIdentifierGeneratorStepContext releaseManagementIdentifierGeneratorStepContext = svc.Resolve<IReleaseManagementIdentifierGeneratorStepContext>();
+                ILogger logger = svc.Resolve<ILogger>();
+
+                return new ProviderVersionReleaseService(context, releaseManagementRepository, releaseManagementIdentifierGeneratorStepContext.ReleasedProviderVersion, logger);
+            });
+
+            RegisterFactoryAs<IProviderVersionToChannelReleaseService>((svc) =>
+            {
+                IReleaseManagementRepository releaseManagementRepository = svc.Resolve<IReleaseManagementRepository>();
+                IReleaseToChannelSqlMappingContext context = svc.Resolve<IReleaseToChannelSqlMappingContext>();
+                IReleaseManagementIdentifierGeneratorStepContext releaseManagementIdentifierGeneratorStepContext = svc.Resolve<IReleaseManagementIdentifierGeneratorStepContext>();
+                ILogger logger = svc.Resolve<ILogger>();
+
+                return new ProviderVersionToChannelReleaseService(releaseManagementRepository, context, releaseManagementIdentifierGeneratorStepContext.ReleasedProviderVersionChannel, logger);
+            });
+
             RegisterTypeAs<GenerateVariationReasonsForChannelService, IGenerateVariationReasonsForChannelService>();
             RegisterTypeAs<ProviderVariationsDetection, IDetectProviderVariations>();
             RegisterTypeAs<PublishedProviderContentChannelPersistenceService, IPublishedProviderContentChannelPersistenceService>();
-            RegisterTypeAs<FundingGroupService, IFundingGroupService>();
+
+            RegisterFactoryAs<IFundingGroupService>((svc) =>
+            {
+                IReleaseManagementRepository releaseManagementRepository = svc.Resolve<IReleaseManagementRepository>();
+                IReleaseToChannelSqlMappingContext context = svc.Resolve<IReleaseToChannelSqlMappingContext>();
+                IReleaseManagementIdentifierGeneratorStepContext releaseManagementIdentifierGeneratorStepContext = svc.Resolve<IReleaseManagementIdentifierGeneratorStepContext>();
+                ILogger logger = svc.Resolve<ILogger>();
+
+                return new FundingGroupService(releaseManagementRepository,
+                   context,
+                   releaseManagementIdentifierGeneratorStepContext.FundingGroup,
+                   logger);
+            });
+
             RegisterTypeAs<FundingGroupDataGenerator, IFundingGroupDataGenerator>();
             RegisterTypeAs<PublishedProviderLoaderForFundingGroupData, IPublishedProviderLoaderForFundingGroupData>();
-            RegisterTypeAs<FundingGroupDataPersistenceService, IFundingGroupDataPersistenceService>();
-            RegisterTypeAs<FundingGroupProviderPersistenceService, IFundingGroupProviderPersistenceService>();
-            RegisterTypeAs<ProviderVariationReasonsReleaseService, IProviderVariationReasonsReleaseService>();
+
+            RegisterFactoryAs<IFundingGroupDataPersistenceService>((svc) =>
+            {
+                IReleaseManagementRepository releaseManagementRepository = svc.Resolve<IReleaseManagementRepository>();
+                IReleaseToChannelSqlMappingContext context = svc.Resolve<IReleaseToChannelSqlMappingContext>();
+                IReleaseManagementIdentifierGeneratorStepContext releaseManagementIdentifierGeneratorStepContext = svc.Resolve<IReleaseManagementIdentifierGeneratorStepContext>();
+
+                return new FundingGroupDataPersistenceService(releaseManagementRepository,
+                   context,
+                   releaseManagementIdentifierGeneratorStepContext.FundingGroupVersion,
+                   releaseManagementIdentifierGeneratorStepContext.FundingGroupVersionVariationReasons);
+            });
+
+            RegisterFactoryAs<IFundingGroupProviderPersistenceService>((svc) =>
+            {
+                IReleaseManagementRepository releaseManagementRepository = svc.Resolve<IReleaseManagementRepository>();
+                IReleaseToChannelSqlMappingContext context = svc.Resolve<IReleaseToChannelSqlMappingContext>();
+                IReleaseManagementIdentifierGeneratorStepContext releaseManagementIdentifierGeneratorStepContext = svc.Resolve<IReleaseManagementIdentifierGeneratorStepContext>();
+
+                return new FundingGroupProviderPersistenceService(releaseManagementRepository, context, releaseManagementIdentifierGeneratorStepContext.FundingGroupProvider);
+            });
+
+            RegisterFactoryAs<IProviderVariationReasonsReleaseService>((svc) =>
+            {
+                IReleaseManagementRepository releaseManagementRepository = svc.Resolve<IReleaseManagementRepository>();
+                IReleaseToChannelSqlMappingContext context = svc.Resolve<IReleaseToChannelSqlMappingContext>();
+                IReleaseManagementIdentifierGeneratorStepContext releaseManagementIdentifierGeneratorStepContext = svc.Resolve<IReleaseManagementIdentifierGeneratorStepContext>();
+                ILogger logger = svc.Resolve<ILogger>();
+
+                return new ProviderVariationReasonsReleaseService(context, releaseManagementRepository, releaseManagementIdentifierGeneratorStepContext.ProviderVariationReasons, logger);
+            });
+
             RegisterTypeAs<ExistingReleasedProvidersLoadService, IExistingReleasedProvidersLoadService>();
             RegisterTypeAs<ExistingReleasedProviderVersionsLoadService, IExistingReleasedProviderVersionsLoadService>();
-            
+
             RegisterFactoryAs<IPublishedFundingContentsChannelPersistenceService>((svc) =>
-            { 
+            {
                 IReleaseManagementBlobStepContext releaseManagementBlobStepContextInterface = svc.Resolve<IReleaseManagementBlobStepContext>();
                 ReleaseManagementBlobStepContext releaseManagementBlobStepContext = releaseManagementBlobStepContextInterface as ReleaseManagementBlobStepContext;
                 ILogger logger = svc.Resolve<ILogger>();

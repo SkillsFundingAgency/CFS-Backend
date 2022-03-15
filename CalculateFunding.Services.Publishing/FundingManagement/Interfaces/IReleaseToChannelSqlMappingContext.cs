@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using System;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
@@ -20,11 +21,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         /// <summary>
         /// Released provider version channels. Key is providerId_channelId e.g. UKPRN_1
         /// </summary>
-        Dictionary<string, ReleasedProviderVersionChannel> ReleasedProviderVersionChannels { get; }
+        Dictionary<string, Guid> ReleasedProviderVersionChannels { get; }
 
         Specification Specification { get; set; }
 
-        Dictionary<OrganisationGroupResult, int> FundingGroups { get; set; }
+        Dictionary<OrganisationGroupResult, Guid> FundingGroups { get; set; }
 
         /// <summary>
         /// FundingGroupVersions. Key is channelId, then string of funding ID for group

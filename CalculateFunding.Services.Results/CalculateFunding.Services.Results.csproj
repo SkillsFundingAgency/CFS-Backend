@@ -9,13 +9,13 @@
   <ItemGroup>
     <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.9.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="5.0.2" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="8.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="8.2.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="9.2.0" />  
     <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="7.1.0" />  
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.3" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="6.0.2" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="8.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Sql" Version="4.2.0" />
+    <PackageReference Include="CalculateFunding.Common.Sql" Version="4.3.1" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="3.1.0" />
     <PackageReference Include="LINQKit.Core" Version="1.2.2" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />

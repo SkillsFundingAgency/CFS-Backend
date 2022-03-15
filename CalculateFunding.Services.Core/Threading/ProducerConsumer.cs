@@ -1,12 +1,12 @@
-using System;
-using System.Threading;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Threading;
 using Serilog;
+using System;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.Threading
 {
@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Core.Threading
         public ProducerConsumer(Func<CancellationToken, dynamic, Task<(bool Complete, TItem Item)>> producer,
             Func<CancellationToken, dynamic, TItem, Task> consumer,
             int channelBounds,
-            int consumerPoolSize, 
+            int consumerPoolSize,
             ILogger logger)
         {
             Guard.ArgumentNotNull(producer, nameof(producer));
@@ -29,13 +29,13 @@ namespace CalculateFunding.Services.Core.Threading
 
             if (consumerPoolSize < 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(consumerPoolSize), 
+                throw new ArgumentOutOfRangeException(nameof(consumerPoolSize),
                     "Consumer pool size must be at least 1");
             }
-            
+
             if (channelBounds < 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(channelBounds), 
+                throw new ArgumentOutOfRangeException(nameof(channelBounds),
                     "Channel bounds must be at least 1");
             }
 
@@ -43,19 +43,19 @@ namespace CalculateFunding.Services.Core.Threading
             ConsumerPoolSize = consumerPoolSize;
             ChannelBounds = channelBounds;
             CancellationToken = CancellationTokenSource.Token;
-            
+
             _logger = logger;
-            
+
             _channel = Channel.CreateBounded<TItem>(channelBounds);
-            
+
             _producer = new Producer(producer,
                 _channel.Writer,
-                CancellationToken, 
+                CancellationToken,
                 CancellationTokenSource,
                 logger);
-            
+
             _consumers = new Consumer[consumerPoolSize];
-            
+
             for (int consumerIndex = 0; consumerIndex < consumerPoolSize; consumerIndex++)
             {
                 _consumers[consumerIndex] = new Consumer(consumer,
@@ -65,38 +65,38 @@ namespace CalculateFunding.Services.Core.Threading
                     logger);
             }
         }
-        
+
         public int ConsumerPoolSize { get; }
-        
+
         public int ChannelBounds { get; }
-        
+
         public CancellationToken CancellationToken { get; }
-        
+
         public CancellationTokenSource CancellationTokenSource { get; }
 
         public async Task Run(dynamic context)
         {
             int consumersLength = _consumers.Length;
-            
+
             Task[] tasks = new Task[consumersLength + 1];
-            
+
             tasks[0] = _producer.ProduceAllItems(context);
 
             string itemType = typeof(TItem).GetFriendlyName();
-            
+
             _logger.Information($"Started producer task for {itemType}");
-            
+
             for (int consumerIndex = 0; consumerIndex < consumersLength; consumerIndex++)
             {
                 tasks[consumerIndex + 1] = _consumers[consumerIndex].Run(context);
             }
-            
+
             _logger.Information($"Started {consumersLength} consumer tasks for {itemType}");
 
             await TaskHelper.WhenAllAndThrow(tasks);
-            
+
             _logger.Information($"Completed all producer consumer tasks for {itemType}");
-            
+
             await _channel.Reader.Completion;
         }
 
@@ -109,8 +109,8 @@ namespace CalculateFunding.Services.Core.Threading
             private readonly ILogger _logger;
 
             public Producer(Func<CancellationToken, dynamic, Task<(bool, TItem)>> producer,
-                ChannelWriter<TItem> channelWriter, 
-                CancellationToken cancellationToken, 
+                ChannelWriter<TItem> channelWriter,
+                CancellationToken cancellationToken,
                 CancellationTokenSource cancellationTokenSource,
                 ILogger logger)
             {
@@ -127,18 +127,18 @@ namespace CalculateFunding.Services.Core.Threading
                 {
                     while (!_cancellationToken.IsCancellationRequested)
                     {
-                        _logger.Information("Running producer delegate");
+                        _logger.Verbose("Running producer delegate");
 
                         (bool complete, TItem item) = await _producer(_cancellationToken, context);
 
                         if (complete || !await _channelWriter.WaitToWriteAsync(_cancellationToken))
                         {
-                            _logger.Information("Completing producer Channel Writer");
+                            _logger.Verbose("Completing producer Channel Writer");
 
                             return;
                         }
 
-                        _logger.Information("Writing producer results to channel writer");
+                        _logger.Verbose("Writing producer results to channel writer");
 
                         await _channelWriter.WriteAsync(item, _cancellationToken);
                     }
@@ -150,14 +150,14 @@ namespace CalculateFunding.Services.Core.Threading
                 catch (Exception e)
                 {
                     _logger.Warning(e, "Unable to complete producer thread. Cancelling producer consumer");
-                    
+
                     _cancellationTokenSource.Cancel();
 
                     throw;
                 }
                 finally
                 {
-                    _channelWriter.TryComplete();    
+                    _channelWriter.TryComplete();
                 }
             }
         }
@@ -170,7 +170,7 @@ namespace CalculateFunding.Services.Core.Threading
             private readonly CancellationTokenSource _cancellationTokenSource;
             private readonly ILogger _logger;
 
-            public Consumer(Func<CancellationToken, dynamic, TItem, Task> consumer, 
+            public Consumer(Func<CancellationToken, dynamic, TItem, Task> consumer,
                 ChannelReader<TItem> reader,
                 CancellationToken cancellationToken,
                 CancellationTokenSource cancellationTokenSource,
@@ -200,13 +200,13 @@ namespace CalculateFunding.Services.Core.Threading
                 catch (TaskCanceledException e)
                 {
                     _logger.Warning(e, "Unable to complete consumer thread, Task cancelled");
-                } 
+                }
                 catch (Exception e)
                 {
                     _logger.Error(e, "Unable to complete consumer thread. Cancelling producer consumer");
 
                     _cancellationTokenSource.Cancel();
-                    
+
                     throw;
                 }
             }

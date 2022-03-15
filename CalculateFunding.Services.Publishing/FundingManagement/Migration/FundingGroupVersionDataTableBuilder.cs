@@ -11,8 +11,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         protected override DataColumn[] GetDataColumns(FundingGroupVersion dto) =>
             new[]
             {
-                NewDataColumn<int>("FundingGroupVersionId"),
-                NewDataColumn<int>("FundingGroupId"),
+                NewDataColumn<Guid>("FundingGroupVersionId"),
+                NewDataColumn<Guid>("FundingGroupId"),
                 NewDataColumn<int>("ChannelId"),
                 NewDataColumn<DateTime>("StatusChangedDate"),
                 NewDataColumn<int>("MajorVersion"),

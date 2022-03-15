@@ -1,4 +1,5 @@
 ﻿using Dapper.Contrib.Extensions;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
@@ -6,11 +7,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
     [Table("ReleasedProviderVersions")]
     public class ReleasedProviderVersion
     {
-        [Dapper.Contrib.Extensions.Key]
-        public int ReleasedProviderVersionId { get; set; }
+        [ExplicitKey]
+        public Guid ReleasedProviderVersionId { get; set; }
 
         [Required]
-        public int ReleasedProviderId { get; set; }
+        public Guid ReleasedProviderId { get; set; }
 
         [Required]
         public int MajorVersion { get; set; }

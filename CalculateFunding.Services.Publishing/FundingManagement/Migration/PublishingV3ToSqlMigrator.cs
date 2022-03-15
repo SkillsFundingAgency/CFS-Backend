@@ -158,12 +158,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 if (!_specifications.ContainsKey(specification.Id))
                 {
                     SqlModels.Specification createdSpec = await _repo.CreateSpecification(new SqlModels.Specification()
-                        {
-                            FundingPeriodId = _fundingPeriods[specification.FundingPeriod.Id].FundingPeriodId,
-                            FundingStreamId = _fundingStreams[specification.FundingStreams.First().Id].FundingStreamId,
-                            SpecificationName = specification.Name,
-                            SpecificationId = specification.Id,
-                        }
+                    {
+                        FundingPeriodId = _fundingPeriods[specification.FundingPeriod.Id].FundingPeriodId,
+                        FundingStreamId = _fundingStreams[specification.FundingStreams.First().Id].FundingStreamId,
+                        SpecificationName = specification.Name,
+                        SpecificationId = specification.Id,
+                    }
                     );
 
                     _specifications.Add(specification.Id, createdSpec);

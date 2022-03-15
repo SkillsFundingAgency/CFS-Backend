@@ -17,7 +17,6 @@ using CalculateFunding.Services.Publishing.Models;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Polly;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -107,7 +106,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             }
 
             IActionResult actionResult = await IsSpecificationReadyForPublish(specificationId, releaseProvidersToChannelRequest);
-            
+
             if (!actionResult.IsOk())
             {
                 return actionResult;
@@ -227,17 +226,20 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 throw new InvalidOperationException("Providers are required when the specification is configured to be batch mode.");
             }
 
-            IEnumerable<PublishedProviderFundingSummary> publishedProviderFundingSummaries = await _publishedProviderLookupService.GetPublishedProviderFundingSummaries(
-                    specification,
-                    new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released },
-                    releaseProvidersToChannelRequest.ProviderIds);
-
-            if (publishedProviderFundingSummaries.IsNullOrEmpty())
+            if (fundingConfiguration.ApprovalMode == ApprovalMode.All)
             {
-                throw new InvalidOperationException("No providers found to release.");
-            }
+                IEnumerable<PublishedProviderFundingSummary> publishedProviderFundingSummaries = await _publishedProviderLookupService.GetPublishedProviderFundingSummaries(
+                  specification,
+                  new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released },
+                  releaseProvidersToChannelRequest.ProviderIds);
 
-            releaseProvidersToChannelRequest.ProviderIds = publishedProviderFundingSummaries.Select(_ => _.Provider.UKPRN);
+                if (publishedProviderFundingSummaries.IsNullOrEmpty())
+                {
+                    throw new InvalidOperationException("No providers found to release.");
+                }
+
+                releaseProvidersToChannelRequest.ProviderIds = publishedProviderFundingSummaries.Select(_ => _.Provider.UKPRN);
+            }
 
             IEnumerable<KeyValuePair<string, SqlModels.Channel>> channels = await _channelService.GetAndVerifyChannels(releaseProvidersToChannelRequest?.Channels);
 
@@ -250,7 +252,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             await RefreshLoadContextWithProvidersApprovedNowReleased(providerIdsReleased);
 
             await _existingReleasedProvidersLoadService.LoadExistingReleasedProviders(specificationId, releaseProvidersToChannelRequest.ProviderIds);
-            await _existingReleasedProviderVersionsLoadService.LoadExistingReleasedProviderVersions(specificationId, releaseProvidersToChannelRequest.ProviderIds);
+            await _existingReleasedProviderVersionsLoadService.LoadExistingReleasedProviderVersions(specificationId, releaseProvidersToChannelRequest.ProviderIds, releaseProvidersToChannelRequest.Channels);
 
             foreach (KeyValuePair<string, SqlModels.Channel> channel in channels)
             {

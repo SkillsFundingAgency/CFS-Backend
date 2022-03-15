@@ -4,16 +4,19 @@ using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.MappingProfiles;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Api.External.V4.IoC;
-using CalculateFunding.Common.Config.ApiClient.Policies;
-using CalculateFunding.Common.Config.ApiClient.Providers;
-using CalculateFunding.Common.Config.ApiClient.Profiling;
-using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
-using CalculateFunding.Common.Config.ApiClient.Specifications;
-using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Policies;
+using CalculateFunding.Common.Config.ApiClient.Profiling;
+using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Sql;
+using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
@@ -24,11 +27,19 @@ using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.Migration;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
 using CalculateFunding.Services.Publishing.Repositories;
+using CalculateFunding.Services.Publishing.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -43,20 +54,12 @@ using Newtonsoft.Json;
 using Polly.Bulkhead;
 using Serilog;
 using System.Linq;
-using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
-using SwaggerSetup = CalculateFunding.Api.External.Swagger.SwaggerSetup;
 using BlobClient = CalculateFunding.Common.Storage.BlobClient;
 using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
+using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
-using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.Sql;
-using CalculateFunding.Common.Sql.Interfaces;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Services;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
-using CalculateFunding.Services.Publishing.FundingManagement.Migration;
+using SwaggerSetup = CalculateFunding.Api.External.Swagger.SwaggerSetup;
 
 namespace CalculateFunding.Api.External
 {
@@ -178,6 +181,8 @@ namespace CalculateFunding.Api.External
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
+            builder.AddSingleton<IUniqueIdentifierProvider, UniqueIdentifierProvider>();
+
             builder
                 .AddSingleton<IPublishedFundingQueryBuilder, PublishedFundingQueryBuilder>();
 
@@ -185,6 +190,9 @@ namespace CalculateFunding.Api.External
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
             builder.AddFeatureToggling(Configuration);
+
+            builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
+            builder.AddSingleton<ISpecificationIdServiceRequestValidator, PublishSpecificationValidator>();
 
             // Register v3 services
             builder
@@ -377,7 +385,7 @@ namespace CalculateFunding.Api.External
                 IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
                 IExternalApiFileSystemCacheSettings settings = ctx.GetService<IExternalApiFileSystemCacheSettings>();
                 IPublishedFundingRepository publishedFundingRepository = ctx.GetService<IPublishedFundingRepository>();
-                
+
                 return new ProviderFundingVersionService(blobClient, publishedFundingRepository, logger, publishingResiliencePolicies, fileSystemCache, settings);
             });
 
@@ -439,7 +447,7 @@ namespace CalculateFunding.Api.External
                     publishingResiliencePolicies,
                     ctx.GetService<IPublishingEngineOptions>());
             });
-            
+
             builder.AddSingleton<IVersionRepository<PublishedProviderVersion>, VersionRepository<PublishedProviderVersion>>((ctx) =>
             {
                 CosmosDbSettings settings = new CosmosDbSettings();
