@@ -81,7 +81,6 @@ namespace CalculateFunding.Services.Publishing
                                                                                                  Enumerable.Empty<Common.TemplateMetadata.Models.FundingLine>();
 
                 // Add in calculations in numerator/demoninator and percentagechange targets
-
                 List<PublishingModels.FundingLine> fundingLines = GenerateFundingLines(fundingLineAggregates, fundingLineDefinitions);
                 List<FundingCalculation> calculations = GenerateCalculations(fundingLineAggregates.Flatten(_ => _.FundingLines)
                     .SelectMany(c => c.Calculations ?? Enumerable.Empty<AggregateFundingCalculation>()));
@@ -146,13 +145,16 @@ namespace CalculateFunding.Services.Publishing
         {
             List<FundingCalculation> calculations = new List<FundingCalculation>();
 
-            foreach (AggregateFundingCalculation aggregateFundingCalculation in aggregateCalculations.Where(_ => _.Value != null))
+            foreach (AggregateFundingCalculation aggregateFundingCalculation in aggregateCalculations)
             {
-                calculations.Add(new FundingCalculation()
+                if (aggregateFundingCalculation.Value != null)
                 {
-                    TemplateCalculationId = aggregateFundingCalculation.TemplateCalculationId,
-                    Value = aggregateFundingCalculation.Value,
-                });
+                    calculations.Add(new FundingCalculation()
+                    {
+                        TemplateCalculationId = aggregateFundingCalculation.TemplateCalculationId,
+                        Value = aggregateFundingCalculation.Value,
+                    });
+                }
 
                 if (aggregateFundingCalculation.Calculations != null && aggregateFundingCalculation.Calculations.AnyWithNullCheck())
                 {
