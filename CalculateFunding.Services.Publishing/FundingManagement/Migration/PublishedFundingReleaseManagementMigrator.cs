@@ -7,6 +7,7 @@ using CalculateFunding.Services.Publishing.FundingManagement.Migration;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.SqlExport;
+using Polly;
 using Serilog;
 using System;
 using System.Collections.Concurrent;
@@ -29,6 +30,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private readonly IBlobClient _blobClient;
         private readonly IReleaseManagementDataTableImporter _dataTableImporter;
         private readonly ILogger _logger;
+        private readonly AsyncPolicy _blobPolicy;
 
         /// <summary>
         /// Key is "{channelId}_{Funding.FundingId}"
@@ -87,7 +89,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion> providerMigrator,
             IBlobClient blobClient,
             IReleaseManagementDataTableImporter dataTableImporter,
-            ILogger logger)
+            ILogger logger,
+            IPublishingResiliencePolicies publishingResiliencePolicies)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(fundingMigrator, nameof(fundingMigrator));
@@ -95,6 +98,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(dataTableImporter, nameof(dataTableImporter));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
 
             _cosmosRepo = publishedFundingRepository;
             _fundingMigrator = fundingMigrator;
@@ -102,6 +106,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             _blobClient = blobClient;
             _dataTableImporter = dataTableImporter;
             _logger = logger;
+            _blobPolicy = publishingResiliencePolicies.BlobClient;
         }
 
         public async Task Migrate(Dictionary<string, FundingStream> fundingStreams,
@@ -502,7 +507,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 {
                     try
                     {
-                        await _blobClient.StartCopyFromUriAsync(blob.SourceContainer, blob.SourceFileName, blob.TargetContainer, blob.TargetFileName);
+                        await _blobPolicy.ExecuteAsync(() => _blobClient.StartCopyFromUriAsync(blob.SourceContainer, blob.SourceFileName, blob.TargetContainer, blob.TargetFileName));
                     }
                     catch (Exception ex)
                     {
@@ -510,7 +515,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
                         _logger.Error(ex, errorMessage);
 
-                        throw new Exception(errorMessage, ex);
+                        throw;
                     }
                     finally
                     {
