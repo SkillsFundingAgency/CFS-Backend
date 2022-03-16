@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using FundingGroup = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.FundingGroup;
 using SqlGroupingReason = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.GroupingReason;
@@ -674,16 +673,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             var deleteTask = Task.Run(() =>
             {
-                StringBuilder dropSql = new StringBuilder();
-                dropSql.AppendLine("DELETE FROM [dbo].[FundingGroupProviders];");
-                dropSql.AppendLine("DELETE FROM [dbo].[FundingGroupVersionVariationReasons];");
-                dropSql.AppendLine("DELETE FROM [dbo].[ReleasedProviderChannelVariationReasons];");
-                dropSql.AppendLine("DELETE FROM [dbo].[ReleasedProviderVersionChannels];");
-                dropSql.AppendLine("DELETE FROM [dbo].[FundingGroupVersions];");
-                dropSql.AppendLine("DELETE FROM [dbo].[ReleasedProviderVersions];");
-                dropSql.AppendLine("DELETE FROM [dbo].[FundingGroups];");
-                dropSql.AppendLine("DELETE FROM [dbo].[ReleasedProviders];");
-                ExecuteNonQuery(dropSql.ToString());
+                ExecuteNonQuery("DELETE FROM [dbo].[FundingGroupProviders];");
+                ExecuteNonQuery("DELETE FROM [dbo].[FundingGroupVersionVariationReasons];");
+                ExecuteNonQuery("DELETE FROM [dbo].[ReleasedProviderChannelVariationReasons];");
+                ExecuteNonQuery("DELETE FROM [dbo].[ReleasedProviderVersionChannels];");
+                ExecuteNonQuery("DELETE FROM [dbo].[FundingGroupVersions];");
+                ExecuteNonQuery("DELETE FROM [dbo].[ReleasedProviderVersions];");
+                ExecuteNonQuery("DELETE FROM [dbo].[FundingGroups];");
+                ExecuteNonQuery("DELETE FROM [dbo].[ReleasedProviders];");
             });
 
             await deleteTask;
