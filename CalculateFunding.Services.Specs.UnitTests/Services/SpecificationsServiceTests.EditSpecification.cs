@@ -86,6 +86,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [DataRow(JobConstants.DefinitionNames.ApproveBatchProviderFundingJob)]
         [DataRow(JobConstants.DefinitionNames.PublishAllProviderFundingJob)]
         [DataRow(JobConstants.DefinitionNames.PublishBatchProviderFundingJob)]
+        [DataRow(JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob)]
         public async Task EditSpecification_ReturnsBadRequest_GivenSpecificationJobsAreRunning(string specificationJob)
         {
             SpecificationEditModel specificationEditModel = new SpecificationEditModel();

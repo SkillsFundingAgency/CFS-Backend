@@ -21,6 +21,7 @@ namespace CalculateFunding.Services.Providers
             JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
             JobConstants.DefinitionNames.PublishAllProviderFundingJob,
             JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+            JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob
        };
 
        public PublishingJobClashCheck(IJobManagement jobManagement)

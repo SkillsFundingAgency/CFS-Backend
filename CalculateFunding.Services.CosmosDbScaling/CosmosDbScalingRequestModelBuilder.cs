@@ -104,6 +104,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     CosmosCollectionType.PublishedFunding
                 },
+                JobDefinitions.ReleaseProvidersToChannelsJob => new[]
+                {
+                    CosmosCollectionType.PublishedFunding
+                },
                 _ => cosmosDbScalingRequestModel.RepositoryTypes
             };
 

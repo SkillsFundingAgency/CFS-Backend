@@ -129,6 +129,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                         JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
                         JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                         JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                        JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob,
                     }))))
                 .ReturnsAsync(jobSummaries);
 
@@ -142,6 +143,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
                                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                                 JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                                JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob,
                     }))))
                 .ThrowsAsync(new JobsNotRetrievedException(string.Empty, new[] { JobConstants.DefinitionNames.RefreshFundingJob }, specificationId));
 

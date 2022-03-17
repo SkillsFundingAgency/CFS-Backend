@@ -85,6 +85,7 @@ namespace CalculateFunding.Services.Publishing
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                 JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob,
                 JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
                 JobConstants.DefinitionNames.GenerateGraphAndInstructAllocationJob,
                 JobConstants.DefinitionNames.GenerateGraphAndInstructGenerateAggregationAllocationJob

@@ -778,6 +778,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 JobConstants.DefinitionNames.RefreshFundingJob,
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob,
                 JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob
             };

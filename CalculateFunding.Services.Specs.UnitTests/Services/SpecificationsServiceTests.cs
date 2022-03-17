@@ -226,7 +226,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
-                JobConstants.DefinitionNames.PublishBatchProviderFundingJob
+                JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob
             };
 
             IJobManagement jobManagement = Substitute.For<IJobManagement>();

@@ -47,6 +47,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             new[] { CosmosCollectionType.PublishedFunding, CosmosCollectionType.CalculationProviderResults })]
         [DataRow(JobConstants.DefinitionNames.PublishAllProviderFundingJob,
             new[] { CosmosCollectionType.PublishedFunding })]
+        [DataRow(JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob,
+            new[] { CosmosCollectionType.PublishedFunding })]
         [DataRow(JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
             new[] { CosmosCollectionType.PublishedFunding })]
         [DataRow(JobConstants.DefinitionNames.DeleteCalculationResultsJob,

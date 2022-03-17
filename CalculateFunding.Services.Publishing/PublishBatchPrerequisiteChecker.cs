@@ -37,7 +37,8 @@ namespace CalculateFunding.Services.Publishing
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
                 JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
-                JobConstants.DefinitionNames.PublishAllProviderFundingJob
+                JobConstants.DefinitionNames.PublishAllProviderFundingJob,
+                JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob
             }, publishedProviders);
         }
 

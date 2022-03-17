@@ -457,6 +457,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 JobConstants.DefinitionNames.RefreshFundingJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                 JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob,
                 JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob
             };
@@ -473,6 +474,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 JobConstants.DefinitionNames.RefreshFundingJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                 JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob,
                 JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob
             };

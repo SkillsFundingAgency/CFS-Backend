@@ -1053,7 +1053,8 @@ namespace CalculateFunding.Services.Specs
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
-                JobConstants.DefinitionNames.PublishBatchProviderFundingJob
+                JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob
             };
 
             try
