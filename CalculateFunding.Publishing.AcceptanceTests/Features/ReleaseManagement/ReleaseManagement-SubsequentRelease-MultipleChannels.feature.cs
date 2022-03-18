@@ -137,7 +137,7 @@ this.ScenarioInitialize(scenarioInfo);
                 TechTalk.SpecFlow.Table table1264 = new TechTalk.SpecFlow.Table(new string[] {
                             "ProviderId"});
                 table1264.AddRow(new string[] {
-                            "10071690"});
+                            string.Format("{0}-{1}-10071690", fundingStreamId, fundingPeriodId)});
 #line 7
  testRunner.Given("funding is released for providers", ((string)(null)), table1264, "Given ");
 #line hidden

@@ -16,7 +16,6 @@ using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Validators;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -51,6 +50,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private Mock<IPublishedProviderLookupService> _publishedProvidersLookupService;
         private ISpecificationIdServiceRequestValidator _specificationIdServiceRequestValidator;
+        private string _providerId;
 
         [TestInitialize]
         public void SetUp()
@@ -72,6 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _existingReleasedProviderVersionsLoadService = new Mock<IExistingReleasedProviderVersionsLoadService>();
             _publishedProvidersLookupService = new Mock<IPublishedProviderLookupService>();
             _specificationIdServiceRequestValidator = new PublishSpecificationValidator();
+            _providerId = new RandomString();
 
             _releaseProvidersToChannelsService = new ReleaseProvidersToChannelsService(
                 _specificationService.Object,
@@ -132,7 +133,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Which
                 .Value
                 .Should()
-                .Be($"You must select one or more channels to publish to for specification with id : {specificationId}.");    
+                .Be($"You must select one or more channels to publish to for specification with id : {specificationId}.");
         }
 
         [TestMethod]
@@ -165,7 +166,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 It.Is<PublishedProviderStatus[]>(_ => statuses.SequenceEqual(_)),
                 It.IsAny<IEnumerable<string>>()))
 
-            .ReturnsAsync(new List<PublishedProviderFundingSummary> { new PublishedProviderFundingSummary() });
+            .ReturnsAsync(new List<PublishedProviderFundingSummary> {
+                    new PublishedProviderFundingSummary()
+                    {
+                        Provider = new Provider()
+                        {
+                            ProviderId = _providerId
+                        }
+                    }
+            });
 
             _jobManagement
                 .Setup(_ => _.QueueJob(It.Is<JobCreateModel>(j =>
@@ -210,12 +219,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _policiesService.Setup(s => s.GetFundingConfiguration("FundingStream", "FundingPeriod"))
                 .ReturnsAsync(new FundingConfigurationBuilder().WithApprovalMode(ApprovalMode.All).Build());
-            
+
             _publishedProvidersLookupService.Setup(s => s.GetPublishedProviderFundingSummaries(
-                It.IsAny<SpecificationSummary>(),
-                It.Is<PublishedProviderStatus[]>(_ => statuses.SequenceEqual(_)),
-                It.IsAny<IEnumerable<string>>()))
-            .ReturnsAsync(new List<PublishedProviderFundingSummary> { new PublishedProviderFundingSummary() });
+               It.IsAny<SpecificationSummary>(),
+               It.Is<PublishedProviderStatus[]>(_ => statuses.SequenceEqual(_)),
+               It.IsAny<IEnumerable<string>>()))
+               .ReturnsAsync(new List<PublishedProviderFundingSummary> {
+                        new PublishedProviderFundingSummary()
+                        {
+                            Provider = new Provider()
+                            {
+                                ProviderId = _providerId
+                            }
+                        }
+               });
 
             _prerequisiteChecker.Setup(s => s.PerformChecks(
                 It.IsAny<SpecificationSummary>(),
@@ -238,7 +255,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Body = new ReleaseProvidersToChannelRequest
                 {
                     Channels = new List<string>(),
-                    ProviderIds = new List<string>()
+                    ProviderIds = new List<string>() { new RandomString() }
                 }.AsJsonBytes()
             };
             message.UserProperties.Add("user-id", Guid.NewGuid().ToString());

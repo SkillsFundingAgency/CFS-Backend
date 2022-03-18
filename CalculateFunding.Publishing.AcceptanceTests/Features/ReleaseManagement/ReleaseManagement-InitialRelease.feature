@@ -6,7 +6,7 @@ Release providers to one or more channels - no providers have existing releases
 Scenario Outline: Initial release of providers into channels - single provider in Approved state
 	Given funding is released for providers
 		| ProviderId |
-		| 10071688   |
+		| <FundingStreamId>-<FundingPeriodId>-10071688   |
 	And release management repo has prereq data populated
 	And funding is released for channels
 		| Statement |
@@ -275,7 +275,7 @@ Examples:
 Scenario Outline: Initial release of providers into channels - single provider in Released state (eg already released to another channel)
 	Given funding is released for providers
 		| ProviderId |
-		| 10071689   |
+		| <FundingStreamId>-<FundingPeriodId>-10071689   |
 	And release management repo has prereq data populated
 	And funding is released for channels
 		| Statement |

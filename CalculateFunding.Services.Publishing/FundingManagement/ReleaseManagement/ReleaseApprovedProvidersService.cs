@@ -1,5 +1,4 @@
 ﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;

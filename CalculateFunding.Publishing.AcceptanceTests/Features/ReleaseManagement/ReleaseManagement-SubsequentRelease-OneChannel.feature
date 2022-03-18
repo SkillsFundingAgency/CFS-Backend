@@ -6,7 +6,7 @@ Release providers to one or more channels - one or more provider already has a v
 Scenario Outline: Release a new major version of a provider to a single channel which has already been released in multiple channels
 	Given funding is released for providers
 		| ProviderId |
-		| 10071690   |
+		| <FundingStreamId>-<FundingPeriodId>-10071690   |
 	And release management repo has prereq data populated
 	And funding is released for channels
 		| Statement |

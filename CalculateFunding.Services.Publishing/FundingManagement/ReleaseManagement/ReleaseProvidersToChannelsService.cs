@@ -238,32 +238,58 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     throw new InvalidOperationException("No providers found to release.");
                 }
 
-                releaseProvidersToChannelRequest.ProviderIds = publishedProviderFundingSummaries.Select(_ => _.Provider.UKPRN);
+                releaseProvidersToChannelRequest.ProviderIds = publishedProviderFundingSummaries.Select(_ => _.Provider.ProviderId);
             }
+
+            IEnumerable<string> providerIds = ParseProviderIdsFromPublishedProviderIds(releaseProvidersToChannelRequest.ProviderIds);
 
             IEnumerable<KeyValuePair<string, SqlModels.Channel>> channels = await _channelService.GetAndVerifyChannels(releaseProvidersToChannelRequest?.Channels);
 
             _publishProvidersLoadContext.SetSpecDetails(fundingStreamId, specification.FundingPeriod.Id);
 
-            await LoadGivenProvidersFromFundingApprovals(releaseProvidersToChannelRequest);
+            await LoadGivenProvidersFromFundingApprovals(providerIds);
 
             IEnumerable<string> providerIdsReleased = await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(specification);
 
             await RefreshLoadContextWithProvidersApprovedNowReleased(providerIdsReleased);
 
-            await _existingReleasedProvidersLoadService.LoadExistingReleasedProviders(specificationId, releaseProvidersToChannelRequest.ProviderIds);
-            await _existingReleasedProviderVersionsLoadService.LoadExistingReleasedProviderVersions(specificationId, releaseProvidersToChannelRequest.ProviderIds, releaseProvidersToChannelRequest.Channels);
+            await _existingReleasedProvidersLoadService.LoadExistingReleasedProviders(specificationId, providerIds);
+            await _existingReleasedProviderVersionsLoadService.LoadExistingReleasedProviderVersions(specificationId, providerIds, releaseProvidersToChannelRequest.Channels);
 
             foreach (KeyValuePair<string, SqlModels.Channel> channel in channels)
             {
                 await _channelReleaseService.ReleaseProvidersForChannel(channel.Value,
                                                                         fundingConfiguration,
                                                                         specification,
-                                                                        releaseProvidersToChannelRequest.ProviderIds,
+                                                                        providerIds,
                                                                         author,
                                                                         jobId,
                                                                         correlationId);
             }
+        }
+
+        /// <summary>
+        /// Parses a published provider ID eg 1619-AS-2122-10000012 to a provider ID 10000012
+        /// </summary>
+        /// <param name="publishedProviderIds">Published Provider Ids</param>
+        /// <returns>List of provider Ids</returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        private static IEnumerable<string> ParseProviderIdsFromPublishedProviderIds(IEnumerable<string> publishedProviderIds)
+        {
+            List<string> result = new List<string>(publishedProviderIds.Count());
+
+            foreach (string publishedProviderId in publishedProviderIds)
+            {
+                int lastHyphen = publishedProviderId.LastIndexOf("-");
+                if (lastHyphen < 1)
+                {
+                    throw new InvalidOperationException($"Unable to parse provider ID from published provider id for value '{publishedProviderId}'");
+                }
+
+                result.Add(publishedProviderId.Substring(lastHyphen + 1, publishedProviderId.Length - lastHyphen - 1));
+            }
+
+            return result;
         }
 
         private async Task<IActionResult> IsSpecificationReadyForPublish(string specificationId, ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest)
@@ -302,9 +328,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             await _publishProvidersLoadContext.LoadProviders(providerIdsReleased);
         }
 
-        private async Task LoadGivenProvidersFromFundingApprovals(ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest)
+        private async Task LoadGivenProvidersFromFundingApprovals(IEnumerable<string> providerIds)
         {
-            await _publishProvidersLoadContext.LoadProviders(releaseProvidersToChannelRequest.ProviderIds);
+            await _publishProvidersLoadContext.LoadProviders(providerIds);
         }
     }
 }
