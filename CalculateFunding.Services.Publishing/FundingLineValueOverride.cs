@@ -27,18 +27,18 @@ namespace CalculateFunding.Services.Publishing
         public void OverridePreviousFundingLineValues(PublishedProvider publishedProvider,
             GeneratedProviderResult generatedProviderResult)
         {
-            PublishedProviderVersion publishedProviderVersion = publishedProvider.Current;
+            PublishedProviderVersion releasedPublishedProviderVersion = publishedProvider.Released;
 
-            if (publishedProvider.Released == null) return;
+            if (releasedPublishedProviderVersion == null) return;
 
             foreach (FundingLine fundingLine in generatedProviderResult.FundingLines?.Where(_ => _.Type == FundingLineType.Payment && _.Value == null)
                                                 ?? new FundingLine[0])
             {
-                FundingLine previousFundingLineVersion =
-                    publishedProviderVersion.FundingLines?.SingleOrDefault(_ => _.TemplateLineId == fundingLine.TemplateLineId);
+                FundingLine releasedFundingLineVersion =
+                    releasedPublishedProviderVersion.FundingLines?.SingleOrDefault(_ => _.TemplateLineId == fundingLine.TemplateLineId);
 
-                // only zero funding line if the provider has been released
-                if (previousFundingLineVersion != null && previousFundingLineVersion.Value.HasValue && publishedProvider.Released != null)
+                // only zero funding line if it has previously been released with a value
+                if (releasedFundingLineVersion != null && releasedFundingLineVersion.Value.HasValue)
                 {
                     fundingLine.Value = 0M;
                 }

@@ -47,11 +47,14 @@ namespace CalculateFunding.Services.Publishing.Errors
                 publishedProvider.Current.FundingLines = publishedProvider.Current.FundingLines.Select(_ =>
                 {
                     // persist changes if the current funding line has been changed through variation strategy
+                    // or the funding line is custom profiled
                     // or there is no variation pointer set for the current funding line
+                    // or the current value is null
                     if ((providerVariationContext.AllAffectedFundingLineCodes != null &&
                         providerVariationContext.AllAffectedFundingLineCodes.Contains(_.FundingLineCode)) ||
                         providerVariationContext.CurrentState.FundingLineHasCustomProfile(_.FundingLineCode) ||
-                        !providerVariationContext.VariationPointers.AnyWithNullCheck(vp => vp.FundingLineId == _.FundingLineCode))
+                        !providerVariationContext.VariationPointers.AnyWithNullCheck(vp => vp.FundingLineId == _.FundingLineCode) ||
+                        !_.Value.HasValue)
                     {
                         return _;
                     }
