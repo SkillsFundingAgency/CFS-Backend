@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 Guard.ArgumentNotNull(publishedProviderIds, nameof(publishedProviderIds));
             }
 
-            IEnumerable<Channel> channels = await GetChannels(channelCodes);
+            IEnumerable<Channel> channels = await GetChannels(channelCodes.Where(_ => fundingConfiguration.ReleaseChannels.Any(rc => rc.IsVisible && rc.ChannelCode == _)));
 
             IEnumerable<PublishedProviderFundingSummary> approvedOrReleasedPublishedProviders = await _publishedProviderLookupService.GetPublishedProviderFundingSummaries(
                     specificationSummary,

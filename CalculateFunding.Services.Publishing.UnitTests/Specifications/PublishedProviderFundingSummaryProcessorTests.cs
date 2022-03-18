@@ -1,3 +1,4 @@
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Generators.OrganisationGroup.Models;
@@ -26,6 +27,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
     {
         private readonly string Contracting = "Contracting";
         private readonly string Statement = "Statement";
+        private readonly string Payment = "Payment";
         private readonly int ContractingChannelId = 1;
         private readonly int StatementChannelId = 2;
 
@@ -39,7 +41,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private PublishedProviderFundingSummaryProcessor _summaryProcessor;
         private List<Channel> _channels;
 
-        private Mock<IPublishedFundingRepository> _publishedFunding;
         private Mock<IReleaseManagementRepository> _releaseManagementRepo;
         private Mock<IProvidersForChannelFilterService> _channelFilterService;
         private Mock<IChannelOrganisationGroupGeneratorService> _organisationGroupGenerator;
@@ -54,7 +55,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _publishedProvidersLookupService = new Mock<IPublishedProviderLookupService>();
             _specificationId = NewRandomString();
             _specificationSummary = NewSpecificationSummary(_ => _.WithId(_specificationId));
-            _fundingConfiguration = NewFundingConfiguration();
+            _fundingConfiguration = NewFundingConfiguration(_ => _.WithReleaseChannels(new FundingConfigurationChannel { 
+                ChannelCode = Contracting,
+                IsVisible = true 
+            },
+            new FundingConfigurationChannel
+            {
+                ChannelCode = Statement,
+                IsVisible = true
+            },
+            new FundingConfigurationChannel
+            {
+                ChannelCode = Payment
+            }));
 
             _providersOne = NewRandomPublishedProviderIds().ToArray();
             _providersTwo = NewRandomPublishedProviderIds().ToArray();
