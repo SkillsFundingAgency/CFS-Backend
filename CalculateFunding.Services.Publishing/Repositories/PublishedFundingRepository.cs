@@ -548,6 +548,36 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return results;
         }
 
+        public async Task<IEnumerable<string>> GetPublishedProviderEligibleToBeReleasedPublishedProviderIds(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @"SELECT c.content.current.publishedProviderId as id FROM c
+                                WHERE c.documentType = 'PublishedProvider'
+                                AND c.content.current.specificationId = @specificationId
+                               AND (c.content.current.status = 'Approved' OR c.content.current.status = 'Released' )
+                              AND(IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
+                              AND c.deleted = false",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                }
+            };
+
+            List<string> results = new List<string>();
+
+            IEnumerable<dynamic> queryResults = await _repository.DynamicQuery(cosmosDbQuery);
+
+            foreach (dynamic item in queryResults)
+            {
+                results.Add((string)item.id);
+            }
+
+            return results;
+        }
+
         public async Task<IEnumerable<string>> GetPublishedProviderPublishedProviderIds(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));

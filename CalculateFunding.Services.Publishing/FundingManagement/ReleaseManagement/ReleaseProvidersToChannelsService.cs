@@ -13,7 +13,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Models;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -228,17 +227,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             if (fundingConfiguration.ApprovalMode == ApprovalMode.All)
             {
-                IEnumerable<PublishedProviderFundingSummary> publishedProviderFundingSummaries = await _publishedProviderLookupService.GetPublishedProviderFundingSummaries(
-                  specification,
-                  new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released },
-                  releaseProvidersToChannelRequest.ProviderIds);
+                IEnumerable<string> allModePublishedProviderIds = await _publishedProviderLookupService.GetEligibleProvidersToApproveAndRelease(specification.Id);
 
-                if (publishedProviderFundingSummaries.IsNullOrEmpty())
+                if (allModePublishedProviderIds.IsNullOrEmpty())
                 {
                     throw new InvalidOperationException("No providers found to release.");
                 }
 
-                releaseProvidersToChannelRequest.ProviderIds = publishedProviderFundingSummaries.Select(_ => _.Provider.ProviderId);
+                releaseProvidersToChannelRequest.ProviderIds = allModePublishedProviderIds;
             }
 
             IEnumerable<string> providerIds = ParseProviderIdsFromPublishedProviderIds(releaseProvidersToChannelRequest.ProviderIds);

@@ -12,7 +12,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -67,8 +66,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             return context.PublishedProviderFundingSummaries;
         }
 
+        public async Task<IEnumerable<string>> GetEligibleProvidersToApproveAndRelease(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            return await _publishedFundingPolicy.ExecuteAsync(() => _publishedFunding.GetPublishedProviderEligibleToBeReleasedPublishedProviderIds(specificationId));
+        }
+
         private Task<(bool isComplete, IEnumerable<string> items)> ProduceFundingSummaryPublishedProviderIds(CancellationToken token,
-            dynamic context)
+        dynamic context)
         {
             PublishedProviderFundingSummaryProcessorContext countContext = (PublishedProviderFundingSummaryProcessorContext)context;
 

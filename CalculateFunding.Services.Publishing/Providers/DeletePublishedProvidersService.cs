@@ -1,14 +1,14 @@
-using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Providers
 {
@@ -49,16 +49,16 @@ namespace CalculateFunding.Services.Publishing.Providers
             _publishedFundingRepositoryPolicy = publishedFundingResilience.PublishedFundingRepository;
         }
 
-        public async Task QueueDeletePublishedProvidersJob(string fundingStreamId,
+        public async Task<Job> QueueDeletePublishedProvidersJob(string fundingStreamId,
             string fundingPeriodId,
             string correlationId)
         {
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
-            await _jobs.CreateJob(fundingStreamId,
-                fundingPeriodId,
-                correlationId);
+            return await _jobs.CreateJob(fundingStreamId,
+                 fundingPeriodId,
+                 correlationId);
         }
 
         public override async Task Process(Message message)
@@ -67,10 +67,10 @@ namespace CalculateFunding.Services.Publishing.Providers
 
             string fundingPeriodId = message.GetUserProperty<string>("funding-period-id");
             string fundingStreamId = message.GetUserProperty<string>("funding-stream-id");
-            
+
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
-            
+
             _logger.Information($"Started delete published providers job for {fundingStreamId} {fundingPeriodId}");
 
             await DeletePublishedProviders(fundingStreamId, fundingPeriodId);

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using CalculateFunding.Api.Publishing.Controllers;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -12,6 +9,9 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NSubstitute;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
 {
@@ -26,7 +26,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         private IPublishedProviderFundingService _publishedProviderFundingService;
         private IPublishedProviderFundingStructureService _publishedProviderFundingStructureService;
         private IDeletePublishedProvidersService _deletePublishedProvidersService;
-       
+
         private IFeatureToggle _featureToggle;
 
         private string _fundingStreamId;
@@ -115,7 +115,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
 
             _result
                 .Should()
-                .BeOfType<OkResult>();
+                .BeOfType<OkObjectResult>();
         }
 
         private void GivenThatDeletingPublishedProvidersIsForbidden()

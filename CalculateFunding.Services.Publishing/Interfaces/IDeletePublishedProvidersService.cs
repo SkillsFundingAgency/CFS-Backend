@@ -1,12 +1,12 @@
-using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Services.Processing.Interfaces;
-using Microsoft.Azure.ServiceBus;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IDeletePublishedProvidersService : IJobProcessingService
     {
-        Task QueueDeletePublishedProvidersJob(string fundingStreamId,
+        Task<Job> QueueDeletePublishedProvidersJob(string fundingStreamId,
             string fundingPeriodId,
             string correlationId);
     }

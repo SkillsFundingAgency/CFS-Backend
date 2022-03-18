@@ -12,7 +12,6 @@ using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Validators;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -23,7 +22,6 @@ using Moq;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -51,6 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<IPublishedProviderLookupService> _publishedProvidersLookupService;
         private ISpecificationIdServiceRequestValidator _specificationIdServiceRequestValidator;
         private string _providerId;
+        private string _specificationId;
 
         [TestInitialize]
         public void SetUp()
@@ -73,6 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProvidersLookupService = new Mock<IPublishedProviderLookupService>();
             _specificationIdServiceRequestValidator = new PublishSpecificationValidator();
             _providerId = new RandomString();
+            _specificationId = new RandomString();
 
             _releaseProvidersToChannelsService = new ReleaseProvidersToChannelsService(
                 _specificationService.Object,
@@ -161,20 +161,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             IEnumerable<PublishedProviderStatus> statuses = new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released };
 
-            _publishedProvidersLookupService.Setup(s => s.GetPublishedProviderFundingSummaries(
-                It.IsAny<SpecificationSummary>(),
-                It.Is<PublishedProviderStatus[]>(_ => statuses.SequenceEqual(_)),
-                It.IsAny<IEnumerable<string>>()))
-
-            .ReturnsAsync(new List<PublishedProviderFundingSummary> {
-                    new PublishedProviderFundingSummary()
-                    {
-                        Provider = new Provider()
-                        {
-                            ProviderId = _providerId
-                        }
-                    }
-            });
+            _publishedProvidersLookupService.Setup(s => s.GetEligibleProvidersToApproveAndRelease(_specificationId))
+            .ReturnsAsync(new List<string>() { _providerId });
 
             _jobManagement
                 .Setup(_ => _.QueueJob(It.Is<JobCreateModel>(j =>
@@ -204,12 +192,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public async Task ProcessMessageBeginsTransactionAndCallsCommit()
         {
-            string specificationId = Guid.NewGuid().ToString();
-
             _specificationService.Setup(s => s.GetSpecificationSummaryById(It.IsAny<string>()))
                 .ReturnsAsync(new SpecificationSummary
                 {
-                    Id = specificationId,
+                    Id = _specificationId,
                     IsSelectedForFunding = true,
                     FundingPeriod = new Reference { Id = "FundingPeriod", Name = "FundingPeriod " },
                     FundingStreams = new List<Reference> { new Reference { Id = "FundingStream", Name = "FundingStream" } }
@@ -220,19 +206,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _policiesService.Setup(s => s.GetFundingConfiguration("FundingStream", "FundingPeriod"))
                 .ReturnsAsync(new FundingConfigurationBuilder().WithApprovalMode(ApprovalMode.All).Build());
 
-            _publishedProvidersLookupService.Setup(s => s.GetPublishedProviderFundingSummaries(
-               It.IsAny<SpecificationSummary>(),
-               It.Is<PublishedProviderStatus[]>(_ => statuses.SequenceEqual(_)),
-               It.IsAny<IEnumerable<string>>()))
-               .ReturnsAsync(new List<PublishedProviderFundingSummary> {
-                        new PublishedProviderFundingSummary()
-                        {
-                            Provider = new Provider()
-                            {
-                                ProviderId = _providerId
-                            }
-                        }
-               });
+            _publishedProvidersLookupService.Setup(s => s.GetEligibleProvidersToApproveAndRelease(_specificationId))
+            .ReturnsAsync(new List<string>() { _providerId });
 
             _prerequisiteChecker.Setup(s => s.PerformChecks(
                 It.IsAny<SpecificationSummary>(),

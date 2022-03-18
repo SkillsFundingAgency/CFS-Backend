@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -11,6 +8,9 @@ using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Publishing.Controllers
 {
@@ -87,7 +87,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         [ProducesResponseType(200, Type = typeof(PublishedProviderVersion))]
         public async Task<IActionResult> GetCurrentPublishedProviderVersion([FromRoute] string fundingStreamId,
             [FromRoute] string providerId,
-            [FromRoute] string specificationId) => 
+            [FromRoute] string specificationId) =>
             await _providerFundingPublishingService.GetCurrentPublishedProviderVersion(fundingStreamId,
                 providerId,
                 specificationId);
@@ -105,7 +105,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         public async Task<IActionResult> GetPublishedProviderVersion([FromRoute] string fundingStreamId,
             [FromRoute] string fundingPeriodId,
             [FromRoute] string providerId,
-            [FromRoute] string version) => 
+            [FromRoute] string version) =>
             await _providerFundingPublishingService.GetPublishedProviderVersion(fundingStreamId,
                 fundingPeriodId,
                 providerId,
@@ -121,7 +121,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         [ProducesResponseType(200, Type = typeof(IEnumerable<PublishedProviderTransaction>))]
         public async Task<IActionResult> GetPublishedProviderTransactions([FromRoute] string specificationId,
             [FromRoute] string providerId) =>
-            await _providerFundingPublishingService.GetPublishedProviderTransactions(specificationId,providerId);
+            await _providerFundingPublishingService.GetPublishedProviderTransactions(specificationId, providerId);
 
         [HttpGet("api/publishedprovider/publishedprovider-id/{specificationId}")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
@@ -203,7 +203,7 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
             await _publishedProviderStatusService.GetProviderBatchCountForApproval(providerIds, specificationId);
 
         /// <summary>
-        /// Delete published provider
+        /// Delete published content for specification
         /// </summary>
         /// <param name="fundingStreamId">Funding stream Id</param>
         /// <param name="fundingPeriodId">Funding period Id</param>
@@ -219,11 +219,11 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
                 return Forbid();
             }
 
-            await _deletePublishedProvidersService.QueueDeletePublishedProvidersJob(fundingStreamId,
+            Common.ApiClient.Jobs.Models.Job job = await _deletePublishedProvidersService.QueueDeletePublishedProvidersJob(fundingStreamId,
                 fundingPeriodId,
                 Request.GetCorrelationId());
 
-            return Ok();
+            return Ok(job);
         }
 
         /// <summary>
@@ -238,9 +238,9 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         [ProducesResponseType(StatusCodes.Status304NotModified)]
         [HttpCacheFactory(0, ViewModelType = typeof(PublishedProviderFundingStructure))]
         public async Task<IActionResult> GetPublishedProviderFundingStructure(
-            [FromRoute]string specificationId,
-            [FromRoute]string fundingStreamId,
-            [FromRoute]string providerId) =>
+            [FromRoute] string specificationId,
+            [FromRoute] string fundingStreamId,
+            [FromRoute] string providerId) =>
             await _publishedProviderFundingStructureService.GetCurrentPublishedProviderFundingStructure(specificationId, fundingStreamId, providerId);
 
         /// <summary>
@@ -253,7 +253,7 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         [ProducesResponseType(StatusCodes.Status304NotModified)]
         [HttpCacheFactory(0, ViewModelType = typeof(PublishedProviderFundingStructure))]
         public async Task<IActionResult> GetPublishedProviderFundingStructure(
-            [FromRoute]string publishedProviderVersionId) =>
+            [FromRoute] string publishedProviderVersionId) =>
             await _publishedProviderFundingStructureService.GetPublishedProviderFundingStructure(publishedProviderVersionId);
 
         /// <summary>
@@ -266,9 +266,9 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         [ProducesResponseType(200, Type = typeof(PublishedProviderDataDownload))]
         public async Task<IActionResult> GenerateCsvForBatchPublishedProvidersForApproval(
             [FromBody] PublishedProviderIdsRequest providerIds,
-            [FromRoute] string specificationId) => 
+            [FromRoute] string specificationId) =>
             await _publishedProviderStatusService.GetProviderDataForBatchApprovalAsCsv(providerIds, specificationId);
-        
+
 
         /// <summary>
         /// Generates a csv file for all providers where they are ready for approval

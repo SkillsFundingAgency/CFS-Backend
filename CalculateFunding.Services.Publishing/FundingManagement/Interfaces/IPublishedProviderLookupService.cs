@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
     public interface IPublishedProviderLookupService
     {
+        Task<IEnumerable<string>> GetEligibleProvidersToApproveAndRelease(string specificationId);
         Task<IEnumerable<PublishedProviderFundingSummary>> GetPublishedProviderFundingSummaries(
             SpecificationSummary specificationSummary,
             PublishedProviderStatus[] statuses,
