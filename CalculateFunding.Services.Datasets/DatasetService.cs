@@ -63,6 +63,7 @@ using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculationRelationship = CalculateFunding.Models.Graph.CalculationRelationship;
 using FundingLineCalculationRelationship = CalculateFunding.Models.Graph.FundingLineCalculationRelationship;
 using CalculateFunding.Common.ApiClient.Graph;
+using CalculateFunding.Models.Datasets.Converter;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -96,6 +97,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IRelationshipDataExcelWriter _excelWriter;
         private readonly IGraphApiClient _graph;
         private readonly VisualBasicTypeIdentifierGenerator _typeIdentifierGenerator;
+        private readonly IConverterDataMergeService _converterDataMergeService;
 
         public DatasetService(
             IBlobClient blobClient,
@@ -121,7 +123,8 @@ namespace CalculateFunding.Services.Datasets
             ICalcsRepository calcsRepository,
             IDatasetDataMergeService datasetDataMergeService,
             IRelationshipDataExcelWriter excelWriter,
-            IGraphApiClient graphApiClient) : base(jobManagement, logger)
+            IGraphApiClient graphApiClient,
+            IConverterDataMergeService converterDataMergeService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -150,6 +153,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetDataMergeService, nameof(datasetDataMergeService));
             Guard.ArgumentNotNull(excelWriter, nameof(excelWriter));
             Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
+            Guard.ArgumentNotNull(converterDataMergeService, nameof(converterDataMergeService));
 
             _blobClient = blobClient;
             _logger = logger;
@@ -179,6 +183,7 @@ namespace CalculateFunding.Services.Datasets
             _excelWriter = excelWriter;
             _graph = graphApiClient;
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
+            _converterDataMergeService = converterDataMergeService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -933,6 +938,31 @@ namespace CalculateFunding.Services.Datasets
                     }
 
                     dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount, uploadedBlobFilePath, fundingStream, mergeResult);
+
+                    if (dataset.RelationshipId != null)
+                    {
+                        DefinitionSpecificationRelationship definitionSpecificationRelationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(dataset.RelationshipId);
+
+                        string specificationId = definitionSpecificationRelationship?.Current?.Specification?.Id;
+
+                        if (specificationId != null)
+                        {
+                            ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
+                                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+                            if (specificationSummaryApiResponse.StatusCode.IsSuccess() && specificationSummaryApiResponse.Content != null)
+                            {
+                                await _converterDataMergeService.QueueJob(new ConverterMergeRequest
+                                {
+                                    DatasetId = dataset.Id,
+                                    DatasetRelationshipId = dataset.RelationshipId,
+                                    ProviderVersionId = specificationSummaryApiResponse.Content.ProviderVersionId,
+                                    Author = dataset.Current.Author,
+                                    Version = dataset.Current.Version.ToString()
+                                });
+                            }
+                        }
+                    }
                 }
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);

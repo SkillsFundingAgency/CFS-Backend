@@ -246,7 +246,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         public void ProcessFailsIfDataSetAlreadyRunForGivenProviderVersionId()
         {
             string providerVersionId = NewRandomString();
-            ConverterMergeRequest request = NewConverterMergeRequest(_ => _.WithProviderVersionId(providerVersionId));
+            int version = 1;
+
+            ConverterMergeRequest request = NewConverterMergeRequest(_ => _.WithProviderVersionId(providerVersionId).WithVersion(version.ToString()));
 
             Func<Task> invocation = () => WhenTheMergeJobIsRun(NewMessage(_ => _
                 .WithMessageBody(request
@@ -254,7 +256,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
             DatasetDefinitionVersion datasetDefinitionVersion = NewDatasetDefinitionVersion();
 
-            GivenTheDataset(request.DatasetId, NewDataset(_ => _.WithDefinition(datasetDefinitionVersion).WithCurrent(NewDatasetVersion(dv => dv.WithProviderVersionId(providerVersionId)))));
+            GivenTheDataset(request.DatasetId, NewDataset(_ => _.WithDefinition(datasetDefinitionVersion).WithCurrent(NewDatasetVersion(dv => dv.WithProviderVersionId(providerVersionId).WithVersion(version)))));
             AndTheDatasetDefinition(datasetDefinitionVersion.Id, NewDatasetDefinition(_ => _.WithConverterEnabled(true)));
 
             invocation
@@ -264,7 +266,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 .Which
                 .Message
                 .Should()
-                .Be($"Converter wizard does not run a second time against a dataset with same ProviderVersionId={providerVersionId} as the existing one");
+                .Be($"Converter wizard does not run a second time against a dataset with same ProviderVersionId={providerVersionId} and dataset Version={version} as the existing one");
         }
 
         [TestMethod]

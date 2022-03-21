@@ -38,6 +38,8 @@ namespace CalculateFunding.Services.Datasets.Services
         protected const string SpecificationId = "d557a71b-f570-4425-801b-250b9129f111";
         protected const string BuildProjectId = "d557a71b-f570-4425-801b-250b9129f111";
         protected const string DatasetId = "e557a71b-f570-4436-801b-250b9129f999";
+        protected const string DatasetRelationshipId = "r557a71b-f570-4436-801b-250b9129f999";
+        protected const string ProviderVersionId = "f557a71b-f570-4436-801b-250b9129f999";
         protected const string FundingStreamId = "test-funding-stream-id";
         protected const string FundingStreamName = "test-funding-stream-name";
         protected const string JobId = "job1";
@@ -65,7 +67,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IPolicyRepository policyRepository = null,
             IDatasetDataMergeService datasetDataMergeService = null,
             IRelationshipDataExcelWriter relationshipDataExcelWriter = null,
-            IGraphApiClient graphApiClient = null)
+            IGraphApiClient graphApiClient = null,
+            IConverterDataMergeService converterDataMergeService = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -91,7 +94,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository ?? CreateCalcsRepository(),
                 datasetDataMergeService ?? CreateDatasetDataMergeService(),
                 relationshipDataExcelWriter ?? CreateRelationshipDataExcelWriter(),
-                graphApiClient ?? CreateGraphClient());
+                graphApiClient ?? CreateGraphClient(),
+                converterDataMergeService ?? CreateConverterDataMergeService());
         }
 
         protected IDatasetDataMergeService CreateDatasetDataMergeService()
@@ -107,6 +111,10 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return Substitute.For<IGraphApiClient>();
         }
+        protected IConverterDataMergeService CreateConverterDataMergeService()
+        {
+            return Substitute.For<IConverterDataMergeService>();
+        }
         protected IPolicyRepository CreatePolicyRepository()
         {
             return Substitute.For<IPolicyRepository>();
@@ -117,7 +125,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ICalcsRepository>();
         }
 
-        private ISpecificationsApiClient CreateSpecificationsApiClient()
+        protected ISpecificationsApiClient CreateSpecificationsApiClient()
         {
             return Substitute.For<ISpecificationsApiClient>();
         }
@@ -141,11 +149,6 @@ namespace CalculateFunding.Services.Datasets.Services
         protected IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()
         {
             return Substitute.For<IVersionRepository<ProviderSourceDatasetVersion>>();
-        }
-
-        private ITelemetry CreateTelemetry()
-        {
-            return Substitute.For<ITelemetry>();
         }
 
         protected IProviderSourceDatasetsRepository CreateProviderResultsRepository()

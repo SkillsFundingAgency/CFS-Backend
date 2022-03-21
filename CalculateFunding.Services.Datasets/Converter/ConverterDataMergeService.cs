@@ -130,7 +130,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             Dataset dataset = await LookupDataset(request);
             DatasetDefinition datasetDefinition = await LookupDatasetDefinition(dataset);
 
-            EnsureConverterCanBeRunAgainstDataset(dataset.Current, request.ProviderVersionId);
+            EnsureConverterCanBeRunAgainstDataset(dataset.Current, request.ProviderVersionId, request.Version);
             EnsureFieldDefinitionIsValid(datasetDefinition);
 
             DefinitionSpecificationRelationship relationship = await GetDatasetRelationship(request);
@@ -208,11 +208,12 @@ namespace CalculateFunding.Services.Datasets.Converter
 
         private void EnsureConverterCanBeRunAgainstDataset(
             DatasetVersion dataset,
-            string providerVersionId)
+            string providerVersionId,
+            string version)
         {
             Ensure(
-                dataset?.ProviderVersionId != providerVersionId,
-                $"Converter wizard does not run a second time against a dataset with same ProviderVersionId={providerVersionId} as the existing one");
+                dataset?.ProviderVersionId != providerVersionId && dataset?.Version.ToString() != version,
+                $"Converter wizard does not run a second time against a dataset with same ProviderVersionId={providerVersionId} and dataset Version={version} as the existing one");
         }
 
         private async Task<DefinitionSpecificationRelationship> GetDatasetRelationship(ConverterMergeRequest request)

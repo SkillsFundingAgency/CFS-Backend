@@ -42,6 +42,9 @@ using ValidationResult = FluentValidation.Results.ValidationResult;
 using ProvidersApiClientModels = CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Services.Core.Interfaces;
 using Provider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
+using CalculateFunding.Models.Datasets.Converter;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -1690,6 +1693,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(datasetDefinitions);
 
             datasetRepository
+                .GetDefinitionSpecificationRelationshipById(DatasetRelationshipId)
+                .Returns(NewDefinitionSpecificationRelationship(_ => 
+                    _.WithId(DatasetRelationshipId).WithCurrent(NewDefinitionSpecificationRelationshipVersion(v => 
+                        v.WithSpecification(new Reference { Id = SpecificationId })))));
+
+            datasetRepository
                 .SaveDataset(Arg.Any<Dataset>())
                 .Returns(HttpStatusCode.OK);
 
@@ -1710,10 +1719,21 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             });
 
+            ApiResponse<CurrentProviderVersionMetadata> providerMetadataResponse = new ApiResponse<CurrentProviderVersionMetadata>(HttpStatusCode.OK, new CurrentProviderVersionMetadata
+            {
+                ProviderVersionId = ProviderVersionId
+            });
+
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
                 .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient.GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, NewSpecificationSummary(_ => _.WithProviderVersionId(ProviderVersionId))));
+
+            IConverterDataMergeService converterDataMergeService = CreateConverterDataMergeService();
 
             DatasetService service = CreateDatasetService(
                 logger: logger,
@@ -1723,7 +1743,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
                 providersApiClient: providersApiClient,
-                policyRepository: policyRepository);
+                policyRepository: policyRepository,
+                converterDataMergeService: converterDataMergeService,
+                specificationsApiClient: specificationsApiClient);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
@@ -1735,6 +1757,7 @@ namespace CalculateFunding.Services.Datasets.Services
             Dataset existingDataset = new Dataset()
             {
                 Id = model.DatasetId,
+                RelationshipId = DatasetRelationshipId,
                 Current = existingDatasetVersion,
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Name = name
@@ -1763,6 +1786,15 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.FundingStream.Id == model.FundingStreamId &&
                     d.FundingStream.Name == FundingStreamName
                 ));
+
+
+            await converterDataMergeService
+                .Received(1)
+                .QueueJob(Arg.Is<ConverterMergeRequest>(_ =>
+                    _.ProviderVersionId == ProviderVersionId &&
+                    _.DatasetId == existingDataset.Id &&
+                    _.DatasetRelationshipId == existingDataset.RelationshipId &&
+                    _.Version == existingDataset.Current.Version.ToString()));
 
             await datasetRepository
                 .Received(1)
@@ -4072,6 +4104,7 @@ namespace CalculateFunding.Services.Datasets.Services
             Dataset existingDataset = new Dataset()
             {
                 Id = model.DatasetId,
+                RelationshipId = DatasetRelationshipId,
                 Current = existingDatasetVersion,
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Name = name,
@@ -4091,6 +4124,12 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
              .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
              .Returns(datasetDefinitions);
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(DatasetRelationshipId)
+                .Returns(NewDefinitionSpecificationRelationship(_ =>
+                    _.WithId(DatasetRelationshipId).WithCurrent(NewDefinitionSpecificationRelationshipVersion(v =>
+                        v.WithSpecification(new Reference { Id = SpecificationId })))));
 
             datasetRepository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
@@ -4127,6 +4166,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient.GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, NewSpecificationSummary(_ => _.WithProviderVersionId(ProviderVersionId))));
+
+
             DatasetDataTableMergeResult tableMergeResult = new DatasetDataTableMergeResult()
             {
                 TableDefinitionName = "Test-data-definition-name",
@@ -4145,6 +4189,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 Arg.Any<DatasetEmptyFieldEvaluationOption>())
                 .Returns(mergeResult);
 
+            IConverterDataMergeService converterDataMergeService = CreateConverterDataMergeService();
+
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
@@ -4154,7 +4200,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 jobManagement: jobManagement,
                 providersApiClient: providersApiClient,
                 policyRepository: policyRepository,
-                datasetDataMergeService: datasetDataMergeService);
+                datasetDataMergeService: datasetDataMergeService, 
+                converterDataMergeService: converterDataMergeService,
+                specificationsApiClient: specificationsApiClient);
 
             // Act
             await service.Run(message);
@@ -4171,6 +4219,14 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.NewRowCount == newRowCount &&
                     d.AmendedRowCount == updatedRowCount
                 ));
+
+            await converterDataMergeService
+                .Received(1)
+                .QueueJob(Arg.Is<ConverterMergeRequest>(_ => 
+                    _.ProviderVersionId == ProviderVersionId &&
+                    _.DatasetId == existingDataset.Id &&
+                    _.DatasetRelationshipId == existingDataset.RelationshipId &&
+                    _.Version == existingDataset.Current.Version.ToString()));
 
             await datasetRepository
                 .Received(1)
