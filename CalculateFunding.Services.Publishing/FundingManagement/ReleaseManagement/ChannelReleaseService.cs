@@ -8,6 +8,7 @@ using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Models;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IFundingGroupDataPersistenceService _fundingGroupDataPersistenceService;
         private readonly IReleaseManagementRepository _repo;
         private readonly ICurrentDateTime _currentDateTime;
+        private readonly ILogger _logger;
 
         public ChannelReleaseService(
             IPublishedProvidersLoadContext publishProvidersLoadContext,
@@ -55,7 +57,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IFundingGroupDataGenerator fundingGroupDataGenerator,
             IFundingGroupDataPersistenceService fundingGroupDataPersistenceService,
             IReleaseManagementRepository releaseManagementRepository,
-            ICurrentDateTime currentDateTime)
+            ICurrentDateTime currentDateTime,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(publishProvidersLoadContext, nameof(publishProvidersLoadContext));
             Guard.ArgumentNotNull(providersForChannelFilterService, nameof(providersForChannelFilterService));
@@ -75,6 +78,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(fundingGroupDataPersistenceService, nameof(fundingGroupDataPersistenceService));
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(currentDateTime, nameof(currentDateTime));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
             _publishProvidersLoadContext = publishProvidersLoadContext;
             _providersForChannelFilterService = providersForChannelFilterService;
@@ -94,6 +98,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _fundingGroupDataPersistenceService = fundingGroupDataPersistenceService;
             _repo = releaseManagementRepository;
             _currentDateTime = currentDateTime;
+            _logger = logger;
         }
 
         /// <summary>
@@ -117,31 +122,47 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(specification, nameof(specification));
             Guard.ArgumentNotNull(batchPublishedProviderIds, nameof(batchPublishedProviderIds));
 
+            _logger.Information("Starting release to channels for channel '{ChannelCode}' with ID '{ChannelId}'", channel.ChannelCode, channel.ChannelId);
+            _logger.Information("Releasing a total of '{Count}' providers to '{ChannelCode}'", batchPublishedProviderIds.Count(), channel.ChannelCode);
+
             DateTime currentDateTime = _currentDateTime.GetUtcNow();
 
+            _logger.Information("Retrieving existing latest versions of providers in channel");
             IEnumerable<ProviderVersionInChannel> existingLatestVersionOfProvidersInChannel = await _repo.GetLatestPublishedProviderVersionsUsingAmbientTransaction(specification.Id, new[] { channel.ChannelId });
+            _logger.Information($"Retrieved total of '{existingLatestVersionOfProvidersInChannel.Count()}' latest versions of providers in channel");
 
+            _logger.Information("Retrieving current state of published providers for release to channel");
             IEnumerable<PublishedProvider> publishedProvidersBatch = await _publishProvidersLoadContext.GetOrLoadProviders(batchPublishedProviderIds);
+            _logger.Information("A total of {Count} current state of published providers loaded for release to channel", publishedProvidersBatch.Count());
 
+            _logger.Information("Filtering providers for channel '{ChannelCode}'", channel.ChannelCode);
             Dictionary<string, PublishedProviderVersion> providersToRelease = _providersForChannelFilterService.FilterProvidersForChannel(channel,
                 publishedProvidersBatch.Select(_ => _.Released),
                 fundingConfiguration)
                 .ToDictionary(_ => _.ProviderId);
+            _logger.Information("A total of '{Count}' providers can be released for channel '{ChannelCode}'", providersToRelease.Count, channel.ChannelCode);
 
+            _logger.Information("Producing organisation groups for channel '{ChannelCode}'", channel.ChannelCode);
             IEnumerable<OrganisationGroupResult> allOrganisationGroups =
                 await _channelOrganisationGroupGeneratorService.GenerateOrganisationGroups(channel,
                     fundingConfiguration,
                     specification,
                     providersToRelease.Values);
+            _logger.Information("A total of {Count} organisation groups are generated for channel '{ChannelCode}'", allOrganisationGroups.Count(), channel.ChannelCode);
 
+            _logger.Information("Determing which organisation groups to persist with new data for channel '{ChannelCode}'", channel.ChannelCode);
             IEnumerable<OrganisationGroupResult> organisationGroupsToCreate =
                 await _channelOrganisationGroupChangeDetector.DetermineFundingGroupsToCreateBasedOnProviderVersions(allOrganisationGroups,
                     specification,
                     channel);
+            _logger.Information("A total of '{Count}' new FundingGroups should be created for channel '{ChannelCode}'", organisationGroupsToCreate.Count(), channel.ChannelCode);
 
+            _logger.Information("Creating funding groups for channel '{ChannelCode}'", channel.ChannelCode);
             IEnumerable<FundingGroup> fundingGroups =
                 await _fundingGroupService.CreateFundingGroups(specification.Id, channel.ChannelId, organisationGroupsToCreate);
+            _logger.Information("Created a total of '{Count}' new funding groups in channel '{ChannelCode}'", fundingGroups.Count(), channel.ChannelCode);
 
+            _logger.Information("Generating funding group data (versions) for channel '{ChannelCode}'", channel.ChannelCode);
             IEnumerable<GeneratedPublishedFunding> fundingGroupData =
                 await _fundingGroupDataGenerator.Generate(organisationGroupsToCreate,
                                                           specification,
@@ -151,6 +172,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                                                           jobId,
                                                           correlationId);
 
+            _logger.Information("Persisting a total of '{Count}' funding group versions for channel '{ChannelCode}'", fundingGroupData.Count(), channel.ChannelCode);
             IEnumerable<FundingGroupVersion> fundingGroupVersionsCreated = await _fundingGroupDataPersistenceService.ReleaseFundingGroupData(fundingGroupData, channel.ChannelId);
 
             IEnumerable<PublishedProviderVersion> providersInGroupsToRelease = organisationGroupsToCreate
@@ -158,6 +180,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 .Select(_ => _.ProviderId)
                 .Distinct()
                 .Select(_ => providersToRelease[_]);
+            _logger.Information("A total count of providers in all new funding groups of '{Count}' were generated for channel '{ChannelCode}'", fundingGroupData.Count(), channel.ChannelCode);
 
 
             IEnumerable<PublishedProviderVersion> providersToReleaseInBatch = _existingReleasedProvidersForChannelFilterService.FilterExistingReleasedProviderInChannel(providersInGroupsToRelease,
@@ -165,22 +188,27 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 batchPublishedProviderIds,
                 channel.ChannelId,
                 specification.Id);
+            _logger.Information("Releasing a total of '{Count}' providers for channel '{ChannelCode}'", providersToReleaseInBatch.Count(), channel.ChannelCode);
 
             IEnumerable<string> providersInGroupsToReleasedProviderIds = providersToReleaseInBatch.Select(_ => _.ProviderId);
 
+            _logger.Information("Persisting ReleasedProviders for channel '{ChannelCode}'", channel.ChannelCode);
             IEnumerable<ReleasedProvider> releasedProviders = await _releaseProviderPersistenceService.ReleaseProviders(
                 providersInGroupsToReleasedProviderIds,
                 specification.Id);
 
+            _logger.Information("Persisting ReleasedProviderVersions for channel '{ChannelCode}'", channel.ChannelCode);
             await _providerVersionReleaseService.ReleaseProviderVersions(
                 providersToReleaseInBatch,
                 specification.Id);
 
+            _logger.Information("Persisting released provider versions in channel for channel '{ChannelCode}'", channel.ChannelCode);
             await _providerVersionToChannelReleaseService.ReleaseProviderVersionChannel(
                 providersInGroupsToReleasedProviderIds,
                 channel.ChannelId,
                 currentDateTime);
 
+            _logger.Information("Generating ReleasedProvider variations for channel '{ChannelCode}'", channel.ChannelCode);
             IDictionary<string, IEnumerable<VariationReason>> variationReasonsForProviders = await _generateVariationReasonsForChannelService.GenerateVariationReasonsForProviders(
                 providersInGroupsToReleasedProviderIds,
                 existingLatestVersionOfProvidersInChannel,
@@ -189,15 +217,25 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 fundingConfiguration,
                 allOrganisationGroups.GroupByProviderId());
 
+            int totalVariations = variationReasonsForProviders.Values.Select(_ => _.Count()).Sum();
+
+            _logger.Information("Generated a total of '{Count}' providers with a total of '{totalVariations}' variations for channel '{ChannelCode}'", variationReasonsForProviders.Count, totalVariations, channel.ChannelCode);
+
+            _logger.Information("Persisting released provider variations for channel '{ChannelCode}'", channel.ChannelCode);
             await _providerVariationReasonsReleaseService.PopulateReleasedProviderChannelVariationReasons(variationReasonsForProviders, channel);
 
+            _logger.Information("Persisting funding group providers for channel '{ChannelCode}'", channel.ChannelCode);
             await _fundingGroupProviderPersistenceService.PersistFundingGroupProviders(channel.ChannelId, fundingGroupData, providersInGroupsToRelease);
 
+            _logger.Information("Persisting released provider blob document contents for channel '{ChannelCode}'", channel.ChannelCode);
             await _publishedProviderContentChannelPersistenceService
                 .SavePublishedProviderContents(specification, providersToReleaseInBatch, channel, variationReasonsForProviders);
 
+            _logger.Information("Persisting funding group blob document contents for channel '{ChannelCode}'", channel.ChannelCode);
             await _publishedFundingContentsChannelPersistenceService
                 .SavePublishedFundingContents(fundingGroupData.Select(_ => _.PublishedFundingVersion), channel);
+
+            _logger.Information("Completed release for channel '{ChannelCode}'", channel.ChannelCode);
         }
     }
 }

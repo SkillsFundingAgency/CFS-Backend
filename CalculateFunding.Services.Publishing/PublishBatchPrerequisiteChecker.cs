@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
+﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -33,12 +31,12 @@ namespace CalculateFunding.Services.Publishing
             await BasePerformChecks(prereqObject, specification.Id, jobId, new string[]
             {
                 JobConstants.DefinitionNames.PublishedFundingUndoJob,
-                JobConstants.DefinitionNames.RefreshFundingJob, 
+                JobConstants.DefinitionNames.RefreshFundingJob,
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
                 JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
-                JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob
+                // don't include JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob as the existing job is called within release to channels
             }, publishedProviders);
         }
 

@@ -156,7 +156,8 @@ namespace CalculateFunding.Services.Publishing
                                                 Job.Id,
                                                 correlationId,
                                                 specification,
-                                                publishedProviderIdsRequest);
+                                                publishedProviderIdsRequest,
+                                                true);
         }
 
         public async Task PublishProviderFundingResults(bool batched,
@@ -164,7 +165,8 @@ namespace CalculateFunding.Services.Publishing
                                                         string jobId,
                                                         string correlationId,
                                                         SpecificationSummary specification,
-                                                        PublishedProviderIdsRequest publishedProviderIdsRequest)
+                                                        PublishedProviderIdsRequest publishedProviderIdsRequest,
+                                                        bool enableIntegrityChecker)
         {
             Guard.ArgumentNotNull(author, nameof(author));
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
@@ -184,7 +186,8 @@ namespace CalculateFunding.Services.Publishing
                     author,
                     correlationId,
                     batched ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders,
-                    publishedProviderIdsRequest?.PublishedProviderIds?.ToArray());
+                    publishedProviderIdsRequest?.PublishedProviderIds?.ToArray(),
+                    enableIntegrityChecker);
             }
 
             _logger.Information($"Running search reindexer for published funding");
@@ -208,7 +211,8 @@ namespace CalculateFunding.Services.Publishing
             Reference author,
             string correlationId,
             PrerequisiteCheckerType prerequisiteCheckerType,
-            string[] batchPublishedProviderIds = null)
+            string[] batchPublishedProviderIds = null,
+            bool enableIntegrityChecker = true)
         {
             _logger.Information($"Processing Publish Funding for {fundingStream.Id} in specification {specification.Id}");
 
@@ -227,11 +231,12 @@ namespace CalculateFunding.Services.Publishing
 
             IDictionary<string, PublishedProvider> publishedProvidersByPublishedProviderId = publishedProvidersForFundingStream.Values.ToDictionary(_ => _.PublishedProviderId);
 
-            IEnumerable<PublishedProvider> selectedPublishedProviders =
-                batchPublishedProviderIds.IsNullOrEmpty() ?
-                publishedProvidersForFundingStream.Values :
-                batchPublishedProviderIds.Where(_ => publishedProvidersByPublishedProviderId.ContainsKey(_)).Select(_ => publishedProvidersByPublishedProviderId[_]);
+            PublishedProvider[] selectedPublishedProviders =
+                 batchPublishedProviderIds.IsNullOrEmpty() ?
+                 publishedProvidersForFundingStream.Values.ToArray() :
+                 batchPublishedProviderIds.Where(_ => publishedProvidersByPublishedProviderId.ContainsKey(_)).Select(_ => publishedProvidersByPublishedProviderId[_]).ToArray();
 
+            _logger.Information($"A total of '{selectedPublishedProviders.Length}' selected published providers were found to publish");
 
             Dictionary<string, PublishedProvider> endStateReleasedProviders = publishedProvidersForFundingStream.Values.Where(_ => _.Released != null).ToDictionary(_ => _.Current.ProviderId);
 
@@ -247,6 +252,8 @@ namespace CalculateFunding.Services.Publishing
                     endStateReleasedProviders.Add(publishedProvider.Current.ProviderId, publishedProvider);
                 }
             }
+
+            _logger.Information("Added initial variation reasons");
 
             AddInitialPublishVariationReasons(selectedPublishedProviders);
 
@@ -279,15 +286,19 @@ namespace CalculateFunding.Services.Publishing
                 // if any error occurs while updating or indexing then we need to re-index all published providers and persist published funding for consistency
                 transaction.Enroll(async () =>
                 {
-                    await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id, jobId);
-                    await _createPublishIntegrityJob.CreateJob(specification.Id,
-                        author,
-                        correlationId,
-                        batchPublishedProviderIds.IsNullOrEmpty() ? null : new Dictionary<string, string>
-                        {
+                    if (enableIntegrityChecker)
+                    {
+                        // NOTE: This is a little strange, an entire reindex of the spec while we write to the index below at the same time in SavePublishedProviderContents
+                        await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id, jobId);
+                        await _createPublishIntegrityJob.CreateJob(specification.Id,
+                            author,
+                            correlationId,
+                            batchPublishedProviderIds.IsNullOrEmpty() ? null : new Dictionary<string, string>
+                            {
                             { "providers-batch", JsonExtensions.AsJson(selectedPublishedProviders.Select(_ => _.PublishedProviderId)) }
-                        },
-                        parentJobId: jobId);
+                            },
+                            parentJobId: jobId);
+                    }
                 });
 
                 await SavePublishedProvidersAsReleased(jobId, author, selectedPublishedProviders, correlationId);
@@ -313,7 +324,10 @@ namespace CalculateFunding.Services.Publishing
                 // if any error occurs while updating then we still need to run the indexer to be consistent
                 transaction.Enroll(async () =>
                 {
-                    await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
+                    if (enableIntegrityChecker)
+                    {
+                        await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
+                    }
                 });
 
                 // Save a version of published funding and set this version to current

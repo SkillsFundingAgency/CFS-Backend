@@ -68,12 +68,30 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         }
 
         public async Task SavePublishedProviderContents(
-            TemplateMapping templateMapping, 
-            IEnumerable<PublishedProviderVersion> publishedProviderVersions, 
+            TemplateMapping templateMapping,
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions,
             Channel channel)
         {
             _logger.Information("Saving published provider contents");
-            IDictionary<string, TemplateMetadataContents> schemaVersions = new Dictionary<string, TemplateMetadataContents>();
+            Dictionary<string, TemplateMetadataContents> schemaVersions = new Dictionary<string, TemplateMetadataContents>();
+
+            IEnumerable<string> templateVersions = publishedProviderVersions.GroupBy(_ => _.TemplateVersion).Select(_ => _.Key);
+
+            foreach (string templateVersion in templateVersions)
+            {
+                if (string.IsNullOrWhiteSpace(templateVersion))
+                {
+                    throw new InvalidOperationException("Template version is null or empty string");
+                }
+
+                TemplateMetadataContents templateContents =
+                                    await _policiesService.GetTemplateMetadataContents(
+                                            publishedProviderVersions.First().FundingStreamId,
+                                            publishedProviderVersions.First().FundingPeriodId,
+                                            templateVersion);
+
+                schemaVersions.Add(templateVersion, templateContents);
+            }
 
 
             List<Task> allTasks = new List<Task>();
@@ -86,22 +104,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     {
                         try
                         {
-                            string schemaVersionKey 
+                            string schemaVersionKey
                                 = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.TemplateVersion}".ToLower();
 
-                            if (!schemaVersions.ContainsKey(schemaVersionKey))
-                            {
-                                TemplateMetadataContents templateContents = 
-                                    await _policiesService.GetTemplateMetadataContents(
-                                            publishedProviderVersion.FundingStreamId, 
-                                            publishedProviderVersion.FundingPeriodId,
-                                            publishedProviderVersion.TemplateVersion);
-                                schemaVersions[schemaVersionKey] = templateContents;
-                            }
+                            TemplateMetadataContents templateContents = schemaVersions[publishedProviderVersion.TemplateVersion];
 
-                            IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(schemaVersions[schemaVersionKey].SchemaVersion);
+                            IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateContents.SchemaVersion);
 
-                            string contents = generator.GenerateContents(publishedProviderVersion, schemaVersions[schemaVersionKey], templateMapping);
+                            string contents = generator.GenerateContents(publishedProviderVersion, templateContents, templateMapping);
 
 
                             if (string.IsNullOrWhiteSpace(contents))
@@ -112,9 +122,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                             try
                             {
                                 await _publishedProviderChannelVersionService.SavePublishedProviderVersionBody(
-                                    publishedProviderVersion.FundingId, 
-                                    contents, 
-                                    publishedProviderVersion.SpecificationId, 
+                                    publishedProviderVersion.FundingId,
+                                    contents,
+                                    publishedProviderVersion.SpecificationId,
                                     channel.ChannelCode);
                             }
                             catch (Exception ex)

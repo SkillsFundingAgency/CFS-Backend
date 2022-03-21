@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
-        public TemplateMetadataContentsBuilder WithSchemeVersion(string schemaVersion)
+        public TemplateMetadataContentsBuilder WithSchemaVersion(string schemaVersion)
         {
             _schemaVersion = schemaVersion;
 

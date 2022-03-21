@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                                 = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.TemplateVersion}".ToLower();
 
             string schemaVersion = NewRandomString();
-            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithSchemeVersion(schemaVersion));
+            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithSchemaVersion(schemaVersion));
 
             _policiesService
                 .GetTemplateMetadataContents(publishedProviderVersion.FundingStreamId, publishedProviderVersion.FundingPeriodId, publishedProviderVersion.TemplateVersion)
@@ -131,7 +131,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.TemplateVersion}".ToLower();
 
             string schemaVersion = NewRandomString();
-            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithSchemeVersion(schemaVersion));
+            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithSchemaVersion(schemaVersion));
 
             _policiesService
                 .GetTemplateMetadataContents(publishedProviderVersion.FundingStreamId, publishedProviderVersion.FundingPeriodId, publishedProviderVersion.TemplateVersion)
@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.TemplateVersion}".ToLower();
 
             string schemaVersion = NewRandomString();
-            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithSchemeVersion(schemaVersion));
+            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithSchemaVersion(schemaVersion));
 
             _policiesService
                 .GetTemplateMetadataContents(publishedProviderVersion.FundingStreamId, publishedProviderVersion.FundingPeriodId, publishedProviderVersion.TemplateVersion)
@@ -258,7 +258,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.TemplateVersion}".ToLower();
 
             string schemaVersion = NewRandomString();
-            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithSchemeVersion(schemaVersion));
+            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithSchemaVersion(schemaVersion));
 
             _policiesService
                 .GetTemplateMetadataContents(publishedProviderVersion.FundingStreamId, publishedProviderVersion.FundingPeriodId, publishedProviderVersion.TemplateVersion)

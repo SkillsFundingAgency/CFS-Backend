@@ -152,14 +152,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            _releaseManagementRepository.InitialiseTransaction();
-
             string jobId = Job?.Id;
             Reference author = message.GetUserDetails();
             string correlationId = message.GetCorrelationId();
             string specificationId = message.GetUserProperty<string>("specification-id");
-
             ReleaseProvidersToChannelRequest model = message.GetPayloadAsInstanceOf<ReleaseProvidersToChannelRequest>();
+
+            _logger.Information("Starting release to channels job for specification '{specificationId}' as part of job '{jobId}'", specificationId, jobId);
+
+            _logger.Information("Initialising SQL transaction");
+            _releaseManagementRepository.InitialiseTransaction();
 
             try
             {
@@ -169,12 +171,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     correlationId,
                     author);
 
+                _logger.Information("Committing SQL transaction for release to channels on specification '{specificationId}'", specificationId);
                 _releaseManagementRepository.Commit();
             }
-            catch
+            catch (Exception ex)
             {
                 _releaseManagementRepository.RollBack();
+                _logger.Error(ex, "Error releasing provider versions");
+                throw;
             }
+
+            _logger.Information("Finished release to channels job on specification '{specificationId}'", specificationId);
         }
 
         public async Task ReleaseProviderVersions(
@@ -214,6 +221,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _releaseToChannelSqlMappingContext.Author = author;
             _releaseToChannelSqlMappingContext.CorrelationId = correlationId;
 
+            _logger.Information("Ensuring specification exists for release management");
             await _releaseManagementSpecificationService.EnsureReleaseManagementSpecification(specification);
 
             string fundingStreamId = specification.FundingStreams.First().Id;
@@ -227,12 +235,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             if (fundingConfiguration.ApprovalMode == ApprovalMode.All)
             {
+                _logger.Information("Loading all providers for release to channels for specification '{specificationId}'", specificationId);
                 IEnumerable<string> allModePublishedProviderIds = await _publishedProviderLookupService.GetEligibleProvidersToApproveAndRelease(specification.Id);
 
                 if (allModePublishedProviderIds.IsNullOrEmpty())
                 {
                     throw new InvalidOperationException("No providers found to release.");
                 }
+
+                _logger.Information("A total of '{Count}' providers are eligable for release for specification '{specificationId}'", allModePublishedProviderIds.Count(), specificationId);
 
                 releaseProvidersToChannelRequest.ProviderIds = allModePublishedProviderIds;
             }
@@ -243,17 +254,26 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             _publishProvidersLoadContext.SetSpecDetails(fundingStreamId, specification.FundingPeriod.Id);
 
+            _logger.Information("Loading '{Count}' providers records from cosmos for release to channels", providerIds.Count());
             await LoadGivenProvidersFromFundingApprovals(providerIds);
 
+            _logger.Information("Releasing providers in approved state for specification '{SpecificationId}'", specificationId);
             IEnumerable<string> providerIdsReleased = await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(specification);
+            _logger.Information("A total of '{Count}' approved providers released for specification '{SpecificationId}'", providerIdsReleased.Count(), specificationId);
 
+            _logger.Information("Refreshing context with approved providers ");
             await RefreshLoadContextWithProvidersApprovedNowReleased(providerIdsReleased);
 
+            _logger.Information("Loading existing release providers into context for specification '{SpecificationId}'", specificationId);
             await _existingReleasedProvidersLoadService.LoadExistingReleasedProviders(specificationId, providerIds);
+
+            _logger.Information("Loading existing release provider versions into context for specification '{SpecificationId}'", specificationId);
             await _existingReleasedProviderVersionsLoadService.LoadExistingReleasedProviderVersions(specificationId, providerIds, releaseProvidersToChannelRequest.Channels);
 
             foreach (KeyValuePair<string, SqlModels.Channel> channel in channels)
             {
+                _logger.Information("Releasing providers to channel '{ChannelCode}' for specification '{SpecificationId}'", channel.Value.ChannelCode, specificationId);
+
                 await _channelReleaseService.ReleaseProvidersForChannel(channel.Value,
                                                                         fundingConfiguration,
                                                                         specification,

@@ -1033,7 +1033,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             _calculationTemplateIds = new[] { new TemplateCalculationBuilder().Build(), new TemplateCalculationBuilder().Build(), new TemplateCalculationBuilder().Build() };
             _fundingLines = new[] { NewTemplateFundingLine(fl => fl.WithCalculations(_calculationTemplateIds)) };
-            _templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(_fundingLines).WithSchemeVersion("1.2"));
+            _templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(_fundingLines).WithSchemaVersion("1.2"));
 
             _policiesService
                 .Setup(_ => _.GetTemplateMetadataContents(FundingStreamId, _specificationSummary.FundingPeriod.Id, _specificationSummary.TemplateIds[FundingStreamId]))

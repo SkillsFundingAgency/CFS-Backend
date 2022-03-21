@@ -33,9 +33,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         {
             Guard.ArgumentNotNull(specification, nameof(specification));
 
-            IEnumerable<PublishedProvider> providersToRelease = _publishedProvidersLoadContext
+            PublishedProvider[] providersToRelease = _publishedProvidersLoadContext
                 .Values
-                .Where(_ => _.Current.Status == PublishedProviderStatus.Approved);
+                .Where(_ => _.Current.Status == PublishedProviderStatus.Approved).ToArray(); // Ensure array so cosmos query doesn't get loaded multiple times each eval
 
             if (providersToRelease.Any())
             {
@@ -49,7 +49,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                                                                     _releaseToChannelSqlMappingContext.JobId,
                                                                     _releaseToChannelSqlMappingContext.CorrelationId,
                                                                     specification,
-                                                                    publishedProviderIdsRequest);
+                                                                    publishedProviderIdsRequest,
+                                                                    false);
             }
 
             return providersToRelease.Select(_ => _.Current.ProviderId);

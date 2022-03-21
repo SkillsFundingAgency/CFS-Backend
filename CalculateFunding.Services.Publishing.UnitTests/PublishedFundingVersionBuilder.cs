@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
+using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<VariationReason> _variationReasons;
         private decimal? _totalFunding;
         private DateTime _statusChangedDate;
-
+        private string _templateVersion;
 
         public PublishedFundingVersionBuilder WithFundingId(string fundingId)
         {
@@ -49,6 +49,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public PublishedFundingVersionBuilder WithAuthor(Reference author)
         {
             _author = author;
+
+            return this;
+        }
+
+        public PublishedFundingVersionBuilder WithTemplateVersion(string templateVersion)
+        {
+            _templateVersion = templateVersion;
 
             return this;
         }
@@ -201,8 +208,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Date = _date,
                 FundingLines = _fundingLines,
                 VariationReasons = _variationReasons,
-                TotalFunding =_totalFunding,
-                StatusChangedDate = _statusChangedDate
+                TotalFunding = _totalFunding,
+                StatusChangedDate = _statusChangedDate,
+                TemplateVersion = _templateVersion,
             };
         }
     }

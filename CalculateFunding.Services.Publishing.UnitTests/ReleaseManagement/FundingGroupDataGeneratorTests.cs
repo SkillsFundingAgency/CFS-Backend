@@ -1,26 +1,26 @@
 ﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Generators.OrganisationGroup.Enums;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using CalculateFunding.Generators.OrganisationGroup.Models;
 using Moq;
 using Polly;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using CalculateFunding.Generators.OrganisationGroup.Enums;
-using CalculateFunding.Common.TemplateMetadata.Models;
-using CalculateFunding.Services.Publishing.Models;
-using Provider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using System.Linq;
-using FluentAssertions;
-using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
+using System.Threading.Tasks;
+using Provider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 {
@@ -120,8 +120,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GivenFundingIdReturns();
 
             IEnumerable<GeneratedPublishedFunding> result = await _service.Generate(
-                _organisationGroupsToCreate, 
-                _specificationSummary, 
+                _organisationGroupsToCreate,
+                _specificationSummary,
                 _channel, new List<string> { new RandomString()
                 },
                 _author,
@@ -188,9 +188,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GivenPublishedFunding();
 
             Func<Task> result = () => _service.Generate(
-                _organisationGroupsToCreate, 
-                _specificationSummary, 
-                _channel, 
+                _organisationGroupsToCreate,
+                _specificationSummary,
+                _channel,
                 new List<string> { new RandomString() },
                 _author,
                 _jobId,
@@ -210,7 +210,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GivenPublishedFunding(setMissingPublishedFunding: true);
 
             Func<Task> result = () => _service.Generate(
-                _organisationGroupsToCreate, _specificationSummary, 
+                _organisationGroupsToCreate, _specificationSummary,
                 _channel,
                 new List<string> { new RandomString() },
                 _author,
@@ -261,13 +261,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 GroupingReason = Enum.Parse<CalculateFunding.Models.Publishing.GroupingReason>(groupingReason.ToString()),
                 OrganisationGroupTypeCode = groupTypeCode.ToString(),
                 OrganisationGroupTypeIdentifier = groupTypeIdentifier.ToString(),
+                OrganisationGroupIdentifierValue = groupIdentifier,
                 Version = new RandomNumberBetween(1, 10),
                 FundingId = new RandomString(),
                 SchemaVersion = _schemaVersion,
             };
 
             _releaseManagementRepository.Setup(_ => _.GetLatestFundingGroupMajorVersionsBySpecificationId(_specificationSummary.Id, _channel.ChannelId))
-                .ReturnsAsync( Enumerable.Empty<LatestFundingGroupVersion>());
+                .ReturnsAsync(Enumerable.Empty<LatestFundingGroupVersion>());
 
             _organisationGroupsToCreate = new List<OrganisationGroupResult>
             {
@@ -281,11 +282,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 }
             };
 
-             _publishedFunding =
-                new List<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)>
-                {
+            _publishedFunding =
+               new List<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)>
+               {
                     (new PublishedFunding { Current = publishedProviderVersion }, publishedProviderVersion)
-                };
+               };
 
             _publishedFundingGenerator.Setup(_ => _.GeneratePublishedFunding(
                 It.IsAny<PublishedFundingInput>(),

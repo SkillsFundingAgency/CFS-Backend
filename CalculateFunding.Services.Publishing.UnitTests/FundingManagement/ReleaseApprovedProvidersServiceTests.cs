@@ -9,11 +9,9 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
@@ -30,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
         private string _fundingStreamId;
         private string _fundingPeriodId;
         private string _jobId;
-        private Reference _author; 
+        private Reference _author;
 
         [TestInitialize]
         public void SetUp()
@@ -52,8 +50,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
             _releaseContext.SetupGet(_ => _.CorrelationId)
                 .Returns(_correlationId);
 
-             _releaseContext.SetupGet(_ => _.JobId)
-                .Returns(_jobId);
+            _releaseContext.SetupGet(_ => _.JobId)
+               .Returns(_jobId);
 
             _releaseApprovedProvidersService = new ReleaseApprovedProvidersService(
                 _publishService.Object,
@@ -98,19 +96,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
                     _correlationId,
                     _specification,
                     It.Is<PublishedProviderIdsRequest>(ppr =>
-                        ppr.PublishedProviderIds.SequenceEqual(publishedProviderIds))));
+                        ppr.PublishedProviderIds.SequenceEqual(publishedProviderIds)), false)
+                );
             }
         }
 
         private static IEnumerable<object[]> ExampleProvidersAndExpectedResult()
         {
             PublishedProvider[] publishedProviders = ArraySegment<PublishedProvider>.Empty.ToArray();
-            
+
             yield return new object[] { publishedProviders, ArraySegment<string>.Empty.ToArray(), ArraySegment<string>.Empty.ToArray() };
 
             publishedProviders = GetPublishedProviders(3, PublishedProviderStatus.Approved, publishedProviders);
 
-            yield return new object[] { publishedProviders, publishedProviders.Select(_ => $"{_.Current.FundingStreamId}-{_.Current.FundingPeriodId}-{_.Current.ProviderId}"), publishedProviders.Where(_ => _.Current.Status == PublishedProviderStatus.Approved).Select(_ => _.Current.ProviderId)  };
+            yield return new object[] { publishedProviders, publishedProviders.Select(_ => $"{_.Current.FundingStreamId}-{_.Current.FundingPeriodId}-{_.Current.ProviderId}"), publishedProviders.Where(_ => _.Current.Status == PublishedProviderStatus.Approved).Select(_ => _.Current.ProviderId) };
 
             publishedProviders = GetPublishedProviders(3, PublishedProviderStatus.Updated, publishedProviders);
             publishedProviders = GetPublishedProviders(3, PublishedProviderStatus.Draft, publishedProviders);
@@ -122,15 +121,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
         private static PublishedProvider[] GetPublishedProviders(int count, PublishedProviderStatus status,
                 PublishedProvider[] publishedProviders)
         {
-            for (int i = 0;i<=count;i++)
+            for (int i = 0; i <= count; i++)
             {
                 publishedProviders = publishedProviders.Concat(new[] {
-                    NewPublishedProvider(_ => 
+                    NewPublishedProvider(_ =>
                     _.WithCurrent(NewPublishedProviderVersion(ppv =>
                         ppv.WithPublishedProviderStatus(status)
                         .WithFundingStreamId("FS1")
                         .WithFundingPeriodId("FP2")
-                    ))) 
+                    )))
                 }).ToArray();
             }
 

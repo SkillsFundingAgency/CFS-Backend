@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 OrganisationGroupResult organisationGroupResult = organisationGroupsToCreate.SingleOrDefault(
                     fg => fg.GroupReason.ToString() == publishedFunding.PublishedFundingVersion.GroupingReason.ToString()
                     && fg.GroupTypeCode.ToString() == publishedFunding.PublishedFundingVersion.OrganisationGroupTypeCode
-                    && fg.GroupTypeIdentifier.ToString() == publishedFunding.PublishedFundingVersion.OrganisationGroupTypeIdentifier);
+                    && fg.IdentifierValue == publishedFunding.PublishedFundingVersion.OrganisationGroupIdentifierValue);
 
                 if (organisationGroupResult == null)
                 {

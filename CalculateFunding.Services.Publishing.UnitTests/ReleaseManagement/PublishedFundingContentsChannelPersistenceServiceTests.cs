@@ -29,8 +29,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
         private PublishedFundingPeriod _publishedFundingPeriod;
         private const string ProviderVersionFundingStreamId = "providerVersionFundingStreamId";
-        
+
         private IBlobClient _blobClient;
+        private string _templateVersion;
 
         [TestInitialize]
         public void SetUp()
@@ -55,6 +56,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 new PublishingEngineOptions(configuration),
                 _policiesService);
 
+            _templateVersion = "1.2";
+
             _publishedFundingPeriod = new PublishedFundingPeriod { Id = $"{PublishedFundingPeriodType.AY}-123", Type = PublishedFundingPeriodType.AY, Period = "123" };
         }
 
@@ -66,6 +69,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
             PublishedFundingVersion publishedFundingVersion = NewPublishedFundingVersion(fundingVersion => fundingVersion
                 .WithFundingId("funding1")
+                .WithTemplateVersion(_templateVersion)
                 .WithFundingPeriod(_publishedFundingPeriod)
                 .WithFundingStreamId(ProviderVersionFundingStreamId)
                 .WithGroupReason(CalculateFunding.Models.Publishing.GroupingReason.Payment)
@@ -83,7 +87,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     = $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.TemplateVersion}".ToLower();
 
             string schemaVersion = NewRandomString();
-            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithSchemeVersion(schemaVersion));
+            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithSchemaVersion(schemaVersion));
 
             _policiesService
                 .GetTemplateMetadataContents(publishedFundingVersion.FundingStreamId, publishedFundingVersion.FundingPeriod.Id, publishedFundingVersion.TemplateVersion)
@@ -106,7 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             // Assert
             _logger
                 .Received()
-                .Information("Published funding contents saved to blob");
+                .Debug("Published funding contents saved to blob");
         }
 
         private PublishedFundingVersion NewPublishedFundingVersion(Action<PublishedFundingVersionBuilder> setUp = null)

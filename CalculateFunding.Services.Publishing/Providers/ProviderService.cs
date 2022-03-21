@@ -195,6 +195,8 @@ namespace CalculateFunding.Services.Publishing.Providers
             IDictionary<string, Provider> scopedProviders =
                 await GetScopedProvidersForSpecification(specification.Id, specification.ProviderVersionId);
 
+            _logger.Information($"Retrieved {scopedProviders.Count} scoped providers for specification '{specification.Id}'");
+
             FundingConfiguration configuration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
 
             IDictionary<string, PublishedProvider> scopedPublishedProvidersForFundingStream = ReadScopedProviders(publishedProvidersForFundingStream, scopedProviders, configuration.SuccessorCheck);

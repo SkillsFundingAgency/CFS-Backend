@@ -1,20 +1,20 @@
-﻿using Serilog;
-using CalculateFunding.Services.Core;
+﻿using CalculateFunding.Common.Helpers;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
+using Microsoft.Azure.Storage.Blob;
+using Polly;
+using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
-using Polly;
-using CalculateFunding.Common.Storage;
-using Microsoft.Azure.Storage.Blob;
-using CalculateFunding.Common.Helpers;
-using System.Collections.Concurrent;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
 {
@@ -55,8 +55,26 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Channel channel)
         {
             _logger.Information("Saving published funding contents");
-            ConcurrentDictionary<string, TemplateMetadataContents> templateMetadataContentsCache = new ConcurrentDictionary<string, TemplateMetadataContents>();
-            
+            Dictionary<string, TemplateMetadataContents> templateMetadataContentsCache = new Dictionary<string, TemplateMetadataContents>();
+
+            IEnumerable<string> templateVersions = publishedFundingVersionsToSave.GroupBy(_ => _.TemplateVersion).Select(_ => _.Key);
+
+            foreach (string templateVersion in templateVersions)
+            {
+                if (string.IsNullOrWhiteSpace(templateVersion))
+                {
+                    throw new InvalidOperationException("Template version is null or empty string");
+                }
+
+                TemplateMetadataContents templateContents =
+                                    await _policiesService.GetTemplateMetadataContents(
+                                            publishedFundingVersionsToSave.First().FundingStreamId,
+                                            publishedFundingVersionsToSave.First().FundingPeriod.Id,
+                                            templateVersion);
+
+                templateMetadataContentsCache.Add(templateVersion, templateContents);
+            }
+
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.SavePublishedFundingContentsConcurrencyCount);
             foreach (PublishedFundingVersion publishedFundingVersion in publishedFundingVersionsToSave)
@@ -67,23 +85,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     {
                         try
                         {
-                            string templateVersionKey
-                                = $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.TemplateVersion}".ToLower();
+                            TemplateMetadataContents templateContents = templateMetadataContentsCache[publishedFundingVersion.TemplateVersion];
 
-                            if (!templateMetadataContentsCache.ContainsKey(templateVersionKey))
-                            {
-                                TemplateMetadataContents templateContents =
-                                    await _policiesService.GetTemplateMetadataContents(
-                                            publishedFundingVersion.FundingStreamId,
-                                            publishedFundingVersion.FundingPeriod.Id,
-                                            publishedFundingVersion.TemplateVersion);
+                            IPublishedFundingContentsGenerator generator = _publishedFundingContentsGeneratorResolver.GetService(templateContents.SchemaVersion);
 
-                                templateMetadataContentsCache.TryAdd(templateVersionKey, templateContents);
-                            }
-
-                            IPublishedFundingContentsGenerator generator = _publishedFundingContentsGeneratorResolver.GetService(templateMetadataContentsCache[templateVersionKey].SchemaVersion);
-
-                            string contents = generator.GenerateContents(publishedFundingVersion, templateMetadataContentsCache[templateVersionKey]);
+                            string contents = generator.GenerateContents(publishedFundingVersion, templateContents);
 
                             if (string.IsNullOrWhiteSpace(contents))
                             {
@@ -94,7 +100,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                             await _blobClientPolicy.ExecuteAsync(() =>
                                 UploadBlob(blobName, contents, GetMetadata(publishedFundingVersion)));
 
-                            _logger.Information("Published funding contents saved to blob");
+                            _logger.Debug("Published funding contents saved to blob");
                         }
                         finally
                         {
@@ -118,7 +124,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 ICloudBlob blob = _blobClient.GetBlockBlobReference(blobName);
                 await _blobClient.AddMetadataAsync(blob, metadata);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string errorMessage = $"Failed to save blob '{blobName}' to azure storage";
                 _logger.Error(ex, errorMessage);
