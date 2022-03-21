@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Results.SqlExport
             IEnumerable<CalcsApiCalculation> templateCalculations = _calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Additional);
 
             CalculationResult[] templateCalculationResults = dto.CalculationResults.Where(_ => templateCalculations.Select(_ => _.Id).Contains(_.Calculation.Id))
-                .OrderBy(_ => _.Calculation.Id)
+                .OrderBy(_ => _.Calculation.Name)
                 .ToArray();
 
             return new[]
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Results.SqlExport
             IEnumerable<CalcsApiCalculation> templateCalculations = _calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Additional);
 
             IEnumerable<object> templateCalculationValues = dto.CalculationResults.Where(_ => templateCalculations.Select(_ => _.Id).Contains(_.Calculation.Id))
-                .OrderBy(_ => _.Calculation.Id)
+                .OrderBy(_ => _.Calculation.Name)
                 .Select(_ => _.Value);
 
             DataTable.Rows.Add(new[]
