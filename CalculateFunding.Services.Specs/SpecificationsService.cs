@@ -583,19 +583,22 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> CreateSpecification(SpecificationCreateModel createModel, Reference user, string correlationId)
         {
+            ValidationResult validationResult = new ValidationResult();
+            
             if (createModel == null)
             {
-                return new BadRequestObjectResult("Null policy create model provided");
+                validationResult.Errors.Add(new ValidationFailure(nameof(createModel), "Null policy create model provided"));
+                return validationResult.AsBadRequest(); ;
             }
 
             createModel.Name = createModel.Name?.Trim();
 
-            BadRequestObjectResult validationResult =
+            BadRequestObjectResult badRequestObjectResult =
                 (await _specificationCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
 
-            if (validationResult != null)
+            if (badRequestObjectResult != null)
             {
-                return validationResult;
+                return badRequestObjectResult;
             }
 
             ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse =
@@ -793,31 +796,36 @@ namespace CalculateFunding.Services.Specs
             Reference user,
             string correlationId)
         {
+            ValidationResult validationResult = new ValidationResult();
+
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to EditSpecification");
-                return new BadRequestObjectResult("Null or empty specification Id provided");
+                validationResult.Errors.Add(new ValidationFailure(nameof(specificationId), "Null or empty specification Id provided"));
+                return validationResult.AsBadRequest();
             }
 
             if (editModel == null)
             {
                 _logger.Error("No edit model was provided to EditSpecification");
-                return new BadRequestObjectResult("Null edit specification model provided");
+                validationResult.Errors.Add(new ValidationFailure(nameof(editModel), "Null edit specification model provided"));
+                return validationResult.AsBadRequest();
             }
 
             if (await IsAnySpecificationJobRunning(specificationId))
             {
-                return new BadRequestObjectResult("Specification cannot be edited while specification jobs are running");
+                validationResult.Errors.Add(new ValidationFailure(nameof(specificationId), "Specification cannot be edited while specification jobs are running"));
+                return validationResult.AsBadRequest();
             }
 
             editModel.Name = editModel.Name?.Trim();
             editModel.SpecificationId = specificationId;
 
-            BadRequestObjectResult validationResult =
+            BadRequestObjectResult badRequestObjectResult =
                 (await _specificationEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
-            if (validationResult != null)
+            if (badRequestObjectResult != null)
             {
-                return validationResult;
+                return badRequestObjectResult;
             }
 
             Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
