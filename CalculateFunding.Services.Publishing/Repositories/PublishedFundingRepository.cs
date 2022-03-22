@@ -144,12 +144,13 @@ namespace CalculateFunding.Services.Publishing.Repositories
             int majorVersion)
         {
             return (await _repository
-                .QuerySql<PublishedProviderVersion>(new CosmosDbQuery
+                .QueryPartitionedEntity<PublishedProviderVersion>(new CosmosDbQuery
                 {
                     QueryText = @"SELECT *
                                  FROM c
                                  WHERE c.documentType = 'PublishedProviderVersion'
                                  AND c.deleted = false
+                                 AND c.content.status = 'Released'
                                  AND c.content.providerId = @providerId
                                  AND c.content.fundingStreamId = @fundingStreamId
                                  AND c.content.fundingPeriodId = @fundingPeriodId
@@ -161,7 +162,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                         new CosmosDbQueryParameter("@providerId", providerId),
                         new CosmosDbQueryParameter("@majorVersion", majorVersion),
                     }
-                }))
+                }, partitionKey: $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}"))
                 .SingleOrDefault();
         }
 

@@ -212,7 +212,7 @@ namespace CalculateFunding.Services.Publishing
             string correlationId,
             PrerequisiteCheckerType prerequisiteCheckerType,
             string[] batchPublishedProviderIds = null,
-            bool enableIntegrityChecker = true)
+            bool publishFundingJobWithv3Only = true)
         {
             _logger.Information($"Processing Publish Funding for {fundingStream.Id} in specification {specification.Id}");
 
@@ -286,7 +286,7 @@ namespace CalculateFunding.Services.Publishing
                 // if any error occurs while updating or indexing then we need to re-index all published providers and persist published funding for consistency
                 transaction.Enroll(async () =>
                 {
-                    if (enableIntegrityChecker)
+                    if (publishFundingJobWithv3Only)
                     {
                         // NOTE: This is a little strange, an entire reindex of the spec while we write to the index below at the same time in SavePublishedProviderContents
                         await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id, jobId);
@@ -324,7 +324,7 @@ namespace CalculateFunding.Services.Publishing
                 // if any error occurs while updating then we still need to run the indexer to be consistent
                 transaction.Enroll(async () =>
                 {
-                    if (enableIntegrityChecker)
+                    if (publishFundingJobWithv3Only)
                     {
                         await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
                     }

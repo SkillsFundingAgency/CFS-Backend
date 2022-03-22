@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<IReleaseToChannelSqlMappingContext> _releaseContext;
         private Mock<IExistingReleasedProvidersLoadService> _existingReleasedProvidersLoadService;
         private Mock<IExistingReleasedProviderVersionsLoadService> _existingReleasedProviderVersionsLoadService;
-
+        private Mock<IPublishedProviderVersionService> _publishedProviderVersionService;
         private Mock<IPublishedProviderLookupService> _publishedProvidersLookupService;
         private ISpecificationIdServiceRequestValidator _specificationIdServiceRequestValidator;
         private string _providerId;
@@ -69,6 +69,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _releaseContext = new Mock<IReleaseToChannelSqlMappingContext>();
             _existingReleasedProvidersLoadService = new Mock<IExistingReleasedProvidersLoadService>();
             _existingReleasedProviderVersionsLoadService = new Mock<IExistingReleasedProviderVersionsLoadService>();
+            _publishedProviderVersionService = new Mock<IPublishedProviderVersionService>();
             _publishedProvidersLookupService = new Mock<IPublishedProviderLookupService>();
             _specificationIdServiceRequestValidator = new PublishSpecificationValidator();
             _providerId = new RandomString();
@@ -90,7 +91,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _existingReleasedProvidersLoadService.Object,
                 _existingReleasedProviderVersionsLoadService.Object,
                 _publishedProvidersLookupService.Object,
-                _specificationIdServiceRequestValidator
+                _specificationIdServiceRequestValidator,
+                _publishedProviderVersionService.Object
                 );
         }
 
