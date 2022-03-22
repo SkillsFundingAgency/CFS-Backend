@@ -1,30 +1,30 @@
-﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
+﻿using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Storage.Blob;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
+using Serilog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Publishing.Models;
-using CalculateFunding.Services.Core.Interfaces;
-using Microsoft.Azure.Storage.Blob;
-using System.IO;
-using CalculateFunding.Common.Storage;
-using Serilog;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
-using NSubstitute.ExceptionExtensions;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
-using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
@@ -654,15 +654,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             string providerId = NewRandomString();
             Reference author = new Reference(NewRandomString(), NewRandomString());
 
+            DateTime statusChangedDate = new RandomDateTime();
+
+            decimal approvedFundingAmount = new decimal(NewRandomNumber());
+
             GivenTheUnreleasedPublishedProviderVersions(providerId, new PublishedProviderVersion
             {
                 ProviderId = providerId,
                 Author = author,
-                Date = new RandomDateTime(),
+                Date = statusChangedDate,
                 Status = PublishedProviderStatus.Approved,
-                TotalFunding = new decimal(NewRandomNumber()),
-                MajorVersion = NewRandomNumber(),
-                MinorVersion = NewRandomNumber(),
+                TotalFunding = approvedFundingAmount,
+                MajorVersion = 0,
+                MinorVersion = 1,
                 VariationReasons = new List<VariationReason>
                 {
                     VariationReason.AuthorityFieldUpdated,
@@ -672,35 +676,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             string authorId = NewRandomString();
             string authorName = NewRandomString();
-            DateTime statusChangedDate = new RandomDateTime();
-            int majorVersion = NewRandomNumber();
-            int minorVersion = NewRandomNumber();
+
+            string author2Id = NewRandomString();
+            string author2Name = NewRandomString();
+
             decimal totalFunding = new decimal(NewRandomNumber());
+
+            string variationReasonsForStatement = NewRandomString();
+            string variationReasonsForContracting = NewRandomString();
 
             GivenTheReleasedDataAllocationHistory(providerId, new ReleasedDataAllocationHistory
             {
                 ProviderId = providerId,
                 AuthorId = authorId,
                 AuthorName = authorName,
-                StatusChangedDate = statusChangedDate,
-                MajorVersion = majorVersion,
-                MinorVersion = minorVersion,
+                StatusChangedDate = statusChangedDate.AddHours(2),
+                MajorVersion = 2,
+                MinorVersion = 0,
                 TotalFunding = totalFunding,
                 ChannelCode = "Statement",
                 ChannelName = "Statement",
-                VariationReasonName = NewRandomString()
+                VariationReasonName = variationReasonsForStatement,
             }, new ReleasedDataAllocationHistory
             {
                 ProviderId = providerId,
-                AuthorId = authorId,
-                AuthorName = authorName,
-                StatusChangedDate = statusChangedDate,
-                MajorVersion = majorVersion,
-                MinorVersion = minorVersion,
+                AuthorId = author2Id,
+                AuthorName = author2Name,
+                StatusChangedDate = statusChangedDate.AddHours(1),
+                MajorVersion = 1,
+                MinorVersion = 0,
                 TotalFunding = totalFunding,
                 ChannelCode = "Contracting",
-                ChannelName = "Contracting",
-                VariationReasonName = NewRandomString()
+                ChannelName = "Contracting channel name",
+                VariationReasonName = variationReasonsForContracting,
             });
 
             OkObjectResult result = await WhenGetPublishedProviderTransactions(_specificationId, providerId) as OkObjectResult;
@@ -723,6 +731,49 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Where(_ => _.Status == PublishedProviderStatus.Released)
                 .Should()
                 .HaveCount(2);
+
+            values.Should().BeEquivalentTo(new List<ReleasePublishedProviderTransaction>()
+            {
+                new ReleasePublishedProviderTransaction()
+                {
+                    Author = new Reference(authorId, authorName),
+                    ChannelCode = "Statement",
+                    ChannelName = "Statement",
+                    Date = statusChangedDate.AddHours(2),
+                    MajorVersion = 2,
+                    MinorVersion = 0,
+                    ProviderId = providerId,
+                    Status = PublishedProviderStatus.Released,
+                    TotalFunding = totalFunding,
+                    VariationReasons = new string[]{ variationReasonsForStatement },
+                },
+                new ReleasePublishedProviderTransaction()
+                {
+                    Author = new Reference(author2Id, author2Name),
+                    ChannelCode = "Contracting",
+                    ChannelName = "Contracting channel name",
+                    Date = statusChangedDate.AddHours(1),
+                    MajorVersion = 1,
+                    MinorVersion = 0,
+                    ProviderId = providerId,
+                    Status = PublishedProviderStatus.Released,
+                    TotalFunding = totalFunding,
+                    VariationReasons = new string[]{ variationReasonsForContracting },
+                },
+                new ReleasePublishedProviderTransaction()
+                {
+                    Author = author,
+                    ChannelCode = null,
+                    ChannelName = null,
+                    Date = statusChangedDate,
+                    MajorVersion = 0,
+                    MinorVersion = 1,
+                    ProviderId = providerId,
+                    Status = PublishedProviderStatus.Approved,
+                    TotalFunding = approvedFundingAmount,
+                    VariationReasons = new [] { "AuthorityFieldUpdated", "CalculationValuesUpdated" }
+                },
+            });
         }
 
         public void GivenBlobUrl(string blobNamePrefix, string expectedUrl)

@@ -1,26 +1,27 @@
-﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
+﻿using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Helpers;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Publishing.Interfaces;
-using FluentValidation.Results;
-using Microsoft.AspNetCore.Mvc;
-using Polly;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Core.Interfaces;
-using System;
-using Microsoft.Azure.Storage.Blob;
-using System.IO;
-using CalculateFunding.Common.Storage;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
-using Serilog;
-using Newtonsoft.Json;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
-using CalculateFunding.Common.Models;
+using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Storage.Blob;
+using Newtonsoft.Json;
+using Polly;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
@@ -244,11 +245,16 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
-            IEnumerable<PublishedProviderVersion> unreleasedProviderVersions = await _publishedFundingRepositoryResilience.ExecuteAsync(() =>
+            Task<IEnumerable<PublishedProviderVersion>> unreleasedProviderVersionsQuery = _publishedFundingRepositoryResilience.ExecuteAsync(() =>
                 _publishedFundingRepository.GetUnreleasedPublishedProviderVersions(specificationId, providerId));
 
-            IEnumerable<ReleasedDataAllocationHistory> releasedData =
-                await _releaseManagementRepository.GetPublishedProviderTransactionHistory(specificationId, providerId);
+            Task<IEnumerable<ReleasedDataAllocationHistory>> releasedDataQuery =
+                 _releaseManagementRepository.GetPublishedProviderTransactionHistory(specificationId, providerId);
+
+            await TaskHelper.WhenAllAndThrow(unreleasedProviderVersionsQuery, releasedDataQuery);
+
+            IEnumerable<PublishedProviderVersion> unreleasedProviderVersions = unreleasedProviderVersionsQuery.Result;
+            IEnumerable<ReleasedDataAllocationHistory> releasedData = releasedDataQuery.Result;
 
             IEnumerable<ReleasePublishedProviderTransaction> unreleasedTransaction = unreleasedProviderVersions.Select(x => new ReleasePublishedProviderTransaction
             {
@@ -286,7 +292,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                     MinorVersion = x.Key.MinorVersion,
                     ChannelCode = x.Key.ChannelCode,
                     ChannelName = x.Key.ChannelName,
-                    VariationReasons = x.Select(s => s.VariationReasonName).ToArray()
+                    VariationReasons = x.Select(s => s.VariationReasonName).ToArray(),
+                    TotalFunding = x.Key.TotalFunding,
                 });
 
             return new OkObjectResult(
