@@ -28,6 +28,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     {
         private readonly ISpecificationIdServiceRequestValidator _specificationIdValidator;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
+        private readonly IPostReleaseJobCreationService _postReleaseJobCreationService;
         private readonly ISpecificationService _specificationService;
         private readonly IPoliciesService _policiesService;
         private readonly IChannelsService _channelService;
@@ -60,7 +61,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IExistingReleasedProviderVersionsLoadService existingReleasedProviderVersionsLoadService,
             IPublishedProviderLookupService publishedProviderLookupService,
             ISpecificationIdServiceRequestValidator specificationIdValidator,
-            IPublishedProviderVersionService publishedProviderVersionService) : base(jobManagement, logger)
+            IPublishedProviderVersionService publishedProviderVersionService,
+            IPostReleaseJobCreationService postReleaseJobCreationService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
@@ -77,6 +79,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(publishedProviderLookupService, nameof(publishedProviderLookupService));
             Guard.ArgumentNotNull(specificationIdValidator, nameof(specificationIdValidator));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
+            Guard.ArgumentNotNull(postReleaseJobCreationService, nameof(postReleaseJobCreationService));
 
             _specificationService = specificationService;
             _policiesService = policiesService;
@@ -94,6 +97,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _publishedProviderLookupService = publishedProviderLookupService;
             _specificationIdValidator = specificationIdValidator;
             _publishedProviderVersionService = publishedProviderVersionService;
+            _postReleaseJobCreationService = postReleaseJobCreationService;
         }
 
         public async Task<IActionResult> QueueRelease(string specificationId,
@@ -164,42 +168,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             _logger.Information("Starting release to channels job for specification '{specificationId}' as part of job '{jobId}'", specificationId, jobId);
 
-            _logger.Information("Initialising SQL transaction");
-            _releaseManagementRepository.InitialiseTransaction();
-
-            try
-            {
-                await ReleaseProviderVersions(specificationId,
-                    model,
-                    jobId,
-                    correlationId,
-                    author);
-
-                _logger.Information("Committing SQL transaction for release to channels on specification '{specificationId}'", specificationId);
-                _releaseManagementRepository.Commit();
-            }
-            catch (Exception ex)
-            {
-                _releaseManagementRepository.RollBack();
-                _logger.Error(ex, "Error releasing provider versions");
-                throw;
-            }
-            finally
-            {
-                await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specificationId, parentJobId: null);
-            }
-
-
-            _logger.Information("Finished release to channels job on specification '{specificationId}'", specificationId);
-        }
-
-        public async Task ReleaseProviderVersions(
-            string specificationId,
-            ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest,
-            string jobId,
-            string correlationId,
-            Reference author)
-        {
+            _logger.Information("Getting specification summary for job '{jobId}'", jobId);
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
             if (specification == null)
             {
@@ -210,6 +179,54 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             {
                 throw new InvalidOperationException("Specification is not chosen for funding");
             }
+
+
+            _logger.Information("Initialising SQL transaction");
+            _releaseManagementRepository.InitialiseTransaction();
+
+            try
+            {
+                await ReleaseProviderVersions(specification,
+                    model,
+                    jobId,
+                    correlationId,
+                    author);
+
+                _logger.Information("Committing SQL transaction for release to channels on specification '{specificationId}'", specificationId);
+                _releaseManagementRepository.Commit();
+
+                _logger.Information("Queueing post release jobs for release to channels job '{jobId}'", jobId);
+                await _postReleaseJobCreationService.QueueJobs(specification, correlationId, author);
+                _logger.Information("Post release jobs queued for job ID '{jobId}'", jobId);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.Information("Starting rollback for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
+                _releaseManagementRepository.RollBack();
+                _logger.Information("SQL rollback complete for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
+
+                _logger.Information("Queuing published provider search indexer job for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
+                await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specificationId, jobId);
+                _logger.Information("Queued published provider search indexer in release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
+
+                _logger.Error(ex, "Error releasing provider versions in specification '{specificationId}'", specificationId);
+                throw;
+            }
+
+            _logger.Information("Completed release to channels job '{jobId}' on specification '{specificationId}' successfully", jobId,  specificationId);
+        }
+
+        public async Task ReleaseProviderVersions(
+            SpecificationSummary specification,
+            ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest,
+            string jobId,
+            string correlationId,
+            Reference author)
+        {
+            Guard.ArgumentNotNull(specification, nameof(specification));
+
+            string specificationId = specification.Id;
 
             _logger.Information($"Verifying prerequisites for release providers to channels");
 

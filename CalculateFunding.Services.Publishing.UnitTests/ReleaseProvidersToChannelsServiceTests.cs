@@ -47,6 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<IExistingReleasedProviderVersionsLoadService> _existingReleasedProviderVersionsLoadService;
         private Mock<IPublishedProviderVersionService> _publishedProviderVersionService;
         private Mock<IPublishedProviderLookupService> _publishedProvidersLookupService;
+        private Mock<IPostReleaseJobCreationService> _postReleaseJobCreationService;
         private ISpecificationIdServiceRequestValidator _specificationIdServiceRequestValidator;
         private string _providerId;
         private string _specificationId;
@@ -71,6 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _existingReleasedProviderVersionsLoadService = new Mock<IExistingReleasedProviderVersionsLoadService>();
             _publishedProviderVersionService = new Mock<IPublishedProviderVersionService>();
             _publishedProvidersLookupService = new Mock<IPublishedProviderLookupService>();
+            _postReleaseJobCreationService = new Mock<IPostReleaseJobCreationService>();
             _specificationIdServiceRequestValidator = new PublishSpecificationValidator();
             _providerId = new RandomString();
             _specificationId = new RandomString();
@@ -92,7 +94,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _existingReleasedProviderVersionsLoadService.Object,
                 _publishedProvidersLookupService.Object,
                 _specificationIdServiceRequestValidator,
-                _publishedProviderVersionService.Object
+                _publishedProviderVersionService.Object,
+                _postReleaseJobCreationService.Object
                 );
         }
 

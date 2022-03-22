@@ -1,11 +1,8 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Models;
-using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
@@ -70,7 +67,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             ReleaseFundingForChannelsRequest releaseFundingForChannelsRequest = table.CreateInstance<ReleaseFundingForChannelsRequest>();
             Reference author = new Reference(releaseFundingForChannelsRequest.AuthorId, releaseFundingForChannelsRequest.AuthorName);
 
-            await _releaseProvidersToChannelsService.ReleaseProviderVersions(_spec.SpecificationId,
+            Common.ApiClient.Specifications.Models.SpecificationSummary specification = await _spec.Repo.GetSpecificationSummaryById(_spec.SpecificationId);
+
+            await _releaseProvidersToChannelsService.ReleaseProviderVersions(specification,
                  _ctx.Request,
                  _currentJobStepContext.JobId,
                  releaseFundingForChannelsRequest.CorrelationId,

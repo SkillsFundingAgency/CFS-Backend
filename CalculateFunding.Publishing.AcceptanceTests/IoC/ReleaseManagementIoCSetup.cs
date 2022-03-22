@@ -135,6 +135,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ProfilingService, IProfilingService>();
 
             RegisterTypeAs<JobsRunning, IJobsRunning>();
+            RegisterTypeAs<PostReleaseJobCreationService, IPostReleaseJobCreationService>();
 
             RegisterTypeAs<InMemoryFundingStreamPaymentDatesRepository, IFundingStreamPaymentDatesRepository>();
 

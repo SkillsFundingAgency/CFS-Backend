@@ -165,6 +165,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderDataGenerator, IPublishedProviderDataGenerator>();
             RegisterTypeAs<PublishedFundingStatusUpdateService, IPublishedFundingStatusUpdateService>();
             RegisterTypeAs<SpecificationFundingStatusService, ISpecificationFundingStatusService>();
+            RegisterTypeAs<PostReleaseJobCreationService, IPostReleaseJobCreationService>();
 
             RegisterTypeAs<OrganisationGroupGenerator, IOrganisationGroupGenerator>();
             RegisterTypeAs<PublishedFundingChangeDetectorService, IPublishedFundingChangeDetectorService>();

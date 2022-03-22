@@ -57,7 +57,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ICalculationsApiClient _calculationsApiClient;
         private IProviderService _providerService;
         private IJobManagement _jobManagement;
-        private IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private IMapper _mapper;
         private ITransactionFactory _transactionFactory;
         private IPublishedProviderVersionService _publishedProviderVersionService;
@@ -77,8 +76,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private ICreatePublishIntegrityJob _createPublishIntegrityJob;
         private IJobsRunning _jobsRunning;
-        private ICreatePublishDatasetsDataCopyJob _createPublishDatasetsDataCopyJob;
-        private ICreateProcessDatasetObsoleteItemsJob _createProcessDatasetObsoleteItemsJob;
+        private IPostReleaseJobCreationService _postReleaseJobCreationService;
         private Reference _author;
         private RandomString _jobId;
         private RandomString _correlationId;
@@ -126,7 +124,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Returns(new PublishAllPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger));
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.ReleaseBatchProviders)
                 .Returns(new PublishBatchPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger));
-            _publishFundingCsvJobsService = Substitute.For<IPublishedFundingCsvJobsService>();
             _mapper = Substitute.For<IMapper>();
             _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
@@ -136,8 +133,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingDateService = Substitute.For<IPublishedFundingDateService>();
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _createPublishIntegrityJob = Substitute.For<ICreatePublishIntegrityJob>();
-            _createPublishDatasetsDataCopyJob = Substitute.For<ICreatePublishDatasetsDataCopyJob>();
-            _createProcessDatasetObsoleteItemsJob = Substitute.For<ICreateProcessDatasetObsoleteItemsJob>();
+            _postReleaseJobCreationService = Substitute.For<IPostReleaseJobCreationService>();
             _author = new Reference(new RandomString(), new RandomString());
             _jobId = new RandomString();
             _correlationId = new RandomString();
@@ -150,7 +146,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedFundingDateService,
                 _mapper,
                 _logger);
-        
+
             _publishService = new PublishService(_publishedFundingStatusUpdateService,
                 _publishingResiliencePolicies,
                 _specificationService,
@@ -170,9 +166,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedProviderVersionService,
                 _publishedFundingService,
                 _createPublishIntegrityJob,
-                _publishFundingCsvJobsService,
-                _createPublishDatasetsDataCopyJob,
-                _createProcessDatasetObsoleteItemsJob
+                _postReleaseJobCreationService
             );
         }
 
@@ -189,11 +183,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenPublishAllProvidersMessageReceivedWithJobId();
 
             ThenEachProviderVersionHasTheFollowingVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated, VariationReason.AuthorityFieldUpdated);
-            AndTheCsvGenerationJobsWereCreated(SpecificationId, FundingPeriodId, FundingStreamId);
-            AndThePublishDatasetsDataCopyJobsWereCreated(SpecificationId);
-            AndTheProcessDatasetObsoleteItemsJobsWereCreated(SpecificationId);
+            AndThePostReleaseJobsWereCreated(SpecificationId);
         }
-        
+
         [TestMethod]
         public async Task PublishAllProviderFundingResults_DoesNotAddInitialAllocationVariationReasonsToExistingProviderVersions()
         {
@@ -564,39 +556,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Throws(new Exception(error));
         }
 
-        private void AndTheCsvGenerationJobsWereCreated(string specificationId, string fundingPeriodId, string fundingStreamId)
+        private void AndThePostReleaseJobsWereCreated(string specificationId)
         {
-            _publishFundingCsvJobsService.Received(1)
-                .GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Release,
-                        Arg.Is(specificationId),
-                        Arg.Is(fundingPeriodId),
-                        Arg.Is<IEnumerable<string>>(_ => _.First() == fundingStreamId),
+            _postReleaseJobCreationService.Received(1)
+                .QueueJobs(
+                        Arg.Is<SpecificationSummary>(_ => _.Id == specificationId),
                         Arg.Any<string>(),
                         Arg.Any<Reference>());
-        }
-
-        private void AndThePublishDatasetsDataCopyJobsWereCreated(string specificationId)
-        {
-            _createPublishDatasetsDataCopyJob.Received(1)
-                .CreateJob(Arg.Is(specificationId),
-                        Arg.Any<Reference>(),
-                        Arg.Is(CorrelationId),
-                        Arg.Any<Dictionary<string, string>>(),
-                        Arg.Any<string>(),
-                        Arg.Any<string>(),
-                        Arg.Any<bool>());
-        }
-
-        private void AndTheProcessDatasetObsoleteItemsJobsWereCreated(string specificationId)
-        {
-            _createProcessDatasetObsoleteItemsJob.Received(1)
-                .CreateJob(Arg.Is(specificationId),
-                        Arg.Any<Reference>(),
-                        Arg.Is(CorrelationId),
-                        Arg.Any<Dictionary<string, string>>(),
-                        Arg.Any<string>(),
-                        Arg.Any<string>(),
-                        Arg.Any<bool>());
         }
 
         private void AndSpecification(bool isSelectedForFunding = false)
@@ -613,8 +579,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndTemplateMetadataContents()
         {
-            _calculationTemplateIds = new[] { NewTemplateCalculation(), 
-                NewTemplateCalculation(), 
+            _calculationTemplateIds = new[] { NewTemplateCalculation(),
+                NewTemplateCalculation(),
                 NewTemplateCalculation() };
 
             _fundingLines = new[] { NewTemplateFundingLine(fl => fl.WithCalculations(_calculationTemplateIds)) };
@@ -632,7 +598,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             TemplateCalculationBuilder templateCalculationBuilder = new TemplateCalculationBuilder();
 
             setUp?.Invoke(templateCalculationBuilder);
-            
+
             return templateCalculationBuilder.Build();
         }
 
@@ -646,18 +612,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 NewTemplateMappingItem(_ => _.WithTemplateId(_calculationTemplateIds[2].TemplateCalculationId)
                     .WithCalculationId(_calculationResults[2].Id))
                 };
-            
+
             _templateMapping = NewTemplateMapping(_ => _.WithItems(templateMappingItems));
 
             _calculationsApiClient
                 .GetTemplateMapping(_specificationSummary.Id, FundingStreamId)
                 .Returns(new ApiResponse<TemplateMapping>(HttpStatusCode.OK, _templateMapping));
         }
-        
+
         private void AndPublishedProviders(int majorVersion = 1, int minorVersion = 0, bool wasReleased = false)
         {
-            Provider[] providers = new[] { NewProvider(), 
-                NewProvider(), 
+            Provider[] providers = new[] { NewProvider(),
+                NewProvider(),
                 NewProvider()
             };
 
@@ -684,14 +650,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                             .WithPublishedProviderStatus(PublishedProviderStatus.Approved)
                             .WithVariationReasons(new[] { VariationReason.AuthorityFieldUpdated })
                         );
-                        
+
                         pp.WithCurrent(current);
 
                         if (wasReleased)
                         {
                             pp.WithReleased(current);
                         }
-                        
+
                     })).ToList();
 
             _providerService
@@ -706,7 +672,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
 
             setUp?.Invoke(fundingLineBuilder);
-            
+
             return fundingLineBuilder.Build();
         }
 
@@ -715,7 +681,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             FundingCalculationBuilder fundingCalculationBuilder = new FundingCalculationBuilder();
 
             setUp?.Invoke(fundingCalculationBuilder);
-            
+
             return fundingCalculationBuilder.Build();
         }
 
@@ -724,7 +690,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             TemplateMappingItemBuilder templateMappingItemBuilder = new TemplateMappingItemBuilder();
 
             setUp?.Invoke(templateMappingItemBuilder);
-            
+
             return templateMappingItemBuilder.Build();
         }
 
@@ -757,9 +723,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndCalculationEngineRunningForPublishAllProviders()
         {
-            string[] jobTypes = new string[] { 
+            string[] jobTypes = new string[] {
                 JobConstants.DefinitionNames.PublishedFundingUndoJob,
-                JobConstants.DefinitionNames.RefreshFundingJob, 
+                JobConstants.DefinitionNames.RefreshFundingJob,
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
                 JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
@@ -795,7 +761,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .ToList();
 
             IEnumerable<(PublishedFunding, PublishedFundingVersion)> publishedFunding = publishedFundingVersions.Select(_ =>
-                (NewPublishedFunding(pf => pf.WithCurrent(_)),_)
+                (NewPublishedFunding(pf => pf.WithCurrent(_)), _)
             ).ToList();
 
             _publishedFundingGenerator
@@ -818,7 +784,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private async Task WhenPublishAllProvidersMessageReceivedWithJobId()
         {
-            Message message = NewMessage(_ => _.WithUserProperty("specification-id", 
+            Message message = NewMessage(_ => _.WithUserProperty("specification-id",
                                                                  SpecificationId)
                 .WithUserProperty("jobId", JobId)
                 .WithUserProperty("sfa-correlationId", CorrelationId));
@@ -829,8 +795,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private async Task WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(PublishedProviderIdsRequest publishProvidersRequest)
         {
             Message message = NewMessage(_ => _
-                .WithUserProperty("specification-id",SpecificationId)
-                .WithUserProperty("jobId",JobId)
+                .WithUserProperty("specification-id", SpecificationId)
+                .WithUserProperty("jobId", JobId)
                 .WithUserProperty("sfa-correlationId", CorrelationId)
                 .WithMessageBody(Encoding.UTF8.GetBytes(publishProvidersRequest.AsJson())));
 

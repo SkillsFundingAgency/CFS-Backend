@@ -62,6 +62,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IDeletePublishedFundingBlobDocumentsService, DeletePublishedFundingBlobDocumentsService>();
             serviceCollection.AddSingleton<IPublishedProviderFundingStructureService, PublishedProviderFundingStructureService>();
             serviceCollection.AddSingleton<ICurrentDateTime, CurrentDateTimeService>();
+            serviceCollection.AddSingleton<IPostReleaseJobCreationService, PostReleaseJobCreationService>();
 
             PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(configuration);
             OrganisationGroupResiliencePolicies organisationResiliencePolicies = CreateResiliencePolicies(policySettings);

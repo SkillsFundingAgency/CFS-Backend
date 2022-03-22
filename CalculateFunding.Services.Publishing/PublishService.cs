@@ -45,9 +45,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPublishedFundingService _publishedFundingService;
         private readonly ICreatePublishIntegrityJob _createPublishIntegrityJob;
-        private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
-        private readonly ICreatePublishDatasetsDataCopyJob _createPublishDatasetsDataCopyJob;
-        private readonly ICreateProcessDatasetObsoleteItemsJob _createProcessDatasetObsoleteItemsJob;
+        private readonly IPostReleaseJobCreationService _postReleaseJobCreationService;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -68,9 +66,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderVersionService publishedProviderVersionService,
             IPublishedFundingService publishedFundingService,
             ICreatePublishIntegrityJob createPublishIntegrityJob,
-            IPublishedFundingCsvJobsService publishFundingCsvJobsService,
-            ICreatePublishDatasetsDataCopyJob createPublishDatasetsDataCopyJob,
-            ICreateProcessDatasetObsoleteItemsJob createProcessDatasetObsoleteItemsJob) : base(jobManagement, logger)
+            IPostReleaseJobCreationService postReleaseJobCreationService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
@@ -92,9 +88,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(transactionFactory, nameof(transactionFactory));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(createPublishIntegrityJob, nameof(createPublishIntegrityJob));
-            Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
-            Guard.ArgumentNotNull(createPublishDatasetsDataCopyJob, nameof(createPublishDatasetsDataCopyJob));
-            Guard.ArgumentNotNull(createProcessDatasetObsoleteItemsJob, nameof(createProcessDatasetObsoleteItemsJob));
+            Guard.ArgumentNotNull(postReleaseJobCreationService, nameof(postReleaseJobCreationService));
 
             _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
             _specificationService = specificationService;
@@ -114,9 +108,7 @@ namespace CalculateFunding.Services.Publishing
             _providerService = providerService;
             _publishedFundingService = publishedFundingService;
             _createPublishIntegrityJob = createPublishIntegrityJob;
-            _publishFundingCsvJobsService = publishFundingCsvJobsService;
-            _createPublishDatasetsDataCopyJob = createPublishDatasetsDataCopyJob;
-            _createProcessDatasetObsoleteItemsJob = createProcessDatasetObsoleteItemsJob;
+            _postReleaseJobCreationService = postReleaseJobCreationService;
         }
 
         public override async Task Process(Message message)
@@ -166,7 +158,7 @@ namespace CalculateFunding.Services.Publishing
                                                         string correlationId,
                                                         SpecificationSummary specification,
                                                         PublishedProviderIdsRequest publishedProviderIdsRequest,
-                                                        bool enableIntegrityChecker)
+                                                        bool publishFundingJobWithv3Only)
         {
             Guard.ArgumentNotNull(author, nameof(author));
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
@@ -187,22 +179,16 @@ namespace CalculateFunding.Services.Publishing
                     correlationId,
                     batched ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders,
                     publishedProviderIdsRequest?.PublishedProviderIds?.ToArray(),
-                    enableIntegrityChecker);
+                    publishFundingJobWithv3Only);
             }
 
             _logger.Information($"Running search reindexer for published funding");
             await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
 
-            await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Release,
-                specification.Id,
-                specification.FundingPeriod.Id,
-                specification.FundingStreams.Select(fs => fs.Id),
-                correlationId,
-                author);
-
-            await _createPublishDatasetsDataCopyJob.CreateJob(specification.Id, author, correlationId);
-
-            await _createProcessDatasetObsoleteItemsJob.CreateJob(specification.Id, author, correlationId);
+            if (publishFundingJobWithv3Only)
+            {
+                await _postReleaseJobCreationService.QueueJobs(specification, correlationId, author);
+            }
         }
 
         private async Task PublishFundingStream(Reference fundingStream,
@@ -288,7 +274,6 @@ namespace CalculateFunding.Services.Publishing
                 {
                     if (publishFundingJobWithv3Only)
                     {
-                        // NOTE: This is a little strange, an entire reindex of the spec while we write to the index below at the same time in SavePublishedProviderContents
                         await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id, jobId);
                         await _createPublishIntegrityJob.CreateJob(specification.Id,
                             author,
