@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Dictionary<string, int> groupingReasonIdLookupByCode = groupingReasons.ToDictionary(_ => _.GroupingReasonCode, _ => _.GroupingReasonId);
 
             Dictionary<string, OrganisationGroupResult> orgGroupLookup = organisationGroupResults.ToDictionary(_ =>
-                $"{groupingReasonIdLookupByCode[_.GroupReason.ToString()]}-{_.GroupTypeClassification}-{_.IdentifierValue}");
+                $"{groupingReasonIdLookupByCode[_.GroupReason.ToString()]}-{_.GroupTypeCode}-{_.IdentifierValue}");
 
             IEnumerable<FundingGroup> fundingGroups =
                 await _releaseManagementRepository.GetFundingGroupsBySpecificationAndChannelUsingAmbientTransaction(specificationId,
@@ -48,16 +48,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             IEnumerable<FundingGroup> existingFundingGroups = fundingGroups
                 .Where(_ => orgGroupLookup.ContainsKey(
-                    $"{_.GroupingReasonId}-{_.OrganisationGroupTypeClassification}-{_.OrganisationGroupIdentifierValue}"));
+                    $"{_.GroupingReasonId}-{_.OrganisationGroupTypeCode}-{_.OrganisationGroupIdentifierValue}"));
 
-            Dictionary<string, FundingGroup> existingFundingGroupsLookup = existingFundingGroups.ToDictionary(_ => $"{_.GroupingReasonId}-{_.OrganisationGroupTypeClassification}-{_.OrganisationGroupIdentifierValue}");
+            Dictionary<string, FundingGroup> existingFundingGroupsLookup = existingFundingGroups.ToDictionary(_ => $"{_.GroupingReasonId}-{_.OrganisationGroupTypeCode}-{_.OrganisationGroupIdentifierValue}");
 
             results.AddRange(existingFundingGroups);
 
             IEnumerable<FundingGroup> fundingGroupsToCreate = (from organisationGroupResult in organisationGroupResults
                                                                let groupingReasonId = groupingReasonIdLookupByCode[organisationGroupResult.GroupReason.ToString()]
                                                                where !existingFundingGroupsLookup.ContainsKey(
-                                                                   $"{groupingReasonId}-{organisationGroupResult.GroupTypeClassification}-{organisationGroupResult.IdentifierValue}")
+                                                                   $"{groupingReasonId}-{organisationGroupResult.GroupTypeCode}-{organisationGroupResult.IdentifierValue}")
                                                                select new FundingGroup
                                                                {
                                                                    FundingGroupId = _fundingGroupIdentifierGenerator.GenerateIdentifier(),

@@ -21,8 +21,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
     {
         private const string Identifier1 = "1";
         private const string Identifier2 = "2";
+        private const string Identifier3 = "3";
         private const OrganisationGroupTypeClassification Classification1 = OrganisationGroupTypeClassification.GeographicalBoundary;
-        private const OrganisationGroupTypeClassification Classification2 = OrganisationGroupTypeClassification.LegalEntity;
+        private const OrganisationGroupTypeClassification LegalEntityClassification = OrganisationGroupTypeClassification.LegalEntity;
 
         private RandomString _specificationId;
         private RandomNumberBetween _channelId;
@@ -61,11 +62,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 {
                     Name = "Name2",
                     GroupReason = OrganisationGroupingReason.Information,
-                    GroupTypeClassification = Classification2,
+                    GroupTypeClassification = LegalEntityClassification,
                     GroupTypeCode = OrganisationGroupTypeCode.AcademyTrust,
                     GroupTypeIdentifier = OrganisationGroupTypeIdentifier.AcademyTrustCode,
                     IdentifierValue = Identifier2,
                     SearchableName = "Name2"
+                },
+                new()
+                {
+                    Name = "Name3",
+                    GroupReason = OrganisationGroupingReason.Information,
+                    GroupTypeClassification = LegalEntityClassification,
+                    GroupTypeCode = OrganisationGroupTypeCode.LocalAuthority,
+                    GroupTypeIdentifier = OrganisationGroupTypeIdentifier.AcademyTrustCode,
+                    IdentifierValue = Identifier3,
+                    SearchableName = "Name3"
                 }
             };
 
@@ -103,17 +114,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     SpecificationId = _specificationId,
                     GroupingReasonId = 1,
                     OrganisationGroupTypeClassification = Classification1.ToString(),
-                    OrganisationGroupIdentifierValue = Identifier1
+                    OrganisationGroupIdentifierValue = Identifier1,
+                    OrganisationGroupTypeCode = "AcademyTrust",
                 }
             });
 
             await _service.CreateFundingGroups(_specificationId, _channelId, _orgResults);
 
-            const int expectedCreateCount = 1;
+            const int expectedCreateCount = 2;
 
             _releaseManagementRepository.Verify(r => r.BulkCreateFundingGroupsUsingAmbientTransaction(
                     Match.Create<IEnumerable<FundingGroup>>(_ =>
-                        _.Count() == expectedCreateCount && _.Single().OrganisationGroupIdentifierValue == Identifier2)),
+                        _.Count() == expectedCreateCount && _.First().OrganisationGroupIdentifierValue == Identifier2)),
                 Times.Once);
         }
 
