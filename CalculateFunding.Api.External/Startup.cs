@@ -206,6 +206,8 @@ namespace CalculateFunding.Api.External
                 .AddSingleton<IFileSystemAccess, FileSystemAccess>()
                 .AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
 
+            builder.AddScoped<IPostReleaseJobCreationService, PostReleaseJobCreationService>();
+
             builder.AddSingleton<IFeedItemPreloader, FeedItemPreLoader>()
                 .AddSingleton<IFeedItemPreloaderSettings>(ctx =>
                 {
