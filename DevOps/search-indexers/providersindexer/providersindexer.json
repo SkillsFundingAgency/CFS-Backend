@@ -291,14 +291,6 @@
       "targetFieldName": "officialSixthFormName"
     },
     {
-      "sourceFieldName": "/previousLaCode",
-      "targetFieldName": "previousLaCode"
-    },
-    {
-      "sourceFieldName": "/previousLaName",
-      "targetFieldName": "previousLaName"
-    },
-    {
       "sourceFieldName": "/statusCode",
       "targetFieldName": "statusCode"
     },
