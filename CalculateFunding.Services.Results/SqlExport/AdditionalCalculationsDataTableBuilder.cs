@@ -31,32 +31,32 @@ namespace CalculateFunding.Services.Results.SqlExport
 
         protected override DataColumn[] GetDataColumns(ProviderResult dto)
         {
-            IEnumerable<CalcsApiCalculation> templateCalculations = _calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Additional);
+            IEnumerable<CalcsApiCalculation> additionalCalculations = _calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Additional);
 
-            CalculationResult[] templateCalculationResults = dto.CalculationResults.Where(_ => templateCalculations.Select(_ => _.Id).Contains(_.Calculation.Id))
+            CalculationResult[] additionalCalculationResults = dto.CalculationResults.Where(_ => additionalCalculations.Select(_ => _.Id).Contains(_.Calculation.Id))
                 .OrderBy(_ => _.Calculation.Name)
                 .ToArray();
 
             return new[]
                 {
                     NewDataColumn<string>("ProviderId", 128)
-                }.Concat(templateCalculationResults
-                    .Select(_ => NewDataColumn(_, templateCalculations.SingleOrDefault(t => t.Id == _.Calculation.Id))))
+                }.Concat(additionalCalculationResults
+                    .Select(_ => NewDataColumn(_, additionalCalculations.SingleOrDefault(t => t.Id == _.Calculation.Id))))
                 .ToArray();
         }
 
         protected override void AddDataRowToDataTable(ProviderResult dto)
         {
-            IEnumerable<CalcsApiCalculation> templateCalculations = _calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Additional);
+            IEnumerable<CalcsApiCalculation> additionalCalculations = _calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Additional);
 
-            IEnumerable<object> templateCalculationValues = dto.CalculationResults.Where(_ => templateCalculations.Select(_ => _.Id).Contains(_.Calculation.Id))
+            IEnumerable<object> additionalCalculationValues = dto.CalculationResults.Where(_ => additionalCalculations.Select(_ => _.Id).Contains(_.Calculation.Id))
                 .OrderBy(_ => _.Calculation.Name)
                 .Select(_ => _.Value);
 
             DataTable.Rows.Add(new[]
             {
                 dto.Provider.Id
-            }.Concat(templateCalculationValues.Select(_ => DbNullSafe(_))).ToArray());
+            }.Concat(additionalCalculationValues.Select(_ => DbNullSafe(_))).ToArray());
         }
 
         private DataColumn NewDataColumn(

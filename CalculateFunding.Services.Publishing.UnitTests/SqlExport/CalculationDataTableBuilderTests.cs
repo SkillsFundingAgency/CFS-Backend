@@ -40,19 +40,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
             _templateCalculations = AsArray(NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdOne)
                     .WithName(_calculationNameOne)
-                    .WithValueFormat(CalculationValueFormat.Boolean)),
+                    .WithType(CalculationType.Boolean)),
                 NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdFive)
                     .WithName(_calculationNameFive)
-                    .WithValueFormat(CalculationValueFormat.Number)),
+                    .WithType(CalculationType.Number)),
                 NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdFour)
                     .WithName(_calculationNameFour)
-                    .WithValueFormat(CalculationValueFormat.Percentage)),
+                    .WithType(CalculationType.Weighting)),
                 NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdTwo)
                     .WithName(_calculationNameTwo)
-                    .WithValueFormat(CalculationValueFormat.String)),
+                    .WithType(CalculationType.Information)),
                 NewTemplateCalculation(_ => _.WithTemplateCalculationId(_templateCalculationIdThree)
                     .WithName(_calculationNameThree)
-                    .WithValueFormat(CalculationValueFormat.Currency)));
+                    .WithType(CalculationType.Cash)));
 
             DataTableBuilder = new CalculationDataTableBuilder(_templateCalculations);
         }

@@ -36,23 +36,30 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         {
             string columnName = $"Calc_{templateCalculation.TemplateCalculationId}_{templateCalculation.Name.Replace(" ", "")}";
 
-            return templateCalculation.ValueFormat switch
+            return templateCalculation.Type switch
             {
-                var format when format == CalculationValueFormat.Currency ||
-                                format == CalculationValueFormat.Number ||
-                                format == CalculationValueFormat.Percentage
-                    => NewDataColumn<decimal>(columnName, allowNull: true),
-                CalculationValueFormat.Boolean => NewDataColumn<bool>(columnName, allowNull: true),
-                CalculationValueFormat.String => NewDataColumn<string>(columnName, 128, true),
-                _ => throw new InvalidOperationException("Unknown value format")
+                var format when format == CalculationType.Cash ||
+                                format == CalculationType.Number ||
+                                format == CalculationType.Adjustment ||
+                                format == CalculationType.LumpSum ||
+                                format == CalculationType.PerPupilFunding ||
+                                format == CalculationType.ProviderLedFunding ||
+                                format == CalculationType.PupilNumber ||
+                                format == CalculationType.Rate ||
+                                format == CalculationType.Weighting
+                => NewDataColumn<decimal>(columnName, allowNull: true),
+                CalculationType.Boolean => NewDataColumn<bool>(columnName, allowNull: true),
+                _ => NewDataColumn<string>(columnName, allowNull: true),
             };
         }
 
         protected override void AddDataRowToDataTable(PublishedProviderVersion dto)
         {
-            IEnumerable<object> calculationValues = dto.Calculations
+            IEnumerable<object> calculationValues = _calculations.Values
+                .Select<Calculation, (uint TemplateCalculationId, FundingCalculation CalculationResult)>(_ =>
+                (_.TemplateCalculationId, dto.Calculations.SingleOrDefault(cr => cr.TemplateCalculationId == _.TemplateCalculationId)))
                 .OrderBy(_ => _.TemplateCalculationId)
-                .Select(_ => _.Value);
+                .Select(_ => _.CalculationResult?.Value);
 
             DataTable.Rows.Add(new[]
             {

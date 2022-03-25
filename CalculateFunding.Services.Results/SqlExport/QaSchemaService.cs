@@ -688,7 +688,7 @@ namespace CalculateFunding.Services.Results.SqlExport
             IEnumerable<Calculation> templateCalculations)
         {
             IEnumerable<SqlColumnDefinition> templateCalculationFields = 
-                GetSqlColumnDefinitionsForTemplateCalculations(calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Template), templateCalculations);
+                GetSqlColumnDefinitionsForTemplateCalculations(templateCalculations);
             IEnumerable<SqlColumnDefinition> additionalCalculationFields =
                 GetSqlColumnDefinitionsForAdditionalCalculations(calculations.Where(_ => _.CalculationType == CalcsApiCalculationType.Additional));
 
@@ -696,19 +696,16 @@ namespace CalculateFunding.Services.Results.SqlExport
         }
 
         private IEnumerable<SqlColumnDefinition> GetSqlColumnDefinitionsForTemplateCalculations(
-            IEnumerable<CalcsApiCalculation> calculations,
             IEnumerable<Calculation> templateCalculations)
         {
-            List<SqlColumnDefinition> fields = new List<SqlColumnDefinition>(calculations.Count());
+            List<SqlColumnDefinition> fields = new List<SqlColumnDefinition>(templateCalculations.Count());
 
-            foreach (CalcsApiCalculation calculation in calculations.OrderBy(c => c.Id))
+            foreach (Calculation templateCalculation in templateCalculations.OrderBy(c => c.TemplateCalculationId))
             {
-                Calculation templateCalculation = templateCalculations.SingleOrDefault(_ => _.Name == calculation.Name);
-
                 fields.Add(new SqlColumnDefinition
                 {
-                    Name = $"Calc_{templateCalculation.TemplateCalculationId}_{_sqlNames.GenerateIdentifier(calculation.Name)}",
-                    Type = GetSqlDatatypeForCalculation(calculation.ValueType),
+                    Name = $"Calc_{templateCalculation.TemplateCalculationId}_{_sqlNames.GenerateIdentifier(templateCalculation.Name)}",
+                    Type = GetSqlDatatypeForCalculation(templateCalculation.Type),
                     AllowNulls = true
                 });
             }
@@ -721,7 +718,7 @@ namespace CalculateFunding.Services.Results.SqlExport
         {
             List<SqlColumnDefinition> fields = new List<SqlColumnDefinition>(calculations.Count());
 
-            foreach (CalcsApiCalculation calculation in calculations.OrderBy(c => c.Id))
+            foreach (CalcsApiCalculation calculation in calculations.OrderBy(c => c.Name))
             {
                 fields.Add(new SqlColumnDefinition
                 {
@@ -744,6 +741,23 @@ namespace CalculateFunding.Services.Results.SqlExport
                 CalcsApiCalculationValueType.Boolean => "[bit]",
                 CalcsApiCalculationValueType.String => "[varchar](256)",
                 _ => throw new InvalidOperationException("Unknown value type")
+            };
+
+        private string GetSqlDatatypeForCalculation(CalculationType valueType)
+            => valueType switch
+            {
+                var format when format == CalculationType.Cash ||
+                                format == CalculationType.Number ||
+                                format == CalculationType.Adjustment ||
+                                format == CalculationType.LumpSum ||
+                                format == CalculationType.PerPupilFunding ||
+                                format == CalculationType.ProviderLedFunding ||
+                                format == CalculationType.PupilNumber ||
+                                format == CalculationType.Rate ||
+                                format == CalculationType.Weighting
+                    => "[decimal](30, 18)",
+                CalculationType.Boolean => "[bit]",
+                _ => "[varchar](256)"
             };
 
         private async Task<UniqueTemplateContents> GetTemplateData(SpecificationSummary specification, string fundingStreamId)

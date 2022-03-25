@@ -956,24 +956,29 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 fields.Add(new SqlColumnDefinition
                 {
                     Name = $"Calc_{calculation.TemplateCalculationId}_{_sqlNames.GenerateIdentifier(calculation.Name)}",
-                    Type = GetSqlDatatypeForCalculation(calculation.ValueFormat),
+                    Type = GetSqlDatatypeForCalculation(calculation.Type),
                     AllowNulls = true
                 });
 
             return fields;
         }
 
-        private string GetSqlDatatypeForCalculation(CalculationValueFormat valueFormat)
+        private string GetSqlDatatypeForCalculation(CalculationType valueFormat)
         {
             return valueFormat switch
             {
-                var format when format == CalculationValueFormat.Currency ||
-                                format == CalculationValueFormat.Number ||
-                                format == CalculationValueFormat.Percentage
+                var format when format == CalculationType.Cash ||
+                                format == CalculationType.Number ||
+                                format == CalculationType.Adjustment ||
+                                format == CalculationType.LumpSum ||
+                                format == CalculationType.PerPupilFunding ||
+                                format == CalculationType.ProviderLedFunding ||
+                                format == CalculationType.PupilNumber ||
+                                format == CalculationType.Rate ||
+                                format == CalculationType.Weighting
                     => "[decimal](30, 18)",
-                CalculationValueFormat.Boolean => "[bit]",
-                CalculationValueFormat.String => "[varchar](128)",
-                _ => throw new InvalidOperationException("Unknown value format")
+                CalculationType.Boolean => "[bit]",
+                _ => "[varchar](256)"
             };
         }
 
