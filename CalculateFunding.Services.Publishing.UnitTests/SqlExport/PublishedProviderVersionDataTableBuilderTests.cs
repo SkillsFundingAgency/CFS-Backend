@@ -87,6 +87,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 publishedProviderVersion.Status.ToString()
             };
 
+            dataRowValues.Add(publishedProviderVersion.Date.UtcDateTime);
+            dataRowValues.Add(publishedProviderVersion.Author.Name);
+            dataRowValues.Add(publishedProviderVersion.IsIndicative);
+            dataRowValues.Add(GetVariationReasonAsSemiColonSeparatedString(publishedProviderVersion.VariationReasons));
+
             if (sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion
                 && latestReleasedVersionChannelPopulationEnabled)
             {
@@ -95,11 +100,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 dataRowValues.Add($"{ContractingMajorVersion}.0");
                 dataRowValues.Add($"{ChannelCodeOneMajorVersion}.0");
             }
-
-            dataRowValues.Add(publishedProviderVersion.Date.UtcDateTime);
-            dataRowValues.Add(publishedProviderVersion.Author.Name);
-            dataRowValues.Add(publishedProviderVersion.IsIndicative);
-            dataRowValues.Add(GetVariationReasonAsSemiColonSeparatedString(publishedProviderVersion.VariationReasons));
 
             return dataRowValues.ToArray();
         }
@@ -120,6 +120,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 NewDataColumn<string>("Status", 32)
             };
 
+            dataColumns.Add(NewDataColumn<DateTime>("LastUpdated"));
+            dataColumns.Add(NewDataColumn<string>("LastUpdatedBy", 256));
+            dataColumns.Add(NewDataColumn<bool>("IsIndicative"));
+            dataColumns.Add(NewDataColumn<string>("ProviderVariationReasons", 1024));
+
             if (sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion
                 && latestReleasedVersionChannelPopulationEnabled)
             {
@@ -128,11 +133,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 dataColumns.Add(NewDataColumn<string>("LatestContractReleaseVersion", 8));
                 dataColumns.Add(NewDataColumn<string>("LatestChannelCodeOneReleaseVersion", 8));
             }
-
-            dataColumns.Add(NewDataColumn<DateTime>("LastUpdated"));
-            dataColumns.Add(NewDataColumn<string>("LastUpdatedBy", 256));
-            dataColumns.Add(NewDataColumn<bool>("IsIndicative"));
-            dataColumns.Add(NewDataColumn<string>("ProviderVariationReasons", 1024));
 
             return dataColumns.ToArray();
         }

@@ -39,19 +39,19 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 NewDataColumn<string>("Status", 32)
             };
 
-            if (_sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion
-                && _latestReleasedVersionChannelPopulationEnabled)
-            {
-                foreach (string channelCode in Enumerable.Distinct(_allProviderVersionInChannels.Select(_=> _.ChannelCode)))
-                {
-                    dataColumns.Add(NewDataColumn<string>($"Latest{channelCode}ReleaseVersion", maxLength: 8, allowNull: true));
-                }
-            }
-
             dataColumns.Add(NewDataColumn<DateTime>("LastUpdated"));
             dataColumns.Add(NewDataColumn<string>("LastUpdatedBy", 256));
             dataColumns.Add(NewDataColumn<bool>("IsIndicative", defaultValue: false));
             dataColumns.Add(NewDataColumn<string>("ProviderVariationReasons", 1024));
+
+            if (_sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion
+                && _latestReleasedVersionChannelPopulationEnabled)
+            {
+                foreach (string channelCode in Enumerable.Distinct(_allProviderVersionInChannels.Select(_ => _.ChannelCode)))
+                {
+                    dataColumns.Add(NewDataColumn<string>($"Latest{channelCode}ReleaseVersion", maxLength: 8, allowNull: true));
+                }
+            }
 
             return dataColumns.ToArray();
         }
@@ -70,6 +70,12 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                   dto.Status.ToString()
             };
 
+            dataRowValues.Add(dto.Date.UtcDateTime);
+            dataRowValues.Add(dto.Author.Name);
+            
+            dataRowValues.Add(dto.IsIndicative);
+            dataRowValues.Add(string.Join(";", dto.VariationReasons.Select(s => s)));
+
             if (_sqlExportSource == SqlExportSource.CurrentPublishedProviderVersion
                 && _latestReleasedVersionChannelPopulationEnabled)
             {
@@ -79,7 +85,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 {
                     ProviderVersionInChannel providerVersionInChannel = _allProviderVersionInChannels.SingleOrDefault(p => p.ProviderId == dto.ProviderId && p.ChannelCode == distinctChannelCode);
 
-                    if(providerVersionInChannel != null)
+                    if (providerVersionInChannel != null)
                     {
                         dataRowValues.Add($"{providerVersionInChannel?.MajorVersion}.0");
                     }
@@ -89,12 +95,6 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     }
                 }
             }
-
-            dataRowValues.Add(dto.Date.UtcDateTime);
-            dataRowValues.Add(dto.Author.Name);
-            
-            dataRowValues.Add(dto.IsIndicative);
-            dataRowValues.Add(string.Join(";", dto.VariationReasons.Select(s => s)));
 
             DataTable.Rows.Add(dataRowValues.ToArray());
         }
