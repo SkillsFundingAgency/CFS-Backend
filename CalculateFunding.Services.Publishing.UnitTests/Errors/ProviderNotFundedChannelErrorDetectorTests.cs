@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 
             PublishedProvider publishedProvider = GivenPublishedProvider(providerId);
 
-            IEnumerable<OrganisationGroupResult> organisationGroupChannelResults = AndOrganisationGroupResults();
+            IEnumerable<OrganisationGroupResult> organisationGroupChannelResults = AndOrganisationGroupResultsInformation(providerId);
 
             Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupChannelResultsData
                 = new Dictionary<string, IEnumerable<OrganisationGroupResult>> { { $"ChannelOne", organisationGroupChannelResults } };
@@ -94,7 +94,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         {
             // Arrange
             string providerId = NewRandomString();
-            string errorMessage = $"Provider {providerId} not configured to be a member of any group.";
 
             PublishedProvider publishedProvider = GivenPublishedProvider(providerId);
 
@@ -147,7 +146,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                     .WithMinorVersion(minorVersion2))));
         }
 
-        private IEnumerable<OrganisationGroupResult> AndOrganisationGroupResults()
+        private IEnumerable<OrganisationGroupResult> AndOrganisationGroupResultsInformation(string providerId)
         {
             OrganisationGroupTypeIdentifier groupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN;
 
@@ -158,6 +157,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                     {
                         NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(NewRandomString())),
                         NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(NewRandomString()))
+                    })),
+                NewOrganisationGroupResult(_ => _
+                    .WithIdentifiers(new[]
+                    {
+                        NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(NewRandomString())),
+                        NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(NewRandomString()))
+                    })
+                    .WithGroupReason(OrganisationGroupingReason.Information)
+                    .WithProviders(new [] 
+                    { 
+                        new Common.ApiClient.Providers.Models.Provider { ProviderId = providerId } 
                     }))
             };
         }

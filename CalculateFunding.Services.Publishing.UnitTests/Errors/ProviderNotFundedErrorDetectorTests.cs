@@ -63,6 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             int minorVersion2 = NewRandomInt();
             string identifierValue1 = NewRandomString();
             string identifierValue2 = NewRandomString();
+            string identifierValue3 = NewRandomString();
             string fundingConfigurationId = NewRandomString();
             OrganisationGroupTypeIdentifier groupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN;
 
@@ -86,6 +87,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                     {
                         NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(identifierValue1)),
                         NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(NewRandomString()))
+                    })),
+                NewOrganisationGroupResult(_ => _
+                    .WithIdentifiers(new[]
+                    {
+                        NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(identifierValue3)),
+                        NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(NewRandomString()))
+                    })
+                    .WithGroupReason(OrganisationGroupingReason.Information)
+                    .WithProviders(new[] {
+                        new Common.ApiClient.Providers.Models.Provider{ ProviderId = publishedProvider.Current.ProviderId }
                     }))
             };
 
@@ -111,6 +122,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                         })
                         .WithGroupReason(CalculateFunding.Models.Publishing.GroupingReason.Payment)
                         .WithOrganisationGroupIdentifierValue(identifierValue2)
+                        .WithOrganisationGroupTypeIdentifier(groupTypeIdentifier)))),
+                NewPublishedFunding(_ => _
+                    .WithCurrent(NewPublishedFundingVersion(fv => fv.WithProviderFundings(new[]
+                        {
+                            $"{fundingStreamId}-{fundingPeriodId}-{providerId1}-{majorVersion1}_{minorVersion1}",
+                            NewRandomString()
+                        })
+                        .WithGroupReason(CalculateFunding.Models.Publishing.GroupingReason.Information)
+                        .WithOrganisationGroupIdentifierValue(identifierValue3)
                         .WithOrganisationGroupTypeIdentifier(groupTypeIdentifier))))
             };
 
