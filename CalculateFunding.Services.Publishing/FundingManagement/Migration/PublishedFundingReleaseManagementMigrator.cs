@@ -339,7 +339,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             foreach (PublishedProviderVersion providerVersion in publishedProviders)
             {
-                _publishedProviderVersions.AddOrUpdate($"{providerVersion.ProviderId}_{providerVersion.SpecificationId}", providerVersion, (id, existing) => { return providerVersion; });
+                _publishedProviderVersions.AddOrUpdate($"{providerVersion.ProviderId}_{providerVersion.SpecificationId}_{providerVersion.MajorVersion}_{providerVersion.MinorVersion}", providerVersion, (id, existing) => { return providerVersion; });
 
                 await Task.Run(() => GenerateReleasedProvidersAndVersions(providerVersion));
             }
@@ -423,7 +423,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     }
 
                     ReleasedProvider releasedProvider = _releasedProvidersById[releasedProviderVersion.ReleasedProviderId];
-                    PublishedProviderVersion publishedProviderVersion = _publishedProviderVersions[$"{releasedProvider.ProviderId}_{releasedProvider.SpecificationId}"];
+                    PublishedProviderVersion publishedProviderVersion = _publishedProviderVersions[$"{releasedProvider.ProviderId}_{releasedProvider.SpecificationId}_{releasedProviderVersion.MajorVersion}_{releasedProviderVersion.MinorVersion}"];
 
                     ReleasedProviderVersionChannel releasedProviderVersionChannel = new ReleasedProviderVersionChannel
                     {
