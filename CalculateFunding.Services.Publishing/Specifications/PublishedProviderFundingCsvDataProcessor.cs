@@ -43,8 +43,13 @@ namespace CalculateFunding.Services.Publishing.Specifications
             params PublishedProviderStatus[] statuses)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.IsNotEmpty(publishedProviderIds, nameof(publishedProviderIds));
             Guard.IsNotEmpty(statuses, nameof(statuses));
+
+            if (publishedProviderIds.IsNullOrEmpty())
+            {
+                return await _publishedFundingPolicy.ExecuteAsync(() =>
+                        _publishedFunding.GetPublishedProvidersFundingDataForCsvReport(publishedProviderIds, specificationId, statuses));
+            }
 
             PublishedProviderFundingCsvDataProcessorContext context = new PublishedProviderFundingCsvDataProcessorContext(publishedProviderIds,
                 statuses,

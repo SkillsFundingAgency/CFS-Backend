@@ -756,22 +756,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         [TestMethod]
-        public void GetReleaseFundingPublishedProvidersGuardsAgainstMissingPublishedProviderIds()
-        {
-            Func<Task<IEnumerable<PublishedProviderFundingSummary>>> invocation = () => WhenGetReleaseFundingPublishedProviders(null,
-                NewRandomString(),
-                NewRandomStatus());
-
-            invocation
-                .Should()
-                .Throw<ArgumentNullException>()
-                .Which
-                .ParamName
-                .Should()
-                .Be("publishedProviderIds");
-        }
-
-        [TestMethod]
         public async Task GetReleaseFundingPublishedProviders()
         {
             string publishedProviderId0 = NewRandomString();
@@ -792,7 +776,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 CreateReleaseFundingSummaryPublishedProviderFundingResult(specificationId, publishedProviderId2)
             };
 
-            GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, publishedProviderIds, statuses), results);
+            GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, statuses, publishedProviderIds), results);
 
             IEnumerable<PublishedProviderFundingSummary> fundings = await WhenGetReleaseFundingPublishedProviders(publishedProviderIds, specificationId, statuses);
 
@@ -802,27 +786,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .Be(3);
 
             Func<CosmosDbQuery, bool> QueryMatch(string s,
-                string[] strings,
-                PublishedProviderStatus[] publishedProviderStatuses) =>
-                _ => _.QueryText == @"
-                              SELECT 
-                                  c.content.current.specificationId,
-                                  c.content.current.totalFunding,
-                                  c.content.current.isIndicative,
-                                  c.content.current.majorVersion,
-                                  c.content.current.minorVersion,
-                                  c.content.current.status,
-                                  c.content.current.provider
-                              FROM publishedProvider c
-                              WHERE c.documentType = 'PublishedProvider'
-                              AND c.content.current.specificationId = @specificationId
-                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId)
-                              AND ARRAY_CONTAINS(@statuses, c.content.current.status)
-                              AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
-                              AND c.deleted = false" &&
+                PublishedProviderStatus[] publishedProviderStatuses,
+                string[] strings) =>
+                _ => _.QueryText == @"SELECT 
+                                c.content.current.specificationId,
+                                c.content.current.totalFunding,
+                                c.content.current.isIndicative,
+                                c.content.current.majorVersion,
+                                c.content.current.minorVersion,
+                                c.content.current.status,
+                                c.content.current.provider
+                            FROM publishedProvider c
+                            WHERE c.documentType = 'PublishedProvider'
+                            AND c.content.current.specificationId = @specificationId AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId)
+                            AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                            AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
+                            AND c.deleted = false" &&
                      HasParameter(_, "@specificationId", s) &&
-                     HasArrayParameter(_, "@publishedProviderIds", publishedProviderIds) &&
-                     HasArrayParameter(_, "@statuses", statuses.Select(status => status.ToString()));
+                     HasArrayParameter(_, "@statuses", statuses.Select(status => status.ToString())) &&
+                     HasArrayParameter(_, "@publishedProviderIds", publishedProviderIds);
         }
 
         [TestMethod]
@@ -844,7 +826,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 CreateReleaseFundingSummaryPublishedProviderFundingResult(specificationId, publishedProviderId2)
             };
 
-            GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, new string[0], statuses), results);
+            GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, statuses, new string[0]), results);
 
             IEnumerable<PublishedProviderFundingSummary> fundings = await WhenGetReleaseFundingPublishedProviders(new string[0], specificationId, statuses);
 
@@ -854,23 +836,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .Be(3);
 
             Func<CosmosDbQuery, bool> QueryMatch(string s,
-                string[] strings,
-                PublishedProviderStatus[] publishedProviderStatuses) =>
-                _ => _.QueryText == @"
-                              SELECT 
-                                  c.content.current.specificationId,
-                                  c.content.current.totalFunding,
-                                  c.content.current.isIndicative,
-                                  c.content.current.majorVersion,
-                                  c.content.current.minorVersion,
-                                  c.content.current.status,
-                                  c.content.current.provider
-                              FROM publishedProvider c
-                              WHERE c.documentType = 'PublishedProvider'
-                              AND c.content.current.specificationId = @specificationId
-                              AND ARRAY_CONTAINS(@statuses, c.content.current.status)
-                              AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
-                              AND c.deleted = false" &&
+                PublishedProviderStatus[] publishedProviderStatuses,
+                string[] strings) =>
+                _ => _.QueryText == @"SELECT 
+                                c.content.current.specificationId,
+                                c.content.current.totalFunding,
+                                c.content.current.isIndicative,
+                                c.content.current.majorVersion,
+                                c.content.current.minorVersion,
+                                c.content.current.status,
+                                c.content.current.provider
+                            FROM publishedProvider c
+                            WHERE c.documentType = 'PublishedProvider'
+                            AND c.content.current.specificationId = @specificationId
+                            AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                            AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
+                            AND c.deleted = false" &&
                      HasParameter(_, "@specificationId", s) &&
                      HasArrayParameter(_, "@statuses", statuses.Select(status => status.ToString()));
         }
@@ -908,35 +889,32 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             Func<CosmosDbQuery, bool> QueryMatch(string s,
                 string[] strings,
                 PublishedProviderStatus[] publishedProviderStatuses) =>
-                _ => _.QueryText == @"
-                              SELECT 
-                                    c.content.current.specificationId,
-                                    c.content.current.fundingStreamId, 
-                                    c.content.current.fundingPeriodId,
-                                    c.content.current.status,
-                                    c.content.current.provider.providerId,
-                                    c.content.current.provider.ukprn,
-                                    c.content.current.provider.urn,
-                                    c.content.current.provider.upin,
-                                    c.content.current.provider.name,
-                                    c.content.current.totalFunding,
-                                    c.content.current.majorVersion,
-                                    c.content.current.minorVersion,
-                                    c.content.current.isIndicative,
-                                    c.content.current.variationReasons,
-                                    c.content.released.majorVersion As lastReleasedMajorVersion,
-                                    c.content.released.minorVersion As lastReleasedMinorVersion,
-                                    c.content.released.totalFunding As lastReleasedTotalFunding
-                              FROM publishedProvider c
-                              WHERE c.documentType = 'PublishedProvider'
-                              AND c.deleted = false 
-                              AND c.content.current.specificationId = @specificationId AND c.content.current.publishedProviderId IN (@publishedProviderId_0,@publishedProviderId_1,@publishedProviderId_2) AND c.content.current.status IN (@status_0,@status_1)" &&
+                _ => _.QueryText == @"SELECT 
+                                c.content.current.specificationId,
+                                c.content.current.fundingStreamId, 
+                                c.content.current.fundingPeriodId,
+                                c.content.current.status,
+                                c.content.current.provider.providerId,
+                                c.content.current.provider.ukprn,
+                                c.content.current.provider.urn,
+                                c.content.current.provider.upin,
+                                c.content.current.provider.name,
+                                c.content.current.totalFunding,
+                                c.content.current.majorVersion,
+                                c.content.current.minorVersion,
+                                c.content.current.isIndicative,
+                                c.content.current.variationReasons,
+                                c.content.released.majorVersion As lastReleasedMajorVersion,
+                                c.content.released.minorVersion As lastReleasedMinorVersion,
+                                c.content.released.totalFunding As lastReleasedTotalFunding
+                            FROM publishedProvider c
+                            WHERE c.documentType = 'PublishedProvider'
+                            AND c.content.current.specificationId = @specificationId AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId)
+                            AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                            AND c.deleted = false" &&
                      HasParameter(_, "@specificationId", s) &&
-                     HasParameter(_, "@publishedProviderId_0", publishedProviderId0) &&
-                     HasParameter(_, "@publishedProviderId_1", publishedProviderId1) &&
-                     HasParameter(_, "@publishedProviderId_2", publishedProviderId2) &&
-                     HasParameter(_, "@status_0", status0.ToString()) &&
-                     HasParameter(_, "@status_1", status1.ToString());
+                     HasArrayParameter(_, "@statuses", statuses.Select(status => status.ToString())) &&
+                     HasArrayParameter(_, "@publishedProviderIds", publishedProviderIds);
         }
 
         [TestMethod]

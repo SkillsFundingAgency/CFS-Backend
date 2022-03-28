@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         {
             if (publishedProviderIds.IsNullOrEmpty())
             {
-                publishedProviderIds = await _publishedFundingPolicy.ExecuteAsync(() => _publishedFunding.GetPublishedProviderPublishedProviderIds(specificationSummary.Id));
+                return await _publishedFundingPolicy.ExecuteAsync(() => _publishedFunding.GetReleaseFundingPublishedProviders(publishedProviderIds, specificationSummary.Id, statuses));
             }
 
             PublishedProviderFundingSummaryProcessorContext context = new PublishedProviderFundingSummaryProcessorContext(

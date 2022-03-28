@@ -301,7 +301,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task GetProviderDataForAllApprovalAsCsv_ShouldSaveCsvFileInStorageConstinerAndReturnsBlobUrl()
         {
-            IEnumerable<string> publishedProviderIds = new[] { NewRandomString(), NewRandomString() };
             string fundingPeriodId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string providerName1 = NewRandomString();
@@ -338,10 +337,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             PublishedProviderStatus[] statuses = new[] { PublishedProviderStatus.Draft, PublishedProviderStatus.Updated };
             string blobNamePrefix = $"{fundingStreamId}-{fundingPeriodId}";
 
-            GivenTheFundingDataForCsv(expectedCsvData, publishedProviderIds, _specificationId, statuses);
+            GivenTheFundingDataForCsv(expectedCsvData, _specificationId, statuses);
             GivenBolbReference(blobNamePrefix, blob);
             GivenBlobUrl(blobNamePrefix, expectedUrl);
-            GivenThePublishedProviderIdsForTheSpecificationId(publishedProviderIds);
 
             OkObjectResult result = await WhenTheGetProviderDataForAllApprovalAsCsvExecuted(_specificationId) as OkObjectResult;
 
@@ -360,7 +358,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             await _fundingCsvDataProcessor
                 .Received(1)
                 .GetFundingData(
-                Arg.Is<IEnumerable<string>>(ids => ids.SequenceEqual(publishedProviderIds)),
+                null,
                 Arg.Is(_specificationId),
                 Arg.Is<PublishedProviderStatus[]>(s => s.SequenceEqual(statuses)));
 
@@ -463,7 +461,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task GetProviderDataForAllReleaseAsCsv_ShouldSaveCsvFileInStorageConstinerAndReturnsBlobUrl()
         {
-            IEnumerable<string> publishedProviderIds = new[] { NewRandomString(), NewRandomString() };
             string fundingPeriodId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string providerName1 = NewRandomString();
@@ -500,10 +497,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             PublishedProviderStatus[] statuses = new[] { PublishedProviderStatus.Approved };
             string blobNamePrefix = $"{fundingStreamId}-{fundingPeriodId}";
 
-            GivenTheFundingDataForCsv(expectedCsvData, publishedProviderIds, _specificationId, statuses);
+            GivenTheFundingDataForCsv(expectedCsvData, _specificationId, statuses);
             GivenBolbReference(blobNamePrefix, blob);
             GivenBlobUrl(blobNamePrefix, expectedUrl);
-            GivenThePublishedProviderIdsForTheSpecificationId(publishedProviderIds);
 
             OkObjectResult result = await WhenTheGetProviderDataForAllReleaseAsCsvExecuted(_specificationId) as OkObjectResult;
 
@@ -522,7 +518,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             await _fundingCsvDataProcessor
                 .Received(1)
                 .GetFundingData(
-                Arg.Is<IEnumerable<string>>(ids => ids.SequenceEqual(publishedProviderIds)),
+                null,
                 Arg.Is(_specificationId),
                 Arg.Is<PublishedProviderStatus[]>(s => s.SequenceEqual(statuses)));
 
@@ -816,6 +812,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             _fundingCsvDataProcessor.GetFundingData(
                 Arg.Is<IEnumerable<string>>(ids => ids.SequenceEqual(publishedProviderIds)),
+                Arg.Is(specificationId),
+                Arg.Is<PublishedProviderStatus[]>(s => s.SequenceEqual(statuses)))
+                .Returns(fundingData);
+        }
+
+        private void GivenTheFundingDataForCsv(IEnumerable<PublishedProviderFundingCsvData> fundingData,
+            string specificationId,
+            params PublishedProviderStatus[] statuses)
+        {
+            _fundingCsvDataProcessor.GetFundingData(
+                null,
                 Arg.Is(specificationId),
                 Arg.Is<PublishedProviderStatus[]>(s => s.SequenceEqual(statuses)))
                 .Returns(fundingData);

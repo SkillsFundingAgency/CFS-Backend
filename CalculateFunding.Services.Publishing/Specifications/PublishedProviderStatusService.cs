@@ -212,13 +212,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
         public async Task<IActionResult> GetProviderDataForAllApprovalAsCsv(string specificationId)
         {
-            IEnumerable<string> publishedProviderIds =
-                await _publishedFundingRepositoryResilience.ExecuteAsync(() =>
-                    _publishedFundingRepository.GetPublishedProviderPublishedProviderIds(specificationId));
-            PublishedProviderIdsRequest publishedProviderIdsRequest = new PublishedProviderIdsRequest { PublishedProviderIds = publishedProviderIds };
-
             return await GetProviderDataAsCsv(
-                publishedProviderIdsRequest,
+                null,
                 specificationId,
                 $"ProvidersToApprove-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}",
                 PublishedProviderStatus.Draft,
@@ -227,13 +222,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
         public async Task<IActionResult> GetProviderDataForAllReleaseAsCsv(string specificationId)
         {
-            IEnumerable<string> publishedProviderIds =
-                await _publishedFundingRepositoryResilience.ExecuteAsync(() =>
-                    _publishedFundingRepository.GetPublishedProviderPublishedProviderIds(specificationId));
-            PublishedProviderIdsRequest publishedProviderIdsRequest = new PublishedProviderIdsRequest { PublishedProviderIds = publishedProviderIds };
-
             return await GetProviderDataAsCsv(
-                publishedProviderIdsRequest,
+                null,
                 specificationId,
                 $"ProvidersToRelease-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}",
                 PublishedProviderStatus.Approved);
@@ -310,13 +300,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             if (!validationResults.IsValid) return validationResults.AsBadRequest();
 
-            if (providerIds.PublishedProviderIds.IsNullOrEmpty())
-            {
-                return new BadRequestObjectResult("Provider ids must be provided");
-            }
-
             IEnumerable<PublishedProviderFundingCsvData> publishedProviderFundingData = await _fundingCsvDataProcessor.GetFundingData(
-                                                                providerIds.PublishedProviderIds,
+                                                                providerIds?.PublishedProviderIds,
                                                                 specificationId,
                                                                 statuses);
 
