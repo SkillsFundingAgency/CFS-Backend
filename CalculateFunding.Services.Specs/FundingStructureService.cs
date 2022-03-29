@@ -142,10 +142,12 @@ namespace CalculateFunding.Services.Specifications
                 return templateMappingResponseErrorResult;
             }
 
-            if (templateMappingResponse.Content.TemplateMappingItems.Any(_ => string.IsNullOrWhiteSpace(_.CalculationId)))
+            IEnumerable<TemplateMappingItem> missingCalculations = templateMappingResponse.Content.TemplateMappingItems?.Where(_ => string.IsNullOrWhiteSpace(_.CalculationId));
+
+            if (missingCalculations.AnyWithNullCheck())
             {
                 return new InternalServerErrorResult(
-                    $"Template mappings missing for specification '{specificationId}' and funding stream '{fundingStreamId}'");
+                    $"Template mappings missing for calculations '{string.Join(',', missingCalculations.Select(_ => _.Name))}' possibly due to duplicate additional calculations for specification '{specificationId}' and funding stream '{fundingStreamId}'");
             }
 
             ApiResponse<IEnumerable<CalculationMetadata>> calculationMetadata =

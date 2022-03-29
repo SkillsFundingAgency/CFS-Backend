@@ -44,6 +44,9 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
         private const string aValidCalculationId1 = "aValidCalculationId-1";
         private const string aValidCalculationId2 = "aValidCalculationId-2";
         private const string aValidCalculationId3 = "aValidCalculationId-3";
+        private const string aValidCalculationName1 = "aValidCalculationName-1";
+        private const string aValidCalculationName2 = "aValidCalculationName-2";
+        private const string aValidCalculationName3 = "aValidCalculationName-3";
 
         private const PublishStatus CalculationExpectedPublishStatus = PublishStatus.Approved;
 
@@ -279,7 +282,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
             InternalServerErrorResult typedResult = apiResponseResult as InternalServerErrorResult;
             typedResult.Value.ToString()
                 .Should()
-                .Be($"Template mappings missing for specification '{SpecificationId}' and funding stream '{FundingStreamId}'");
+                .Be($"Template mappings missing for calculations '{aValidCalculationName3}' possibly due to duplicate additional calculations for specification '{SpecificationId}' and funding stream '{FundingStreamId}'");
         }
 
         [TestMethod]
@@ -420,22 +423,26 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             new TemplateMappingItem
                             {
                                 TemplateId = 7,
-                                CalculationId = aValidCalculationId1
+                                CalculationId = aValidCalculationId1,
+                                Name = aValidCalculationName1
                             },
                             new TemplateMappingItem
                             {
                                 TemplateId = 11,
-                                CalculationId = aValidCalculationId2
+                                CalculationId = aValidCalculationId2,
+                                Name = aValidCalculationName2
                             },
                             new TemplateMappingItem
                             {
                                 TemplateId = 8,
-                                CalculationId = "CalculationIdForTemplateCalculationId2"
+                                CalculationId = "CalculationIdForTemplateCalculationId2",
+                                Name = "CalculationIdForTemplateCalculationName2"
                             },
                             new TemplateMappingItem
                             {
                                 TemplateId = 10,
-                                CalculationId = missingTemplateMapping ? null : aValidCalculationId3
+                                CalculationId = missingTemplateMapping ? null : aValidCalculationId3,
+                                Name =  aValidCalculationName3
                             }
                         }
                     }));
