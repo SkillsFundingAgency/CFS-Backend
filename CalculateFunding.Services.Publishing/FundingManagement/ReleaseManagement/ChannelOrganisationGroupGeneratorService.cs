@@ -7,6 +7,7 @@ using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,6 +39,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 .SingleOrDefault(rc => rc.ChannelCode == channel.ChannelCode)
                 ?.OrganisationGroupings;
 
+            if (!organisationGroupingConfigurations.AnyWithNullCheck())
+            {
+                throw new InvalidOperationException($"The organisation group configuration is missing for channel with code '{channel.ChannelCode}'");
+            }
+
             return await _organisationGroupGenerator.GenerateOrganisationGroup(
                 organisationGroupingConfigurations,
                 fundingConfiguration.ProviderSource,
@@ -56,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             Dictionary<string, IEnumerable<OrganisationGroupResult>> channelOrganisationGroups = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
 
-            if(fundingConfiguration?.ReleaseChannels == null)
+            if (fundingConfiguration?.ReleaseChannels == null)
             {
                 return channelOrganisationGroups;
             }

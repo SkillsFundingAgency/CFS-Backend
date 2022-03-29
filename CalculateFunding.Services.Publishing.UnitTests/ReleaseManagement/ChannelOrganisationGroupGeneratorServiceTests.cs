@@ -8,8 +8,10 @@ using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -100,6 +102,65 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 It.Is<string>(s => s.Equals(providerVersionId)),
                 It.Is<int?>(s => s.Equals(providerSnapshotId))),
                 Times.Once);
+        }
+
+        [TestMethod]
+        public void WhenGeneratingOrganisationGroupsWithMissingGroupingConfiguration_ThenExceptionThrown()
+        {
+            string channelCode = "MissingChannel";
+            string providerVersionId = "123";
+            int providerSnapshotId = 100;
+            ProviderSource providerSource = ProviderSource.CFS;
+            PaymentOrganisationSource paymentOrganisationSource = PaymentOrganisationSource.PaymentOrganisationAsProvider;
+            Channel channel = new Channel
+            {
+                ChannelCode = channelCode
+            };
+
+            List<OrganisationGroupingConfiguration> organisationGroupingConfigurations = new List<OrganisationGroupingConfiguration>
+            {
+                new OrganisationGroupingConfiguration
+                {
+                    GroupingReason = Common.ApiClient.Policies.Models.GroupingReason.Contracting,
+                    GroupTypeClassification = OrganisationGroupTypeClassification.GeographicalBoundary,
+                    GroupTypeIdentifier = OrganisationGroupTypeIdentifier.AcademyTrustCode,
+                    OrganisationGroupTypeCode = OrganisationGroupTypeCode.AcademyTrust
+                }
+            };
+            FundingConfiguration fundingConfiguration = new FundingConfiguration
+            {
+                ProviderSource = providerSource,
+                PaymentOrganisationSource = paymentOrganisationSource,
+                ReleaseChannels = new List<FundingConfigurationChannel>
+                {
+                    new FundingConfigurationChannel
+                    {
+                        ChannelCode =   "ConfiguredChannel",
+                        OrganisationGroupings = organisationGroupingConfigurations
+                    }
+                }
+            };
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                ProviderVersionId = providerVersionId,
+                ProviderSnapshotId = providerSnapshotId
+            };
+            List<PublishedProviderVersion> batchProviders = new List<PublishedProviderVersion>
+            {
+                new PublishedProviderVersion(),
+                new PublishedProviderVersion()
+            };
+
+            Func<Task> action = async () =>
+            {
+                IEnumerable<OrganisationGroupResult> result = await _sut.GenerateOrganisationGroups(
+                    channel, fundingConfiguration, specification, batchProviders);
+            };
+
+            action
+                .Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage("The organisation group configuration is missing for channel with code 'MissingChannel'");
         }
 
         [TestMethod]
