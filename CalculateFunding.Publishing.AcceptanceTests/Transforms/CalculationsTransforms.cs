@@ -35,7 +35,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Transforms
                     Id = Id,
                     Value = GetValueType() switch
                     {
-                        "decimal" => decimal.TryParse(Value, out decimal value) ? (object) value : null,
+                        "decimal" => decimal.TryParse(Value, System.Globalization.NumberStyles.Float, null, out decimal value) ? (object) value : null,
                         "boolean" => bool.TryParse(Value, out bool value) ? (object) value : null,
                         _ => Value
                     }

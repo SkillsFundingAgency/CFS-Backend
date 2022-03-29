@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Specifications
                     case CalculationValueFormat.Number:
                     case CalculationValueFormat.Percentage:
                     case CalculationValueFormat.Currency:
-                        if (decimal.TryParse(value?.ToString(), out decimal decimalValue))
+                        if (decimal.TryParse(value?.ToString(), System.Globalization.NumberStyles.Float, null, out decimal decimalValue))
                         {
                             return calculationValueFormat switch
                             {

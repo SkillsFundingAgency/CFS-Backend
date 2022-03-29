@@ -736,7 +736,7 @@ namespace CalculateFunding.Services.CalcEngine
                             // My hunch is the persisted / provided value is not in the correct property format
                             if (value != null)
                             {
-                                value = decimal.TryParse(value.ToString(), out decimal outValue) ? (decimal?)outValue : null;
+                                value = decimal.TryParse(value.ToString(), System.Globalization.NumberStyles.Float, null, out decimal outValue) ? (decimal?)outValue : null;
                             }
                         }
 

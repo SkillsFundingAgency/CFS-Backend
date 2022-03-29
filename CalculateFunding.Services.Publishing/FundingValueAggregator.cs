@@ -229,7 +229,7 @@ namespace CalculateFunding.Services.Publishing
         private void GetCalculation(Dictionary<uint, decimal> calculations,
             FundingCalculation calculation)
         {
-            if (decimal.TryParse(calculation.Value?.ToString(), out decimal value))
+            if (decimal.TryParse(calculation.Value?.ToString(), System.Globalization.NumberStyles.Float, null, out decimal value))
             {
                 uint templateCalculationId = calculation.TemplateCalculationId;
 

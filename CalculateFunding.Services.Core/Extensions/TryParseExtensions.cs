@@ -7,6 +7,7 @@ namespace CalculateFunding.Services.Core.Extensions
     public static class TryParseExtensions
     {
         public delegate bool ParseDelegate<T>(string s, out T result);
+        public delegate bool ParseDelegateWithNumberStyle<T>(string s, System.Globalization.NumberStyles ns, IFormatProvider? provider, out T result);
 
         private static T? TryParse<T>(this string value, ParseDelegate<T> parse) where T : struct
         {
@@ -17,6 +18,22 @@ namespace CalculateFunding.Services.Core.Extensions
 
             T result;
             if (parse(value, out result))
+            {
+                return result;
+            }
+
+            return null;
+        }
+
+        private static T? TryParse<T>(this string value, System.Globalization.NumberStyles numberStyle, ParseDelegateWithNumberStyle<T> parse) where T : struct
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+
+            T result;
+            if (parse(value, numberStyle, null,  out result))
             {
                 return result;
             }
@@ -46,7 +63,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static Decimal? TryParseDecimal(this string value)
         {
-            return TryParse<Decimal>(value, Decimal.TryParse);
+            return TryParse<Decimal>(value, System.Globalization.NumberStyles.Float, Decimal.TryParse);
         }
 
         public static DateTime? TryParseDateTime(this string value)
@@ -123,10 +140,9 @@ namespace CalculateFunding.Services.Core.Extensions
                 if (value == null || string.IsNullOrWhiteSpace(value.ToString()) || value.ToString().ToLower() == "null")
                     return true;
 
-                decimal parsedValue;
-                if (decimal.TryParse(value.ToString(), out parsedValue))
+                if (decimal.TryParse(value.ToString(), System.Globalization.NumberStyles.Float, null, out decimal parsedValue))
                 {
-                    parsed = (decimal?)parsedValue;
+                    parsed = parsedValue;
                     return true;
                 };
 
