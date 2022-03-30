@@ -285,6 +285,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 if (!_variationReasons.ContainsKey(reason.VariationReasonCode))
                 {
                     await _repo.CreateVariationReason(reason);
+                    _variationReasons.Add(reason.VariationReasonCode, reason);
                 }
             }
 
