@@ -122,6 +122,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 groupingReasons, variationReasons, specifications,
                 _cosmosRepo.GetPublishedFundingVersionIterator(CosmosBatchSize), ProcessPublishedFundingVersions);
 
+            await _providerMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
+                groupingReasons, variationReasons, specifications,
+                _cosmosRepo.GetReleasedPublishedProviderIterator(CosmosBatchSize), ProcessPublishedProviderVersions);
+
+            DetectMissingPublishedProviderVersionRecordsFromFundingGroups();
+
             FundingGroupDataTableBuilder fundingGroupsBuilder = new FundingGroupDataTableBuilder();
             fundingGroupsBuilder.AddRows(_createFundingGroups.ToArray());
             _logger.Information($"Importing {_createFundingGroups.Count} FundingGroups");
@@ -136,10 +142,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             fundingVariationReasonsBuilder.AddRows(_createFundingGroupVariationReasons.ToArray());
             _logger.Information($"Importing {_createFundingGroupVariationReasons.Count} FundingGroupVariationReasons");
             await dataImporter.ImportDataTable(fundingVariationReasonsBuilder, SqlBulkCopyOptions.KeepIdentity);
-
-            await _providerMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
-                groupingReasons, variationReasons, specifications,
-                _cosmosRepo.GetReleasedPublishedProviderIterator(CosmosBatchSize), ProcessPublishedProviderVersions);
 
             ReleasedProviderDataTableBuilder releasedProvidersBuilder = new ReleasedProviderDataTableBuilder();
             releasedProvidersBuilder.AddRows(_createReleasedProviders.ToArray());
@@ -156,22 +158,37 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await MigrateBlobs();
         }
 
+        private void DetectMissingPublishedProviderVersionRecordsFromFundingGroups()
+        {
+            IEnumerable<string> allProviderFundingIdFromGroups = _publishedFundingVersions.Values.SelectMany(_ => _.ProviderFundings).Distinct();
+
+            IEnumerable<string> allProviderFundingIds = _publishedProviderVersions.Values.Select(_ => _.FundingId);
+
+            string[] missingProviderVersions = allProviderFundingIdFromGroups.Except(allProviderFundingIds).ToArray();
+
+            if (missingProviderVersions.Any())
+            {
+                throw new InvalidOperationException("The following PublishedProviderVersions are missing in cosmos: " + string.Join(", ", missingProviderVersions));
+            }
+        }
+
         private static string GetFundingGroupDictionaryKey(int channelId, string specificationId, int groupingReasonId, string organisationGroupTypeClassification, string organisationGroupIdentifierValue)
         {
             return $"{channelId}_{specificationId}_{groupingReasonId}_{organisationGroupTypeClassification}_{organisationGroupIdentifierValue}";
         }
 
-        protected async Task ProcessPublishedFundingVersions(CancellationToken cancellationToken,
+        protected Task ProcessPublishedFundingVersions(CancellationToken cancellationToken,
             dynamic context,
             ArraySegment<PublishedFundingVersion> publishedFunding)
         {
             IReleaseManagementImportContext ctx = ((IReleaseManagementImportContext)context);
-            List<Task> createFundingGroupsTasks = new List<Task>();
 
             foreach (PublishedFundingVersion fundingVersion in publishedFunding)
             {
-                await Task.Run(() => GenerateFundingGroupsAndVersions(fundingVersion, ctx));
+                GenerateFundingGroupsAndVersions(fundingVersion, ctx);
             }
+
+            return Task.CompletedTask;
         }
 
         private void GenerateFundingGroupsAndVersions(PublishedFundingVersion fundingVersion, IReleaseManagementImportContext ctx)
@@ -331,18 +348,21 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
         }
 
-        protected async Task ProcessPublishedProviderVersions(CancellationToken cancellationToken,
+        protected Task ProcessPublishedProviderVersions(CancellationToken cancellationToken,
             dynamic context,
             ArraySegment<PublishedProviderVersion> publishedProviders)
         {
-            List<Task> createReleasedProvidersTasks = new List<Task>();
-
             foreach (PublishedProviderVersion providerVersion in publishedProviders)
             {
-                _publishedProviderVersions.AddOrUpdate($"{providerVersion.ProviderId}_{providerVersion.SpecificationId}_{providerVersion.MajorVersion}_{providerVersion.MinorVersion}", providerVersion, (id, existing) => { return providerVersion; });
+                if (!_publishedProviderVersions.TryAdd($"{providerVersion.ProviderId}_{providerVersion.SpecificationId}_{providerVersion.MajorVersion}_{providerVersion.MinorVersion}", providerVersion))
+                {
+                    throw new InvalidOperationException($"Duplicate published provider version found for {providerVersion.ProviderId}_{providerVersion.SpecificationId}_{providerVersion.MajorVersion}_{providerVersion.MinorVersion}");
+                }
 
-                await Task.Run(() => GenerateReleasedProvidersAndVersions(providerVersion));
+                GenerateReleasedProvidersAndVersions(providerVersion);
             }
+
+            return Task.CompletedTask;
         }
 
         private void GenerateReleasedProvidersAndVersions(PublishedProviderVersion providerVersion)
