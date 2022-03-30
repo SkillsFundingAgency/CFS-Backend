@@ -5,6 +5,8 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Interfaces.Threading;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -22,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<IPublishedFundingRepository> _publishedFundingRepository;
         private Mock<IPublishedProviderIndexerService> _publishedProviderIndexerService;
         private Mock<IJobManagement> _jobManagement;
+        private IProducerConsumerFactory _producerConsumerFactory;
         private const string JobId = "jobId";
         private const string SpecificationId = "specification-id";
 
@@ -30,7 +33,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _publishedProviderIndexerService = new Mock<IPublishedProviderIndexerService>();
             _publishedFundingRepository = new Mock<IPublishedFundingRepository>();
+            _producerConsumerFactory = new ProducerConsumerFactory();
             _jobManagement = new Mock<IJobManagement>();
+
 
             _service = new PublishedProviderReIndexerService(_publishedProviderIndexerService.Object,
                 new ResiliencePolicies
@@ -39,6 +44,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     PublishedFundingRepository = Policy.NoOpAsync()
                 },
                 _publishedFundingRepository.Object,
+                _producerConsumerFactory,
                 _jobManagement.Object,
                 Mock.Of<ILogger>());
         }
@@ -58,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFundingRepository.Setup(_ => _.AllPublishedProviderBatchProcessing(It.IsAny<Func<List<PublishedProvider>, Task>>(), It.IsAny<int>(), It.IsAny<string>()))
                 .Callback<Func<List<PublishedProvider>, Task>, int, string>((cb, batchSize, specId) =>
                 {
-                    cb.Invoke(new List<PublishedProvider>());
+                    cb.Invoke(new List<PublishedProvider>(new PublishedProvider[] { new PublishedProvider() }));
 
                     specificationIdProvided = specId;
                 });
@@ -96,7 +102,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFundingRepository.Setup(_ => _.AllPublishedProviderBatchProcessing(It.IsAny<Func<List<PublishedProvider>, Task>>(), It.IsAny<int>(), It.IsAny<string>()))
                  .Callback<Func<List<PublishedProvider>, Task>, int, string>((cb, batchSize, specId) =>
                  {
-                     cb.Invoke(new List<PublishedProvider>());
+                     cb.Invoke(new List<PublishedProvider>(new PublishedProvider[] { new PublishedProvider() }));
 
                      specificationIdProvided = specId;
                  });
