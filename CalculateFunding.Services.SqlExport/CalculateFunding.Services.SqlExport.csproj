@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Sql" Version="4.3.1" />
+    <PackageReference Include="CalculateFunding.Common.Sql" Version="4.3.2" />
   </ItemGroup>
 
   <ItemGroup>
