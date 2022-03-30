@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _context = new Mock<IReleaseToChannelSqlMappingContext>();
             _context.SetupGet(s => s.FundingGroups)
-                .Returns(new Dictionary<OrganisationGroupResult, Guid>());
+                .Returns(new Dictionary<int, Dictionary<OrganisationGroupResult, Guid>>());
 
             _orgResults = new List<OrganisationGroupResult>
             {

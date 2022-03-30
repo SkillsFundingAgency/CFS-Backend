@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             ReleasedProviders = new Dictionary<string, ReleasedProvider>();
             ReleasedProviderVersions = new Dictionary<string, ReleasedProviderVersion>();
             ReleasedProviderVersionChannels = new Dictionary<string, Guid>();
-            FundingGroups = new Dictionary<OrganisationGroupResult, Guid>();
+            FundingGroups = new Dictionary<int, Dictionary<OrganisationGroupResult, Guid>>();
             FundingGroupVersions = new Dictionary<int, Dictionary<string, FundingGroupVersion>>();
         }
 
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
         public Specification Specification { get; set; }
 
-        public Dictionary<OrganisationGroupResult, Guid> FundingGroups { get; set; }
+        public Dictionary<int, Dictionary<OrganisationGroupResult, Guid>> FundingGroups { get; set; }
 
         public Dictionary<int, Dictionary<string, FundingGroupVersion>> FundingGroupVersions { get; set; }
 

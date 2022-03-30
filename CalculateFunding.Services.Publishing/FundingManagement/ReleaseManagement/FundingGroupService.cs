@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     organisationGroupResults
                         .SingleOrDefault(_ =>
                             groupingReasonIdLookup[_.GroupReason.ToString()] == fundingGroup.GroupingReasonId &&
-                                                 _.GroupTypeClassification.ToString() == fundingGroup.OrganisationGroupTypeClassification &&
+                                                 _.GroupTypeCode.ToString() == fundingGroup.OrganisationGroupTypeCode &&
                                                  _.IdentifierValue == fundingGroup.OrganisationGroupIdentifierValue);
 
                 if (organisationGroupResult == null)
@@ -115,7 +115,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     throw new KeyNotFoundException(message);
                 }
 
-                _releaseToChannelSqlMappingContext.FundingGroups.Add(organisationGroupResult, fundingGroup.FundingGroupId);
+                if (!_releaseToChannelSqlMappingContext.FundingGroups.TryGetValue(channelId, out var organisationGroupsForChannel))
+                {
+                    organisationGroupsForChannel = new Dictionary<OrganisationGroupResult, System.Guid>();
+                    _releaseToChannelSqlMappingContext.FundingGroups.Add(channelId, organisationGroupsForChannel);
+                }
+
+                organisationGroupsForChannel.Add(organisationGroupResult, fundingGroup.FundingGroupId);
             }
         }
     }

@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             foreach (GeneratedPublishedFunding fundingGroupDataItem in fundingGroupData)
             {
-                if (!_releaseToChannelSqlMappingContext.FundingGroups.TryGetValue(fundingGroupDataItem.OrganisationGroupResult, out Guid fundingGroupId))
+                if (!_releaseToChannelSqlMappingContext.FundingGroups[channelId].TryGetValue(fundingGroupDataItem.OrganisationGroupResult, out Guid fundingGroupId))
                 {
                     throw new KeyNotFoundException(
                         $"OrganisationGroupResult not found in sql context for published funding id = {fundingGroupDataItem.PublishedFundingVersion.FundingId}");

@@ -181,11 +181,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
         private void GivenContext()
         {
-            Dictionary<OrganisationGroupResult, Guid> fundingGroups = new Dictionary<OrganisationGroupResult, Guid>();
+            Dictionary<int, Dictionary<OrganisationGroupResult, Guid>> fundingGroups = new Dictionary<int, Dictionary<OrganisationGroupResult, Guid>>();
             int i = 0;
+
+            fundingGroups.Add(_channelId, new Dictionary<OrganisationGroupResult, Guid>());
+
             foreach (OrganisationGroupResult item in _fundingGroupData.Select(s => s.OrganisationGroupResult))
             {
-                fundingGroups.Add(item, _fundingGroupDataIds[i++]);
+                fundingGroups[_channelId].Add(item, _fundingGroupDataIds[i++]);
             }
             _context.SetupGet(s => s.FundingGroups)
                 .Returns(fundingGroups);
@@ -196,14 +199,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
         private void GivenContextWithMissingFundingGroup()
         {
-            Dictionary<OrganisationGroupResult, Guid> fundingGroups = new Dictionary<OrganisationGroupResult, Guid>();
+            Dictionary<int, Dictionary<OrganisationGroupResult, Guid>> fundingGroups = new Dictionary<int, Dictionary<OrganisationGroupResult, Guid>>();
+
+            fundingGroups.Add(_channelId, new Dictionary<OrganisationGroupResult, Guid>());
 
             List<OrganisationGroupResult> organisationGroupResults = _fundingGroupData.Select(s => s.OrganisationGroupResult).ToList();
             organisationGroupResults.RemoveAt(0);
             int i = 1;
             foreach (OrganisationGroupResult item in organisationGroupResults)
             {
-                fundingGroups.Add(item, _fundingGroupDataIds[i++]);
+                fundingGroups[_channelId].Add(item, _fundingGroupDataIds[i++]);
             }
             _context.SetupGet(s => s.FundingGroups)
                 .Returns(fundingGroups);

@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 
         Specification Specification { get; set; }
 
-        Dictionary<OrganisationGroupResult, Guid> FundingGroups { get; set; }
+        Dictionary<int, Dictionary<OrganisationGroupResult, Guid>> FundingGroups { get; set; }
 
         /// <summary>
         /// FundingGroupVersions. Key is channelId, then string of funding ID for group
