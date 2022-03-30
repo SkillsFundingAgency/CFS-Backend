@@ -129,7 +129,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 MessageBody = releaseProvidersToChannelRequest.AsJson(),
                 Properties = new Dictionary<string, string>
                 {
-                    {"specification-id", specificationId}
+                    {"specification-id", specificationId},
+                    {"user-id", author?.Id},
+                    {"user-name", author?.Name}
                 },
                 Trigger = new Trigger
                 {

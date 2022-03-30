@@ -146,6 +146,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             // Arrange
             string specificationId = NewRandomString();
+            Reference author = new Reference { Id = NewRandomString(), Name = "system" };
             string jobId = NewRandomString();
 
             ReleaseProvidersToChannelRequest releaseProvidersToChannelRequest = new ReleaseProvidersToChannelRequest { Channels = new[] { "Payment" } };
@@ -174,11 +175,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     j.JobDefinitionId == JobConstants.DefinitionNames.ReleaseProvidersToChannelsJob &&
                     j.SpecificationId == specificationId &&
                     j.Properties.ContainsKey("specification-id") &&
-                    j.Properties["specification-id"] == specificationId)))
+                    j.Properties["specification-id"] == specificationId &&
+                    j.Properties.ContainsKey("user-id") &&
+                    j.Properties["user-id"] == author.Id &&
+                    j.Properties.ContainsKey("user-name") &&
+                    j.Properties["user-name"] == author.Name)))
                 .ReturnsAsync(job);
 
             // Act
-            IActionResult actionResult = await WhenQueueReleaseProviderVersionsCalled(specificationId, releaseProvidersToChannelRequest);
+            IActionResult actionResult = await WhenQueueReleaseProviderVersionsCalled(specificationId, releaseProvidersToChannelRequest, author);
 
             // Assert
             actionResult
