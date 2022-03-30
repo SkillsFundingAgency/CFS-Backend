@@ -241,10 +241,20 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Task<IEnumerable<ReleasedDataAllocationHistory>> releasedDataQuery =
                  _releaseManagementRepository.GetPublishedProviderTransactionHistory(specificationId, providerId);
 
-            await TaskHelper.WhenAllAndThrow(unreleasedProviderVersionsQuery, releasedDataQuery);
+            Task<SpecificationSummary> specificationQuery = _specificationService.GetSpecificationSummaryById(specificationId);
+
+            await TaskHelper.WhenAllAndThrow(unreleasedProviderVersionsQuery, releasedDataQuery, specificationQuery);
 
             IEnumerable<PublishedProviderVersion> unreleasedProviderVersions = unreleasedProviderVersionsQuery.Result;
             IEnumerable<ReleasedDataAllocationHistory> releasedData = releasedDataQuery.Result;
+            SpecificationSummary specificationSummary = specificationQuery.Result;
+
+            FundingConfiguration fundingConfiguration =await _policiesService.GetFundingConfiguration(
+                specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id);
+
+            IEnumerable<string> visibleChannels = fundingConfiguration.ReleaseChannels
+                .Where(_ => _.IsVisible)
+                .Select(_ => _.ChannelCode);
 
             IEnumerable<ReleasePublishedProviderTransaction> unreleasedTransaction = unreleasedProviderVersions.Select(x => new ReleasePublishedProviderTransaction
             {
@@ -272,7 +282,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                     c.MajorVersion,
                     c.MinorVersion,
                     c.TotalFunding
-                }).Select(x => new ReleasePublishedProviderTransaction
+                }).Where(_ => visibleChannels.Contains(_.Key.ChannelCode))
+                .Select(x => new ReleasePublishedProviderTransaction
                 {
                     ProviderId = x.Key.ProviderId,
                     Author = new Reference(x.Key.AuthorId, x.Key.AuthorName),

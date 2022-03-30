@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Publishing;
@@ -10,6 +11,7 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResu
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Specifications;
+using CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation.Results;
@@ -648,7 +650,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         public async Task GetPublishedProviderTransactions_ReturnsSuccess()
         {
             string providerId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+
             Reference author = new Reference(NewRandomString(), NewRandomString());
+
+            string statementChannelCode = NewRandomString();
+            string contractingChannelCode = NewRandomString();
+            string specToSpecChannelCode = NewRandomString();
 
             DateTime statusChangedDate = new RandomDateTime();
 
@@ -670,6 +679,29 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 }
             });
 
+            AndTheSpecificationSummaryIsRetrieved(NewSpecificationSummary(s =>
+            {
+                s.WithId(_specificationId);
+                s.WithFundingStreamIds(fundingStreamId);
+                s.WithFundingPeriodId(fundingPeriodId);
+            }));
+
+            AndTheFundingConfigurationIsRetrieved(NewFundingConfiguration(f =>
+            {
+                f.WithFundingPeriodId(fundingPeriodId);
+                f.WithFundingStreamId(fundingStreamId);
+                f.WithReleaseChannels(
+                    NewFundingConfigurationChannel(c => c
+                        .WithChannelCode(statementChannelCode)
+                        .WithIsVisible(true)),
+                    NewFundingConfigurationChannel(c => c
+                        .WithChannelCode(contractingChannelCode)
+                        .WithIsVisible(true)),
+                    NewFundingConfigurationChannel(c => c
+                        .WithChannelCode(specToSpecChannelCode)
+                        .WithIsVisible(false)));
+        }));
+
             string authorId = NewRandomString();
             string authorName = NewRandomString();
 
@@ -690,7 +722,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 MajorVersion = 2,
                 MinorVersion = 0,
                 TotalFunding = totalFunding,
-                ChannelCode = "Statement",
+                ChannelCode = statementChannelCode,
                 ChannelName = "Statement",
                 VariationReasonName = variationReasonsForStatement,
             }, new ReleasedDataAllocationHistory
@@ -702,8 +734,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 MajorVersion = 1,
                 MinorVersion = 0,
                 TotalFunding = totalFunding,
-                ChannelCode = "Contracting",
+                ChannelCode = contractingChannelCode,
                 ChannelName = "Contracting channel name",
+                VariationReasonName = variationReasonsForContracting,
+            }, new ReleasedDataAllocationHistory
+            {
+                ProviderId = providerId,
+                AuthorId = author2Id,
+                AuthorName = author2Name,
+                StatusChangedDate = statusChangedDate.AddHours(1),
+                MajorVersion = 1,
+                MinorVersion = 0,
+                TotalFunding = totalFunding,
+                ChannelCode = specToSpecChannelCode,
+                ChannelName = "SpecToSpec",
                 VariationReasonName = variationReasonsForContracting,
             });
 
@@ -733,7 +777,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 new ReleasePublishedProviderTransaction()
                 {
                     Author = new Reference(authorId, authorName),
-                    ChannelCode = "Statement",
+                    ChannelCode = statementChannelCode,
                     ChannelName = "Statement",
                     Date = statusChangedDate.AddHours(2),
                     MajorVersion = 2,
@@ -746,7 +790,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 new ReleasePublishedProviderTransaction()
                 {
                     Author = new Reference(author2Id, author2Name),
-                    ChannelCode = "Contracting",
+                    ChannelCode = contractingChannelCode,
                     ChannelName = "Contracting channel name",
                     Date = statusChangedDate.AddHours(1),
                     MajorVersion = 1,
@@ -1001,5 +1045,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             return builder.Build();
         }
 
+        private FundingConfiguration NewFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
+        {
+            FundingConfigurationBuilder builder = new FundingConfigurationBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        private FundingConfigurationChannel NewFundingConfigurationChannel(Action<FundingConfigurationChannelBuilder> setUp = null)
+        {
+            FundingConfigurationChannelBuilder builder = new FundingConfigurationChannelBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
     }
 }
