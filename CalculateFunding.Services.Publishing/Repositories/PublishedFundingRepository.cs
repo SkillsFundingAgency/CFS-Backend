@@ -1421,7 +1421,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             bool nonBatchMode = publishedProviderIds.IsNullOrEmpty();
 
             string publishedProvidersQueryText = string.Empty;
-            
+
             IEnumerable<CosmosDbQueryParameter> parameters = new CosmosDbQueryParameter[] {
                 new CosmosDbQueryParameter("@specificationId", specificationId),
                 new CosmosDbQueryParameter("@statuses", statuses?.Select(_ => _.ToString()).ToArray())
@@ -1935,6 +1935,41 @@ namespace CalculateFunding.Services.Publishing.Repositories
             };
 
             return _repository.GetFeedIterator(query, batchSize);
+        }
+
+        public ICosmosDbFeedIterator GetPublishedFundingVersionDocumentIdIterator(int cosmosBatchSize)
+        {
+            CosmosDbQuery query = new CosmosDbQuery()
+            {
+                QueryText = @"SELECT
+                                    {
+                                        'id':c.content.id,
+                                        'partitionKey':c.content.partitionKey
+                                    } as content
+                                FROM c
+                                WHERE c.documentType = 'PublishedFundingVersion'
+                                AND c.deleted = false"
+            };
+
+            return _repository.GetFeedIterator(query, cosmosBatchSize);
+        }
+
+        public ICosmosDbFeedIterator GetReleasedPublishedProviderVersionIdIterator(int cosmosBatchSize)
+        {
+            CosmosDbQuery query = new CosmosDbQuery()
+            {
+                QueryText = @"SELECT
+                                    {
+                                        'id':c.content.id,
+                                        'partitionKey':c.content.partitionKey
+                                    } as content
+                                FROM c
+                                WHERE c.documentType = 'PublishedProviderVersion' 
+                                AND c.deleted = false 
+                                AND c.content.status = 'Released'"
+            };
+
+            return _repository.GetFeedIterator(query, cosmosBatchSize);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Migration
 
         public async Task RunAsync(Dictionary<string, FundingStream> fundingStreams,
             Dictionary<string, FundingPeriod> fundingPeriods, Dictionary<string, Channel> channels,
-            Dictionary<string, SqlModels.GroupingReason> groupingReasons, Dictionary<string, VariationReason> variationReasons, 
+            Dictionary<string, SqlModels.GroupingReason> groupingReasons, Dictionary<string, VariationReason> variationReasons,
             Dictionary<string, Specification> specifications,
             ICosmosDbFeedIterator cosmosDbFeedIterator,
             Func<CancellationToken, dynamic, ArraySegment<T>, Task> consumer)
@@ -44,8 +44,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Migration
 
             IProducerConsumer producerConsumer = _producerConsumerFactory.CreateProducerConsumer(Producer,
                consumer,
-               10,
                1,
+               2,
                _logger);
 
             await producerConsumer.Run(importContext);

@@ -82,11 +82,12 @@ namespace CalculateFunding.Services.Publishing.Repositories
         public async Task<IEnumerable<PublishedFundingVersion>> GetPublishedFundingVersions(
             IEnumerable<KeyValuePair<string, string>> publishedFundingVersionIds)
         {
-            ConcurrentBag<PublishedFundingVersion> concurrentObjects = new ConcurrentBag<PublishedFundingVersion>();
+            ConcurrentBag<PublishedFundingVersion> results = new ConcurrentBag<PublishedFundingVersion>();
 
-            List<Task> allTasks = new List<Task>();
+            List<Task> allTasks = new List<Task>(publishedFundingVersionIds.Count());
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedFundingConcurrencyCount);
-            foreach (IEnumerable<KeyValuePair<string, string>> batchPublishedFundingVersionIds in publishedFundingVersionIds.ToBatches(_publishingEngineOptions.MaxBatchSizePublishedFunding))
+
+            foreach (KeyValuePair<string, string> publishedFundingVersionIdPair in publishedFundingVersionIds)
             {
                 await throttler.WaitAsync();
                 allTasks.Add(
@@ -94,31 +95,24 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     {
                         try
                         {
-                            List<Task<DocumentEntity<PublishedFundingVersion>>> concurrentTasks = new List<Task<DocumentEntity<PublishedFundingVersion>>>();
+                            DocumentEntity<PublishedFundingVersion> publishedFundingVersion = await _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                                      _repository.ReadDocumentByIdPartitionedAsync<PublishedFundingVersion>(
+                                          publishedFundingVersionIdPair.Key,
+                                          publishedFundingVersionIdPair.Value));
 
-                            foreach (KeyValuePair<string, string> publishedFundingVersionIdPair in batchPublishedFundingVersionIds)
-                            {
-                                concurrentTasks.Add(
-                                    _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
-                                        _repository.ReadDocumentByIdPartitionedAsync<PublishedFundingVersion>(
-                                            publishedFundingVersionIdPair.Key,
-                                            publishedFundingVersionIdPair.Value)));
-                            }
-
-                            await TaskHelper.WhenAllAndThrow(concurrentTasks.ToArraySafe());
-
-                            concurrentTasks.ForEach(_ => concurrentObjects.Add(_.Result.Content));
+                            results.Add(publishedFundingVersion.Content);
                         }
                         finally
                         {
                             throttler.Release();
                         }
                     }));
+
             }
 
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
-            return concurrentObjects;
+            return results;
         }
 
         public async Task<IEnumerable<PublishedProvider>> GetPublishedProviders(
@@ -163,12 +157,51 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return concurrentObjects;
         }
 
+        public async Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(
+            IEnumerable<KeyValuePair<string, string>> publishedProviderVersionIds)
+        {
+            ConcurrentBag<PublishedProviderVersion> results = new ConcurrentBag<PublishedProviderVersion>();
+
+            List<Task> allTasks = new List<Task>(publishedProviderVersionIds.Count());
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedProviderLookupConcurrencyCount);
+
+            foreach (KeyValuePair<string, string> providerIdPair in publishedProviderVersionIds)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            DocumentEntity<PublishedProviderVersion> publishedProviderVersion = await _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                                 _repository.ReadDocumentByIdPartitionedAsync<PublishedProviderVersion>(
+                                     providerIdPair.Key,
+                                     providerIdPair.Value));
+
+                            if (publishedProviderVersion != null && !publishedProviderVersion.Deleted)
+                            {
+                                results.Add(publishedProviderVersion.Content);
+                            }
+
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+
+            return results;
+        }
+
         public async Task<IEnumerable<PublishedProvider>> TryGetPublishedProvidersByProviderId(
             IEnumerable<string> providerIds, string fundingStreamId, string fundingPeriodId)
         {
-            ConcurrentBag<PublishedProvider> concurrentObjects = new ConcurrentBag<PublishedProvider>();
+            ConcurrentBag<PublishedProvider> results = new ConcurrentBag<PublishedProvider>();
 
-            List<Task> allTasks = new List<Task>();
+            List<Task> allTasks = new List<Task>(providerIds.Count());
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedFundingConcurrencyCount);
 
             foreach (string providerId in providerIds)
@@ -188,7 +221,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
                             if (publishedProvider != null && !publishedProvider.Deleted)
                             {
-                                concurrentObjects.Add(publishedProvider.Content);
+                                results.Add(publishedProvider.Content);
                             }
 
                         }
@@ -199,10 +232,9 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     }));
             }
 
-
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
-            return concurrentObjects;
+            return results;
         }
 
         public async Task UpsertPublishedFundings(

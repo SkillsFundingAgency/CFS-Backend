@@ -700,6 +700,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddScoped<IPublishingV3ToSqlMigrator, PublishingV3ToSqlMigrator>();
             builder.AddScoped<IPublishedFundingReleaseManagementMigrator, PublishedFundingReleaseManagementMigrator>();
+            builder.AddScoped<IReleaseManagementMigrationCosmosProducerConsumer<IdPartitionKeyLookup>, ReleaseManagementMigrationCosmosProducerConsumer<IdPartitionKeyLookup>>();
             builder.AddScoped<IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion>>();
             builder.AddScoped<IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>>();
 

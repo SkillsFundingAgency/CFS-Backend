@@ -21,12 +21,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 {
     public class PublishedFundingReleaseManagementMigrator : IPublishedFundingReleaseManagementMigrator
     {
-        private const int CosmosBatchSize = 100;
+        private const int CosmosBatchSize = 200;
         private const int BlobClientThrottleCount = 50;
 
         private readonly IPublishedFundingRepository _cosmosRepo;
-        private readonly IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion> _fundingMigrator;
-        private readonly IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion> _providerMigrator;
+        private readonly IPublishedFundingBulkRepository _publishedFundingBulkRepository;
+        private readonly IReleaseManagementMigrationCosmosProducerConsumer<IdPartitionKeyLookup> _fundingMigrator;
+        private readonly IReleaseManagementMigrationCosmosProducerConsumer<IdPartitionKeyLookup> _providerMigrator;
         private readonly IBlobClient _blobClient;
         private readonly IReleaseManagementDataTableImporter _dataTableImporter;
         private readonly ILogger _logger;
@@ -85,14 +86,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         }
 
         public PublishedFundingReleaseManagementMigrator(IPublishedFundingRepository publishedFundingRepository,
-            IReleaseManagementMigrationCosmosProducerConsumer<PublishedFundingVersion> fundingMigrator,
-            IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion> providerMigrator,
+            IPublishedFundingBulkRepository publishedFundingBulkRepository,
+            IReleaseManagementMigrationCosmosProducerConsumer<IdPartitionKeyLookup> fundingMigrator,
+            IReleaseManagementMigrationCosmosProducerConsumer<IdPartitionKeyLookup> providerMigrator,
             IBlobClient blobClient,
             IReleaseManagementDataTableImporter dataTableImporter,
             ILogger logger,
             IPublishingResiliencePolicies publishingResiliencePolicies)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
+            Guard.ArgumentNotNull(publishedFundingBulkRepository, nameof(publishedFundingBulkRepository));
             Guard.ArgumentNotNull(fundingMigrator, nameof(fundingMigrator));
             Guard.ArgumentNotNull(providerMigrator, nameof(providerMigrator));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
@@ -101,6 +104,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
 
             _cosmosRepo = publishedFundingRepository;
+            _publishedFundingBulkRepository = publishedFundingBulkRepository;
             _fundingMigrator = fundingMigrator;
             _providerMigrator = providerMigrator;
             _blobClient = blobClient;
@@ -118,13 +122,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             IDataTableImporter dataImporter = _dataTableImporter as IDataTableImporter;
 
+            _logger.Information("Loading PublishedFundingVersions for migration");
             await _fundingMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications,
-                _cosmosRepo.GetPublishedFundingVersionIterator(CosmosBatchSize), ProcessPublishedFundingVersions);
+                _cosmosRepo.GetPublishedFundingVersionDocumentIdIterator(CosmosBatchSize), ProcessPublishedFundingVersions);
+            _logger.Information($"Loaded '{_publishedFundingVersions.Count}' PublishedFundingVersions for migration");
 
+            _logger.Information("Loading PublishedProviderVersions for migration");
             await _providerMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications,
-                _cosmosRepo.GetReleasedPublishedProviderIterator(CosmosBatchSize), ProcessPublishedProviderVersions);
+                _cosmosRepo.GetReleasedPublishedProviderVersionIdIterator(CosmosBatchSize), ProcessPublishedProviderVersions);
+            _logger.Information($"Loaded '{_publishedProviderVersions.Count}' PublishedProviderVersions for migration");
 
             DetectMissingPublishedProviderVersionRecordsFromFundingGroups();
 
@@ -177,18 +185,18 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return $"{channelId}_{specificationId}_{groupingReasonId}_{organisationGroupTypeClassification}_{organisationGroupIdentifierValue}";
         }
 
-        protected Task ProcessPublishedFundingVersions(CancellationToken cancellationToken,
+        protected async Task ProcessPublishedFundingVersions(CancellationToken cancellationToken,
             dynamic context,
-            ArraySegment<PublishedFundingVersion> publishedFunding)
+            ArraySegment<IdPartitionKeyLookup> publishedFundingVersionIds)
         {
             IReleaseManagementImportContext ctx = ((IReleaseManagementImportContext)context);
+
+            IEnumerable<PublishedFundingVersion> publishedFunding = await _publishedFundingBulkRepository.GetPublishedFundingVersions(publishedFundingVersionIds.Select(_ => new KeyValuePair<string, string>(_.Id, _.ParitionKey)));
 
             foreach (PublishedFundingVersion fundingVersion in publishedFunding)
             {
                 GenerateFundingGroupsAndVersions(fundingVersion, ctx);
             }
-
-            return Task.CompletedTask;
         }
 
         private void GenerateFundingGroupsAndVersions(PublishedFundingVersion fundingVersion, IReleaseManagementImportContext ctx)
@@ -348,21 +356,24 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
         }
 
-        protected Task ProcessPublishedProviderVersions(CancellationToken cancellationToken,
+        protected async Task ProcessPublishedProviderVersions(CancellationToken cancellationToken,
             dynamic context,
-            ArraySegment<PublishedProviderVersion> publishedProviders)
+            ArraySegment<IdPartitionKeyLookup> publishedProviderVersionIds)
         {
+            IEnumerable<PublishedProviderVersion> publishedProviders = await _publishedFundingBulkRepository.GetPublishedProviderVersions(publishedProviderVersionIds.Select(_ => new KeyValuePair<string, string>(_.Id, _.ParitionKey)));
+
             foreach (PublishedProviderVersion providerVersion in publishedProviders)
             {
                 if (!_publishedProviderVersions.TryAdd($"{providerVersion.ProviderId}_{providerVersion.SpecificationId}_{providerVersion.MajorVersion}_{providerVersion.MinorVersion}", providerVersion))
                 {
-                    throw new InvalidOperationException($"Duplicate published provider version found for {providerVersion.ProviderId}_{providerVersion.SpecificationId}_{providerVersion.MajorVersion}_{providerVersion.MinorVersion}");
+                    if (providerVersion.FundingStreamId != "PSG" && providerVersion.FundingPeriodId == "AY-1920")
+                    {
+                        _logger.Warning($"Duplicate published provider version found for {providerVersion.FundingStreamId}-{providerVersion.FundingPeriodId}-{providerVersion.ProviderId}_{providerVersion.MajorVersion}_{providerVersion.MinorVersion} in specification {providerVersion.SpecificationId}");
+                    }
                 }
 
                 GenerateReleasedProvidersAndVersions(providerVersion);
             }
-
-            return Task.CompletedTask;
         }
 
         private void GenerateReleasedProvidersAndVersions(PublishedProviderVersion providerVersion)
