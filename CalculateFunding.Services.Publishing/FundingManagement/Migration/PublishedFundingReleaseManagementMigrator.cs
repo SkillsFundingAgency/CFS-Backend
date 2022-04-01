@@ -172,11 +172,34 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             IEnumerable<string> allProviderFundingIds = _publishedProviderVersions.Values.Select(_ => _.FundingId);
 
+            ILookup<string, IGrouping<string, string>> allProviderFundingGrouping = allProviderFundingIds
+                .GroupBy(_ => _[.._.LastIndexOf('-')])
+                .ToLookup(l => l.Key);
+
             string[] missingProviderVersions = allProviderFundingIdFromGroups.Except(allProviderFundingIds).ToArray();
 
-            if (missingProviderVersions.Any())
+            if (missingProviderVersions.AnyWithNullCheck())
             {
-                throw new InvalidOperationException("The following PublishedProviderVersions are missing in cosmos: " + string.Join(", ", missingProviderVersions));
+                IEnumerable<string> missingFunding = missingProviderVersions.Where(_ =>
+                {
+                    // i.e this will return DSG-FY-2021-10004000 for provider version DSG-FY-2021-10004000-8_0
+                    string missingFunding = _[.._.LastIndexOf('-')];
+                    // i.e this will return 8 for provider version DSG-FY-2021-10004000-8_0
+                    int missingVersion = Convert.ToInt16(_.Split('-')[4].Split('_')[0]);
+
+                    // check to see if there are no provider versions with a higher version than the missing version
+                    return !allProviderFundingGrouping.Contains(missingFunding) || allProviderFundingGrouping[missingFunding].AnyWithNullCheck(fundingGroup =>
+                    {
+                        int existingProviderVersion = fundingGroup.Select(_ => Convert.ToInt16(_.Split('-')[4].Split('_')[0])).MaxBy(_ => _);
+                        return existingProviderVersion < missingVersion;
+                    });
+                });
+
+                if (missingFunding.AnyWithNullCheck())
+                {
+                    // don't throw an exception instead log that there are missing versions and move on
+                    throw new InvalidOperationException("The following PublishedProviderVersions are missing in cosmos: " + string.Join(", ", missingFunding));
+                }
             }
         }
 
