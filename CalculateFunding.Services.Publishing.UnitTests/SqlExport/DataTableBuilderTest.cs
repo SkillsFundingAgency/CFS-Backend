@@ -107,6 +107,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             ExpectedDataTable.Columns.AddRange(expectedColumns);
         }
 
+        protected void ThenTheFundingLineDataTableHasColumnsMatching(params DataColumn[] expectedColumns)
+        {
+            ExpectedDataTable.Columns.AddRange(expectedColumns);
+
+            DataTableBuilder.DataTable.Columns.Count
+                .Should()
+                .Be(ExpectedDataTable.Columns.Count);
+
+            foreach(DataColumn col in ExpectedDataTable.Columns)
+            {
+                DataTableBuilder.DataTable.Columns.Contains(col.ColumnName)
+                    .Should()
+                    .BeTrue();
+            }
+        }
+
         protected void AndTheDataTableHasRowsMatching(params object[][] expectedRows)
         {
             foreach (object[] row in expectedRows)

@@ -17,6 +17,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.FeatureManagement;
 using Polly;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using FundingLineType = CalculateFunding.Common.TemplateMetadata.Enums.FundingLineType;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
 {
@@ -76,6 +77,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             TemplateMetadataContents template = await GetTemplateMetadataContents(specification, fundingStreamId);
 
             IEnumerable<FundingLine> allFundingLines = template.RootFundingLines.Flatten(_ => _.FundingLines);
+            IEnumerable<FundingLine> informationFundingLines = allFundingLines.Where(_ => _.Type == FundingLineType.Information);
+            IEnumerable<FundingLine> paymentFundingLines = allFundingLines.Where(_ => _.Type == FundingLineType.Payment);
             IEnumerable<Calculation> allCalculations = allFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations));
             IEnumerable<Calculation> uniqueCalculations = Enumerable.DistinctBy(allCalculations, _ => _.TemplateCalculationId);
             IDictionary<uint, string> calculationNames = GetCalculationNames(uniqueCalculations);
@@ -94,8 +97,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     providerVersionInChannels, 
                     sqlExportSource,
                     isLatestReleasedVersionChannelPopulationEnabled),
-                InformationFundingLines = new InformationFundingLineDataTableBuilder(),
-                PaymentFundingLines = new PaymentFundingLineDataTableBuilder(),
+                InformationFundingLines = new InformationFundingLineDataTableBuilder(informationFundingLines),
+                PaymentFundingLines = new PaymentFundingLineDataTableBuilder(paymentFundingLines),
                 ProviderPaymentFundingLineAllVersions = new ProviderPaymentFundingLineDataTableBuilder(),
                 SchemaContext = schemaContext,
                 SqlExportSource = sqlExportSource
