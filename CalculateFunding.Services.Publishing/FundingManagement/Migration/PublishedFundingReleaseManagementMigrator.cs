@@ -416,8 +416,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     ProviderId = providerVersion.ProviderId
                 };
 
-                _releasedProviders.AddOrUpdate(releasedProviderKey, releasedProvider, (id, existing) => releasedProvider);
-                _releasedProvidersById.AddOrUpdate(releasedProvider.ReleasedProviderId, releasedProvider, (id, existing) => releasedProvider);
+                if (_releasedProviders.TryAdd(releasedProviderKey, releasedProvider))
+                {
+                    _releasedProvidersById.AddOrUpdate(releasedProvider.ReleasedProviderId, releasedProvider, (id, existing) => releasedProvider);
+                }
             }
 
             return releasedProvider;
