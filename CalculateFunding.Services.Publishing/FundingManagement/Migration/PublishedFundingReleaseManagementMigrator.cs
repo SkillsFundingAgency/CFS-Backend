@@ -407,7 +407,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private ReleasedProvider CreateReleasedProvider(PublishedProviderVersion providerVersion, string releasedProviderKey)
         {
-            if (!_releasedProviders.TryGetValue(releasedProviderKey, out var releasedProvider));
+            if (!_releasedProviders.TryGetValue(releasedProviderKey, out var releasedProvider))
             {
                 releasedProvider = new ReleasedProvider
                 {
@@ -419,6 +419,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 if (_releasedProviders.TryAdd(releasedProviderKey, releasedProvider))
                 {
                     _releasedProvidersById.AddOrUpdate(releasedProvider.ReleasedProviderId, releasedProvider, (id, existing) => releasedProvider);
+                }
+                else
+                {
+                    return _releasedProviders[releasedProviderKey];
                 }
             }
 
