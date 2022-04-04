@@ -64,7 +64,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private readonly ConcurrentDictionary<string, FundingGroupVersion> _createFundingGroupVersions = new ConcurrentDictionary<string, FundingGroupVersion>();
         private readonly ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
-        private readonly ConcurrentBag<ReleasedProviderVersion> _createReleasedProviderVersions = new ConcurrentBag<ReleasedProviderVersion>();
         private readonly ConcurrentBag<BlobToMigrate> _blobsToMigrate = new ConcurrentBag<BlobToMigrate>();
 
         private class BlobToMigrate
@@ -155,8 +154,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await dataImporter.ImportDataTable(releasedProvidersBuilder, SqlBulkCopyOptions.KeepIdentity);
 
             ReleasedProviderVersionDataTableBuilder releasedProviderVersionsBuilder = new ReleasedProviderVersionDataTableBuilder();
-            releasedProviderVersionsBuilder.AddRows(_createReleasedProviderVersions.ToArray());
-            _logger.Information($"Importing {_createReleasedProviderVersions.Count} ReleasedProviderVersions");
+            releasedProviderVersionsBuilder.AddRows(_releasedProviderVersions.Values.ToArray());
+            _logger.Information($"Importing {_releasedProviderVersions.Count} ReleasedProviderVersions");
             await dataImporter.ImportDataTable(releasedProviderVersionsBuilder, SqlBulkCopyOptions.KeepIdentity);
 
             await PopulateLinkingTables(channels, variationReasons);
@@ -442,7 +441,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 CoreProviderVersionId = providerVersion.Provider.ProviderVersionId,
             };
 
-            _createReleasedProviderVersions.Add(releasedProviderVersion);
             _releasedProviderVersions.AddOrUpdate(releasedProviderVersion.FundingId, releasedProviderVersion, (id, existing) => releasedProviderVersion);
 
             return releasedProviderVersion;
