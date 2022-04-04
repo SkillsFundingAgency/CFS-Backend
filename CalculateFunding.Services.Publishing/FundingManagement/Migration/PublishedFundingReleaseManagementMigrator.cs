@@ -64,7 +64,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private readonly ConcurrentDictionary<string, FundingGroupVersion> _createFundingGroupVersions = new ConcurrentDictionary<string, FundingGroupVersion>();
         private readonly ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
-        private readonly ConcurrentBag<ReleasedProvider> _createReleasedProviders = new ConcurrentBag<ReleasedProvider>();
         private readonly ConcurrentBag<ReleasedProviderVersion> _createReleasedProviderVersions = new ConcurrentBag<ReleasedProviderVersion>();
         private readonly ConcurrentBag<BlobToMigrate> _blobsToMigrate = new ConcurrentBag<BlobToMigrate>();
 
@@ -151,8 +150,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await dataImporter.ImportDataTable(fundingVariationReasonsBuilder, SqlBulkCopyOptions.KeepIdentity);
 
             ReleasedProviderDataTableBuilder releasedProvidersBuilder = new ReleasedProviderDataTableBuilder();
-            releasedProvidersBuilder.AddRows(_createReleasedProviders.ToArray());
-            _logger.Information($"Importing {_createReleasedProviders.Count} ReleasedProviders");
+            releasedProvidersBuilder.AddRows(_releasedProviders.Values.ToArray());
+            _logger.Information($"Importing {_releasedProviders.Count} ReleasedProviders");
             await dataImporter.ImportDataTable(releasedProvidersBuilder, SqlBulkCopyOptions.KeepIdentity);
 
             ReleasedProviderVersionDataTableBuilder releasedProviderVersionsBuilder = new ReleasedProviderVersionDataTableBuilder();
@@ -408,20 +407,18 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private ReleasedProvider CreateReleasedProvider(PublishedProviderVersion providerVersion, string releasedProviderKey)
         {
-            _releasedProviders.TryGetValue(releasedProviderKey, out var releasedProvider);
-
-            if (releasedProvider != null) return releasedProvider;
-
-            releasedProvider = new ReleasedProvider
+            if (!_releasedProviders.TryGetValue(releasedProviderKey, out var releasedProvider));
             {
-                ReleasedProviderId = Guid.NewGuid(),
-                SpecificationId = providerVersion.SpecificationId,
-                ProviderId = providerVersion.ProviderId
-            };
+                releasedProvider = new ReleasedProvider
+                {
+                    ReleasedProviderId = Guid.NewGuid(),
+                    SpecificationId = providerVersion.SpecificationId,
+                    ProviderId = providerVersion.ProviderId
+                };
 
-            _createReleasedProviders.Add(releasedProvider);
-            _releasedProviders.AddOrUpdate(releasedProviderKey, releasedProvider, (id, existing) => releasedProvider);
-            _releasedProvidersById.AddOrUpdate(releasedProvider.ReleasedProviderId, releasedProvider, (id, existing) => releasedProvider);
+                _releasedProviders.AddOrUpdate(releasedProviderKey, releasedProvider, (id, existing) => releasedProvider);
+                _releasedProvidersById.AddOrUpdate(releasedProvider.ReleasedProviderId, releasedProvider, (id, existing) => releasedProvider);
+            }
 
             return releasedProvider;
         }
