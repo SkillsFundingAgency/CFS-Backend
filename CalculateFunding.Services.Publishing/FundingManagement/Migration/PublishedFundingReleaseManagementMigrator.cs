@@ -468,7 +468,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
                     if (releasedProviderVersion == null)
                     {
-                        throw new KeyNotFoundException($"ReleasedProviderVersion not found for fundingId '{providerVersionFundingId}'. PublishedFundingVersion: {publishedFunding.Value.Id}");
+                        // if we get here then we are ok to skip this grouping as we do a check further up
+                        continue;
                     }
 
                     ReleasedProvider releasedProvider = _releasedProvidersById[releasedProviderVersion.ReleasedProviderId];
