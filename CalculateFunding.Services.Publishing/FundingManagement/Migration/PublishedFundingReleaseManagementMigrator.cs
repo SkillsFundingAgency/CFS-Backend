@@ -62,7 +62,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         /// </summary>
         private readonly ConcurrentDictionary<string, FundingGroup> _fundingGroups = new ConcurrentDictionary<string, FundingGroup>();
 
-        private readonly ConcurrentBag<FundingGroup> _createFundingGroups = new ConcurrentBag<FundingGroup>();
         private readonly ConcurrentDictionary<string, FundingGroupVersion> _createFundingGroupVersions = new ConcurrentDictionary<string, FundingGroupVersion>();
         private readonly ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
         private readonly ConcurrentBag<ReleasedProvider> _createReleasedProviders = new ConcurrentBag<ReleasedProvider>();
@@ -137,8 +136,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             DetectMissingPublishedProviderVersionRecordsFromFundingGroups();
 
             FundingGroupDataTableBuilder fundingGroupsBuilder = new FundingGroupDataTableBuilder();
-            fundingGroupsBuilder.AddRows(_createFundingGroups.ToArray());
-            _logger.Information($"Importing {_createFundingGroups.Count} FundingGroups");
+            fundingGroupsBuilder.AddRows(_fundingGroups.Values.ToArray());
+            _logger.Information($"Importing {_fundingGroups.Values.Count} FundingGroups");
             await dataImporter.ImportDataTable(fundingGroupsBuilder, SqlBulkCopyOptions.KeepIdentity);
 
             FundingGroupVersionDataTableBuilder fundingGroupVersionsBuilder = new FundingGroupVersionDataTableBuilder();
@@ -268,9 +267,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             string key = GetFundingGroupDictionaryKey(channelId, fundingVersion.SpecificationId, groupingReasonId, fundingVersion.OrganisationGroupTypeCode, fundingVersion.OrganisationGroupIdentifierValue);
 
-            _fundingGroups.TryGetValue(key, out var fundingGroup);
-
-            if (fundingGroup == null)
+            if (!_fundingGroups.TryGetValue(key, out var fundingGroup))
             {
                 fundingGroup = new FundingGroup()
                 {
@@ -286,7 +283,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     SpecificationId = fundingVersion.SpecificationId,
                 };
 
-                _createFundingGroups.Add(fundingGroup);
                 _fundingGroups.AddOrUpdate(key, fundingGroup, (id, existing) => fundingGroup);
             }
 
