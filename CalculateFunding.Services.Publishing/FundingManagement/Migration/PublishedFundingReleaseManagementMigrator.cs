@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private readonly ConcurrentDictionary<string, FundingGroup> _fundingGroups = new ConcurrentDictionary<string, FundingGroup>();
 
         private readonly ConcurrentDictionary<string, FundingGroupVersion> _createFundingGroupVersions = new ConcurrentDictionary<string, FundingGroupVersion>();
-        private readonly ConcurrentBag<FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentBag<FundingGroupVersionVariationReason>();
+        private readonly ConcurrentDictionary<string, FundingGroupVersionVariationReason> _createFundingGroupVariationReasons = new ConcurrentDictionary<string, FundingGroupVersionVariationReason>();
         private readonly ConcurrentBag<BlobToMigrate> _blobsToMigrate = new ConcurrentBag<BlobToMigrate>();
 
         private class BlobToMigrate
@@ -144,7 +144,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await dataImporter.ImportDataTable(fundingGroupVersionsBuilder, SqlBulkCopyOptions.KeepIdentity);
 
             FundingGroupVersionVariationReasonsDataTableBuilder fundingVariationReasonsBuilder = new FundingGroupVersionVariationReasonsDataTableBuilder();
-            fundingVariationReasonsBuilder.AddRows(_createFundingGroupVariationReasons.ToArray());
+            fundingVariationReasonsBuilder.AddRows(_createFundingGroupVariationReasons.Values.ToArray());
             _logger.Information($"Importing {_createFundingGroupVariationReasons.Count} FundingGroupVariationReasons");
             await dataImporter.ImportDataTable(fundingVariationReasonsBuilder, SqlBulkCopyOptions.KeepIdentity);
 
@@ -350,14 +350,18 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                             VariationReasonId = value.VariationReasonId,
                         };
 
-                        _createFundingGroupVariationReasons.Add(reason);
+                        _createFundingGroupVariationReasons.TryAdd($"{reason.FundingGroupVersionId}-{value.VariationReasonId}", reason);
                     }
                 }
             }
 
-            if (fundingGroupVersion.MajorVersion == 1 && !_createFundingGroupVariationReasons.Any(_ => _.VariationReasonId == ctx.VariationReasons["FundingUpdated"].VariationReasonId))
+            int fundingUpdatedVariationReasonId = ctx.VariationReasons["FundingUpdated"].VariationReasonId;
+
+            string fundingGroupVersionFundingUpdatedVariationReasonKey = $"{fundingGroupVersion.FundingGroupVersionId}-{fundingUpdatedVariationReasonId}";
+
+            if (fundingGroupVersion.MajorVersion == 1 && !_createFundingGroupVariationReasons.ContainsKey(fundingGroupVersionFundingUpdatedVariationReasonKey))
             {
-                _createFundingGroupVariationReasons.Add(new FundingGroupVersionVariationReason()
+                _createFundingGroupVariationReasons.TryAdd(fundingGroupVersionFundingUpdatedVariationReasonKey, new FundingGroupVersionVariationReason()
                 {
                     FundingGroupVersionVariationReasonId = Guid.NewGuid(),
                     FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
@@ -365,9 +369,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 });
             }
 
-            if (fundingGroupVersion.MajorVersion == 1 && !_createFundingGroupVariationReasons.Any(_ => _.VariationReasonId == ctx.VariationReasons["ProfilingUpdated"].VariationReasonId))
+            int profilingUpdatedVariationReasonId = ctx.VariationReasons["ProfilingUpdated"].VariationReasonId;
+
+            string fundingGroupVersionProfilingUpdatedVariationReasonKey = $"{fundingGroupVersion.FundingGroupVersionId}-{profilingUpdatedVariationReasonId}";
+
+            if (fundingGroupVersion.MajorVersion == 1 && !_createFundingGroupVariationReasons.ContainsKey(fundingGroupVersionProfilingUpdatedVariationReasonKey))
             {
-                _createFundingGroupVariationReasons.Add(new FundingGroupVersionVariationReason()
+                _createFundingGroupVariationReasons.TryAdd(fundingGroupVersionProfilingUpdatedVariationReasonKey, new FundingGroupVersionVariationReason()
                 {
                     FundingGroupVersionVariationReasonId = Guid.NewGuid(),
                     FundingGroupVersionId = fundingGroupVersion.FundingGroupVersionId,
