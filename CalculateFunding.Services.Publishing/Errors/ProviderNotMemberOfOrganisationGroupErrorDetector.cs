@@ -1,17 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Generators.OrganisationGroup.Models;
-using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Errors
 {
-    public class ProviderNotFundedErrorDetector : OrganisationGroupsErrorDetectorBase
+    public class ProviderNotMemberOfOrganisationGroupErrorDetector : OrganisationGroupsErrorDetectorBase
     {
-        public override string Name => nameof(ProviderNotFundedErrorDetector);
+        public override string Name => nameof(ProviderNotMemberOfOrganisationGroupErrorDetector);
 
-        public ProviderNotFundedErrorDetector() : base(PublishedProviderErrorType.ProviderNotFunded)
+        public ProviderNotMemberOfOrganisationGroupErrorDetector() : base(PublishedProviderErrorType.ProviderNotMemberOfOrganisationGroup)
         {
         }
 
@@ -23,14 +22,12 @@ namespace CalculateFunding.Services.Publishing.Errors
             // bypass error check if the provider is indicative
             if (!publishedProvider.Current.IsIndicative)
             {
-                IEnumerable<OrganisationGroupResult> organisationGroupsHashSet = Enumerable.DistinctBy(organisationGroups, _ => _.Identifiers.Select(_ => $"{_.Type}-{_.Value}"));
-
-                if (!organisationGroups.AnyWithNullCheck(_ => _.GroupReason == OrganisationGroupingReason.Payment || _.GroupReason == OrganisationGroupingReason.Contracting))
+                if (organisationGroups.IsNullOrEmpty())
                 {
-                    string errorMessage = $"Provider {publishedProvider.Current.ProviderId} not configured to be a member of any payment or contracting group.";
+                    string errorMessage = $"Provider {publishedProvider.Current.ProviderId} not configured to be a member of any organisation group.";
                     errorCheck.AddError(new PublishedProviderError
                     {
-                        Type = PublishedProviderErrorType.ProviderNotFunded,
+                        Type = PublishedProviderErrorType.ProviderNotMemberOfOrganisationGroup,
                         DetailedErrorMessage = errorMessage,
                         SummaryErrorMessage = errorMessage,
                         FundingStreamId = publishedProvider.Current.FundingStreamId

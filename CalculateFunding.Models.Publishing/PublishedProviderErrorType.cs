@@ -16,6 +16,7 @@ namespace CalculateFunding.Models.Publishing
         MultipleSuccessors,
         NoApplicableVariation,
         NoApplicableProfilingUpdateVariation,
-        CarryOverAmountFound
+        CarryOverAmountFound,
+        ProviderNotMemberOfOrganisationGroup,
     }
 }

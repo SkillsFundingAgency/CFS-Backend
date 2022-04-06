@@ -501,6 +501,7 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IDetectPublishedProviderErrors, TrustIdMismatchErrorDetector>()
                 .AddSingleton<IDetectPublishedProviderErrors, TrustIdMismatchChannelErrorDetector>()
                 .AddSingleton<IDetectPublishedProviderErrors, ProviderNotFundedErrorDetector>()
+                .AddSingleton<IDetectPublishedProviderErrors, ProviderNotMemberOfOrganisationGroupErrorDetector>()
                 .AddSingleton<IDetectPublishedProviderErrors, ProviderNotFundedChannelErrorDetector>()
                 .AddSingleton<IDetectPublishedProviderErrors, PostPaymentOutOfScopeProviderErrorDetector>()
                 .AddSingleton<IDetectPublishedProviderErrors, ProfilingConsistencyCheckErrorDetector>()

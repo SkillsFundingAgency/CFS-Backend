@@ -14,14 +14,14 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 {
     [TestClass]
-    public class ProviderNotFundedErrorDetectorTests
+    public class ProviderNotMemberOfOrganisationGroupErrorDetectorTests
     {
-        private ProviderNotFundedErrorDetector _errorDetector;
+        private ProviderNotMemberOfOrganisationGroupErrorDetector _errorDetector;
 
         [TestInitialize]
         public void SetUp()
         {
-            _errorDetector = new ProviderNotFundedErrorDetector();
+            _errorDetector = new ProviderNotMemberOfOrganisationGroupErrorDetector();
         }
         
         [TestMethod]
@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         }
 
         [TestMethod]
-        public async Task ReturnsErrorMessageWhenProviderNotFunded()
+        public async Task ReturnsErrorMessageWhenProviderNotMemberOfOrganisationGroup()
         {
             // Arrange
             string fundingStreamId = NewRandomString();
@@ -64,7 +64,98 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             OrganisationGroupTypeIdentifier groupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN;
 
 
-            string errorMessage = $"Provider {providerId2} not configured to be a member of any payment or contracting group.";
+            string errorMessage = $"Provider {providerId2} not configured to be a member of any organisation group.";
+
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _
+                .WithCurrent(NewPublishedProviderVersion(pv => pv.WithFundingStreamId(fundingStreamId)
+                    .WithFundingPeriodId(fundingPeriodId)
+                    .WithProviderId(providerId2)))
+                .WithReleased(NewPublishedProviderVersion(pv => pv.WithFundingStreamId(fundingStreamId)
+                    .WithFundingPeriodId(fundingPeriodId)
+                    .WithProviderId(providerId2)
+                    .WithMajorVersion(majorVersion2)
+                    .WithMinorVersion(minorVersion2))));
+
+            IEnumerable<OrganisationGroupResult> organisationGroupResults = Enumerable.Empty<OrganisationGroupResult>();
+
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData
+                = new Dictionary<string, IEnumerable<OrganisationGroupResult>> { { $"{fundingStreamId}:{fundingPeriodId}", organisationGroupResults } };
+
+            IEnumerable<PublishedFunding> publishedFundings = new[]
+            {
+                NewPublishedFunding(_ => _
+                    .WithCurrent(NewPublishedFundingVersion(fv => fv.WithProviderFundings(new[]
+                        {
+                            $"{fundingStreamId}-{fundingPeriodId}-{providerId1}-{majorVersion1}_{minorVersion1}",
+                            $"{fundingStreamId}-{fundingPeriodId}-{providerId2}-{majorVersion2}_{minorVersion2}"
+                        })
+                        .WithGroupReason(CalculateFunding.Models.Publishing.GroupingReason.Payment)
+                        .WithOrganisationGroupIdentifierValue(identifierValue1)
+                        .WithOrganisationGroupTypeIdentifier(groupTypeIdentifier)))),
+                NewPublishedFunding(_ => _
+                    .WithCurrent(NewPublishedFundingVersion(fv => fv.WithProviderFundings(new[]
+                        {
+                            $"{fundingStreamId}-{fundingPeriodId}-{providerId1}-{majorVersion1}_{minorVersion1}",
+                            NewRandomString()
+                        })
+                        .WithGroupReason(CalculateFunding.Models.Publishing.GroupingReason.Payment)
+                        .WithOrganisationGroupIdentifierValue(identifierValue2)
+                        .WithOrganisationGroupTypeIdentifier(groupTypeIdentifier)))),
+                NewPublishedFunding(_ => _
+                    .WithCurrent(NewPublishedFundingVersion(fv => fv.WithProviderFundings(new[]
+                        {
+                            $"{fundingStreamId}-{fundingPeriodId}-{providerId1}-{majorVersion1}_{minorVersion1}",
+                            NewRandomString()
+                        })
+                        .WithGroupReason(CalculateFunding.Models.Publishing.GroupingReason.Information)
+                        .WithOrganisationGroupIdentifierValue(identifierValue3)
+                        .WithOrganisationGroupTypeIdentifier(groupTypeIdentifier))))
+            };
+
+            // Act
+            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider, 
+                                                              organisationGroupResultsData);
+
+            publishedProvider.Current
+                .Errors
+                .Should()
+                .NotBeNullOrEmpty();
+
+            publishedProvider
+                .Current
+                .Errors
+                .First()
+                .DetailedErrorMessage
+                .Should()
+                .Be(errorMessage);
+
+            publishedProvider
+                .Current
+                .Errors
+                .First()
+                .SummaryErrorMessage
+                .Should()
+                .Be(errorMessage);
+        }
+
+        [TestMethod]
+        public async Task DoesNotReturnsErrorMessageWhenProviderMemberOfOrganisationGroup()
+        {
+            // Arrange
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+
+            string providerId1 = NewRandomString();
+            int majorVersion1 = NewRandomInt();
+            int minorVersion1 = NewRandomInt();
+            string providerId2 = NewRandomString();
+            int majorVersion2 = NewRandomInt();
+            int minorVersion2 = NewRandomInt();
+            string identifierValue1 = NewRandomString();
+            string identifierValue2 = NewRandomString();
+            string identifierValue3 = NewRandomString();
+            string fundingConfigurationId = NewRandomString();
+            OrganisationGroupTypeIdentifier groupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN;
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _
                 .WithCurrent(NewPublishedProviderVersion(pv => pv.WithFundingStreamId(fundingStreamId)
@@ -131,29 +222,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             };
 
             // Act
-            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider, 
+            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider,
                                                               organisationGroupResultsData);
 
             publishedProvider.Current
                 .Errors
                 .Should()
-                .NotBeNullOrEmpty();
-
-            publishedProvider
-                .Current
-                .Errors
-                .First()
-                .DetailedErrorMessage
-                .Should()
-                .Be(errorMessage);
-
-            publishedProvider
-                .Current
-                .Errors
-                .First()
-                .SummaryErrorMessage
-                .Should()
-                .Be(errorMessage);
+                .BeNullOrEmpty();
         }
 
         private async Task WhenErrorsAreDetectedOnThePublishedProvider(PublishedProvider publishedProvider,
