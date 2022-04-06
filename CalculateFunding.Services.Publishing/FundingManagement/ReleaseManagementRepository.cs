@@ -9,7 +9,7 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using FundingGroup = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.FundingGroup;
