@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
 
@@ -10,7 +12,7 @@ namespace CalculateFunding.Services.Publishing
             var hasPreviousFunding = false;
 
             foreach (FundingLine fundingLine in generatedProviderResult?.FundingLines?.Where(_ => _.Type == FundingLineType.Payment)
-                                                ?? new FundingLine[0])
+                                                ?? System.Array.Empty<FundingLine>())
             {
                 FundingLine previousFundingLineVersion =
                     publishedProviderVersion.FundingLines?.SingleOrDefault(_ => _.TemplateLineId == fundingLine.TemplateLineId);
@@ -29,13 +31,16 @@ namespace CalculateFunding.Services.Publishing
         {
             PublishedProviderVersion releasedPublishedProviderVersion = publishedProvider.Released;
 
-            if (releasedPublishedProviderVersion == null) return;
+            IEnumerable<FundingLine> paymentFundingLines = generatedProviderResult.FundingLines?.Where(_ => _.Type == FundingLineType.Payment);
 
-            foreach (FundingLine fundingLine in generatedProviderResult.FundingLines?.Where(_ => _.Type == FundingLineType.Payment && _.Value == null)
-                                                ?? new FundingLine[0])
+            if (releasedPublishedProviderVersion == null || 
+                releasedPublishedProviderVersion.FundingLines.IsNullOrEmpty() || 
+                paymentFundingLines.IsNullOrEmpty()) return;
+
+            foreach (FundingLine fundingLine in paymentFundingLines.Where(_ => _.Value == null))
             {
                 FundingLine releasedFundingLineVersion =
-                    releasedPublishedProviderVersion.FundingLines?.SingleOrDefault(_ => _.TemplateLineId == fundingLine.TemplateLineId);
+                    releasedPublishedProviderVersion.FundingLines.SingleOrDefault(_ => _.TemplateLineId == fundingLine.TemplateLineId);
 
                 // only zero funding line if it has previously been released with a value
                 if (releasedFundingLineVersion != null && releasedFundingLineVersion.Value.HasValue)
@@ -44,7 +49,9 @@ namespace CalculateFunding.Services.Publishing
                 }
             }
 
-            if (generatedProviderResult.FundingLines?.All(_ => _.Type == FundingLineType.Payment && _.Value.HasValue && _.Value == 0) ?? false)
+            // if any payment funding lines have a value and all of them are zero or null then set total funding to zero
+            if (paymentFundingLines.AnyWithNullCheck(_ => _.Value.HasValue) &&
+                paymentFundingLines.All(_ => _.Value.GetValueOrDefault() == 0))
             {
                 generatedProviderResult.TotalFunding = 0M;
             }

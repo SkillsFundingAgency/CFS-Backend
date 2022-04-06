@@ -93,10 +93,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void UpdatesGeneratedResultIfPreviousVersionFundingLineHasBeenNulledSetsTotalFundingToZero()
         {
             uint templateLineId = NewRandomUint();
+            uint templateLineTwoId = NewRandomUint();
 
             GeneratedProviderResult generatedProviderResult = NewGeneratedProviderResult(_ =>
                 _.WithFundlines(NewFundingLine(fl => fl
                     .WithTemplateLineId(templateLineId)
+                    .WithValue(null)
+                    .WithFundingLineType(FundingLineType.Payment)),
+                    NewFundingLine(fl => fl
+                    .WithTemplateLineId(templateLineTwoId)
                     .WithValue(null)
                     .WithFundingLineType(FundingLineType.Payment))));
 

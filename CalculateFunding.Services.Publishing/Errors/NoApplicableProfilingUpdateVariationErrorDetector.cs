@@ -50,11 +50,13 @@ namespace CalculateFunding.Services.Publishing.Errors
                     // or the funding line is custom profiled
                     // or there is no variation pointer set for the current funding line
                     // or the current value is null
+                    // or the current value is zero and the released value is zero
                     if ((providerVariationContext.AllAffectedFundingLineCodes != null &&
                         providerVariationContext.AllAffectedFundingLineCodes.Contains(_.FundingLineCode)) ||
                         providerVariationContext.CurrentState.FundingLineHasCustomProfile(_.FundingLineCode) ||
                         !providerVariationContext.VariationPointers.AnyWithNullCheck(vp => vp.FundingLineId == _.FundingLineCode) ||
-                        !_.Value.HasValue)
+                        !_.Value.HasValue ||
+                        (providerVariationContext.ReleasedState.FundingLines.FirstOrDefault(rf => rf.FundingLineCode == _.FundingLineCode)?.Value == 0 && _.Value == 0))
                     {
                         return _;
                     }

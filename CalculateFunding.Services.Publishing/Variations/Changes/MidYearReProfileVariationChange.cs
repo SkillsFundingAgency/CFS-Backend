@@ -15,20 +15,27 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
     {
         private readonly string _strategy;
 
+        private readonly IEnumerable<string> _indicativeToLiveFundingLines;
+
         protected override string ChangeName => "Mid year re-profile variation change";
 
         protected override bool ShouldPersistReProfileAudit(ReProfileRequest reProfileRequest) => true;
 
         public MidYearReProfileVariationChange(ProviderVariationContext variationContext,
-            string strategy) : base(variationContext, strategy)
+            string strategy,
+            IEnumerable<string> indicativeToLiveFundingLines = null) : base(variationContext, strategy)
         {
             _strategy = strategy;
+            _indicativeToLiveFundingLines = indicativeToLiveFundingLines;
         }
 
         protected override IEnumerable<string> GetAffectedFundingLines => VariationContext.AffectedFundingLinesWithVariationPointerSet(_strategy);
 
         public override bool ReProfileForSameAmountFunc(string fundingLineCode, string profilePatternKey, ReProfileAudit reProfileAudit, int paidUpToIndex)
         {
+            // always re-profile on indicative to live
+            if (_indicativeToLiveFundingLines.AnyWithNullCheck(_ => _ == fundingLineCode)) return true;
+
             bool executeSameAsKey = base.ReProfileForSameAmountFunc(fundingLineCode, profilePatternKey, reProfileAudit, paidUpToIndex);
 
             if (!executeSameAsKey)
