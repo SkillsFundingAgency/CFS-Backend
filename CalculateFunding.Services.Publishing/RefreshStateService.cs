@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing
 
         private bool HasNoChanges(PublishedProviderVersion newCurrent) =>
             ExistingCurrentPublishedProviders.ContainsKey(newCurrent.ProviderId) &&
-                !ExistingCurrentPublishedProviders[newCurrent.ProviderId].HasErrors &&
+                ExistingCurrentPublishedProviders[newCurrent.ProviderId].Errors.EqualTo(newCurrent.Errors) &&
                 _publishedProviderVersionComparer.Equals(newCurrent, ExistingCurrentPublishedProviders[newCurrent.ProviderId]);
 
         public void Add(PublishedProvider publishedProvider)
@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Publishing
             PublishedProviderVersion current = publishedProvider.Current;
 
             // don't add the published provider to be updated if there are no changes or has errors
-            if (!current.HasErrors && HasNoChanges(current))
+            if (HasNoChanges(current))
             {
                 Remove(ActionType.Update, publishedProvider);
                 return;

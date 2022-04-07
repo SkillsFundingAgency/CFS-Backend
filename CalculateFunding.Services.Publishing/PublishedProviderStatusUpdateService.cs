@@ -148,7 +148,7 @@ namespace CalculateFunding.Services.Publishing
             }
             catch (Exception ex)
             {
-                string errorMessage = $"Failed to create published Providers when updating status:' {publishedProviderStatus}' on published providers.";
+                string errorMessage = $"Failed to create published Providers when updating status:'{publishedProviderStatus}' on published providers.";
 
                 _logger.Error(ex, errorMessage);
 
@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Publishing
             }
             catch (Exception ex)
             {
-                string errorMessage = $"Failed to create versions when updating status:' {publishedProviderStatus}' on published providers.";
+                string errorMessage = $"Failed to create versions when updating status:'{publishedProviderStatus}' on published providers.";
 
                 _logger.Error(ex, errorMessage);
 
@@ -185,7 +185,7 @@ namespace CalculateFunding.Services.Publishing
             }
             catch (Exception ex)
             {
-                string errorMessage = $"Failed to save versions when updating status:' {publishedProviderStatus}' on published providers.";
+                string errorMessage = $"Failed to save versions when updating status:'{publishedProviderStatus}' on published providers.";
 
                 _logger.Error(ex, errorMessage);
 

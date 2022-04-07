@@ -38,6 +38,16 @@ namespace System.Linq
 
         public static bool EqualTo<T>(this IEnumerable<T> enumerable, IEnumerable<T> other)
         {
+            if (enumerable.IsNullOrEmpty() && other.IsNullOrEmpty())
+            {
+                return true;
+            }
+
+            if (enumerable.IsNullOrEmpty() || other.IsNullOrEmpty())
+            {
+                return false;
+            }
+
             return enumerable.OrderBy(m => m).SequenceEqual(other.OrderBy(m => m));
         }
 

@@ -226,7 +226,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
                 CreatePublishedProviderStatusUpdateService(providerVersioningService.Object, logger.Object);
 
-            string errorMessage = $"Failed to create versions when updating status:' {PublishedProviderStatus.Approved}' on published providers.";
+            string errorMessage = $"Failed to create versions when updating status:'{PublishedProviderStatus.Approved}' on published providers.";
 
             //Assert
             Func<Task> test = async () => await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId, correlationId);
@@ -289,7 +289,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
                 CreatePublishedProviderStatusUpdateService(providerVersioningService.Object, logger: logger.Object, publishedFundingRepository: publishedFundingRepository.Object);
 
-            string errorMessage = $"Failed to save versions when updating status:' {PublishedProviderStatus.Approved}' on published providers.";
+            string errorMessage = $"Failed to save versions when updating status:'{PublishedProviderStatus.Approved}' on published providers.";
 
             //Assert
             Func<Task> test = async () => await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId, correlationId);
