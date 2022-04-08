@@ -48,6 +48,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             return executeSameAsKey;
         }
 
+        protected override PublishedProviderVersion GetState(PublishedProviderVersion currentState, PublishedProviderVersion priorState, bool sameAsAmount)
+        {
+            // if re-profiling is skipped then for mid-year re-profiling we need to copy the current state to the refresh state
+            // as we use the last current state to calculate the mid-year funding
+            return currentState;
+        }
+
         protected override Task<(ReProfileRequest, bool)> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,

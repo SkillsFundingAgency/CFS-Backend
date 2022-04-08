@@ -17,6 +17,18 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
         }
 
+        protected override PublishedProviderVersion GetState(PublishedProviderVersion currentState, PublishedProviderVersion priorState, bool sameAsAmount)
+        {
+            if (sameAsAmount)
+            {
+                // if amount hasn't changed then for closure re-profiling we need to copy the released state to the refresh state
+                // as we use the last released state to calculate the mid-year closure funding
+                return priorState;
+            }
+
+            return currentState;
+        }
+
         protected override Task<(ReProfileRequest, bool)> BuildReProfileRequest(string fundingLineCode,
             PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState,

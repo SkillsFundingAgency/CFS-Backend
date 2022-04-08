@@ -124,7 +124,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
             if (skipReProfiling)
             {
-                FundingLine currentFundingLine = currentState.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
+                FundingLine currentFundingLine = GetState(currentState, priorState, ReProfileRequest?.FundingLineTotal == ReProfileRequest?.ExistingFundingLineTotal).FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
                 if (currentFundingLine == null)
                 {
@@ -175,6 +175,18 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             }
 
             return null;
+        }
+
+        protected virtual PublishedProviderVersion GetState(PublishedProviderVersion currentState, PublishedProviderVersion priorState, bool sameAsAmount)
+        {
+            if (sameAsAmount)
+            {
+                // if amount hasn't changed then for re-profiling we need to copy the released state to the refresh state
+                // as we use the last released state to calculate the re-profile funding
+                return priorState;
+            }
+
+            return currentState;
         }
 
         protected virtual async Task<(ReProfileRequest request, bool shouldExecuteForSameAsKey)> BuildReProfileRequest(string fundingLineCode,

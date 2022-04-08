@@ -165,7 +165,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             GivenThePublishedProviderOriginalSnapshot(RefreshState.ProviderId,
                 new Publishing.Variations.PublishedProviderSnapShots(
                     NewPublishedProvider(_ =>
-                        _.WithCurrent(
+                        _.WithReleased(
+                            NewPublishedProviderVersion(ppv =>
+                                ppv.WithProviderId(RefreshState.ProviderId)
+                            )
+                        ).WithCurrent(
                             NewPublishedProviderVersion(ppv =>
                                 ppv.WithProviderId(RefreshState.ProviderId)
                             )
@@ -340,7 +344,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             GivenTheFundingLines(fundingLineOne, fundingLineTwo, fundingLineThree, fundingLineFour, fundingLineFive);
             GivenThePublishedProviderOriginalSnapshot(RefreshState.ProviderId,
                 new Publishing.Variations.PublishedProviderSnapShots(
-                    NewPublishedProvider(_ => _.WithCurrent(
+                    NewPublishedProvider(_ => _.WithReleased(
+                            NewPublishedProviderVersion(ppv =>
+                                ppv.WithProviderId(RefreshState.ProviderId)
+                                .WithFundingLines(fundingLineTwoCurrent, fundingLineFiveCurrent)
+                            )
+                        ).WithCurrent(
                             NewPublishedProviderVersion(ppv =>
                                 ppv.WithProviderId(RefreshState.ProviderId)
                                 .WithFundingLines(fundingLineTwoCurrent, fundingLineFiveCurrent)
