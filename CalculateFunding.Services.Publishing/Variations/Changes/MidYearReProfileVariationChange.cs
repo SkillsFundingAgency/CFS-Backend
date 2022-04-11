@@ -84,19 +84,26 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
             FundingLine fundingLine = currentPublishedProvider.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == refreshFundingLine.FundingLineCode);
 
-            // the funding line doesn't currently exist this can happen if a new funding line has been added to the template
-            if (fundingLine == null)
-            {
-                // copy the refreshed funding line so we don't get side effects
-                fundingLine = refreshFundingLine.DeepCopy();
-
-                // add the funding line to the current published provider
-                currentPublishedProvider.FundingLines = (currentPublishedProvider.FundingLines ?? ArraySegment<FundingLine>.Empty).Concat(new[] { fundingLine });
-            }
-            else if (fundingLine.Value.HasValue && fundingLine.Value != 0)
+            if (fundingLine != null && fundingLine.Value.HasValue && fundingLine.Value != 0)
             {
                 // return the prior current state as it has a value it will have distribution periods set
                 return currentState;
+            }
+            else
+            {
+                if (fundingLine == null)
+                {
+                    // copy the refreshed funding line so we don't get side effects
+                    fundingLine = refreshFundingLine.DeepCopy();
+
+                    // add the funding line to the current published provider
+                    currentPublishedProvider.FundingLines = (currentPublishedProvider.FundingLines ?? ArraySegment<FundingLine>.Empty).Concat(new[] { fundingLine });
+                }
+                else
+                {
+                    // the current funding line value is either zero or null so we need to copy the distribution periods from the refreshed funding line
+                    fundingLine.DistributionPeriods = refreshFundingLine.DistributionPeriods?.DeepCopy();
+                }
             }
 
             if (fundingLine.DistributionPeriods.AnyWithNullCheck())
