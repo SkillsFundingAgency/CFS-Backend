@@ -73,6 +73,18 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 Request.GetCorrelationId());
 
         /// <summary>
+        /// Reindex published providers in search index
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("api/publishedprovider/{specificationId}/reindex")]
+        [ProducesResponseType(204)]
+        public async Task<ActionResult<Job>> ReIndexSpecification([FromRoute] string specificationId) =>
+            await _publishedProviderVersionService.ReIndex(
+                Request.GetUser(),
+                Request.GetCorrelationId(),
+                specificationId);
+
+        /// <summary>
         /// Search for a local authority in published provider results
         /// </summary>
         /// <param name="searchText">Search text</param>

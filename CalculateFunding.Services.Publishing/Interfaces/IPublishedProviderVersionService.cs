@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task SavePublishedProviderVersionBody(string publishedProviderVersionId, string publishedProviderVersionBody, string specificationId);
 
-        Task<ActionResult<Job>> ReIndex(Reference user, string correlationId);
+        Task<ActionResult<Job>> ReIndex(Reference user, string correlationId, string specificationId = null);
 
         Task<Job> CreateReIndexJob(Reference user, string correlationId, string specificationId = null, string parentJobId = null);
     }

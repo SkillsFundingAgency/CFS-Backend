@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
                         ProviderVariationContext variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(
                                 previousReleasedMajorVersion,
-                                currentState.Current.TotalFunding,
+                                currentState.Current.TotalFunding ?? 0,
                                 providers[currentProviderItem.Key],
                                 fundingConfiguration.ReleaseManagementVariations,
                                 snapshots,

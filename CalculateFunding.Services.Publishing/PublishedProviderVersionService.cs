@@ -140,19 +140,19 @@ namespace CalculateFunding.Services.Publishing
             };
         }
 
-        public async Task<ActionResult<Job>> ReIndex(Reference user, string correlationId)
+        public async Task<ActionResult<Job>> ReIndex(Reference user, string correlationId, string specificationId = null)
         {
             Guard.ArgumentNotNull(user, nameof(user));
             Guard.IsNullOrWhiteSpace(correlationId, nameof(correlationId));
 
-            return await CreateReIndexJob(user, correlationId);
+            return await CreateReIndexJob(user, correlationId, specificationId);
         }
 
         public async Task<Job> CreateReIndexJob(Reference user, string correlationId, string specificationId = null, string parentJobId = null)
         {
             try
             {
-                Job job = await _jobManagement.QueueJob(new JobCreateModel
+                JobCreateModel jobCreateModel = new JobCreateModel
                 {
                     JobDefinitionId = JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
                     InvokerUserId = user.Id,
@@ -163,20 +163,23 @@ namespace CalculateFunding.Services.Publishing
                         Message = "ReIndexing PublishedProviders",
                         EntityType = nameof(PublishedProviderIndex),
                     }
-                });
+                };
 
                 if (!string.IsNullOrWhiteSpace(parentJobId))
                 {
-                    job.ParentJobId = parentJobId;
+                    jobCreateModel.ParentJobId = parentJobId;
                 }
 
                 if (!string.IsNullOrWhiteSpace(specificationId))
                 {
-                    job.Properties = new Dictionary<string, string>
+                    jobCreateModel.SpecificationId = specificationId;
+                    jobCreateModel.Properties = new Dictionary<string, string>
                     {
                         {"specification-id", specificationId}
                     };
                 }
+
+                Job job = await _jobManagement.QueueJob(jobCreateModel);
 
                 if (job != null)
                 {
