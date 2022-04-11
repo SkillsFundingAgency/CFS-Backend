@@ -207,7 +207,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 providerIds,
                 specificationId,
                 $"ProvidersToRelease-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}",
-                PublishedProviderStatus.Approved);
+                PublishedProviderStatus.Approved,
+                PublishedProviderStatus.Released);
         }
 
         public async Task<IActionResult> GetProviderDataForAllApprovalAsCsv(string specificationId)

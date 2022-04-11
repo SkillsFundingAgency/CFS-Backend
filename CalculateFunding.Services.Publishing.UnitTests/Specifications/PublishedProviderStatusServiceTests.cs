@@ -417,7 +417,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             string expectedUrl = "https://blob.test.com/tst";
 
-            PublishedProviderStatus[] statuses = new[] { PublishedProviderStatus.Approved };
+            PublishedProviderStatus[] statuses = new[] { PublishedProviderStatus.Approved, PublishedProviderStatus.Released };
             string blobNamePrefix = $"{fundingStreamId}-{fundingPeriodId}";
 
             GivenTheFundingDataForCsv(expectedCsvData, publishedProviderIds, specificationId, statuses);
