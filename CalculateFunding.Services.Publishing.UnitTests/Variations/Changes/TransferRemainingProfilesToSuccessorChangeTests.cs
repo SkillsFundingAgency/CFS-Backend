@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .WithOccurence(occurence)
                 .WithYear(year)
                 .WithTypeValue(typeValue)));
-            AndTheFundingLines(NewFundingLine(_ => _.WithFundingLineCode(fundingLineId)
+            AndTheFundingLines(NewFundingLine(_ => _.WithFundingLineCode(NewRandomString())
                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(
                     NewProfilePeriod(1, 2020, "January", 2973864M))))));
 
