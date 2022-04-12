@@ -1338,6 +1338,31 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 itemsPerPage: batchSize);
         }
 
+        public async Task PublishedProvidersWithErrorsBatchProcessing(Func<List<DocumentEntity<PublishedProvider>>, Task> persistIndexBatch, int batchSize, string specificationId)
+        {
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"SELECT *
+                               FROM     publishedProviders c
+                               WHERE    c.documentType = 'PublishedProvider' 
+                               AND      c.deleted = false
+                               AND      c.content.current.HasErrors = true"
+            };
+
+            if (!string.IsNullOrWhiteSpace(specificationId))
+            {
+                query.QueryText += " AND c.content.current.specificationId = @specificationId";
+                query.Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId)
+                };
+            }
+
+            await _repository.DocumentsBatchProcessingAsync<DocumentEntity<PublishedProvider>>(persistBatchToIndex: persistIndexBatch,
+                cosmosDbQuery: query,
+                itemsPerPage: batchSize);
+        }
+
         /// <summary>
         ///     Get count and sum of total funding for all published provider ids with the supplied status
         ///     NB ensure that the ids count is not greater than 100 as this is max permitted per query for an IN

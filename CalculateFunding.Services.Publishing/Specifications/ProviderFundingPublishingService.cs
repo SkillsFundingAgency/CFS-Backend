@@ -196,6 +196,34 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return new OkObjectResult(providerVersion);
         }
 
+        public async Task<IActionResult> ClearErrors(string specifcationId, IEnumerable<PublishedProviderErrorType> errors = null)
+        {
+            await _publishedFundingRepository.PublishedProvidersWithErrorsBatchProcessing(async(publishedProviderDocuments) =>
+            {
+                List<PublishedProvider> publishedProviders = new List<PublishedProvider>();
+
+                foreach(DocumentEntity<PublishedProvider> publishedProviderDocument in publishedProviderDocuments)
+                {
+                    PublishedProvider publishedProvider = publishedProviderDocument.Content;
+
+                    if (publishedProvider.Current.Errors.AnyWithNullCheck(_ => errors.IsNullOrEmpty() || errors.Contains(_.Type)))
+                    {
+                        publishedProvider.Current.ResetErrors(_ => errors.IsNullOrEmpty() || errors.Contains(_.Type));
+                        publishedProviders.Add(publishedProvider);
+                    }
+                }
+
+                if (publishedProviders.AnyWithNullCheck())
+                {
+                    await _publishedFundingRepository.UpsertPublishedProviders(publishedProviders);
+                }
+            },
+            1000,
+            specifcationId);
+
+            return new OkResult();
+        }
+
         public async Task<IActionResult> GetCurrentPublishedProviderVersion(string fundingStreamId,
             string providerId,
             string specificationId)

@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -638,6 +639,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public ICosmosDbFeedIterator GetReleasedPublishedProviderVersionIdIterator(int batchSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task PublishedProvidersWithErrorsBatchProcessing(Func<List<DocumentEntity<PublishedProvider>>, Task> persistIndexBatch, int batchSize, string specificationId)
         {
             throw new NotImplementedException();
         }

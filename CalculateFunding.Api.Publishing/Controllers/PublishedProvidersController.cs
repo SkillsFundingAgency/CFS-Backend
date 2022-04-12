@@ -227,6 +227,22 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         }
 
         /// <summary>
+        /// Clear errors from published providers
+        /// </summary>
+        /// <param name="specificationId">specification Id</param>
+        /// <param name="errors">error types to clear</param>
+        /// <returns></returns>
+        [HttpPost("api/publishedproviders/clearerrors/{specificationId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> ClearErrors(
+            [FromRoute] string specificationId,
+            [FromBody] IEnumerable<PublishedProviderErrorType> errors)
+        {
+            return await _providerFundingPublishingService.ClearErrors(specificationId,
+                errors);
+        }
+
+        /// <summary>
         ///  Get the Published Provider Funding Structure for the current latest version of the published provider
         /// </summary>
         /// <param name="specificationId">specification Id</param>

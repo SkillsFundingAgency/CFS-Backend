@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,7 +31,10 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IActionResult> GetCurrentPublishedProviderVersion(string fundingStreamId,
             string providerId,
             string specificationId);
-        
+
+        Task<IActionResult> ClearErrors(string specifcationId, IEnumerable<PublishedProviderErrorType> errors = null);
+
+
         Task<IActionResult> GetPublishedProviderVersion(string fundingStreamId,
                 string fundingPeriodId,
                 string providerId,

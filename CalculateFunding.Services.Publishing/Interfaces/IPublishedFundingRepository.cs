@@ -1,4 +1,5 @@
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
@@ -54,6 +55,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<PublishedFundingVersion> GetPublishedFundingVersionById(string cosmosId, string partitionKey);
 
         Task AllPublishedProviderBatchProcessing(Func<List<PublishedProvider>, Task> persistIndexBatch, int batchSize, string specificationId);
+
+        Task PublishedProvidersWithErrorsBatchProcessing(Func<List<DocumentEntity<PublishedProvider>>, Task> persistIndexBatch, int batchSize, string specificationId);
 
         Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId,
             string providerType,
