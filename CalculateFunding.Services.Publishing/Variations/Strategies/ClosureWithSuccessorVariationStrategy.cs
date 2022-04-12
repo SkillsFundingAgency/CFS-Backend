@@ -27,14 +27,18 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             
             Provider updatedProvider = providerVariationContext.UpdatedProvider;
 
-            _successorId = updatedProvider.GetSuccessors().SingleOrDefault();
-
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
             
             if (priorState == null ||
                 priorState.Provider.Status == Closed || 
-                updatedProvider.Status != Closed ||
-                _successorId.IsNullOrWhitespace())
+                updatedProvider.Status != Closed)
+            {
+                return Task.FromResult(false);
+            }
+
+            _successorId = updatedProvider.GetSuccessors().SingleOrDefault();
+
+            if (_successorId.IsNullOrWhitespace())
             {
                 return Task.FromResult(false);
             }
