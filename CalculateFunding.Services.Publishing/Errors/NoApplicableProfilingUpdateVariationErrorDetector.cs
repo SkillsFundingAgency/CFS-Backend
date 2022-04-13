@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.Errors
 
         public override bool IsPostVariationCheck => true;
 
-        public override bool IsForAllFundingConfigurations => true;
+        public override bool IsForAllFundingConfigurations => false;
 
         public override int RunningOrder => 1;
 

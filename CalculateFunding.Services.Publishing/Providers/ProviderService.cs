@@ -159,6 +159,7 @@ namespace CalculateFunding.Services.Publishing.Providers
             string specificationId = specification?.Id;
             string specificationFundingPeriodId = specification?.FundingPeriod?.Id;
             string fundingStreamId = fundingStream?.Id;
+            string templateVersion = specification?.TemplateIds[fundingStreamId];
 
             if (specificationId.IsNullOrWhitespace())
             {
@@ -183,7 +184,7 @@ namespace CalculateFunding.Services.Publishing.Providers
 
             return scopedProviders.Where(_ =>
                     !publishedProviders.ContainsKey($"{_.ProviderId}"))
-                .Select(_ => CreatePublishedProvider(_, specificationFundingPeriodId, fundingStreamId, specificationId, "Add by system because published provider doesn't already exist"))
+                .Select(_ => CreatePublishedProvider(_, specificationFundingPeriodId, fundingStreamId, specificationId, templateVersion, "Add by system because published provider doesn't already exist"))
                 .ToDictionary(_ => _.Current.ProviderId, _ => _);
         }
 
@@ -271,6 +272,7 @@ namespace CalculateFunding.Services.Publishing.Providers
                 predecessorProviderVersion.FundingPeriodId,
                 predecessorProviderVersion.FundingStreamId,
                 predecessorProviderVersion.SpecificationId,
+                predecessorProviderVersion.TemplateVersion,
                 "Created by the system as not in scope but referenced as a successor provider",
                 predecessorProviderVersion.FundingLines.DeepCopy());
 
@@ -287,6 +289,7 @@ namespace CalculateFunding.Services.Publishing.Providers
             string fundingPeriod,
             string fundingStreamId,
             string specificationId,
+            string templateVersion,
             string comment,
             IEnumerable<FundingLine> fundingLines = null)
         {
@@ -295,6 +298,7 @@ namespace CalculateFunding.Services.Publishing.Providers
                 Current = new PublishedProviderVersion
                 {
                     Version = 1,
+                    TemplateVersion = templateVersion,  
                     MajorVersion = 0,
                     MinorVersion = 1,
                     FundingPeriodId = fundingPeriod,

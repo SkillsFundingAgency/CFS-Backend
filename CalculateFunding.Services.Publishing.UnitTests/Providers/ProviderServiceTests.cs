@@ -256,7 +256,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             {
                 Id = specificationId,
                 FundingPeriod = new Reference { Id = fundingPeriodId },
-                ProviderVersionId = providerVersionId
+                FundingStreams = new[] { new Reference { Id = fundingStreamId } },
+                ProviderVersionId = providerVersionId,
+                TemplateIds = new Dictionary<string, string>(new[] { new KeyValuePair<string, string>(fundingStreamId, "1.1") })
             };
 
             if (string.IsNullOrWhiteSpace(specificationId) || string.IsNullOrWhiteSpace(fundingPeriodId) || string.IsNullOrWhiteSpace(fundingStreamId))

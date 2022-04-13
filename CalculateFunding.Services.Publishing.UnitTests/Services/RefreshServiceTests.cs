@@ -463,7 +463,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndNewMissingPublishedProviders();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
             GivenFundingConfiguration(new IndicativeToLiveVariationStrategy());
-            AndFundingConfiguration();
+            AndFundingConfiguration("NoApplicableProfilingUpdateVariationErrorDetector");
             AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
             AndTheFundingPeriod();
 
