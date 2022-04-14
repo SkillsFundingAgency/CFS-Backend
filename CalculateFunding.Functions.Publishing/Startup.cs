@@ -580,7 +580,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
 
-            builder.AddSingleton<IPublishIntegrityCheckService, PublishIntegrityCheckService>();
+            builder.AddScoped<IPublishIntegrityCheckService, PublishIntegrityCheckService>();
 
             builder.AddSingleton<IPublishedProviderContentsGeneratorResolver>(ctx =>
             {
