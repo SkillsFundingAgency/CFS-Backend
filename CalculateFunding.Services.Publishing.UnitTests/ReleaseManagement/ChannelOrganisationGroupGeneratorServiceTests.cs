@@ -9,6 +9,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using FluentAssertions;
+using Microsoft.FeatureManagement;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
@@ -23,15 +24,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
     public class ChannelOrganisationGroupGeneratorServiceTests
     {
         private Mock<IOrganisationGroupGenerator> _generator;
+        private Mock<IFeatureManager> _featureManager;
         private ChannelOrganisationGroupGeneratorService _sut;
 
         [TestInitialize]
         public void Initialise()
         {
             _generator = new Mock<IOrganisationGroupGenerator>();
+            _featureManager = new Mock<IFeatureManager>();
             IMapper mapper = CreateMapper();
+            _featureManager
+                .Setup(_ => _.IsEnabledAsync(It.IsAny<string>()))
+                .ReturnsAsync(true);
 
-            _sut = new ChannelOrganisationGroupGeneratorService(_generator.Object, mapper);
+            _sut = new ChannelOrganisationGroupGeneratorService(_generator.Object, mapper, _featureManager.Object);
         }
 
         [TestMethod]

@@ -178,7 +178,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<CurrentCorrelationStepContext, ICurrentCorrelationStepContext>();
             RegisterTypeAs<ProcessDatasetObsoleteItemsJobCreation, ICreateProcessDatasetObsoleteItemsJob>();
             RegisterTypeAs<ProviderFilter, IProviderFilter>();
-
+            RegisterTypeAs<InMemoryFeatureManager, IFeatureManager>();
 
             RegisterTypeAs<GeneratePublishedFundingCsvJobCreation, ICreateGeneratePublishedFundingCsvJobs>();
             RegisterTypeAs<CreateGeneratePublishedProviderEstateCsvJobs, ICreateGeneratePublishedProviderEstateCsvJobs>();

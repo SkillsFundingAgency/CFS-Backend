@@ -7,6 +7,7 @@ using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using Microsoft.FeatureManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,12 +20,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     {
         private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
         private readonly IMapper _mapper;
+        private readonly IFeatureManager _featureManager;
 
         public ChannelOrganisationGroupGeneratorService(IOrganisationGroupGenerator organisationGroupGenerator,
-            IMapper mapper)
+            IMapper mapper,
+            IFeatureManager featureManager)
         {
             _organisationGroupGenerator = organisationGroupGenerator;
             _mapper = mapper;
+            _featureManager = featureManager;
         }
 
         public async Task<IEnumerable<OrganisationGroupResult>> GenerateOrganisationGroups(Channel channel,
@@ -62,7 +66,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             Dictionary<string, IEnumerable<OrganisationGroupResult>> channelOrganisationGroups = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
 
-            if (fundingConfiguration?.ReleaseChannels == null)
+            bool isChannelsEnabled = await _featureManager.IsEnabledAsync("EnableReleaseManagementBackend");
+
+            if (!isChannelsEnabled || fundingConfiguration?.ReleaseChannels == null)
             {
                 return channelOrganisationGroups;
             }

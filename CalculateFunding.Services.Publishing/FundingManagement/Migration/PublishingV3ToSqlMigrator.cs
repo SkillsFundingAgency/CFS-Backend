@@ -267,6 +267,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     ChannelCode = "Contracting",
                     ChannelName = "Contracting",
                     UrlKey = "contracts",
+                },
+                  new SqlModels.Channel()
+                {
+                    ChannelCode = "SpecToSpec",
+                    ChannelName = "Released data from specifications",
+                    UrlKey = "spectospec",
                 }
             };
         }

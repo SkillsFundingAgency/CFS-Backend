@@ -259,6 +259,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             RegisterInstanceAs<IConfiguration>(new ConfigurationBuilder().Build());
             RegisterTypeAs<InMemoryFeatureManagerSnapshot, IFeatureManagerSnapshot>();
+            RegisterTypeAs<InMemoryFeatureManager, IFeatureManager>();
 
             StaticDateTimeService staticDateTimeService = new StaticDateTimeService();
 
