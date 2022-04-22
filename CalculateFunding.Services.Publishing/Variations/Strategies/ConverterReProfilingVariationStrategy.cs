@@ -33,9 +33,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.FromResult(false);
             }
 
-            IEnumerable<string> inYearConverterFundingLines = InYearConverterFundingLines(providerVariationContext.FundingPeriodStartDate,
-                providerVariationContext.FundingPeriodEndDate,
-                refreshState,
+            IEnumerable<string> inYearConverterFundingLines = InYearConverterFundingLines(refreshState,
                 priorState);
 
             IEnumerable<string> indicativeAffectedFundingLines = providerVariationContext.AffectedFundingLineCodes("IndicativeToLive");
@@ -57,9 +55,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             return lists.SelectMany(_ => _);
         }
 
-        private IEnumerable<string> InYearConverterFundingLines(DateTimeOffset fundingPeriodStartDate,
-            DateTimeOffset fundingPeriodEndDate,
-            PublishedProviderVersion refreshState,
+        private IEnumerable<string> InYearConverterFundingLines(PublishedProviderVersion refreshState,
             PublishedProviderVersion priorState)
         {
             List<string> fundingLines = new List<string>();

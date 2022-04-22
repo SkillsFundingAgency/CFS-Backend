@@ -86,12 +86,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public IDictionary<string, PublishedProvider> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders, SpecificationSummary specification, Reference fundingStream, IDictionary<string, PublishedProvider> publishedProviders)
+        public Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(PublishedProvider predecessor, string successorId, string providerVersionId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(PublishedProvider predecessor, string successorId, string providerVersionId)
+        public Task<IDictionary<string, PublishedProvider>> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders, SpecificationSummary specification, Reference fundingStream, IDictionary<string, PublishedProvider> publishedProviders)
         {
             throw new NotImplementedException();
         }

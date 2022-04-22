@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Models;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -25,6 +26,10 @@ namespace CalculateFunding.Services.Publishing.Errors
 
         public override string Name => nameof(NoApplicableProfilingUpdateVariationErrorDetector);
 
+        private const string DISTRIBUTION_PROFILE_STRATEGY = "DistributionProfile";
+
+        private const string CLOSURE_WITH_SUCCESSOR_STRATEGY = "ClosureWithSuccessor";
+
         protected override Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
         {
             ErrorCheck errorCheck = new ErrorCheck();
@@ -42,8 +47,32 @@ namespace CalculateFunding.Services.Publishing.Errors
             if (publishedProvider.Released != null &&
                 providerVariationContext != null &&
                 providerVariationContext.VariationPointers.AnyWithNullCheck() &&
-                !providerVariationContext.ApplicableVariations.AnyWithNullCheck(_ => _ == "DistributionProfile"))
+                !providerVariationContext.ApplicableVariations.AnyWithNullCheck(_ => _ == DISTRIBUTION_PROFILE_STRATEGY))
             {
+                // closure with successor affects the successor funding lines so we need to add the affected
+                // funding lines to the successor from the predecessor context
+                IEnumerable<string> predecessors = providerVariationContext.PublishedProvider?.Current?.Predecessors;
+
+                if (predecessors.AnyWithNullCheck())
+                {
+                    foreach (string predecessor in predecessors)
+                    {
+                        ProviderVariationContext predecessorContext = publishedProvidersContext.VariationContexts[predecessor];
+
+                        if (predecessorContext != null)
+                        {
+                            IEnumerable<string> affectedClosureWithSuccessorLines = predecessorContext.AffectedFundingLineCodes(CLOSURE_WITH_SUCCESSOR_STRATEGY);
+                            if (affectedClosureWithSuccessorLines.AnyWithNullCheck())
+                            {
+                                foreach (string affectedFundingLineCode in affectedClosureWithSuccessorLines)
+                                {
+                                    providerVariationContext.AddAffectedFundingLineCode(CLOSURE_WITH_SUCCESSOR_STRATEGY, affectedFundingLineCode);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 publishedProvider.Current.FundingLines = publishedProvider.Current.FundingLines.Select(_ =>
                 {
                     // persist changes if the current funding line has been changed through variation strategy

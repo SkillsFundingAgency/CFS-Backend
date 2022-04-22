@@ -47,11 +47,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 .Calculations
                 .ToDictionary(_ => _.TemplateCalculationId);
 
-            SuccessorRefreshState.Calculations = SuccessorRefreshState.Calculations.AnyWithNullCheck() ?
-                    SuccessorRefreshState.Calculations :
-                    pupilNumberTemplateCalculationIds?.Select(_ => new FundingCalculation { TemplateCalculationId = _ });
 
-            Dictionary<uint, FundingCalculation> successorCalculations = SuccessorRefreshState.Calculations.ToDictionary(_ => _.TemplateCalculationId);
+            PublishedProviderVersion successorPublishedProviderVersion = SuccessorRefreshState;
+
+            Dictionary<uint, FundingCalculation> successorCalculations = successorPublishedProviderVersion.Calculations.AnyWithNullCheck() ?
+                    successorPublishedProviderVersion.Calculations.ToDictionary(_ => _.TemplateCalculationId) :
+                    pupilNumberTemplateCalculationIds?.Select(_ => new FundingCalculation { TemplateCalculationId = _ }).ToDictionary(_ => _.TemplateCalculationId);
 
             foreach (uint templateCalculationId in pupilNumberTemplateCalculationIds)
             {
@@ -64,6 +65,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
                 successorCalculation.Value = AddValueIfNotNull(successorCalculation.Value, predecessorCalculation.Value);
             }
+
+            successorPublishedProviderVersion.Calculations = successorCalculations.Values;
         }
 
         public static int? AddValueIfNotNull(object value1, object value2)

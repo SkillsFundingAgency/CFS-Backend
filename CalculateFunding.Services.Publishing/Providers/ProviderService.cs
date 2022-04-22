@@ -151,7 +151,7 @@ namespace CalculateFunding.Services.Publishing.Providers
             return scopedProvidersInVersion;
         }
 
-        public IDictionary<string, PublishedProvider> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
+        public async Task<IDictionary<string, PublishedProvider>> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
             SpecificationSummary specification,
             Reference fundingStream,
             IDictionary<string, PublishedProvider> publishedProviders)
@@ -182,9 +182,11 @@ namespace CalculateFunding.Services.Publishing.Providers
                 throw new ArgumentOutOfRangeException(nameof(fundingStreamId));
             }
 
+            FundingConfiguration configuration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
+
             return scopedProviders.Where(_ =>
                     !publishedProviders.ContainsKey($"{_.ProviderId}"))
-                .Select(_ => CreatePublishedProvider(_, specificationFundingPeriodId, fundingStreamId, specificationId, templateVersion, "Add by system because published provider doesn't already exist"))
+                .Select(_ => CreatePublishedProvider(_, specificationFundingPeriodId, fundingStreamId, specificationId, templateVersion, "Add by system because published provider doesn't already exist", disablePopulatePredecessorOnCreate: configuration.DisablePopulatePredecessorOnCreate))
                 .ToDictionary(_ => _.Current.ProviderId, _ => _);
         }
 
@@ -268,13 +270,16 @@ namespace CalculateFunding.Services.Publishing.Providers
 
             PublishedProviderVersion predecessorProviderVersion = predecessor.Current;
 
+            FundingConfiguration configuration = await _policiesService.GetFundingConfiguration(predecessorProviderVersion.FundingStreamId, predecessorProviderVersion.FundingPeriodId);
+
             PublishedProvider missingProvider = CreatePublishedProvider(_mapper.Map<Provider>(providerVersionSearchResult),
                 predecessorProviderVersion.FundingPeriodId,
                 predecessorProviderVersion.FundingStreamId,
                 predecessorProviderVersion.SpecificationId,
                 predecessorProviderVersion.TemplateVersion,
                 "Created by the system as not in scope but referenced as a successor provider",
-                predecessorProviderVersion.FundingLines.DeepCopy());
+                predecessorProviderVersion.FundingLines.DeepCopy(),
+                configuration.DisablePopulatePredecessorOnCreate);
 
             foreach (ProfilePeriod profilePeriod in missingProvider.Current.FundingLines.SelectMany(_ =>
                 _.DistributionPeriods.SelectMany(dp => dp.ProfilePeriods)))
@@ -291,7 +296,8 @@ namespace CalculateFunding.Services.Publishing.Providers
             string specificationId,
             string templateVersion,
             string comment,
-            IEnumerable<FundingLine> fundingLines = null)
+            IEnumerable<FundingLine> fundingLines = null,
+            bool disablePopulatePredecessorOnCreate = false)
         {
             return new PublishedProvider
             {
@@ -308,7 +314,7 @@ namespace CalculateFunding.Services.Publishing.Providers
                     SpecificationId = specificationId,
                     Comment = comment,
                     FundingLines = fundingLines,
-                    Predecessors = provider.Predecessors?.ToList()
+                    Predecessors = disablePopulatePredecessorOnCreate ? null : provider.Predecessors?.ToList()
                 }
             };
         }

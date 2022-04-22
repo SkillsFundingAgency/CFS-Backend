@@ -61,6 +61,13 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
 
         public bool SuccessorCheck { get; set; }
 
+        /// <summary>
+        /// This property is used on PSG so that we don't populate the predecessor on the 
+        /// current version from the provider on creation so that the property can be
+        /// populated during the ClosureWithSuccessor variation strategy
+        /// </summary>
+        public bool DisablePopulatePredecessorOnCreate { get; set; }
+
         public IEnumerable<string> IndicativeOpenerProviderStatus { get; set; }
 
         public bool RunCalculationEngineAfterCoreProviderUpdate { get; set; }

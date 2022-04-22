@@ -1169,7 +1169,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             _providerService
                 .Setup(_ => _.GenerateMissingPublishedProviders(It.IsAny<IEnumerable<Provider>>(), It.IsAny<SpecificationSummary>(), It.IsAny<Reference>(), It.IsAny<IDictionary<string, PublishedProvider>>()))
-                .Returns((publishedProviders ?? new List<PublishedProvider>()).ToDictionary(x => x.Current.ProviderId));
+                .ReturnsAsync((publishedProviders ?? new List<PublishedProvider>()).ToDictionary(x => x.Current.ProviderId));
         }
 
         public static IEnumerable<object[]> GetRefreshFundingBlockingJobTypesData()

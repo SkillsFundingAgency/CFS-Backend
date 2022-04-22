@@ -275,7 +275,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                     message = $"Specified argument was out of the range of valid values. (Parameter 'fundingStreamId')";
                 }
 
-                Func<Task> invocation = async () => WhenGenerateMissingProviders(scopedProviders,
+                Func<Task> invocation = async () => await WhenGenerateMissingProviders(scopedProviders,
                 specification,
                 new Reference { Id = fundingStreamId },
                 publishedProviders.ToDictionary(_ => _.Current.ProviderId));
@@ -288,7 +288,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                 return;
             }
 
-            IDictionary<string, PublishedProvider> missingPublishedProviders = WhenGenerateMissingProviders(scopedProviders,
+            AndTheFundingConfiguration(fundingStreamId, fundingPeriodId);
+
+            IDictionary<string, PublishedProvider> missingPublishedProviders = await WhenGenerateMissingProviders(scopedProviders,
                 specification,
                 new Reference { Id = fundingStreamId },
                 publishedProviders.ToDictionary(_ => _.Current.ProviderId));
@@ -366,7 +368,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             return await _providerService.GetScopedProviderIdsForSpecification(specification);
         }
 
-        private IDictionary<string, PublishedProvider> WhenGenerateMissingProviders(IEnumerable<Provider> scopedProviders,
+        private Task<IDictionary<string, PublishedProvider>> WhenGenerateMissingProviders(IEnumerable<Provider> scopedProviders,
             SpecificationSummary specification,
             Reference fundingStream,
             IDictionary<string, PublishedProvider> publishedProviders)

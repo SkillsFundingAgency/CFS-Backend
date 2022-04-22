@@ -70,6 +70,14 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         [JsonProperty("successorCheck")]
         public bool SuccessorCheck { get; set; }
 
+        /// <summary>
+        /// This property is used on PSG so that we don't populate the predecessor on the 
+        /// current version from the provider on creation so that the property can be
+        /// populated during the ClosureWithSuccessor variation strategy
+        /// </summary>
+        [JsonProperty("disablePopulatePredecessorOnCreate")]
+        public bool DisablePopulatePredecessorOnCreate { get; set; }
+
         [JsonProperty("indicativeOpenerProviderStatus")]
         public IEnumerable<string> IndicativeOpenerProviderStatus { get; set; }
 

@@ -272,7 +272,7 @@ namespace CalculateFunding.Services.Publishing
             _refreshStateService.ExistingCurrentPublishedProviders = publishedProviders.DeepCopy().ToDictionary(_ => _.Key, _ => _.Value.Current);
 
             // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
-            _refreshStateService.AddRange(_providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders));
+            _refreshStateService.AddRange(await _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders));
             publishedProviders.AddOrUpdateRange(_refreshStateService.NewProviders);
 
             // Get TemplateMapping for calcs from Calcs API client nuget

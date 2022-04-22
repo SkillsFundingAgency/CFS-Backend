@@ -142,6 +142,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         }
 
         [TestMethod]
+        public async Task MovesPredecessorPupilNumbersOntoNewSuccessor()
+        {
+            uint calculationOneId = NewRandomUint();
+            uint calculationTwoId = NewRandomUint();
+
+            int predecessorPupilNumberOne = NewRandomPupilNumber();
+            int predecessorPupilNumberTwo = NewRandomPupilNumber();
+
+            GivenThePupilNumberCalculationIds(calculationOneId, calculationTwoId);
+            AndTheFundingCalculations(NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationOneId)
+                    .WithValue(predecessorPupilNumberOne)),
+                NewFundingCalculation(),
+                NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationTwoId)
+                    .WithValue(predecessorPupilNumberTwo)));
+
+            await WhenTheChangeIsApplied();
+
+            ThenCalculationValueShouldBe(VariationContext.Successor.Current.Calculations.Single(_ => _.TemplateCalculationId == calculationOneId), predecessorPupilNumberOne);
+            AndCalculationValueShouldBe(VariationContext.Successor.Current.Calculations.Single(_ => _.TemplateCalculationId == calculationTwoId), predecessorPupilNumberTwo);
+        }
+
+        [TestMethod]
         public async Task MovesPredecessorPupilNumbersOntoNewlyCreatedSuccessor()
         {
             uint calculationOneId = NewRandomUint();

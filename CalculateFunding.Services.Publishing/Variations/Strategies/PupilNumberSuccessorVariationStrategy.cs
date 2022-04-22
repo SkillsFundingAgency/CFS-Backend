@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             _successorId = updatedProvider.GetSuccessors().SingleOrDefault();
 
             if (priorState == null ||
-                priorState.Provider.Status == Closed ||
+                ShouldSkipIfClosed(priorState.Provider) ||
                 updatedProvider.Status != Closed ||
                 _successorId.IsNullOrWhitespace())
             {
@@ -38,6 +38,16 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             }
 
             return Task.FromResult(true);
+        }
+
+        private bool ShouldSkipIfClosed(Provider provider)
+        {
+            if (provider.Status == Closed && provider.ReasonEstablishmentClosed == AcademyConverter)
+            {
+                return provider.GetSuccessors().AnyWithNullCheck();
+            }
+
+            return provider.Status == Closed;
         }
 
         protected override async Task<bool> Execute(ProviderVariationContext providerVariationContext)
