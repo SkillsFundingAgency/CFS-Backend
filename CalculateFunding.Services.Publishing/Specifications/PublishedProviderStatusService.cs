@@ -288,7 +288,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 {
                     ProviderId = x.Key.ProviderId,
                     Author = new Reference(x.Key.AuthorId, x.Key.AuthorName),
-                    Date = x.Key.StatusChangedDate,
+                    Date = x.Key.StatusChangedDate.ToLocalTime(),
                     Status = PublishedProviderStatus.Released,
                     MajorVersion = x.Key.MajorVersion,
                     MinorVersion = x.Key.MinorVersion,
