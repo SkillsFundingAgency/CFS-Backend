@@ -48,6 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<IPublishedProviderVersionService> _publishedProviderVersionService;
         private Mock<IPublishedProviderLookupService> _publishedProvidersLookupService;
         private Mock<IPostReleaseJobCreationService> _postReleaseJobCreationService;
+        private Mock<ICreatePublishIntegrityJob> _createPublishIntegrityJob;
         private ISpecificationIdServiceRequestValidator _specificationIdServiceRequestValidator;
         private string _providerId;
         private string _specificationId;
@@ -74,6 +75,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProvidersLookupService = new Mock<IPublishedProviderLookupService>();
             _postReleaseJobCreationService = new Mock<IPostReleaseJobCreationService>();
             _specificationIdServiceRequestValidator = new PublishSpecificationValidator();
+            _createPublishIntegrityJob = new Mock<ICreatePublishIntegrityJob>();
             _providerId = new RandomString();
             _specificationId = new RandomString();
 
@@ -95,8 +97,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishedProvidersLookupService.Object,
                 _specificationIdServiceRequestValidator,
                 _publishedProviderVersionService.Object,
-                _postReleaseJobCreationService.Object
-                );
+                _postReleaseJobCreationService.Object,
+                _createPublishIntegrityJob.Object);
         }
 
         [TestMethod]

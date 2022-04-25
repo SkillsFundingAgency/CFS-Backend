@@ -43,6 +43,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IExistingReleasedProvidersLoadService _existingReleasedProvidersLoadService;
         private readonly IExistingReleasedProviderVersionsLoadService _existingReleasedProviderVersionsLoadService;
         private readonly IPublishedProviderLookupService _publishedProviderLookupService;
+        private readonly ICreatePublishIntegrityJob _createPublishIntegrityJob;
+
 
         public ReleaseProvidersToChannelsService(
             ISpecificationService specificationService,
@@ -62,7 +64,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IPublishedProviderLookupService publishedProviderLookupService,
             ISpecificationIdServiceRequestValidator specificationIdValidator,
             IPublishedProviderVersionService publishedProviderVersionService,
-            IPostReleaseJobCreationService postReleaseJobCreationService) : base(jobManagement, logger)
+            IPostReleaseJobCreationService postReleaseJobCreationService,
+            ICreatePublishIntegrityJob createPublishIntegrityJob) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
@@ -80,6 +83,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             Guard.ArgumentNotNull(specificationIdValidator, nameof(specificationIdValidator));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(postReleaseJobCreationService, nameof(postReleaseJobCreationService));
+            Guard.ArgumentNotNull(createPublishIntegrityJob, nameof(createPublishIntegrityJob));
 
             _specificationService = specificationService;
             _policiesService = policiesService;
@@ -98,6 +102,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _specificationIdValidator = specificationIdValidator;
             _publishedProviderVersionService = publishedProviderVersionService;
             _postReleaseJobCreationService = postReleaseJobCreationService;
+            _createPublishIntegrityJob = createPublishIntegrityJob;
         }
 
         public async Task<IActionResult> QueueRelease(string specificationId,
@@ -207,6 +212,18 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 _logger.Information("Starting rollback for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
                 _releaseManagementRepository.RollBack();
                 _logger.Information("SQL rollback complete for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
+
+
+                _logger.Information("Queuing integrity checker job for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
+                await _createPublishIntegrityJob.CreateJob(specification.Id,
+                            author,
+                            correlationId,
+                            model.ProviderIds.IsNullOrEmpty() ? null : new Dictionary<string, string>
+                            {
+                            { "providers-batch", JsonExtensions.AsJson(model.ProviderIds.Select(_ => $"{specification.FundingStreams.Single().Id}-{specification.FundingPeriod.Id}-{_}")) }
+                            },
+                            parentJobId: jobId);
+                _logger.Information("Queued integrity checker job for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
 
                 _logger.Information("Queuing published provider search indexer job for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
                 await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specificationId, jobId);
