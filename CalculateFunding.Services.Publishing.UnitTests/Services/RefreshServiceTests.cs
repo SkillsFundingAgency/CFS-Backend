@@ -1184,6 +1184,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             return new string[]
             {
+                JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob,
                 JobConstants.DefinitionNames.PublishedFundingUndoJob,
                 JobConstants.DefinitionNames.CreateInstructAllocationJob,
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,

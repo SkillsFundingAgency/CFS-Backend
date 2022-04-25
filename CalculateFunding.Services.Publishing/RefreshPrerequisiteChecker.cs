@@ -79,6 +79,7 @@ namespace CalculateFunding.Services.Publishing
 
             await BasePerformChecks(specification, specification.Id, jobId, new string[]
             {
+                JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob,
                 JobConstants.DefinitionNames.PublishedFundingUndoJob,
                 JobConstants.DefinitionNames.CreateInstructAllocationJob,
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
