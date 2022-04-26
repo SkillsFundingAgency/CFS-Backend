@@ -7,8 +7,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 {
     public interface IPublishingV3ToSqlMigrator : IJobProcessingService
     {
-        Task<IActionResult> PopulateReferenceData(string[] fundingStreamIds = null);
-
         Task<IActionResult> QueueReleaseManagementDataMigrationJob(Reference author, string correlationId, string[] fundingStreamIds = null);
     }
 }

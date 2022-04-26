@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
@@ -10,7 +11,9 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using DisplayAttribute = System.ComponentModel.DataAnnotations.DisplayAttribute;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement
 {
@@ -103,6 +106,125 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             }
 
             return channels;
+        }
+
+        public async Task<IActionResult> PopulateReferenceData()
+        {
+            await PopulateGroupingReasons();
+            await PopulateVariationReasons();
+
+            return new OkResult();
+        }
+
+        public async Task<Dictionary<string, SqlModels.GroupingReason>> PopulateGroupingReasons()
+        {
+            IEnumerable<SqlModels.GroupingReason> existingGroupingReasons = await _repo.GetGroupingReasons();
+
+            Dictionary<string, SqlModels.GroupingReason> groupingReasons = new Dictionary<string, SqlModels.GroupingReason>(
+                existingGroupingReasons.ToDictionary(_ => _.GroupingReasonCode));
+
+            IEnumerable<SqlModels.GroupingReason> expectedGroupingReasons = GenerateExpectedGroupingReasons();
+            foreach (var reason in expectedGroupingReasons)
+            {
+                if (!groupingReasons.ContainsKey(reason.GroupingReasonCode))
+                {
+                    SqlModels.GroupingReason createdGroupingReason = await _repo.CreateGroupingReason(reason);
+                    groupingReasons.Add(createdGroupingReason.GroupingReasonCode, createdGroupingReason);
+                }
+            }
+
+            return groupingReasons;
+        }
+
+        public async Task<Dictionary<string, SqlModels.VariationReason>> PopulateVariationReasons()
+        {
+            IEnumerable<SqlModels.VariationReason> expectedVariationReasons = GenerateExpectedVariationReasons();
+
+            IEnumerable<SqlModels.VariationReason> existingVariationReasons = await _repo.GetVariationReasons();
+
+            Dictionary<string, SqlModels.VariationReason> variationReasons = new Dictionary<string, SqlModels.VariationReason>(existingVariationReasons.ToDictionary(_ => _.VariationReasonCode));
+
+            foreach (var reason in expectedVariationReasons)
+            {
+                if (!variationReasons.ContainsKey(reason.VariationReasonCode))
+                {
+                    await _repo.CreateVariationReason(reason);
+                    variationReasons.Add(reason.VariationReasonCode, reason);
+                }
+            }
+
+            return variationReasons;
+        }
+
+        private IEnumerable<SqlModels.GroupingReason> GenerateExpectedGroupingReasons()
+        {
+            return new List<SqlModels.GroupingReason>()
+            {
+                new SqlModels.GroupingReason()
+                {
+                    GroupingReasonId = 1,
+                    GroupingReasonCode = nameof(GroupingReason.Payment),
+                    GroupingReasonName = "Payment",
+                },
+                new SqlModels.GroupingReason()
+                {
+                    GroupingReasonId = 2,
+                    GroupingReasonCode = nameof(GroupingReason.Information),
+                    GroupingReasonName = "Information",
+                },
+                new SqlModels.GroupingReason()
+                {
+                    GroupingReasonId = 3,
+                    GroupingReasonCode = nameof(GroupingReason.Contracting),
+                    GroupingReasonName = "Contracting",
+                },
+                new SqlModels.GroupingReason()
+                {
+                    GroupingReasonId = 4,
+                    GroupingReasonCode = nameof(GroupingReason.Indicative),
+                    GroupingReasonName = "Indicative",
+                }
+            };
+        }
+
+        private IEnumerable<SqlModels.VariationReason> GenerateExpectedVariationReasons()
+        {
+            MemberInfo[] memberInfos = typeof(CalculateFunding.Models.Publishing.VariationReason).GetMembers(BindingFlags.Public | BindingFlags.Static);
+
+            List<SqlModels.VariationReason> reasons = new List<SqlModels.VariationReason>();
+
+            foreach (var member in memberInfos)
+            {
+                int? sqlConstantId = GetSqlId(member);
+                if (sqlConstantId.HasValue)
+                {
+                    string description = GetDescription(member);
+
+                    if (string.IsNullOrWhiteSpace(description))
+                    {
+                        description = member.Name;
+                    }
+
+                    reasons.Add(new SqlModels.VariationReason()
+                    {
+                        VariationReasonCode = member.Name,
+                        VariationReasonId = sqlConstantId.Value,
+                        VariationReasonName = description,
+                    });
+                }
+            }
+
+            return reasons;
+        }
+
+        private int? GetSqlId(MemberInfo member)
+        {
+            return member.GetCustomAttribute<SqlConstantIdAttribute>()?.Id;
+        }
+
+        private string GetDescription(MemberInfo memberInfo)
+        {
+            return memberInfo.GetCustomAttribute<DisplayAttribute>()?.Name;
         }
     }
 }

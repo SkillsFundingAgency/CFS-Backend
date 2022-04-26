@@ -41,6 +41,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         private Dictionary<string, SqlModels.FundingStream> _fundingStreams;
         private Dictionary<string, SqlModels.GroupingReason> _groupingReasons;
         private Dictionary<string, SqlModels.VariationReason> _variationReasons;
+        private IChannelsService _channelsService;
 
         private IPublishedFundingReleaseManagementMigrator _fundingMigrator;
         private Dictionary<string, SqlModels.Specification> _specifications;
@@ -52,7 +53,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             ILogger logger,
             IPublishedFundingReleaseManagementMigrator publishedFundingReleaseManagementMigrator,
             IJobManagement jobManagement,
-            IPublishingResiliencePolicies publishingResiliencePolicies) : base(jobManagement, logger)
+            IPublishingResiliencePolicies publishingResiliencePolicies,
+            IChannelsService channelsService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -60,6 +62,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             Guard.ArgumentNotNull(publishedFundingReleaseManagementMigrator, nameof(publishedFundingReleaseManagementMigrator));
             Guard.ArgumentNotNull(publishingResiliencePolicies?.PoliciesApiClient, nameof(publishingResiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(publishingResiliencePolicies?.SpecificationsApiClient, nameof(publishingResiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(channelsService, nameof(channelsService));
 
             _repo = releaseManagementRepository;
             _specsClient = specificationsApiClient;
@@ -67,6 +70,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             _policyClient = policiesApiClient;
             _policyClientPolicy = publishingResiliencePolicies.PoliciesApiClient;
             _fundingMigrator = publishedFundingReleaseManagementMigrator;
+            _channelsService = channelsService;
         }
 
         public async Task<IActionResult> QueueReleaseManagementDataMigrationJob(Reference author,
@@ -110,10 +114,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             string[] fundingStreamIds = message.GetPayloadAsInstanceOf<string[]>();
 
-            await PopulateReferenceData(fundingStreamIds);
+            await PopulateData(fundingStreamIds);
         }
 
-        public async Task<IActionResult> PopulateReferenceData(string[] fundingStreamIds)
+        private async Task PopulateData(string[] fundingStreamIds)
         {
             ApiResponse<IEnumerable<SpecificationSummary>> publishedSpecificationsRequest = await _specsClientPolicy.ExecuteAsync(() => _specsClient.GetSpecificationsSelectedForFunding());
 
@@ -126,20 +130,19 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
             if (publishedSpecifications.IsNullOrEmpty())
             {
-                return new OkResult();
+                return;
             }
 
             await ClearDatabase();
 
-            await PopulateGroupingReasons();
-            await PopulateVariationReasons();
+            _groupingReasons = await _channelsService.PopulateGroupingReasons();
+            _variationReasons = await _channelsService.PopulateVariationReasons();
+
             await PopulateChannels();
             await PopulateFundingStreamsAndPeriods(publishedSpecifications);
             await PopulateSpecifications(publishedSpecifications);
 
             await PopulateFundingAndProviders();
-
-            return new OkResult();
         }
 
         private async Task ClearDatabase()
@@ -273,115 +276,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     ChannelCode = "SpecToSpec",
                     ChannelName = "Released data from specifications",
                     UrlKey = "spectospec",
-                }
-            };
-        }
-
-        private async Task PopulateVariationReasons()
-        {
-            IEnumerable<SqlModels.VariationReason> expectedVariationReasons = GenerateExpectedVariationReasons();
-
-
-            IEnumerable<SqlModels.VariationReason> existingVariationReasons = await _repo.GetVariationReasons();
-
-            _variationReasons = new Dictionary<string, SqlModels.VariationReason>(existingVariationReasons.ToDictionary(_ => _.VariationReasonCode));
-
-            foreach (var reason in expectedVariationReasons)
-            {
-                if (!_variationReasons.ContainsKey(reason.VariationReasonCode))
-                {
-                    await _repo.CreateVariationReason(reason);
-                    _variationReasons.Add(reason.VariationReasonCode, reason);
-                }
-            }
-
-        }
-
-        private IEnumerable<SqlModels.VariationReason> GenerateExpectedVariationReasons()
-        {
-            MemberInfo[] memberInfos = typeof(CalculateFunding.Models.Publishing.VariationReason).GetMembers(BindingFlags.Public | BindingFlags.Static);
-
-            List<SqlModels.VariationReason> reasons = new List<SqlModels.VariationReason>();
-
-            foreach (var member in memberInfos)
-            {
-                int? sqlConstantId = GetSqlId(member);
-                if (sqlConstantId.HasValue)
-                {
-                    string description = GetDescription(member);
-
-                    if (string.IsNullOrWhiteSpace(description))
-                    {
-                        description = member.Name;
-                    }
-
-                    reasons.Add(new SqlModels.VariationReason()
-                    {
-                        VariationReasonCode = member.Name,
-                        VariationReasonId = sqlConstantId.Value,
-                        VariationReasonName = description,
-                    });
-                }
-            }
-
-            return reasons;
-        }
-
-        private int? GetSqlId(MemberInfo member)
-        {
-            return member.GetCustomAttribute<SqlConstantIdAttribute>()?.Id;
-        }
-
-        private string GetDescription(MemberInfo memberInfo)
-        {
-            return memberInfo.GetCustomAttribute<DisplayAttribute>()?.Name;
-        }
-
-        private async Task PopulateGroupingReasons()
-        {
-            IEnumerable<SqlModels.GroupingReason> existingGroupingReasons = await _repo.GetGroupingReasons();
-
-            _groupingReasons = new Dictionary<string, SqlModels.GroupingReason>(
-                existingGroupingReasons.ToDictionary(_ => _.GroupingReasonCode));
-
-            IEnumerable<SqlModels.GroupingReason> expectedGroupingReasons = GenerateExpectedGroupingReasons();
-            foreach (var reason in expectedGroupingReasons)
-            {
-                if (!_groupingReasons.ContainsKey(reason.GroupingReasonCode))
-                {
-                    SqlModels.GroupingReason createdGroupingReason = await _repo.CreateGroupingReason(reason);
-                    _groupingReasons.Add(createdGroupingReason.GroupingReasonCode, createdGroupingReason);
-                }
-            }
-        }
-
-        private IEnumerable<SqlModels.GroupingReason> GenerateExpectedGroupingReasons()
-        {
-            return new List<SqlModels.GroupingReason>()
-            {
-                new SqlModels.GroupingReason()
-                {
-                    GroupingReasonId = 1,
-                    GroupingReasonCode = nameof(GroupingReason.Payment),
-                    GroupingReasonName = "Payment",
-                },
-                new SqlModels.GroupingReason()
-                {
-                    GroupingReasonId = 2,
-                    GroupingReasonCode = nameof(GroupingReason.Information),
-                    GroupingReasonName = "Information",
-                },
-                new SqlModels.GroupingReason()
-                {
-                    GroupingReasonId = 3,
-                    GroupingReasonCode = nameof(GroupingReason.Contracting),
-                    GroupingReasonName = "Contracting",
-                },
-                new SqlModels.GroupingReason()
-                {
-                    GroupingReasonId = 4,
-                    GroupingReasonCode = nameof(GroupingReason.Indicative),
-                    GroupingReasonName = "Indicative",
                 }
             };
         }

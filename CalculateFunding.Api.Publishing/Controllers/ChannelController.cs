@@ -47,5 +47,9 @@ namespace CalculateFunding.Api.Publishing.Controllers
         {
             return await _channelsService.UpsertChannel(request);
         }
+
+        [HttpGet("api/releasemanagement/populatereferencedata")]
+        public async Task<IActionResult> PopulateReferenceData() =>
+            await _channelsService.PopulateReferenceData();
     }
 }

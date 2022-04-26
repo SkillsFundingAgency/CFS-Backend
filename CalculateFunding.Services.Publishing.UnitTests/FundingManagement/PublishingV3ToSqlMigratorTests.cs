@@ -34,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
         private Mock<IPublishedFundingReleaseManagementMigrator> _publishedFundingReleaseManagementMigrator;
         private Mock<ILogger> _logger;
         private Mock<IJobManagement> _jobManagement;
+        private Mock<IChannelsService> _channelsService;
 
         [TestInitialize]
         public void SetUp()
@@ -46,6 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
             _logger = new Mock<ILogger>();
             _publishedFundingReleaseManagementMigrator = new Mock<IPublishedFundingReleaseManagementMigrator>();
             _jobManagement = new Mock<IJobManagement>();
+            _channelsService = new Mock<IChannelsService>();
 
             _publishingV3ToSqlMigrator = new PublishingV3ToSqlMigrator(
                 _releaseManagementRepository.Object,
@@ -54,7 +56,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.FundingManagement
                 _logger.Object,
                 _publishedFundingReleaseManagementMigrator.Object,
                 _jobManagement.Object,
-                PublishingResilienceTestHelper.GenerateTestPolicies()
+                PublishingResilienceTestHelper.GenerateTestPolicies(),
+                _channelsService.Object
             );
         }
 

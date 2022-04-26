@@ -11,5 +11,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<IActionResult> GetAllChannels();
         Task<IActionResult> UpsertChannel(ChannelRequest channelRequest);
         Task<IEnumerable<KeyValuePair<string, Channel>>> GetAndVerifyChannels(IEnumerable<string> channelCodes);
+        Task<IActionResult> PopulateReferenceData();
+        Task<Dictionary<string, SqlModels.GroupingReason>> PopulateGroupingReasons();
+        Task<Dictionary<string, SqlModels.VariationReason>> PopulateVariationReasons();
     }
 }

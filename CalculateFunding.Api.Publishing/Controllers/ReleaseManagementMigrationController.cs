@@ -24,11 +24,5 @@ namespace CalculateFunding.Api.Publishing.Controllers
             
             return await _migrator.QueueReleaseManagementDataMigrationJob(user, correlationId, fundingStreamIds);
         }
-
-        [HttpGet("api/releasemanagement/populatereferencedata")]
-        public async Task<IActionResult> PopulateReferenceData([FromQuery] string[] fundingStreamIds)
-        {
-            return await _migrator.PopulateReferenceData(fundingStreamIds);
-        }
     }
 }
