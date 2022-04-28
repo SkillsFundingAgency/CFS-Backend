@@ -74,6 +74,13 @@ steps:
      SecureSmokeTest: ${{ variables.SecureSmokeTest }}
      APIKey: $(svcapipublishing)
 
+ - task: PublishBuildArtifacts@1
+   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+   displayName: 'Publish Artifact: Call Url Azure AD script'
+   inputs:
+     PathtoPublish: '$(Build.ArtifactStagingDirectory)/DevOps/call-url-azure-ad.ps1'
+     ArtifactName: call-url-aad-script
+
  - task: DotNetCoreCLI@2
    condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), eq(variables.runIntegrationTests, true))
    displayName: 'dotnet test for Integration tests'
