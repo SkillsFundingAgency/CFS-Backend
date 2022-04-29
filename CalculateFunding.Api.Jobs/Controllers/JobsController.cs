@@ -26,7 +26,7 @@ namespace CalculateFunding.Api.Jobs.Controllers
 
         [HttpGet]
         [Route("api/jobs/{jobId}/{includeChildJobs?}")]
-        [ProducesResponseType(200, Type = typeof(JobCurrentModel))]
+        [ProducesResponseType(200, Type = typeof(JobViewModel))]
         public async Task<IActionResult> GetJobById([FromRoute] string jobId,
             bool includeChildJobs = false) =>
             await _jobService.GetJobById(jobId, includeChildJobs);
