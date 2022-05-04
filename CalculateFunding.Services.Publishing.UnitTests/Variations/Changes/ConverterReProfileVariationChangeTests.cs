@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         [TestInitialize]
         public override void SetUp()
         {
-            Change = new ConverterReProfileVariationChange(VariationContext, Strategy);
+            Change = new ConverterReProfileVariationChange(VariationContext, Strategy, null);
         }
     }
 }

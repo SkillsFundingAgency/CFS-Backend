@@ -3,6 +3,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
@@ -12,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         protected override string ChangeName => "Converter re-profile variation change";
 
         public ConverterReProfileVariationChange(ProviderVariationContext variationContext,
-            string strategy) : base(variationContext, strategy)
+            string strategy, IEnumerable<string> indicativeToLiveFundingLines) : base(variationContext, strategy, indicativeToLiveFundingLines)
         {
         }
 

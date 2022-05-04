@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         protected override Task<bool> Execute(ProviderVariationContext providerVariationContext)
         {
-            providerVariationContext.QueueVariationChange(new ConverterReProfileVariationChange(providerVariationContext, Name));
+            providerVariationContext.QueueVariationChange(new ConverterReProfileVariationChange(providerVariationContext, Name, providerVariationContext.AffectedFundingLineCodes("IndicativeToLive")));
 
             return Task.FromResult(true);
         }
