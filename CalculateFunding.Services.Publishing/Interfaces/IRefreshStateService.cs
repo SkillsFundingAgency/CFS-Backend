@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         IDictionary<string, PublishedProviderVersion> ExistingCurrentPublishedProviders { get; set; }
         IDictionary<string, PublishedProvider> NewProviders { get; }
         IEnumerable<PublishedProvider> UpdatedProviders { get; }
+        IEnumerable<PublishedProvider> AllProviders { get; }
         bool IsNewProvider(PublishedProvider publishedProvider);
 
         int Count { get; }

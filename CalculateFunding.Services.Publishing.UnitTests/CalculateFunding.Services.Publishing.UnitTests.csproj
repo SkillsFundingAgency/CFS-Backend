@@ -21,6 +21,7 @@
     <None Remove="Resources\exampleProvider4Calculations.json" />
     <None Remove="Resources\exampleProvider4Calculations_Schema1_1.json" />
     <None Remove="Resources\exampleProviderTemplate1.json" />
+    <None Remove="Resources\exampleProviderTemplateInformation1_Schema1_1.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +38,7 @@
     <EmbeddedResource Include="Resources\exampleProvider2Calculations_Schema1_1.json" />
     <EmbeddedResource Include="Resources\exampleProvider3Calculations.json" />
     <EmbeddedResource Include="Resources\exampleProvider3Calculations_Schema1_1.json" />
+    <EmbeddedResource Include="Resources\exampleProviderTemplateInformation1_Schema1_1.json" />
     <EmbeddedResource Include="Resources\exampleProviderTemplate1_Schema1_1.json" />
     <EmbeddedResource Include="Resources\exampleProviderTemplate1_Schema1_0.json" />
     <None Remove="Variations\Changes\profiled.json" />
@@ -61,6 +63,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Services.Profiling.Tests\CalculateFunding.Services.Profiling.Tests.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Profiling\CalculateFunding.Services.Profiling.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.1.json#schema",
+  "schemaVersion": "1.1",
+  "fundingTemplate": {
+    "fundingLines": [
+      {
+        "name": "Total funding line information",
+        "fundingLineCode": "TotalFundingLineInformation",
+        "templateLineId": 1,
+        "type": "Information",
+        "fundingLines": [
+          {
+            "name": "Child funding line1",
+            "fundingLineCode": "ChildFundingLine1",
+            "templateLineId": 2,
+            "type": "Payment"
+          },
+          {
+            "name": "Child funding line2",
+            "fundingLineCode": "ChildFundingLine2",
+            "templateLineId": 3,
+            "type": "Information",
+            "fundingLines": [
+              {
+                "name": "Child funding line3",
+                "fundingLineCode": "ChildFundingLine3",
+                "templateLineId": 4,
+                "type": "Payment",
+                "fundingLines": [
+                  {
+                    "name": "Child funding line5",
+                    "fundingLineCode": "ChildFundingLine5",
+                    "templateLineId": 6,
+                    "type": "Payment"
+                  },
+                  {
+                    "name": "Child funding line6",
+                    "fundingLineCode": "ChildFundingLine6",
+                    "templateLineId": 7,
+                    "type": "Information",
+                    "fundingLines": [
+                      {
+                        "name": "Child funding line7",
+                        "fundingLineCode": "ChildFundingLine7",
+                        "templateLineId": 8,
+                        "type": "Payment"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "Child funding line4",
+                "fundingLineCode": "ChildFundingLine4",
+                "templateLineId": 5,
+                "type": "Information"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

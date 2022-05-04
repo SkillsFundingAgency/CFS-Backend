@@ -58,6 +58,8 @@ namespace CalculateFunding.Services.Publishing
 
         public IEnumerable<PublishedProvider> UpdatedProviders => _providers.ContainsKey(ActionType.Update) ? _providers[ActionType.Update].Values : ArraySegment<PublishedProvider>.Empty;
 
+        public IEnumerable<PublishedProvider> AllProviders => _providers.Values.SelectMany(_ => _.Values);
+
         public bool IsNewProvider(PublishedProvider publishedProvider) => _providers.ContainsKey(ActionType.Add) ? _providers[ActionType.Add].ContainsKey(publishedProvider.Current.ProviderId) : false;
 
         public int Count => _providers.Values.SelectMany(_ => _.Values).Count();

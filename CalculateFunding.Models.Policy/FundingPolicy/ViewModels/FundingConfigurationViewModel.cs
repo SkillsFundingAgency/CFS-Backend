@@ -59,6 +59,8 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
 
         public bool EnableConverterDataMerge { get; set; }
 
+        public bool EnableInformationLineAggregation { get; set; }
+
         public bool SuccessorCheck { get; set; }
 
         /// <summary>

@@ -217,6 +217,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterInstanceAs<IPublishedProviderContentsGeneratorResolver>(providerContentsGeneratorResolver);
 
             RegisterTypeAs<FundingLineTotalAggregator, IFundingLineTotalAggregator>();
+            RegisterTypeAs<InformationLineAggregator, IInformationLineAggregator>();
+            RegisterTypeAs<InformationLinesAggregationService, IInformationLinesAggregationService>();
+            
             RegisterTypeAs<CalculationInMemoryRepository, ICalculationResultsRepository>();
             RegisterTypeAs<PublishedProviderStatusUpdateService, IPublishedProviderStatusUpdateService>();
             RegisterTypeAs<PublishedProviderStatusUpdateSettings, IPublishedProviderStatusUpdateSettings>();

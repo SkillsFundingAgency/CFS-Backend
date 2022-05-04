@@ -23,6 +23,8 @@ using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using DistributionPeriod = CalculateFunding.Models.Publishing.DistributionPeriod;
+using ProfilePeriod = CalculateFunding.Models.Publishing.ProfilePeriod;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 
 namespace CalculateFunding.Services.Publishing
@@ -45,6 +47,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly AsyncPolicy _calculationsApiClientPolicy;
         private readonly IPublishProviderExclusionCheck _providerExclusionCheck;
         private readonly IFundingLineValueOverride _fundingLineValueOverride;
+        private readonly IInformationLinesAggregationService _informationLinesAggregationService;
         private readonly IJobManagement _jobManagement;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
@@ -69,6 +72,7 @@ namespace CalculateFunding.Services.Publishing
             IPrerequisiteCheckerLocator prerequisiteCheckerLocator,
             IPublishProviderExclusionCheck providerExclusionCheck,
             IFundingLineValueOverride fundingLineValueOverride,
+            IInformationLinesAggregationService informationLinesAggregationService,
             IJobManagement jobManagement,
             IVariationService variationService,
             ITransactionFactory transactionFactory,
@@ -92,6 +96,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(providerExclusionCheck, nameof(providerExclusionCheck));
             Guard.ArgumentNotNull(fundingLineValueOverride, nameof(fundingLineValueOverride));
+            Guard.ArgumentNotNull(informationLinesAggregationService, nameof(informationLinesAggregationService));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(variationService, nameof(variationService));
             Guard.ArgumentNotNull(transactionFactory, nameof(transactionFactory));
@@ -120,6 +125,7 @@ namespace CalculateFunding.Services.Publishing
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
             _providerExclusionCheck = providerExclusionCheck;
             _fundingLineValueOverride = fundingLineValueOverride;
+            _informationLinesAggregationService = informationLinesAggregationService;
             _variationService = variationService;
             _reApplyCustomProfiles = reApplyCustomProfiles;
             _detection = detection;
@@ -510,6 +516,17 @@ namespace CalculateFunding.Services.Publishing
                 await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed with variations errors.");
 
                 throw new NonRetriableException($"Unable to refresh funding. Variations generated {_variationService.ErrorCount} errors. Check log for details");
+            }
+
+            if (fundingConfiguration != null && fundingConfiguration.EnableInformationLineAggregation)
+            {
+                foreach (PublishedProvider publishedProvider in _refreshStateService.AllProviders)
+                {
+                    _informationLinesAggregationService.AggregateFundingLines(specification.Id,
+                        publishedProvider.Current.ProviderId,
+                        publishedProvider.Current.FundingLines,
+                        templateMetadataContents.RootFundingLines);
+                }
             }
 
             _logger.Information("Finished applying variations");

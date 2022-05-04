@@ -224,6 +224,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _prerequisiteCheckerLocator.Object,
                 _providerExclusionCheck,
                 _fundingLineValueOverride.Object,
+                new InformationLinesAggregationService(new InformationLineAggregator(), _logger.Object),
                 _jobManagement.Object,
                 _variationService,
                 _transactionFactory,

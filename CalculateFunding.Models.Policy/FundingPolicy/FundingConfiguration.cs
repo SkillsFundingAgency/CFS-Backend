@@ -67,6 +67,9 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         [JsonProperty("enableConverterDataMerge")]
         public bool EnableConverterDataMerge { get; set; }
 
+        [JsonProperty("enableInformationLineAggregation")]
+        public bool EnableInformationLineAggregation { get; set; }
+
         [JsonProperty("successorCheck")]
         public bool SuccessorCheck { get; set; }
 
