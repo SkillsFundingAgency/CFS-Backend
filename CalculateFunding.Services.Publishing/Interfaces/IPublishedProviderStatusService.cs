@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Publishing.Models;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -9,7 +10,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IActionResult> GetProviderStatusCounts(string specificationId,
             string providerType,
             string localAuthority,
-            string status,
+            IEnumerable<string> statuses,
             bool? isIndicative = null,
             string monthYearOpened = null);
 

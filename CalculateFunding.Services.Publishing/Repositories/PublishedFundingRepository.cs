@@ -1622,7 +1622,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         public async Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId,
             string providerType,
             string localAuthority,
-            string status,
+            IEnumerable<string> statuses,
             bool? isIndicative = null,
             string monthYearOpened = null)
         {
@@ -1648,10 +1648,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@authority", localAuthority));
             }
 
-            if (status.IsNotNullOrWhitespace())
+            if (statuses.AnyWithNullCheck())
             {
-                additionalFilter.Append($" and f.content.current.status = @status ");
-                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@status", status));
+                string statusQuery = string.Join(",", statuses.Select(_ => $"'{_}'"));
+                additionalFilter.Append($" and ARRAY_CONTAINS([{statusQuery}],f.content.current.status)");
             }
 
             if (isIndicative.HasValue)

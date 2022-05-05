@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
         public async Task<IActionResult> GetProviderStatusCounts(string specificationId,
             string providerType,
             string localAuthority,
-            string status,
+            IEnumerable<string> statuses,
             bool? isIndicative = null,
             string monthYearOpened = null)
         {
@@ -157,7 +157,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 await _publishedFundingRepositoryResilience.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderStatusCounts(specificationId,
                     providerType,
                     localAuthority,
-                    status,
+                    statuses,
                     isIndicative,
                     monthYearOpened));
 

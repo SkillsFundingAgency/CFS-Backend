@@ -977,7 +977,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _publishedFundingRepository.GetPublishedProviderStatusCounts(_specificationId,
                     string.Empty,
                     string.Empty,
-                    string.Empty,
+                    Arg.Is<IEnumerable<string>>(_ => _.First() == String.Empty),
                     isIndicative,
                     monthYearOpened)
                 .Returns(publishedProviderFundingStreamStatuses);
@@ -1002,7 +1002,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _actionResult = await _service.GetProviderStatusCounts(_specificationId,
                 string.Empty,
                 string.Empty,
-                string.Empty,
+                new string[] { string.Empty },
                 isIndicative,
                 monthYearOpened);
         }

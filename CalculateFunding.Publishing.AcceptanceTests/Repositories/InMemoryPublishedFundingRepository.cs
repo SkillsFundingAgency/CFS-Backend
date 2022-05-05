@@ -270,7 +270,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId,
             string providerType,
             string localAuthority,
-            string status,
+            IEnumerable<string> statuses,
             bool? isIndicative = null,
             string monthYearOpened = null)
         {
@@ -278,12 +278,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 .SelectMany(c => c.Value)
                 .Where(p => p.Current.SpecificationId == specificationId);
 
-            if (!string.IsNullOrEmpty(status))
+            if (statuses.AnyWithNullCheck())
             {
-                publishedFundings = publishedFundings.Where(p => p.Current.Status.ToString() == status);
+                publishedFundings = publishedFundings.Where(p => statuses.Contains(p.Current.Status.ToString()));
             }
 
-            IEnumerable<PublishedProviderFundingStreamStatus> statuses = publishedFundings
+            IEnumerable<PublishedProviderFundingStreamStatus> fundingStreamStatuses = publishedFundings
                 .GroupBy(p => new { p.Current.FundingStreamId, p.Current.Status })
                 .Select(r => new PublishedProviderFundingStreamStatus
                 {
@@ -293,7 +293,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                     TotalFunding = r.Sum(x => x.Current.TotalFunding)
                 });
 
-            return Task.FromResult(statuses);
+            return Task.FromResult(fundingStreamStatuses);
         }
 
         public Task DeleteAllPublishedProvidersByFundingStreamAndPeriod(string fundingStreamId, string fundingPeriodId)

@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId,
             string providerType,
             string localAuthority,
-            string status,
+            IEnumerable<string> statuses,
             bool? isIndicative = null,
             string monthYearOpened = null);
 
