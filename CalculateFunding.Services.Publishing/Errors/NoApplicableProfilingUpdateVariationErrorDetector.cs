@@ -57,16 +57,19 @@ namespace CalculateFunding.Services.Publishing.Errors
                 {
                     foreach (string predecessor in predecessors)
                     {
-                        ProviderVariationContext predecessorContext = publishedProvidersContext.VariationContexts[predecessor];
-
-                        if (predecessorContext != null)
+                        if (publishedProvidersContext.VariationContexts.ContainsKey(predecessor))
                         {
-                            IEnumerable<string> affectedClosureWithSuccessorLines = predecessorContext.AffectedFundingLineCodes(CLOSURE_WITH_SUCCESSOR_STRATEGY);
-                            if (affectedClosureWithSuccessorLines.AnyWithNullCheck())
+                            ProviderVariationContext predecessorContext = publishedProvidersContext.VariationContexts[predecessor];
+
+                            if (predecessorContext != null)
                             {
-                                foreach (string affectedFundingLineCode in affectedClosureWithSuccessorLines)
+                                IEnumerable<string> affectedClosureWithSuccessorLines = predecessorContext.AffectedFundingLineCodes(CLOSURE_WITH_SUCCESSOR_STRATEGY);
+                                if (affectedClosureWithSuccessorLines.AnyWithNullCheck())
                                 {
-                                    providerVariationContext.AddAffectedFundingLineCode(CLOSURE_WITH_SUCCESSOR_STRATEGY, affectedFundingLineCode);
+                                    foreach (string affectedFundingLineCode in affectedClosureWithSuccessorLines)
+                                    {
+                                        providerVariationContext.AddAffectedFundingLineCode(CLOSURE_WITH_SUCCESSOR_STRATEGY, affectedFundingLineCode);
+                                    }
                                 }
                             }
                         }
