@@ -105,11 +105,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         [TestMethod]
-        [DataRow(null)]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task ReturnsThePublishedProviderStatusFromPublishedProviderRepository(bool? isIndicative)
+        [DataRow(null, null)]
+        [DataRow(true, null)]
+        [DataRow(false, null)]
+        [DataRow(false, "Updated, Draft")]
+        [DataRow(false, "Approved")]
+        [DataRow(false, "Released")]
+        public async Task ReturnsThePublishedProviderStatusFromPublishedProviderRepository(bool? isIndicative, string statuses)
         {
+            string[] statusArray = statuses?.Split();
             string fundingStreamId1 = NewRandomString();
             string fundingStreamId2 = NewRandomString();
 
@@ -140,24 +144,45 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             decimal fs2ReleasedTotalFunding = NewRandomNumber();
             decimal fs2UpdatedTotalFunding = NewRandomNumber();
 
+            int expectedFs1ApprovedCount = statusArray.IsNullOrEmpty() || statusArray.Contains("Approved") ? fs1ApprovedCount : 0;
+            int expectedFs1ReleasedCount = statusArray.IsNullOrEmpty() || statusArray.Contains("Released") ? fs1ReleasedCount : 0;
+            int expectedFs1UpdatedCount = statusArray.IsNullOrEmpty() || statusArray.Contains("Updated") ? fs1UpdatedCount : 0;
+            int expectedFs1DraftCount = statusArray.IsNullOrEmpty() || statusArray.Contains("Draft") ? fs1DraftCount : 0;
+
+            decimal expectedFs1ApprovedTotalFunding = statusArray.IsNullOrEmpty() || statusArray.Contains("Approved") ? fs1ApprovedTotalFunding : 0;
+            decimal expectedFs1ReleasedTotalFunding = statusArray.IsNullOrEmpty() || statusArray.Contains("Released") ? fs1ReleasedTotalFunding : 0;
+            decimal expectedFs1UpdatedTotalFunding = statusArray.IsNullOrEmpty() || statusArray.Contains("Updated") ? fs1UpdatedTotalFunding : 0;
+            decimal expectedFs1DraftTotalFunding = statusArray.IsNullOrEmpty() || statusArray.Contains("Draft") ? fs1DraftTotalFunding : 0;
+
+            int expectedFs2ApprovedCount = statusArray.IsNullOrEmpty() || statusArray.Contains("Approved") ? fs2ApprovedCount : 0;
+            int expectedFs2ReleasedCount = statusArray.IsNullOrEmpty() || statusArray.Contains("Released") ? fs2ReleasedCount : 0;
+            int expectedFs2UpdatedCount = statusArray.IsNullOrEmpty() || statusArray.Contains("Updated") ? fs2UpdatedCount : 0;
+            int expectedFs2DraftCount = statusArray.IsNullOrEmpty() || statusArray.Contains("Draft") ? fs2DraftCount : 0;
+
+            decimal expectedFs2ApprovedTotalFunding = statusArray.IsNullOrEmpty() || statusArray.Contains("Approved") ? fs2ApprovedTotalFunding : 0;
+            decimal expectedFs2ReleasedTotalFunding = statusArray.IsNullOrEmpty() || statusArray.Contains("Released") ? fs2ReleasedTotalFunding : 0;
+            decimal expectedFs2UpdatedTotalFunding = statusArray.IsNullOrEmpty() || statusArray.Contains("Updated") ? fs2UpdatedTotalFunding : 0;
+            decimal expectedFs2DraftTotalFunding = statusArray.IsNullOrEmpty() || statusArray.Contains("Draft") ? fs2DraftTotalFunding : 0;
+
             ProviderFundingStreamStatusResponse firstExpectedResponse = NewProviderFundingStreamStatusResponse(_ => _
                 .WithFundingStreamId(fundingStreamId1)
-                .WithProviderApprovedCount(fs1ApprovedCount)
-                .WithProviderReleasedCount(fs1ReleasedCount)
-                .WithProviderUpdatedCount(fs1UpdatedCount)
-                .WithProviderDraftCount(fs1DraftCount)
-                .WithTotalFunding(fs1ApprovedTotalFunding + fs1DraftTotalFunding + fs1ReleasedTotalFunding + fs1UpdatedTotalFunding));
+                .WithProviderApprovedCount(expectedFs1ApprovedCount)
+                .WithProviderReleasedCount(expectedFs1ReleasedCount)
+                .WithProviderUpdatedCount(expectedFs1UpdatedCount)
+                .WithProviderDraftCount(expectedFs1DraftCount)
+                .WithTotalFunding(expectedFs1ApprovedTotalFunding + expectedFs1DraftTotalFunding + expectedFs1ReleasedTotalFunding + expectedFs1UpdatedTotalFunding));
 
             ProviderFundingStreamStatusResponse secondExpectedResponse = NewProviderFundingStreamStatusResponse(_ => _
                 .WithFundingStreamId(fundingStreamId2)
-                .WithProviderApprovedCount(fs2ApprovedCount)
-                .WithProviderReleasedCount(fs2ReleasedCount)
-                .WithProviderUpdatedCount(fs2UpdatedCount)
-                .WithProviderDraftCount(fs2DraftCount)
-                .WithTotalFunding(fs2ApprovedTotalFunding + fs2DraftTotalFunding + fs2ReleasedTotalFunding + fs2UpdatedTotalFunding));
+                .WithProviderApprovedCount(expectedFs2ApprovedCount)
+                .WithProviderReleasedCount(expectedFs2ReleasedCount)
+                .WithProviderUpdatedCount(expectedFs2UpdatedCount)
+                .WithProviderDraftCount(expectedFs2DraftCount)
+                .WithTotalFunding(expectedFs2ApprovedTotalFunding + expectedFs2DraftTotalFunding + expectedFs2ReleasedTotalFunding + expectedFs2UpdatedTotalFunding));
 
             GivenThePublishedProvidersForTheSpecificationId(isIndicative,
                 monthYearOpened,
+                statusArray,
                 NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1ApprovedCount).WithStatus(approvedStatus).WithTotalFunding(fs1ApprovedTotalFunding)),
                 NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1DraftCount).WithStatus(draftStatus).WithTotalFunding(fs1DraftTotalFunding)),
                 NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1ReleasedCount).WithStatus(releasedStatus).WithTotalFunding(fs1ReleasedTotalFunding)),
@@ -173,7 +198,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 s.WithFundingStreamIds(fundingStreamId1, fundingStreamId2);
             }));
 
-            await WhenThePublishedProvidersStatusAreQueried(isIndicative, monthYearOpened);
+            await WhenThePublishedProvidersStatusAreQueried(isIndicative, statusArray, monthYearOpened);
 
             ThenTheResponseShouldBe<OkObjectResult>(_ =>
                 ((IEnumerable<ProviderFundingStreamStatusResponse>)_.Value).SequenceEqual(new[]
@@ -973,14 +998,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
         private void GivenThePublishedProvidersForTheSpecificationId(bool? isIndicative,
             string monthYearOpened,
+            string[] statuses,
             params PublishedProviderFundingStreamStatus[] publishedProviderFundingStreamStatuses) =>
             _publishedFundingRepository.GetPublishedProviderStatusCounts(_specificationId,
                     string.Empty,
                     string.Empty,
-                    Arg.Is<IEnumerable<string>>(_ => _.First() == String.Empty),
+                    Arg.Is<IEnumerable<string>>(_ => statuses.IsNullOrEmpty() || statuses.SequenceEqual(_)),
                     isIndicative,
                     monthYearOpened)
-                .Returns(publishedProviderFundingStreamStatuses);
+                .Returns(publishedProviderFundingStreamStatuses.Where(_ => statuses.IsNullOrEmpty() || statuses.Contains(_.Status)));
 
         private void GivenThePublishedProviderIdsForTheSpecificationId(IEnumerable<string> publishedProviderIds)
         {
@@ -997,12 +1023,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             .Returns(releasedDataAllocationHistories);
 
         private async Task WhenThePublishedProvidersStatusAreQueried(bool? isIndicative = null,
+            string[] statuses = null,
             string monthYearOpened = null)
         {
             _actionResult = await _service.GetProviderStatusCounts(_specificationId,
                 string.Empty,
                 string.Empty,
-                new string[] { string.Empty },
+                statuses,
                 isIndicative,
                 monthYearOpened);
         }
