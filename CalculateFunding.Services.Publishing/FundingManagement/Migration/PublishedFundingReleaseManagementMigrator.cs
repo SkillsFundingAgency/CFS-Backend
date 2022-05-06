@@ -241,6 +241,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             // Always publish for statement for now
             channels.Add(allChannels["Statement"]);
 
+            // Always publish for spec to spec for now
+            channels.Add(allChannels["SpecToSpec"]);
+
             switch (groupingReason)
             {
                 case CalculateFunding.Models.Publishing.GroupingReason.Contracting:
