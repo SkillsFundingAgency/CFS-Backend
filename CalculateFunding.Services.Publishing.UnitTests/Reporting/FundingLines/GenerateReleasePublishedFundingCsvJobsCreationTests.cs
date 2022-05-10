@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
+using CalculateFunding.Services.Publishing.Reporting.PublishedProviderState;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
@@ -14,7 +15,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public void SetUp()
         {
             JobsCreation = new GenerateReleasePublishedFundingCsvJobsCreation(
-                CreateGeneratePublishedFundingCsvJobs.Object, CreateGeneratePublishedProviderEstateCsvJobs.Object);     
+                CreateGeneratePublishedFundingCsvJobs.Object, CreateGeneratePublishedProviderEstateCsvJobs.Object,
+                CreateGeneratePublishedProviderStateSummaryCsvJobs.Object);     
         }
         
         [TestMethod]

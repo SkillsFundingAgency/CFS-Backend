@@ -47,6 +47,7 @@ using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
+using CalculateFunding.Services.Publishing.Reporting.PublishedProviderState;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.SqlExport;
@@ -311,6 +312,8 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnGeneratePublishedFundingCsvFailure>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsv>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsvFailure>();
+                builder.AddScoped<OnGeneratePublishedProviderStateSummaryCsv>();
+                builder.AddScoped<OnGeneratePublishedProviderStateSummaryCsvFailure>();
                 builder.AddScoped<OnApproveBatchProviderFunding>();
                 builder.AddScoped<OnApproveBatchProviderFundingFailure>();
                 builder.AddScoped<OnPublishBatchProviderFunding>();
@@ -409,9 +412,14 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddTransient<ICreateGeneratePublishedFundingCsvJobs, GeneratePublishedFundingCsvJobCreation>();
             builder.AddScoped<IPublishedProviderEstateCsvGenerator, PublishedProviderEstateCsvGenerator>()
                 .AddSingleton<IHealthChecker, PublishedProviderEstateCsvGenerator>();
+            builder.AddScoped<IPublishedProviderStateSummaryCsvGenerator, PublishedProviderStateSummaryCsvGenerator>()
+                .AddSingleton<IHealthChecker, PublishedProviderStateSummaryCsvGenerator>();
             builder.AddScoped<IPublishedProviderCsvTransformServiceLocator, PublishedProviderCsvTransformServiceLocator>();
             builder.AddScoped<IPublishedProviderCsvTransform, PublishedProviderEstateCsvTransform>();
+            builder.AddScoped<IPublishedProviderStateSummaryCsvTransformServiceLocator, PublishedProviderStateCsvTransformServiceLocator>();
+            builder.AddScoped<IPublishedProviderStateSummaryCsvTransform, PublishedProviderStateSummaryCsvTransform>();
             builder.AddScoped<ICreateGeneratePublishedProviderEstateCsvJobs, CreateGeneratePublishedProviderEstateCsvJobs>();
+            builder.AddScoped<ICreateGeneratePublishedProviderStateSummaryCsvJobs, CreateGeneratePublishedProviderStateSummaryCsvJobs>();
             builder.AddScoped<IPublishedFundingCsvJobsService, PublishedFundingCsvJobsService>();
 
             builder

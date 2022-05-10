@@ -61,6 +61,8 @@
 
             public const string GeneratePublishedProviderEstateCsvJob = nameof(GeneratePublishedProviderEstateCsvJob);
 
+            public const string GeneratePublishedProviderStateSummaryCsvJob = nameof(GeneratePublishedProviderStateSummaryCsvJob);
+
             public const string PopulateScopedProvidersJob = nameof(PopulateScopedProvidersJob);
 
             public const string PublishedFundingUndoJob = nameof(PublishedFundingUndoJob);

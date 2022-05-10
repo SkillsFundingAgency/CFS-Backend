@@ -190,7 +190,13 @@
             public const string GeneratePublishedProviderEstateCsvPoisoned = "publishing-generate-published-provider-estate-csv/$DeadLetterQueue";
                                                  
             public const string GeneratePublishedProviderEstateCsvPoisonedLocal = "publishing-generate-published-provider-estate-csv-poison";
-            
+
+            public const string GeneratePublishedProviderStateSummaryCsv = "publishing-generate-published-provider-state-summary-csv";
+
+            public const string GeneratePublishedProviderStateSummaryCsvPoisoned = "publishing-generate-published-provider-state-summary-csv/$DeadLetterQueue";
+
+            public const string GeneratePublishedProviderStateSummaryCsvPoisonedLocal = "publishing-generate-published-provider-state-summary-csv-poison";
+
             public const string PublishedFundingUndo = "publishing-published-funding-undo";
 
             public const string PolicyReIndexTemplates = "policy-reindex-templates";

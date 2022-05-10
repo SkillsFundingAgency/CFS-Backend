@@ -12,7 +12,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             {FundingLineCsvGeneratorJobType.Released, "NOT IS_NULL(c.content.released)"},
             {FundingLineCsvGeneratorJobType.CurrentProfileValues, "1 = 1" },
             {FundingLineCsvGeneratorJobType.HistoryProfileValues, "1 = 1" },
-            {FundingLineCsvGeneratorJobType.History, "1 = 1"}
+            {FundingLineCsvGeneratorJobType.History, "1 = 1"},
+            {FundingLineCsvGeneratorJobType.PublishedProviderStateSummary, "1 = 1" }
         };
 
         private static readonly IDictionary<FundingLineCsvGeneratorJobType, string> Joins = new Dictionary<FundingLineCsvGeneratorJobType, string>

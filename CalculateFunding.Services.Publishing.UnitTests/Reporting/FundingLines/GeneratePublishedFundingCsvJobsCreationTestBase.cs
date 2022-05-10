@@ -23,6 +23,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
         protected Mock<ICreateGeneratePublishedFundingCsvJobs> CreateGeneratePublishedFundingCsvJobs;
         protected Mock<ICreateGeneratePublishedProviderEstateCsvJobs> CreateGeneratePublishedProviderEstateCsvJobs;
+        protected Mock<ICreateGeneratePublishedProviderStateSummaryCsvJobs> CreateGeneratePublishedProviderStateSummaryCsvJobs;
         protected BaseGeneratePublishedFundingCsvJobsCreation JobsCreation;
 
         [TestInitialize]
@@ -30,6 +31,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             CreateGeneratePublishedFundingCsvJobs = new Mock<ICreateGeneratePublishedFundingCsvJobs>();
             CreateGeneratePublishedProviderEstateCsvJobs = new Mock<ICreateGeneratePublishedProviderEstateCsvJobs>();
+            CreateGeneratePublishedProviderStateSummaryCsvJobs = new Mock<ICreateGeneratePublishedProviderStateSummaryCsvJobs>();
         }
 
         [TestMethod]
@@ -146,6 +148,30 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             Reference user)
         {
             CreateGeneratePublishedProviderEstateCsvJobs.Verify(_ => _.CreateJob(specificationId, user, correlationId,
+                    It.IsAny<Dictionary<string, string>>(),
+                    null,
+                    null,
+                    false),
+                Times.Never);
+        }
+
+        protected void ThenTheProviderStateSummaryCsvJobsWasCreated(string specificationId,
+            string correlationId,
+            Reference user)
+        {
+            CreateGeneratePublishedProviderStateSummaryCsvJobs.Verify(_ => _.CreateJob(specificationId, user, correlationId,
+                    It.IsAny<Dictionary<string, string>>(),
+                    null,
+                    null,
+                    false),
+                Times.Once);
+        }
+
+        protected void ThenNoProviderStateSummaryCsvJobsWereCreated(string specificationId,
+            string correlationId,
+            Reference user)
+        {
+            CreateGeneratePublishedProviderStateSummaryCsvJobs.Verify(_ => _.CreateJob(specificationId, user, correlationId,
                     It.IsAny<Dictionary<string, string>>(),
                     null,
                     null,

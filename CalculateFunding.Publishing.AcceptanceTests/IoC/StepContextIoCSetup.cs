@@ -60,6 +60,7 @@ using CalculateFunding.Generators.Schema10;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Publishing.Reporting.PublishedProviderState;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 {
@@ -182,6 +183,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             RegisterTypeAs<GeneratePublishedFundingCsvJobCreation, ICreateGeneratePublishedFundingCsvJobs>();
             RegisterTypeAs<CreateGeneratePublishedProviderEstateCsvJobs, ICreateGeneratePublishedProviderEstateCsvJobs>();
+            RegisterTypeAs<CreateGeneratePublishedProviderStateSummaryCsvJobs, ICreateGeneratePublishedProviderStateSummaryCsvJobs>();
 
             IGeneratePublishedFundingCsvJobsCreation[] generatePublishedFundingCsvJobsCreations = 
                 typeof(IGeneratePublishedFundingCsvJobsCreation).Assembly.GetTypes()
@@ -189,7 +191,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                             !_.IsAbstract)
                 .Select(_ => (IGeneratePublishedFundingCsvJobsCreation)Activator.CreateInstance(_, 
                     ResolveInstance<ICreateGeneratePublishedFundingCsvJobs>(), 
-                    ResolveInstance<ICreateGeneratePublishedProviderEstateCsvJobs>()))
+                    ResolveInstance<ICreateGeneratePublishedProviderEstateCsvJobs>(),
+                    ResolveInstance<ICreateGeneratePublishedProviderStateSummaryCsvJobs>()))
                 .ToArray();
             RegisterInstanceAs<IGeneratePublishedFundingCsvJobsCreationLocator>(new GeneratePublishedFundingCsvJobsCreationLocator(generatePublishedFundingCsvJobsCreations));
 

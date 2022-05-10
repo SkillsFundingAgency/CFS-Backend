@@ -13,8 +13,9 @@ namespace CalculateFunding.Services.Publishing.Reporting
     {
         public GenerateRefreshPublishedFundingCsvJobsCreation(
             ICreateGeneratePublishedFundingCsvJobs createGeneratePublishedFundingCsvJobs,
-            ICreateGeneratePublishedProviderEstateCsvJobs createGeneratePublishedProviderEstateCsvJob)
-            : base(createGeneratePublishedFundingCsvJobs, createGeneratePublishedProviderEstateCsvJob)
+            ICreateGeneratePublishedProviderEstateCsvJobs createGeneratePublishedProviderEstateCsvJob,
+            ICreateGeneratePublishedProviderStateSummaryCsvJobs createGeneratePublishedProviderStateSummaryCsvJob)
+            : base(createGeneratePublishedFundingCsvJobs, createGeneratePublishedProviderEstateCsvJob, createGeneratePublishedProviderStateSummaryCsvJob)
         {
         }
 
@@ -29,6 +30,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
             tasks.Add(CreatePublishedFundingCsvJobs(publishedFundingCsvJobsRequest));
             tasks.Add(CreatePublishedProviderEstateCsvJobs(publishedFundingCsvJobsRequest));
+            tasks.Add(CreateProviderCurrentStateSummaryCsvJob(publishedFundingCsvJobsRequest));
 
             IEnumerable<Job>[] jobs = await TaskHelper.WhenAllAndThrow(tasks.ToArray());
 

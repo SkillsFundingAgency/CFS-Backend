@@ -49,6 +49,7 @@ using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Profiling.Custom;
 using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
+using CalculateFunding.Services.Publishing.Reporting.PublishedProviderState;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.SqlExport;
@@ -308,6 +309,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateApprovePublishedFundingCsvJobsCreation>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateReleasePublishedFundingCsvJobsCreation>();
             builder.AddScoped<ICreateGeneratePublishedProviderEstateCsvJobs, CreateGeneratePublishedProviderEstateCsvJobs>();
+            builder.AddScoped<ICreateGeneratePublishedProviderStateSummaryCsvJobs, CreateGeneratePublishedProviderStateSummaryCsvJobs>();
             builder.AddTransient<ICreateGeneratePublishedFundingCsvJobs, GeneratePublishedFundingCsvJobCreation>();
             builder.AddTransient<ICreatePublishDatasetsDataCopyJob, PublishingDatasetsDataCopyJobCreation>();
             builder.AddTransient<ICreateProcessDatasetObsoleteItemsJob, ProcessDatasetObsoleteItemsJobCreation>();

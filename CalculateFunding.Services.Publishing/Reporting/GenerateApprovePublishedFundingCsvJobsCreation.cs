@@ -4,6 +4,8 @@ using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Helpers;
+using System.Linq;
 
 namespace CalculateFunding.Services.Publishing.Reporting
 {
@@ -11,8 +13,9 @@ namespace CalculateFunding.Services.Publishing.Reporting
     {
         public GenerateApprovePublishedFundingCsvJobsCreation(
             ICreateGeneratePublishedFundingCsvJobs createGeneratePublishedFundingCsvJobs,
-            ICreateGeneratePublishedProviderEstateCsvJobs createGeneratePublishedProviderEstateCsvJob)
-            : base(createGeneratePublishedFundingCsvJobs, createGeneratePublishedProviderEstateCsvJob)
+            ICreateGeneratePublishedProviderEstateCsvJobs createGeneratePublishedProviderEstateCsvJob,
+            ICreateGeneratePublishedProviderStateSummaryCsvJobs createGeneratePublishedProviderStateSummaryCsvJob)
+            : base(createGeneratePublishedFundingCsvJobs, createGeneratePublishedProviderEstateCsvJob, createGeneratePublishedProviderStateSummaryCsvJob)
         {
         }
 
@@ -23,7 +26,14 @@ namespace CalculateFunding.Services.Publishing.Reporting
             Guard.ArgumentNotNull(publishedFundingCsvJobsRequest.FundingLines, nameof(publishedFundingCsvJobsRequest.FundingLines));
             Guard.ArgumentNotNull(publishedFundingCsvJobsRequest.FundingStreamIds, nameof(publishedFundingCsvJobsRequest.FundingStreamIds));
 
-            return await CreatePublishedFundingCsvJobs(publishedFundingCsvJobsRequest);
+            List<Task<IEnumerable<Job>>> tasks = new List<Task<IEnumerable<Job>>>();
+
+            tasks.Add(CreatePublishedFundingCsvJobs(publishedFundingCsvJobsRequest));
+            tasks.Add(CreateProviderCurrentStateSummaryCsvJob(publishedFundingCsvJobsRequest));
+
+            IEnumerable<Job>[] jobs = await TaskHelper.WhenAllAndThrow(tasks.ToArray());
+
+            return jobs.SelectMany(_ => _);
         }
 
         public override bool IsForAction(GeneratePublishingCsvJobsCreationAction action)

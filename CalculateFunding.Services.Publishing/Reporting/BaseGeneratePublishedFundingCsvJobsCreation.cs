@@ -15,16 +15,20 @@ namespace CalculateFunding.Services.Publishing.Reporting
     {
         private readonly ICreateGeneratePublishedFundingCsvJobs _createGeneratePublishedFundingCsvJobs;
         private readonly ICreateGeneratePublishedProviderEstateCsvJobs _createGeneratePublishedProviderEstateCsvJobs;
+        private readonly ICreateGeneratePublishedProviderStateSummaryCsvJobs _createGeneratePublishedProviderStateSummaryCsvJob;
 
         protected BaseGeneratePublishedFundingCsvJobsCreation(
             ICreateGeneratePublishedFundingCsvJobs createGeneratePublishedFundingCsvJobs,
-            ICreateGeneratePublishedProviderEstateCsvJobs createGeneratePublishedProviderEstateCsvJob)
+            ICreateGeneratePublishedProviderEstateCsvJobs createGeneratePublishedProviderEstateCsvJob,
+            ICreateGeneratePublishedProviderStateSummaryCsvJobs createGeneratePublishedProviderStateSummaryCsvJob)
         {
             Guard.ArgumentNotNull(createGeneratePublishedFundingCsvJobs, nameof(createGeneratePublishedFundingCsvJobs));
             Guard.ArgumentNotNull(createGeneratePublishedProviderEstateCsvJob, nameof(createGeneratePublishedProviderEstateCsvJob));
+            Guard.ArgumentNotNull(createGeneratePublishedProviderStateSummaryCsvJob, nameof(createGeneratePublishedProviderStateSummaryCsvJob));
 
             _createGeneratePublishedFundingCsvJobs = createGeneratePublishedFundingCsvJobs;
             _createGeneratePublishedProviderEstateCsvJobs = createGeneratePublishedProviderEstateCsvJob;
+            _createGeneratePublishedProviderStateSummaryCsvJob = createGeneratePublishedProviderStateSummaryCsvJob;
         }
 
         public abstract Task<IEnumerable<Job>> CreateJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest);
@@ -124,6 +128,22 @@ namespace CalculateFunding.Services.Publishing.Reporting
                     FundingLineCsvGeneratorJobType.PublishedGroups, 
                     fundingStreamId: fundingStreamId, 
                     fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
+            }
+
+            return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
+        }
+
+        protected async Task<IEnumerable<Job>> CreateProviderCurrentStateSummaryCsvJob(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
+        {
+            List<Task<Job>> tasks = new List<Task<Job>>();
+
+            foreach (string fundingStreamId in publishedFundingCsvJobsRequest.FundingStreamIds)
+            {
+                tasks.Add(_createGeneratePublishedProviderStateSummaryCsvJob.CreateJob(
+                    publishedFundingCsvJobsRequest.SpecificationId,
+                    publishedFundingCsvJobsRequest.User,
+                    publishedFundingCsvJobsRequest.CorrelationId,
+                    JobProperties(FundingLineCsvGeneratorJobType.PublishedProviderStateSummary, null, null, fundingStreamId, publishedFundingCsvJobsRequest.FundingPeriodId)));
             }
 
             return await TaskHelper.WhenAllAndThrow(tasks.ToArray());

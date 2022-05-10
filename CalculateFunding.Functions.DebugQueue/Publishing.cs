@@ -366,6 +366,34 @@ namespace CalculateFunding.Functions.DebugQueue
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
+        [FunctionName("on-publishing-generate-published-provider-state-summary-csv")]
+        public static async Task RunGeneratePublishedProviderStateSummaryCsv([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedProviderStateSummaryCsv,
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnGeneratePublishedProviderStateSummaryCsv function = scope.ServiceProvider.GetService<OnGeneratePublishedProviderStateSummaryCsv>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-publishing-generate-published-provider-state-summary-csv-failure")]
+        public static async Task RunGeneratePublishedProviderStateSummaryCsvFailure([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedProviderStateSummaryCsvPoisonedLocal,
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnGeneratePublishedProviderStateSummaryCsvFailure function = scope.ServiceProvider.GetService<OnGeneratePublishedProviderStateSummaryCsvFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
         [FunctionName(FunctionConstants.PublishingDatasetsDataCopy)]
         public static async Task RunDatasetsDataCopy([QueueTrigger(ServiceBusConstants.QueueNames.PublishingDatasetsDataCopy, Connection = "AzureConnectionString")] string item, ILogger log)
         {
