@@ -119,7 +119,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Repositories
                             FROM results c
                             WHERE c.content.specificationId = @SpecificationId
                             AND c.documentType = 'ProviderResult'
-                            AND c.updatedAt > @DateFrom" &&
+                            AND c.updatedAt > @DateFrom
+                            AND c.deleted = false" &&
                     HasParameters(qry.Parameters,
                         NewParameter("@SpecificationId", specificationId),
                         NewParameter("@DateFrom", dateFrom))), 1))

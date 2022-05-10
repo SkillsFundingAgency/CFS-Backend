@@ -238,7 +238,7 @@ namespace CalculateFunding.Services.Results.Repositories
         {
             CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
-                QueryText = "SELECT VALUE COUNT(1) FROM c WHERE c.documentType = 'ProviderResult' AND  c.content.specificationId = @SpecificationId",
+                QueryText = "SELECT VALUE COUNT(1) FROM c WHERE c.documentType = 'ProviderResult' AND  c.content.specificationId = @SpecificationId AND c.deleted = false",
                 Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@SpecificationId", specificationId)
@@ -322,7 +322,8 @@ namespace CalculateFunding.Services.Results.Repositories
                             FROM results c
                             WHERE c.content.specificationId = @SpecificationId
                             AND c.documentType = 'ProviderResult'
-                            AND c.updatedAt > @DateFrom",
+                            AND c.updatedAt > @DateFrom
+                            AND c.deleted = false",
 
                 Parameters = new[]
                 {
