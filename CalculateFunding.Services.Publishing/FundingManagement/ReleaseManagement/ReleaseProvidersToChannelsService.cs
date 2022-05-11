@@ -278,22 +278,22 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 throw new InvalidOperationException("Providers are required when the specification is configured to be batch mode.");
             }
 
+            IEnumerable<string> publishedProviderIds = releaseProvidersToChannelRequest.ProviderIds;
+
             if (fundingConfiguration.ApprovalMode == ApprovalMode.All)
             {
                 _logger.Information("Loading all providers for release to channels for specification '{specificationId}'", specificationId);
-                IEnumerable<string> allModePublishedProviderIds = await _publishedProviderLookupService.GetEligibleProvidersToApproveAndRelease(specification.Id);
+                publishedProviderIds = await _publishedProviderLookupService.GetEligibleProvidersToApproveAndRelease(specification.Id);
 
-                if (allModePublishedProviderIds.IsNullOrEmpty())
+                if (publishedProviderIds.IsNullOrEmpty())
                 {
                     throw new InvalidOperationException("No providers found to release.");
                 }
 
-                _logger.Information("A total of '{Count}' providers are eligable for release for specification '{specificationId}'", allModePublishedProviderIds.Count(), specificationId);
-
-                releaseProvidersToChannelRequest.ProviderIds = allModePublishedProviderIds;
+                _logger.Information("A total of '{Count}' providers are eligable for release for specification '{specificationId}'", publishedProviderIds.Count(), specificationId);
             }
 
-            IEnumerable<string> providerIds = ParseProviderIdsFromPublishedProviderIds(releaseProvidersToChannelRequest.ProviderIds);
+            IEnumerable<string> providerIds = ParseProviderIdsFromPublishedProviderIds(publishedProviderIds);
 
             IEnumerable<KeyValuePair<string, SqlModels.Channel>> channels = await _channelService.GetAndVerifyChannels(releaseProvidersToChannelRequest?.Channels);
 
