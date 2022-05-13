@@ -305,7 +305,7 @@ namespace CalculateFunding.Models.Publishing
         {
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode), "Funding Line Id cannot be missing");
             Guard.Ensure(type != ProfilingCarryOverType.Undefined, $"Unsupported {nameof(ProfilingCarryOverType)}");
-            Guard.Ensure(amount > 0, "Carry overs must be greater than zero");
+            Guard.Ensure(amount != 0, "Carry overs must not be equal to zero");
             Guard.Ensure(!(CarryOvers?.Where(_ => _.FundingLineCode == fundingLineCode)?.Any() ?? false), "Carry over for funding line already exists");
 
             CarryOvers ??= new List<ProfilingCarryOver>();

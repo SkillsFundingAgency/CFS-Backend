@@ -31,15 +31,14 @@ namespace CalculateFunding.Models.UnitTests.Publishing
 
         [DataTestMethod]
         [DataRow(0)]
-        [DataRow(-1)]
-        public void AddCarryOversGuardsAgainstValuesLessThanOrEqualToZero(int overpayment)
+        public void AddCarryOversGuardsAgainstValuesEqualToZero(int overpayment)
         {
             Action invocation = () => WhenTheFundingLineCarryOverIsAdded(NewRandomString(), overpayment, ProfilingCarryOverType.DSGReProfiling);
 
             invocation
                 .Should()
                 .ThrowExactly<InvalidOperationException>()
-                .WithMessage("Carry overs must be greater than zero*");
+                .WithMessage("Carry overs must not be equal to zero*");
         }
         
         [DataTestMethod]
