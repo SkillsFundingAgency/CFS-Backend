@@ -57,12 +57,29 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
                 row["Is Indicative"] = publishedProviderVersion.IsIndicative.ToString();
 
                 List<int> releasedMajorVersions = new List<int>();
+                string[] fundsTransferChannels = { "Contracting", "Payment" };
+                int fundsTransferChannelMajorVersion = 0;
+
                 foreach (string channel in distinctChannels)
                 {
                     ReleaseChannel providerChannel = providerChannels?.Where(_ => _.ChannelCode == channel)?.FirstOrDefault();
+                    int providerChannelMajorVersion = providerChannel?.MajorVersion ?? 0;
                     row[$"{channel} released version"] = providerChannel?.MajorVersion;
-                    releasedMajorVersions.Add(providerChannel?.MajorVersion ?? 0);
+
+                    if (fundsTransferChannels.Contains(channel))
+                    {
+                        if (fundsTransferChannelMajorVersion < providerChannelMajorVersion)
+                        {
+                            fundsTransferChannelMajorVersion = providerChannelMajorVersion;
+                        }
+                    }
+                    else 
+                    {
+                        releasedMajorVersions.Add(providerChannelMajorVersion);
+                    }
                 }
+
+                releasedMajorVersions.Add(fundsTransferChannelMajorVersion);
 
                 row["Release candidate"] = releasedMajorVersions.Any(_ => _ < publishedProviderVersion.MajorVersion);
 

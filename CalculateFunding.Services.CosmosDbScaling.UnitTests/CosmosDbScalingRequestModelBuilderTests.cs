@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core.Constants;
 using FluentAssertions;
@@ -8,7 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Services.CosmosDbScaling
 {
     [TestClass]
-    public class CosmosDbScalingRequestModelBuilderTests
+    public class CosmosDbScalingRequestModelBuilderTests : CosmosDbScalingTestsBase
     {
         [TestMethod]
         public void BuildRequestModel_GivenJobNotificationWithDefinitionNotConfiguredForScaling_ContainsNoRepositoryTypes()
@@ -22,7 +24,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbScalingRequestModelBuilder builder = new CosmosDbScalingRequestModelBuilder();
 
             //Act
-            CosmosDbScalingRequestModel requestModel = builder.BuildRequestModel(jobNotification);
+            CosmosDbScalingRequestModel requestModel = builder.BuildRequestModel(cosmosDbScalingConfig, jobNotification);
 
             //Assert
             requestModel
@@ -38,7 +40,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         [DataRow(JobConstants.DefinitionNames.CreateInstructAllocationJob,
             new[] { CosmosCollectionType.CalculationProviderResults, CosmosCollectionType.ProviderSourceDatasets })]
         [DataRow(JobConstants.DefinitionNames.PopulateCalculationResultsQaDatabaseJob,
-            new[] { CosmosCollectionType.CalculationProviderResults})]
+            new[] { CosmosCollectionType.CalculationProviderResults })]
         [DataRow(JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob,
             new[] { CosmosCollectionType.ProviderSourceDatasets })]
         [DataRow(JobConstants.DefinitionNames.MapDatasetJob,
@@ -71,6 +73,18 @@ namespace CalculateFunding.Services.CosmosDbScaling
             new[] { CosmosCollectionType.Specifications })]
         [DataRow(JobConstants.DefinitionNames.ApproveAllCalculationsJob,
             new[] { CosmosCollectionType.Calculations })]
+        [DataRow(JobConstants.DefinitionNames.MergeSpecificationInformationForProviderJob,
+            new[] { CosmosCollectionType.CalculationProviderResults, CosmosCollectionType.Jobs })]
+        [DataRow(JobConstants.DefinitionNames.PublishIntegrityCheckJob,
+            new[] { CosmosCollectionType.PublishedFunding })]
+        [DataRow(JobConstants.DefinitionNames.GenerateCalcCsvResultsJob,
+            new[] { CosmosCollectionType.CalculationProviderResults })]
+        [DataRow(JobConstants.DefinitionNames.RunSqlImportJob,
+            new[] { CosmosCollectionType.PublishedFunding })]
+        [DataRow(JobConstants.DefinitionNames.ReleaseManagementDataMigrationJob,
+            new[] { CosmosCollectionType.PublishedFunding })]
+        [DataRow(JobConstants.DefinitionNames.GeneratePublishedProviderStateSummaryCsvJob,
+            new[] { CosmosCollectionType.PublishedFunding })]
         public void BuildRequestModel_GivenJobWithDefinitions_EnsuresCorrectRepositoryTypes(string jobDefinitionId,
             CosmosCollectionType[] cosmosRepositoryTypes)
         {
@@ -83,12 +97,13 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbScalingRequestModelBuilder builder = new CosmosDbScalingRequestModelBuilder();
 
             //Act
-            CosmosDbScalingRequestModel requestModel = builder.BuildRequestModel(jobNotification);
+            CosmosDbScalingRequestModel requestModel = builder.BuildRequestModel(cosmosDbScalingConfig, jobNotification);
 
             //Assert
             requestModel
                  .RepositoryTypes
-                 .SequenceEqual(cosmosRepositoryTypes)
+                 .OrderBy(_ => _)
+                 .SequenceEqual(cosmosRepositoryTypes.OrderBy(_ => _))
                  .Should()
                  .BeTrue();
         }

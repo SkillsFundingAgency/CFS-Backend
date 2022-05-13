@@ -15,7 +15,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
     public class OnGeneratePublishedProviderStateSummaryCsvFailure : Failure
     {
         private const string FunctionName = "on-publishing-generate-published-provider-state-summary-csv-poisoned";
-        private const string QueueName = ServiceBusConstants.QueueNames.GeneratePublishedFundingCsvPoisoned;
+        private const string QueueName = ServiceBusConstants.QueueNames.GeneratePublishedProviderStateSummaryCsvPoisoned;
         
         public OnGeneratePublishedProviderStateSummaryCsvFailure(
             ILogger logger,

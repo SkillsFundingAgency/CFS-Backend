@@ -31,7 +31,7 @@ using Azure.Messaging.EventHubs;
 namespace CalculateFunding.Services.CosmosDbScaling
 {
     [TestClass]
-    public class CosmosDbScalingServiceTests
+    public class CosmosDbScalingServiceTests : CosmosDbScalingTestsBase
     {
         [TestMethod]
         public void Scaleup_GivenNoPayloadProvided_ThrowsNonRetriableException()
@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobSummary>())
+                .BuildRequestModel(Arg.Any<IEnumerable<CosmosDbScalingConfig>>(), Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             string json = JsonConvert.SerializeObject(jobNotification);
@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             //Assert
             modelBuilder
                 .DidNotReceive()
-                .BuildRequestModel(Arg.Any<JobSummary>());
+                .BuildRequestModel(Arg.Any<IEnumerable<CosmosDbScalingConfig>>(), Arg.Any<JobSummary>());
         }
 
         [TestMethod]
@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobSummary>())
+                .BuildRequestModel(Arg.Any<IEnumerable<CosmosDbScalingConfig>>(), Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             string json = JsonConvert.SerializeObject(jobNotification);
@@ -220,7 +220,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobSummary>())
+                .BuildRequestModel(Arg.Any<IEnumerable<CosmosDbScalingConfig>>(), Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
@@ -295,7 +295,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobSummary>())
+                .BuildRequestModel(Arg.Any<IEnumerable<CosmosDbScalingConfig>>(), Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
@@ -365,7 +365,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobSummary>())
+                .BuildRequestModel(Arg.Any<IEnumerable<CosmosDbScalingConfig>>(), Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
@@ -460,7 +460,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobSummary>())
+                .BuildRequestModel(Arg.Any<IEnumerable<CosmosDbScalingConfig>>(), Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
@@ -540,7 +540,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobSummary>())
+                .BuildRequestModel(Arg.Any<IEnumerable<CosmosDbScalingConfig>>(), Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             ILogger logger = CreateLogger();
@@ -674,7 +674,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobSummary>())
+                .BuildRequestModel(Arg.Any<IEnumerable<CosmosDbScalingConfig>>(), Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));

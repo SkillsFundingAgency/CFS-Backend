@@ -92,7 +92,18 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 return;
             }
-            CosmosDbScalingRequestModel requestModel = _cosmosDbScalingRequestModelBuilder.BuildRequestModel(jobSummary);
+            IEnumerable<CosmosDbScalingConfig> cosmosDbScalingConfigs = await _scalingConfigRepositoryPolicy.ExecuteAsync(() => _cosmosDbScalingConfigRepository.GetAllConfigs());
+
+            if (cosmosDbScalingConfigs == null)
+            {
+                string errorMessage = "Failed to fetch cosmosDbScalingConfigs";
+
+                _logger.Error(errorMessage);
+
+                throw new RetriableException(errorMessage);
+            }
+
+            CosmosDbScalingRequestModel requestModel = _cosmosDbScalingRequestModelBuilder.BuildRequestModel(cosmosDbScalingConfigs, jobSummary);
 
             if (requestModel.RepositoryTypes.IsNullOrEmpty())
             {
