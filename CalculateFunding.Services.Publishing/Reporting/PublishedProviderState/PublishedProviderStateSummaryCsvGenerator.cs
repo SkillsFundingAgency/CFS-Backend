@@ -155,7 +155,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
                 { "funding-stream-id", message.GetUserProperty<string>("funding-stream-id") },
                 { "funding-period-id", message.GetUserProperty<string>("funding-period-id") },
                 { "jobId", message.GetUserProperty<string>("jobId") },
-                { "job-type", message.GetUserProperty<string>("job-type") },
+                { "job-type", nameof(JobType.PublishedProviderStateSummary) },
                 { "file-name", GetPrettyFileName(message) }
             };
         }

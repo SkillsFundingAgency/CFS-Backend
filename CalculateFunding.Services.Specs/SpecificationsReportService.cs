@@ -153,7 +153,8 @@ namespace CalculateFunding.Services.Specs
                               type == JobType.CurrentOrganisationGroupValues ||
                               type == JobType.HistoryOrganisationGroupValues ||
                               type == JobType.HistoryPublishedProviderEstate ||
-                              type == JobType.PublishedGroups) => ReportCategory.History,
+                              type == JobType.PublishedGroups ||
+                              type == JobType.PublishedProviderStateSummary) => ReportCategory.History,
                 JobType.CalcResult => ReportCategory.Live,
                 _ => ReportCategory.Undefined
             };
@@ -169,7 +170,8 @@ namespace CalculateFunding.Services.Specs
                                => ReportGroupingLevel.All,
                 { } type when type == JobType.CurrentOrganisationGroupValues ||
                               type == JobType.CurrentProfileValues ||
-                              type == JobType.CurrentState
+                              type == JobType.CurrentState ||
+                              type == JobType.PublishedProviderStateSummary
                                => ReportGroupingLevel.Current,
                 { } type when type == JobType.Released ||
                                 type == JobType.PublishedGroups
@@ -190,7 +192,8 @@ namespace CalculateFunding.Services.Specs
                 { } type when type == JobType.CurrentState ||
                               type == JobType.History ||
                               type == JobType.HistoryPublishedProviderEstate ||
-                              type == JobType.Released
+                              type == JobType.Released ||
+                              type == JobType.PublishedProviderStateSummary
                                => ReportGrouping.Provider,
                 JobType.CalcResult => ReportGrouping.Live,
                 _ => ReportGrouping.Undefined
@@ -208,7 +211,8 @@ namespace CalculateFunding.Services.Specs
                               type == JobType.CurrentOrganisationGroupValues ||
                               type == JobType.HistoryOrganisationGroupValues ||
                               type == JobType.HistoryPublishedProviderEstate ||
-                              type == JobType.PublishedGroups) => ReportType.FundingLine,
+                              type == JobType.PublishedGroups ||
+                              type == JobType.PublishedProviderStateSummary) => ReportType.FundingLine,
                 JobType.CalcResult => ReportType.CalculationResult,
                 _ => throw new ArgumentOutOfRangeException()
             };
@@ -276,6 +280,7 @@ namespace CalculateFunding.Services.Specs
                         case JobType.PublishedGroups:
                             return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}{fundingLineCode}{fundingStreamId}.csv";
                         case JobType.HistoryPublishedProviderEstate:
+                        case JobType.PublishedProviderStateSummary:
                             return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}-{id.FundingPeriodId}.csv";
                         default:
                             throw new ArgumentOutOfRangeException();
