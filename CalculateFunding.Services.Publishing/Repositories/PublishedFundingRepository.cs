@@ -1924,7 +1924,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 VariationReasons = _.variationReasons?.ToObject<string[]>(),
                 LastReleasedMajorVersion = (int?)_.lastReleasedMajorVersion,
                 LastReleasedMinorVersion = (int?)_.lastReleasedMinorVersion,
-                LastReleasedTotalFunding = (decimal?)_.lastReleasedTotalFunding
+                LastReleasedTotalFunding = (decimal?)_.lastReleasedTotalFunding,
+                ProviderId = (string)_.providerId
             });
         }
 

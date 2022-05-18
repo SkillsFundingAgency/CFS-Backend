@@ -322,6 +322,14 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return new NotFoundObjectResult("No data found for given specification and published provider ids.");
             }
 
+            string fundingStreamId = publishedProviderFundingData.First().FundingStreamId;
+            string fundingPeriodId = publishedProviderFundingData.First().FundingPeriodId;
+            FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(
+                fundingStreamId, fundingPeriodId);
+
+            IEnumerable<FundingManagement.SqlModels.ProviderVersionInChannel> providerExistingChannelVersion 
+                = await _publishedProviderFundingSummaryProcessor.GetProviderVersionInFundingConfiguration(specificationId, fundingConfiguration);
+
             IEnumerable<dynamic> csvRows = publishedProviderFundingData.Select(x => new
             {
                 UKPRN = x.Ukprn,
@@ -334,12 +342,14 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 FundingAmount = x.TotalFunding,
                 PreviousReleasedFundingAmount = x.LastReleasedTotalFunding == null ? "N/A" : x.LastReleasedTotalFunding.ToString(),
                 Difference = x.LastReleasedTotalFunding == null ? 0 : (x.TotalFunding ?? 0) - x.LastReleasedTotalFunding,
-                VariationReasons = string.Join(';', x.VariationReasons)
+                VariationReasons = string.Join(';', x.VariationReasons),
+                ReleasedStatementVersion = GetVersionText(providerExistingChannelVersion.SingleOrDefault(_ => _.ProviderId == x.ProviderId && _.ChannelCode == "Statement")),
+                ReleasedContractVersion = GetVersionText(providerExistingChannelVersion.SingleOrDefault(_ => _.ProviderId == x.ProviderId && _.ChannelCode == "Contracting")),
+                ReleasedPaymentVersion = GetVersionText(providerExistingChannelVersion.SingleOrDefault(_ => _.ProviderId == x.ProviderId && _.ChannelCode == "Payment"))
             });
 
             string csvFileData = _csvUtils.AsCsv(csvRows, true);
-            string fundingStreamId = publishedProviderFundingData.First().FundingStreamId;
-            string fundingPeriodId = publishedProviderFundingData.First().FundingPeriodId;
+
             string csvFileName = $"{fundingStreamId}-{fundingPeriodId}-{csvFileSuffix}.csv";
 
             string blobName = $"{csvFileName}";
@@ -366,5 +376,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             return new OkObjectResult(new PublishedProviderDataDownload() { Url = blobUrl });
         }
+
+        private static string GetVersionText(FundingManagement.SqlModels.ProviderVersionInChannel providerVersionInChannel)
+            => providerVersionInChannel == null ? string.Empty : $"{providerVersionInChannel.MajorVersion}.{providerVersionInChannel.MinorVersion}";
     }
 }

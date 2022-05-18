@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
@@ -11,13 +8,9 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces.Threading;
-using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
-using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using Polly;
-using Serilog;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
@@ -44,6 +37,23 @@ namespace CalculateFunding.Services.Publishing.Specifications
             _providersForChannelFilterService = providersForChannelFilterService;
             _channelOrganisationGroupGeneratorService = channelOrganisationGroupGeneratorService;
             _publishedProviderLookupService = publishedProviderLookupService;
+        }
+
+        public async Task<IEnumerable<ProviderVersionInChannel>> GetProviderVersionInFundingConfiguration(
+            string specificationId,
+            FundingConfiguration fundingConfiguration)
+        {
+            if (fundingConfiguration.ReleaseChannels.IsNullOrEmpty())
+            {
+                return Enumerable.Empty<ProviderVersionInChannel>();
+            }
+
+            IEnumerable<Channel> channels = await GetChannels(fundingConfiguration.ReleaseChannels.Where(rc => rc.IsVisible).Select(_ => _.ChannelCode));
+
+            IEnumerable<ProviderVersionInChannel> latestPublishedProviderVersions =
+                await _releaseManagementRepository.GetLatestPublishedProviderVersions(specificationId, channels.Select(_ => _.ChannelId));
+
+            return latestPublishedProviderVersions;
         }
 
         public async Task<ReleaseFundingPublishedProvidersSummary> GetFundingSummaryForApprovedPublishedProvidersByChannel(IEnumerable<string> publishedProviderIds,

@@ -6,15 +6,12 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
-using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Polly;
-using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,13 +71,67 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _providersThree = NewRandomPublishedProviderIds().ToArray();
             _publishedProviderIds = Join(_providersOne, _providersTwo, _providersThree);
 
-            SetUpChannels();
+            SetUpChannelsFiltering();
 
             _summaryProcessor = new PublishedProviderFundingSummaryProcessor(new ProducerConsumerFactory(),
                 _releaseManagementRepo.Object,
                 _channelFilterService.Object,
                 _organisationGroupGenerator.Object,
                 _publishedProvidersLookupService.Object);
+        }
+
+        [TestMethod]
+        public async Task GetProviderVersionInFundingConfiguration()
+        {
+            PublishedProviderFundingSummary[] fundings = GenerateFundings();
+
+            SetUpChannels();
+            GivenProviderVersionInChannels(fundings.Select(_ => new ProviderVersionInChannel
+            {
+                ProviderId = _.Provider.ProviderId,
+                ChannelCode = Contracting,
+                ChannelName = Contracting,
+                MinorVersion = 2,
+                MajorVersion = 1,
+                ChannelId = ContractingChannelId
+            }).ToArray());
+
+            IEnumerable<ProviderVersionInChannel> providerVersionInChannels = await WhenProviderVersionInFundingConfigurationRetrieved();
+
+            providerVersionInChannels.Count().Should().Be(fundings.Length);
+
+            providerVersionInChannels
+                .Should()
+                .BeEquivalentTo(new[]
+                {
+                    new ProviderVersionInChannel
+                    {
+                        ProviderId = fundings[0].Provider.ProviderId,
+                        ChannelCode = Contracting,
+                        ChannelName = Contracting,
+                        MinorVersion = 2,
+                        MajorVersion = 1,
+                        ChannelId = ContractingChannelId
+                    },
+                    new ProviderVersionInChannel
+                    {
+                        ProviderId = fundings[1].Provider.ProviderId,
+                        ChannelCode = Contracting,
+                        ChannelName = Contracting,
+                        MinorVersion = 2,
+                        MajorVersion = 1,
+                        ChannelId = ContractingChannelId
+                    },
+                    new ProviderVersionInChannel
+                    {
+                        ProviderId = fundings[2].Provider.ProviderId,
+                        ChannelCode = Contracting,
+                        ChannelName = Contracting,
+                        MinorVersion = 2,
+                        MajorVersion = 1,
+                        ChannelId = ContractingChannelId
+                    }
+                });
         }
 
         /// <summary>
@@ -381,6 +432,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 });
         }
 
+        private void SetUpChannelsFiltering()
+        {
+            SetUpChannels();
+
+            // Filter returns inputted IEnumerable<PublishedProviderVersion> for simplicity
+            // No need to test FilterProvidersForChannel logic here
+            _channelFilterService.Setup(_ => _.FilterProvidersForChannel(
+                It.IsAny<Channel>(),
+                It.IsAny<IEnumerable<PublishedProviderVersion>>(),
+                It.IsAny<FundingConfiguration>()))
+                .Returns((Channel a, IEnumerable<PublishedProviderVersion> b, FundingConfiguration c) => b);
+        }
+
         private void SetUpChannels()
         {
             _channels = new List<Channel>
@@ -394,14 +458,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 _releaseManagementRepo.Setup(_ => _.GetChannelByChannelCode(It.Is<string>(s => s == channel.ChannelCode)))
                 .ReturnsAsync(channel);
             }
-
-            // Filter returns inputted IEnumerable<PublishedProviderVersion> for simplicity
-            // No need to test FilterProvidersForChannel logic here
-            _channelFilterService.Setup(_ => _.FilterProvidersForChannel(
-                It.IsAny<Channel>(),
-                It.IsAny<IEnumerable<PublishedProviderVersion>>(),
-                It.IsAny<FundingConfiguration>()))
-                .Returns((Channel a, IEnumerable<PublishedProviderVersion> b, FundingConfiguration c) => b);
         }
 
         private PublishedProviderFundingSummary[] GenerateFundings()
@@ -450,6 +506,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private async Task<ReleaseFundingPublishedProvidersSummary> WhenTheFundingSummaryIsProcessed(IEnumerable<string> channelCodes)
             => await _summaryProcessor.GetFundingSummaryForApprovedPublishedProvidersByChannel(
                 _publishedProviderIds, _specificationSummary, _fundingConfiguration, channelCodes);
+
+        private async Task<IEnumerable<ProviderVersionInChannel>> WhenProviderVersionInFundingConfigurationRetrieved()
+            => await _summaryProcessor.GetProviderVersionInFundingConfiguration(
+        _specificationId, _fundingConfiguration);
 
         private void GivenThePublishedProvidersFundingSummary(IEnumerable<string> publishedProviderIds,
             IEnumerable<PublishedProviderFundingSummary> fundings)

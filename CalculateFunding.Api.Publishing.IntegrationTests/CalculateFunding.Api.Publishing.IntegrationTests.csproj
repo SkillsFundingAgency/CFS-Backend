@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Resources\FundingConfigurationTemplate.json" />
       <None Remove="Resources\FundingStreamPaymentDatesTemplate.json" />
       <None Remove="Resources\FundingTemplateTemplate.json" />
       <None Remove="Resources\ProfilePatternTemplate.json" />
@@ -18,6 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <EmbeddedResource Include="Resources\FundingConfigurationTemplate.json" />
       <EmbeddedResource Include="Resources\FundingTemplateTemplate.json" />
       <EmbeddedResource Include="Resources\ProviderSourceDatasetTemplate.json" />
       <EmbeddedResource Include="Resources\FundingStreamPaymentDatesTemplate.json" />

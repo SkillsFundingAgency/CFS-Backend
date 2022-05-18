@@ -1167,6 +1167,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             data.lastReleasedMajorVersion = hasReleasedVersion ? NewRandomNumber() : (int?)null;
             data.lastReleasedMinorVersion = hasReleasedVersion ? NewRandomNumber() : (int?)null;
             data.lastReleasedTotalFunding = hasReleasedVersion ? NewRandomNumber() : (int?)null;
+            data.providerId = NewRandomString();
 
             return data;
         }

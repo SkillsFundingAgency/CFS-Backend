@@ -18,5 +18,6 @@
         public int? LastReleasedMajorVersion { get; set; }
         public int? LastReleasedMinorVersion { get; set; }
         public decimal? LastReleasedTotalFunding { get; set; }
+        public string ProviderId { get; set; }
     }
 }

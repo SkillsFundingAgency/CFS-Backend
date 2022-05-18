@@ -253,6 +253,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             string fundingStreamId = NewRandomString();
             string providerName1 = NewRandomString();
             string providerName2 = NewRandomString();
+            string providerIdOne = NewRandomString();
+            string providerIdTwo = NewRandomString();
+            int majorVersionOne = NewRandomNumber();
+            int majorVersionTwo = NewRandomNumber();
+            int minorVersionOne = NewRandomNumber();
+            int minorVersionTwo = NewRandomNumber();
+
             _validator.Validate(Arg.Is(specificationId))
                 .Returns(new ValidationResult());
 
@@ -264,7 +271,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     FundingPeriodId = fundingPeriodId,
                     SpecificationId = specificationId,
                     ProviderName = providerName1,
-                    TotalFunding = 123
+                    TotalFunding = 123,
+                    ProviderId = providerIdOne
                 },
                 new PublishedProviderFundingCsvData()
                 {
@@ -272,7 +280,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     FundingPeriodId = fundingPeriodId,
                     SpecificationId = specificationId,
                     ProviderName = providerName2,
-                    TotalFunding = 4567
+                    TotalFunding = 4567,
+                    ProviderId = providerIdTwo
                 }
             };
 
@@ -288,6 +297,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             GivenTheFundingDataForCsv(expectedCsvData, publishedProviderIds, specificationId, statuses);
             GivenBolbReference(blobNamePrefix, blob);
             GivenBlobUrl(blobNamePrefix, expectedUrl);
+
+            IEnumerable<Publishing.FundingManagement.SqlModels.ProviderVersionInChannel> providerVersionInChannels = new List<Publishing.FundingManagement.SqlModels.ProviderVersionInChannel>
+            {
+                NewProviderVersionInChannel(_ => _.WithProviderId(providerIdOne).WithChannelCode("Statement").WithMajorVersion(majorVersionOne).WithMinorVersion(minorVersionOne)),
+                NewProviderVersionInChannel(_ => _.WithProviderId(providerIdTwo).WithChannelCode("Contracting").WithMajorVersion(majorVersionTwo).WithMinorVersion(minorVersionTwo))
+            };
+
+            AndProviderVersionInFundingConfigurationIsRetrieved(providerVersionInChannels);
 
             OkObjectResult result = await WhenTheGetProviderDataForBatchApprovalAsCsvExecuted(publishedProviderIds, specificationId) as OkObjectResult;
 
@@ -332,6 +349,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             string fundingStreamId = NewRandomString();
             string providerName1 = NewRandomString();
             string providerName2 = NewRandomString();
+            string providerIdOne = NewRandomString();
+            string providerIdTwo = NewRandomString();
+            int majorVersionOne = NewRandomNumber();
+            int majorVersionTwo = NewRandomNumber();
+            int minorVersionOne = NewRandomNumber();
+            int minorVersionTwo = NewRandomNumber();
+
             _validator.Validate(Arg.Is(_specificationId))
                 .Returns(new ValidationResult());
 
@@ -343,7 +367,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     FundingPeriodId = fundingPeriodId,
                     SpecificationId = _specificationId,
                     ProviderName = providerName1,
-                    TotalFunding = 123
+                    TotalFunding = 123,
+                    ProviderId = providerIdOne
                 },
                 new PublishedProviderFundingCsvData()
                 {
@@ -351,7 +376,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     FundingPeriodId = fundingPeriodId,
                     SpecificationId = _specificationId,
                     ProviderName = providerName2,
-                    TotalFunding = 4567
+                    TotalFunding = 4567,
+                    ProviderId = providerIdTwo
                 }
             };
 
@@ -367,6 +393,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             GivenTheFundingDataForCsv(expectedCsvData, _specificationId, statuses);
             GivenBolbReference(blobNamePrefix, blob);
             GivenBlobUrl(blobNamePrefix, expectedUrl);
+
+            IEnumerable<Publishing.FundingManagement.SqlModels.ProviderVersionInChannel> providerVersionInChannels = new List<Publishing.FundingManagement.SqlModels.ProviderVersionInChannel>
+            {
+                NewProviderVersionInChannel(_ => _.WithProviderId(providerIdOne).WithChannelCode("Statement").WithMajorVersion(majorVersionOne).WithMinorVersion(minorVersionOne)),
+                NewProviderVersionInChannel(_ => _.WithProviderId(providerIdTwo).WithChannelCode("Contracting").WithMajorVersion(majorVersionTwo).WithMinorVersion(minorVersionTwo))
+            };
+
+            AndProviderVersionInFundingConfigurationIsRetrieved(providerVersionInChannels);
 
             OkObjectResult result = await WhenTheGetProviderDataForAllApprovalAsCsvExecuted(_specificationId) as OkObjectResult;
 
@@ -413,6 +447,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             string fundingStreamId = NewRandomString();
             string providerName1 = NewRandomString();
             string providerName2 = NewRandomString();
+            string providerIdOne = NewRandomString();
+            string providerIdTwo = NewRandomString();
+            int majorVersionOne = NewRandomNumber();
+            int majorVersionTwo = NewRandomNumber();
+            int minorVersionOne = NewRandomNumber();
+            int minorVersionTwo = NewRandomNumber();
+
             _validator.Validate(Arg.Is(specificationId))
                 .Returns(new ValidationResult());
 
@@ -424,7 +465,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     FundingPeriodId = fundingPeriodId,
                     SpecificationId = specificationId,
                     ProviderName = providerName1,
-                    TotalFunding = 123
+                    TotalFunding = 123,
+                    ProviderId = providerIdOne
                 },
                 new PublishedProviderFundingCsvData()
                 {
@@ -432,7 +474,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     FundingPeriodId = fundingPeriodId,
                     SpecificationId = specificationId,
                     ProviderName = providerName2,
-                    TotalFunding = 4567
+                    TotalFunding = 4567,
+                    ProviderId = providerIdTwo
                 }
             };
 
@@ -448,6 +491,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             GivenTheFundingDataForCsv(expectedCsvData, publishedProviderIds, specificationId, statuses);
             GivenBolbReference(blobNamePrefix, blob);
             GivenBlobUrl(blobNamePrefix, expectedUrl);
+
+            IEnumerable<Publishing.FundingManagement.SqlModels.ProviderVersionInChannel> providerVersionInChannels = new List<Publishing.FundingManagement.SqlModels.ProviderVersionInChannel>
+            {
+                NewProviderVersionInChannel(_ => _.WithProviderId(providerIdOne).WithChannelCode("Statement").WithMajorVersion(majorVersionOne).WithMinorVersion(minorVersionOne)),
+                NewProviderVersionInChannel(_ => _.WithProviderId(providerIdTwo).WithChannelCode("Contracting").WithMajorVersion(majorVersionTwo).WithMinorVersion(minorVersionTwo))
+            };
+
+            AndProviderVersionInFundingConfigurationIsRetrieved(providerVersionInChannels);
 
             OkObjectResult result = await WhenTheGetProviderDataForBatchReleaseAsCsvExecuted(publishedProviderIds, specificationId) as OkObjectResult;
 
@@ -492,6 +543,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             string fundingStreamId = NewRandomString();
             string providerName1 = NewRandomString();
             string providerName2 = NewRandomString();
+            string providerIdOne = NewRandomString();
+            string providerIdTwo = NewRandomString();
+            int majorVersionOne = NewRandomNumber();
+            int majorVersionTwo = NewRandomNumber();
+            int minorVersionOne = NewRandomNumber();
+            int minorVersionTwo = NewRandomNumber();
+
             _validator.Validate(Arg.Is(_specificationId))
                 .Returns(new ValidationResult());
 
@@ -503,7 +561,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     FundingPeriodId = fundingPeriodId,
                     SpecificationId = _specificationId,
                     ProviderName = providerName1,
-                    TotalFunding = 123
+                    TotalFunding = 123,
+                    ProviderId = providerIdOne
                 },
                 new PublishedProviderFundingCsvData()
                 {
@@ -511,7 +570,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     FundingPeriodId = fundingPeriodId,
                     SpecificationId = _specificationId,
                     ProviderName = providerName2,
-                    TotalFunding = 4567
+                    TotalFunding = 4567,
+                    ProviderId = providerIdTwo
                 }
             };
 
@@ -527,6 +587,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             GivenTheFundingDataForCsv(expectedCsvData, _specificationId, statuses);
             GivenBolbReference(blobNamePrefix, blob);
             GivenBlobUrl(blobNamePrefix, expectedUrl);
+
+            IEnumerable<Publishing.FundingManagement.SqlModels.ProviderVersionInChannel> providerVersionInChannels = new List<Publishing.FundingManagement.SqlModels.ProviderVersionInChannel>
+            {
+                NewProviderVersionInChannel(_ => _.WithProviderId(providerIdOne).WithChannelCode("Statement").WithMajorVersion(majorVersionOne).WithMinorVersion(minorVersionOne)),
+                NewProviderVersionInChannel(_ => _.WithProviderId(providerIdTwo).WithChannelCode("Contracting").WithMajorVersion(majorVersionTwo).WithMinorVersion(minorVersionTwo))
+            };
+
+            AndProviderVersionInFundingConfigurationIsRetrieved(providerVersionInChannels);
 
             OkObjectResult result = await WhenTheGetProviderDataForAllReleaseAsCsvExecuted(_specificationId) as OkObjectResult;
 
@@ -861,7 +929,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 Arg.Any<FundingConfiguration>(),
                 Arg.Any<IEnumerable<string>>())
                 .Returns(new ReleaseFundingPublishedProvidersSummary());
-
         }
 
         private void GivenFundingSummaryDataExceptionThrown(Exception exception)
@@ -960,9 +1027,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(fundingConfiguration);
         }
 
+        private void AndProviderVersionInFundingConfigurationIsRetrieved(IEnumerable<Publishing.FundingManagement.SqlModels.ProviderVersionInChannel> providerVersionInChannels)
+        {
+            _publishedProviderFundingSummaryProcessor
+                .GetProviderVersionInFundingConfiguration(_specificationId, Arg.Any<FundingConfiguration>())
+                .Returns(providerVersionInChannels);
+        }
+
         private PublishedProviderFundingStreamStatus NewPublishedProviderFundingStreamStatus(Action<PublishedProviderFundingStreamStatusBuilder> setUp = null)
         {
             PublishedProviderFundingStreamStatusBuilder builder = new PublishedProviderFundingStreamStatusBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        private Publishing.FundingManagement.SqlModels.ProviderVersionInChannel NewProviderVersionInChannel(Action<ProviderVersionInChannelBuilder> setUp = null)
+        {
+            ProviderVersionInChannelBuilder builder = new ProviderVersionInChannelBuilder();
 
             setUp?.Invoke(builder);
 

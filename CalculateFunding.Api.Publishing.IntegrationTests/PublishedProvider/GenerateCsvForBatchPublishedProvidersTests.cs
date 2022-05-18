@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Api.Publishing.IntegrationTests.Data;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Publishing;
 using CalculateFunding.Common.ApiClient.Publishing.Models;
 using CalculateFunding.Common.Config.ApiClient;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Polly;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Publishing.IntegrationTests.PublishedProvider
@@ -22,9 +24,11 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.PublishedProvider
     {
         private IPublishingApiClient _publishing;
         private PublishedProviderDataContext _publishedProviderDataContext;
+        private FundingConfigurationDataContext _fundingConfigurationDataContext;
+        
+        private static readonly Assembly ResourceAssembly = typeof(GenerateCsvForBatchPublishedProvidersTests).Assembly;
 
         private string _specificationId;
-
 
         [ClassInitialize]
         public static void FixtureSetUp(TestContext testContext)
@@ -51,8 +55,11 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.PublishedProvider
         public void SetUp()
         {
             _publishedProviderDataContext = new PublishedProviderDataContext(Configuration);
+            _fundingConfigurationDataContext = new FundingConfigurationDataContext(Configuration, ResourceAssembly);
 
-            TrackForTeardown(_publishedProviderDataContext);
+            TrackForTeardown(
+                _publishedProviderDataContext,
+                _fundingConfigurationDataContext);
 
             _publishing = GetService<IPublishingApiClient>();
 
@@ -77,6 +84,8 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.PublishedProvider
             string[] _variationReasons = new[] { NewRandomString() };
             bool _isIndicative = NewRandomFlag();
 
+            string _channelOneCode = NewRandomString();
+
             PublishedProviderTemplateParameters publishedProviderTemplateParameters = NewPublishedProviderTemplateParameters(_ => _
                 .WithSpecificationId(_specificationId)
                 .WithFundingStream(_fundingStreamId)
@@ -94,6 +103,10 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.PublishedProvider
                 .WithPublishedProviderId(_providerIdOne));
 
             await GivenThePublishedProvider(new[] { publishedProviderTemplateParameters });
+
+            await AndTheFundingConfiguration(NewFundingConfiguration(_
+                => _.WithFundingPeriodId(_fundingPeriodId)
+                    .WithFundingStreamId(_fundingStreamId)));
 
             PublishedProviderIdsRequest publishedProviderIdsRequest =
                 NewPublishedProviderIdsRequest(_ => _.WithProviders(new[] { _providerIdOne }));
@@ -151,6 +164,10 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.PublishedProvider
 
             await GivenThePublishedProvider(new[] { publishedProviderTemplateParameters });
 
+            await AndTheFundingConfiguration(NewFundingConfiguration(_
+            => _.WithFundingPeriodId(_fundingPeriodId)
+                .WithFundingStreamId(_fundingStreamId)));
+
             PublishedProviderIdsRequest publishedProviderIdsRequest =
                 NewPublishedProviderIdsRequest(_ => _.WithProviders(new[] { _providerIdOne }));
 
@@ -188,6 +205,9 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.PublishedProvider
         private async Task GivenThePublishedProvider(PublishedProviderTemplateParameters[] publishedProviderTemplateParameters)
             => await _publishedProviderDataContext.CreateContextData(publishedProviderTemplateParameters);
 
+        private async Task AndTheFundingConfiguration(FundingConfigurationTemplateParameters parameters)
+            => await _fundingConfigurationDataContext.CreateContextData(parameters);
+
         private PublishedProviderIdsRequest NewPublishedProviderIdsRequest(Action<PublishedProviderIdsRequestBuilder> setUp = null)
         {
             PublishedProviderIdsRequestBuilder publishedProviderIdsRequestBuilder = new PublishedProviderIdsRequestBuilder();
@@ -204,6 +224,15 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.PublishedProvider
             setUp?.Invoke(publishedProviderTemplateParametersBuilder);
 
             return publishedProviderTemplateParametersBuilder.Build();
+        }
+
+        private FundingConfigurationTemplateParameters NewFundingConfiguration(Action<FundingConfigurationTemplateParametersBuilder> setUp = null)
+        {
+            FundingConfigurationTemplateParametersBuilder fundingConfigurationTemplateParametersBuilder = new FundingConfigurationTemplateParametersBuilder();
+
+            setUp?.Invoke(fundingConfigurationTemplateParametersBuilder);
+
+            return fundingConfigurationTemplateParametersBuilder.Build();
         }
 
     }
