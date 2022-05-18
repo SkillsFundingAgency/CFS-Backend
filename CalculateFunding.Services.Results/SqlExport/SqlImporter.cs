@@ -35,9 +35,9 @@ namespace CalculateFunding.Services.Results.SqlExport
             _dataTableImporter = dataTableImporter;
         }
 
-        public async Task ImportData(string specificationId)
+        public async Task ImportData(HashSet<string> providers, string specificationId)
         {
-            ISqlImportContext importContext = await _sqlImportContextBuilder.CreateImportContext(specificationId);
+            ISqlImportContext importContext = await _sqlImportContextBuilder.CreateImportContext(specificationId, providers);
 
             IProducerConsumer producerConsumer = _producerConsumerFactory.CreateProducerConsumer(ProduceProviderResults,
                 PopulateDataTables,
@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Results.SqlExport
         {
             ISqlImportContext importContext = (ISqlImportContext)context;
 
-            foreach (ProviderResult providerResult in providerResults)
+            foreach (ProviderResult providerResult in providerResults.Where(_ => importContext.Providers.Contains(_.Provider.Id)))
             {
                 importContext.AddRows(providerResult);
             }

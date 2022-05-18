@@ -143,10 +143,15 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
                 .AdditionalCalculations
                 .Should()
                 .BeOfType<AdditionalCalculationsDataTableBuilder>();
+
+            importContext
+                .Providers
+                .Should()
+                .BeOfType<HashSet<string>>();
         }
 
         private async Task<ISqlImportContext> WhenTheImportContextIsBuilt(string specificationId)
-            => await _contextBuilder.CreateImportContext(specificationId);
+            => await _contextBuilder.CreateImportContext(specificationId, new HashSet<string>());
 
         private void AndTheCosmosDocumentFeed(string specificationId,
             string fundingStreamId)

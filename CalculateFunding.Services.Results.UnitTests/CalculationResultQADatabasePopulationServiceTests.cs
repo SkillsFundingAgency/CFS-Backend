@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
@@ -23,6 +24,7 @@ namespace CalculateFunding.Services.Results.UnitTests
     public class CalculationResultQADatabasePopulationServiceTests
     {
         private Mock<IJobManagement> _jobs;
+        private Mock<IProvidersApiClient> _providersApiClient;
         private Mock<IQaSchemaService> _qaSchemaService;
         private Mock<ISqlImporter> _sqlImporter;
 
@@ -32,14 +34,17 @@ namespace CalculateFunding.Services.Results.UnitTests
         public void SetUp()
         {
             _jobs = new Mock<IJobManagement>();
+            _providersApiClient = new Mock<IProvidersApiClient>();
             _qaSchemaService = new Mock<IQaSchemaService>();
             _sqlImporter = new Mock<ISqlImporter>();
 
             _service = new CalculationResultQADatabasePopulationService(
                 _qaSchemaService.Object,
+                _providersApiClient.Object,
                 new ResiliencePolicies
                 {
                     JobsApiClient = Policy.NoOpAsync(),
+                    ProvidersApiClient = Policy.NoOpAsync()
                 },
                 _jobs.Object,
                 Logger.None,

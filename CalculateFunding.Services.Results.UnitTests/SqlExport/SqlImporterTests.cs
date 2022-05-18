@@ -13,6 +13,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Language;
 using Serilog.Core;
+using System.Linq;
+using CalculateFunding.Models.ProviderLegacy;
 
 namespace CalculateFunding.Services.Results.UnitTests.SqlExport
 {
@@ -74,22 +76,28 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
         {
             ProviderResult[] pageOne = new[]
             {
-                NewProviderResult(),
-                NewProviderResult(),
-                NewProviderResult()
+                NewProviderResult(_ => _.WithProviderSummary(NewProviderSummary())),
+                NewProviderResult(_ => _.WithProviderSummary(NewProviderSummary())),
+                NewProviderResult(_ => _.WithProviderSummary(NewProviderSummary()))
             };
             ProviderResult[] pageTwo = new[]
             {
-                NewProviderResult(),
-                NewProviderResult(),
-                NewProviderResult()
+                NewProviderResult(_ => _.WithProviderSummary(NewProviderSummary())),
+                NewProviderResult(_ => _.WithProviderSummary(NewProviderSummary())),
+                NewProviderResult(_ => _.WithProviderSummary(NewProviderSummary()))
             };
             ProviderResult[] pageThree = new[]
             {
-                NewProviderResult(),
-                NewProviderResult(),
-                NewProviderResult()
+                NewProviderResult(_ => _.WithProviderSummary(NewProviderSummary())),
+                NewProviderResult(_ => _.WithProviderSummary(NewProviderSummary())),
+                NewProviderResult(_ => _.WithProviderSummary(NewProviderSummary()))
             };
+
+            IEnumerable<string> providers = pageOne.Concat(pageTwo).Concat(pageThree).Select(_ => _.Provider.Id);
+
+            _importContext
+                .Setup(_ => _.Providers)
+                .Returns(providers.ToHashSet());
 
             string specificationId = NewRandomString();
 
@@ -105,7 +113,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
         }
 
         private void GivenTheImportContextIsCreatedForTheFundingInformation(string specificationId)
-            => _importContextBuilder.Setup(_ => _.CreateImportContext(specificationId))
+            => _importContextBuilder.Setup(_ => _.CreateImportContext(specificationId, It.IsAny<HashSet<string>>()))
                 .ReturnsAsync(_importContext.Object);
 
         private void AndTheImportContextWasBulkInsertedIntoSqlServer()
@@ -131,7 +139,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             => ThenTheProviderResultsWereAddedToTheImportContextRows(providerResults);
 
         private async Task WhenTheSqlImportRuns(string specificationId)
-            => await _sqlImporter.ImportData(specificationId);
+            => await _sqlImporter.ImportData(_importContext.Object.Providers, specificationId);
 
         private void AndThePagesOfProviderResults(params IEnumerable<ProviderResult>[] pages)
         {
@@ -153,6 +161,15 @@ namespace CalculateFunding.Services.Results.UnitTests.SqlExport
             setUp?.Invoke(providerResultBuilder);
 
             return providerResultBuilder.Build();
+        }
+
+        private ProviderSummary NewProviderSummary(Action<ProviderSummaryBuilder> setUp = null)
+        {
+            ProviderSummaryBuilder providerSummaryBuilder = new ProviderSummaryBuilder();
+
+            setUp?.Invoke(providerSummaryBuilder);
+
+            return providerSummaryBuilder.Build();
         }
 
         private static Mock<IDataTableBuilder<ProviderResult>> NewDataTableBuilder() => new Mock<IDataTableBuilder<ProviderResult>>();

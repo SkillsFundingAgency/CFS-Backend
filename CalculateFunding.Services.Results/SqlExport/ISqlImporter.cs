@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.SqlExport
 {
     public interface ISqlImporter
     {
-        Task ImportData(string specificationId);
+        Task ImportData(HashSet<string> providers, string specificationId);
     }
 }

@@ -1,7 +1,10 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
@@ -13,6 +16,7 @@ using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
@@ -20,12 +24,16 @@ namespace CalculateFunding.Services.Results
     public class CalculationResultQADatabasePopulationService : JobProcessingService, ICalculationResultQADatabasePopulationService
     {
         private readonly AsyncPolicy _jobsPolicy;
+        private readonly AsyncPolicy _providersApiPolicy;
+        private IProvidersApiClient _providersApiClient;
         private readonly IJobManagement _jobs;
         private readonly IQaSchemaService _schema;
         private readonly ISqlImporter _import;
+        private readonly ILogger _logger;
 
         public CalculationResultQADatabasePopulationService(
             IQaSchemaService schema,
+            IProvidersApiClient providersApiClient,
             IResultsResiliencePolicies resiliencePolicies,
             IJobManagement jobs,
             ILogger logger,
@@ -34,12 +42,17 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(schema, nameof(schema));
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(import, nameof(import));
 
             _schema = schema;
             _jobsPolicy = resiliencePolicies.JobsApiClient;
             _jobs = jobs;
+            _providersApiClient = providersApiClient;
+            _providersApiPolicy = resiliencePolicies.ProvidersApiClient;
             _import = import;
+            _logger = logger;
         }
 
         public override async Task Process(Message message)
@@ -102,7 +115,19 @@ namespace CalculateFunding.Services.Results
 
             await _schema.ReCreateTablesForSpecification(populateCalculationResultQADatabaseRequest.SpecificationId);
 
-            await _import.ImportData(populateCalculationResultQADatabaseRequest.SpecificationId);
+            ApiResponse<IEnumerable<string>> providersResult =  await _providersApiPolicy.ExecuteAsync(() => _providersApiClient.GetScopedProviderIds(populateCalculationResultQADatabaseRequest.SpecificationId));
+
+            if (providersResult?.Content == null)
+            {
+                string errorMessage = $"Specification: {populateCalculationResultQADatabaseRequest.SpecificationId} scoped providers not found";
+                _logger.Error(errorMessage);
+
+                throw new NonRetriableException(errorMessage);
+            }
+
+            HashSet<string> providers = providersResult.Content.ToHashSet();
+
+            await _import.ImportData(providers, populateCalculationResultQADatabaseRequest.SpecificationId);
         }
     }
 

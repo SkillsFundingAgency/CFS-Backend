@@ -6,6 +6,7 @@ using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
+using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
@@ -261,6 +262,7 @@ namespace CalculateFunding.Api.Results
 
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
@@ -297,7 +299,8 @@ namespace CalculateFunding.Api.Results
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
-                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

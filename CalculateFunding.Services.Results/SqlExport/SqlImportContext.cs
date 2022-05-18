@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.SqlExport;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Results.SqlExport
 {
@@ -13,6 +14,7 @@ namespace CalculateFunding.Services.Results.SqlExport
         public IDataTableBuilder<ProviderResult> InformationFundingLines { get; set; }
         public IDataTableBuilder<ProviderResult> TemplateCalculations { get; set; }
         public IDataTableBuilder<ProviderResult> AdditionalCalculations { get; set; }
+        public HashSet<string> Providers { get; set; }
 
         public void AddRows(ProviderResult dto)
         {

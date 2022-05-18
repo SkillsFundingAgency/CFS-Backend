@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Results.SqlExport
             _jobsResilience = resiliencePolicies.JobsApiClient;
         }
 
-        public async Task<ISqlImportContext> CreateImportContext(string specificationId)
+        public async Task<ISqlImportContext> CreateImportContext(string specificationId, HashSet<string> providers)
         {
             ICosmosDbFeedIterator providerResultsFeed = GetProviderResultsFeed(specificationId);
 
@@ -100,6 +100,7 @@ namespace CalculateFunding.Services.Results.SqlExport
 
             return new SqlImportContext
             {
+                Providers = providers,
                 Documents = providerResultsFeed,
                 CalculationRuns = new CalculationRunDataTableBuilder(specificationSummary, jobSummary, specificationTablePrefix),
                 ProviderSummaries = new ProviderSummaryDataTableBuilder(specificationTablePrefix),
