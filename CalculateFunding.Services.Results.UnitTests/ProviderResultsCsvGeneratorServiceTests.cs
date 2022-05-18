@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
@@ -39,6 +40,8 @@ namespace CalculateFunding.Services.Results.UnitTests
         private IBlobClient _blobClient;
         private ICalculationsApiClient _calcsApiClient;
         private ISpecificationsApiClient _specsApiClient;
+        private IProvidersApiClient _providersApiClient;
+
         private ICloudBlob _cloudBlob; 
         private IProviderResultsToCsvRowsTransformation _transformation;
         private ICalculationResultsRepository _calculationResultsRepository;
@@ -63,17 +66,20 @@ namespace CalculateFunding.Services.Results.UnitTests
             _jobManagement = Substitute.For<IJobManagement>();
             _calcsApiClient = Substitute.For<ICalculationsApiClient>();
             _specsApiClient = Substitute.For<ISpecificationsApiClient>();
+            _providersApiClient = Substitute.For<IProvidersApiClient>();
 
             _service = new ProviderResultsCsvGeneratorService(Substitute.For<ILogger>(),
                 _blobClient,
                 _calcsApiClient,
                 _specsApiClient,
+                _providersApiClient,
                 _calculationResultsRepository,
                 new ResiliencePolicies
                 {
                     BlobClient = Policy.NoOpAsync(),
                     CalculationsApiClient = Policy.NoOpAsync(),
                     SpecificationsApiClient = Policy.NoOpAsync(),
+                    ProvidersApiClient = Policy.NoOpAsync(),
                     ResultsRepository =  Policy.NoOpAsync()
                 }, 
                 _csvUtils,
@@ -159,14 +165,18 @@ namespace CalculateFunding.Services.Results.UnitTests
         [TestMethod]
         public async Task TransformsProviderResultsForSpecificationInBatchesAndCreatesCsvWithResults()
         {
+            string provider1 = "Provider1";
+            string provider2 = "Provider2";
+            string provider3 = "Provider3";
             string specificationId = NewRandomString();
             string fundingStream = NewRandomString();
             string specificationName = NewRandomString();
             string expectedInterimFilePath = Path.Combine(_rootPath, $"calculation-results-{specificationId}.csv");
             
-            List<ProviderResult> providerResultsOne = new List<ProviderResult>();
-            List<ProviderResult> providerResultsTwo = new List<ProviderResult>();
-            
+            List<ProviderResult> providerResultsOne = new List<ProviderResult> { new ProviderResult { Provider = new CalculateFunding.Models.ProviderLegacy.ProviderSummary { Id = provider1 } } };
+            List<ProviderResult> providerResultsTwo = new List<ProviderResult> { new ProviderResult { Provider = new CalculateFunding.Models.ProviderLegacy.ProviderSummary { Id = provider2 } } };
+            List<ProviderResult> providerResultsThree = new List<ProviderResult> { new ProviderResult { Provider = new CalculateFunding.Models.ProviderLegacy.ProviderSummary { Id = provider3 } } };
+
             ExpandoObject[] transformedRowsOne = {
                 new ExpandoObject(),
                 new ExpandoObject(),
@@ -189,6 +199,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             MemoryStream incrementalFileStream = new MemoryStream();
 
             GivenSpecification(specificationId, fundingStream);
+            GivenTheProvidersInScope(specificationId, new[] { provider1, provider2 });
             GivenTheCsvRowTransformation(providerResultsOne, transformedRowsOne, expectedCsvOne, true);
             AndTheCsvRowTransformation(providerResultsTwo, transformedRowsTwo, expectedCsvTwo,  false);
             AndTheMessageProperties(("specification-id", specificationId));
@@ -212,6 +223,9 @@ namespace CalculateFunding.Services.Results.UnitTests
                     batchProcessingCallBack(providerResultsTwo)
                         .GetAwaiter()
                         .GetResult();
+                    batchProcessingCallBack(providerResultsThree)
+                        .GetAwaiter()
+                        .GetResult();
                 });
 
             await WhenTheCsvIsGenerated();
@@ -229,6 +243,10 @@ namespace CalculateFunding.Services.Results.UnitTests
             await _blobClient
                 .Received(1)
                 .UploadAsync(_cloudBlob, incrementalFileStream);
+
+            _transformation
+                .Received(2)
+                .TransformProviderResultsIntoCsvRows(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<IDictionary<string, TemplateMappingItem>>());
 
             await _blobClient
                 .Received(1)
@@ -301,6 +319,13 @@ namespace CalculateFunding.Services.Results.UnitTests
             
             _csvUtils.AsCsv(Arg.Is<IEnumerable<dynamic>>(_ => _.SequenceEqual(transformedRows)), Arg.Is(outputHeaders))
                 .Returns(csv);
+        }
+
+        private void GivenTheProvidersInScope(string specificationId, params string[] providers)
+        {
+            _providersApiClient
+                .GetScopedProviderIds(specificationId)
+                .Returns(Task.FromResult(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providers)));
         }
 
         private static RandomString NewRandomString()

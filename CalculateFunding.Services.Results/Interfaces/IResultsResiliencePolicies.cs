@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         AsyncPolicy CalculationsApiClient { get; set; }
 
+        AsyncPolicy ProvidersApiClient { get; set; }
+
         AsyncPolicy ProviderProfilingRepository { get; set; }
 
         AsyncPolicy PublishedProviderCalculationResultsRepository { get; set; }

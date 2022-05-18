@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
@@ -26,6 +27,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
 using Polly;
 using Serilog;
+using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
 
 namespace CalculateFunding.Services.Results
 {
@@ -36,6 +38,7 @@ namespace CalculateFunding.Services.Results
         private readonly ILogger _logger;
         private readonly IBlobClient _blobClient;
         private readonly ICalculationsApiClient _calculationsApiClient;
+        private readonly IProvidersApiClient _providersApiClient;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly ICsvUtils _csvUtils;
@@ -47,11 +50,13 @@ namespace CalculateFunding.Services.Results
         private readonly AsyncPolicy _calculationsApiClientPolicy;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly AsyncPolicy _resultsRepositoryPolicy;
+        private readonly AsyncPolicy _providersApiClientPolicy;
 
         public ProviderResultsCsvGeneratorService(ILogger logger,
             IBlobClient blobClient,
             ICalculationsApiClient calculationsApiClient,
             ISpecificationsApiClient specificationsApiClient,
+            IProvidersApiClient providersApiClient,
             ICalculationResultsRepository resultsRepository,
             IResultsResiliencePolicies policies,
             ICsvUtils csvUtils,
@@ -64,11 +69,13 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(resultsToCsvRowsTransformation, nameof(resultsToCsvRowsTransformation));
             Guard.ArgumentNotNull(fileSystemAccess, nameof(fileSystemAccess));
             Guard.ArgumentNotNull(policies?.BlobClient, nameof(policies.BlobClient));
             Guard.ArgumentNotNull(policies?.CalculationsApiClient, nameof(policies.CalculationsApiClient));
+            Guard.ArgumentNotNull(policies?.ProvidersApiClient, nameof(policies.ProvidersApiClient));
             Guard.ArgumentNotNull(policies?.SpecificationsApiClient, nameof(policies.SpecificationsApiClient));
             Guard.ArgumentNotNull(policies?.ResultsRepository, nameof(policies.ResultsRepository));
             Guard.ArgumentNotNull(fileSystemCacheSettings, nameof(fileSystemCacheSettings));
@@ -78,11 +85,13 @@ namespace CalculateFunding.Services.Results
             _blobClient = blobClient;
             _calculationsApiClient = calculationsApiClient;
             _specificationsApiClient = specificationsApiClient;
+            _providersApiClient = providersApiClient;
             _resultsRepository = resultsRepository;
             _blobClientPolicy = policies.BlobClient;
             _calculationsApiClientPolicy = policies.CalculationsApiClient;
             _specificationsApiClientPolicy = policies.SpecificationsApiClient;
             _resultsRepositoryPolicy = policies.ResultsRepository;
+            _providersApiClientPolicy = policies.ProvidersApiClient;
             _csvUtils = csvUtils;
             _resultsToCsvRowsTransformation = resultsToCsvRowsTransformation;
             _fileSystemAccess = fileSystemAccess;
@@ -137,6 +146,18 @@ namespace CalculateFunding.Services.Results
 
             SpecificationSummary specificationSummary = specificationSummaryResponse.Content;
 
+            ApiResponse<IEnumerable<string>> providersResponse = await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetScopedProviderIds(specificationId));
+
+            if (providersResponse?.Content == null)
+            {
+                string errorMessage = $"Specification: {specificationId} scoped providers not found";
+                _logger.Error(errorMessage);
+
+                throw new NonRetriableException(errorMessage);
+            }
+
+            HashSet<string> providers = providersResponse?.Content.ToHashSet();
+
             IEnumerable<TemplateMappingItem> allMappings = Array.Empty<TemplateMappingItem>();
 
             foreach (Reference reference in specificationSummary.FundingStreams)
@@ -162,15 +183,22 @@ namespace CalculateFunding.Services.Results
             await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.ProviderResultsBatchProcessing(specificationId,
                 providerResults =>
                 {
-                    IEnumerable<ExpandoObject>csvRows = _resultsToCsvRowsTransformation.TransformProviderResultsIntoCsvRows(providerResults, allMappings.ToDictionary(_ => _.CalculationId));
+                    // only output the calculation results which are in scope
+                    IEnumerable<ProviderResult> providerResultsInScope = providerResults.Where(_ => providers.Contains(_.Provider.Id));
 
-                    string csv = _csvUtils.AsCsv(csvRows, outputHeaders);
+                    if (providerResultsInScope.AnyWithNullCheck())
+                    {
+                        IEnumerable<ExpandoObject> csvRows = _resultsToCsvRowsTransformation.TransformProviderResultsIntoCsvRows(providerResultsInScope, allMappings.ToDictionary(_ => _.CalculationId));
 
-                    _fileSystemAccess.Append(temporaryFilePath, csv)
-                        .GetAwaiter()
-                        .GetResult();
+                        string csv = _csvUtils.AsCsv(csvRows, outputHeaders);
 
-                    outputHeaders = false;
+                        _fileSystemAccess.Append(temporaryFilePath, csv)
+                            .GetAwaiter()
+                            .GetResult();
+
+                        outputHeaders = false;
+                    }
+
                     return Task.CompletedTask;
                 }, BatchSize)
             );
