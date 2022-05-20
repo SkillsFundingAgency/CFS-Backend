@@ -29,6 +29,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 EstablishmentNumber = NewRandomString(),
                 ProviderType = NewRandomString(),
                 LACode = NewRandomString(),
+                LAOrg = NewRandomString(),
                 CrmAccountId = NewRandomString(),
                 LegalName = NewRandomString(),
                 NavVendorNo = NewRandomString(),

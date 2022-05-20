@@ -16,6 +16,8 @@ namespace CalculateFunding.Models.Providers
 
         LACodeFieldUpdated,
 
+        LAOrgFieldUpdated,
+
         LegalNameFieldUpdated
     }
 }

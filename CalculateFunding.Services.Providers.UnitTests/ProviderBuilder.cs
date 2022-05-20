@@ -40,6 +40,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 DateOpened = NewRandomDateTime(),
                 DateClosed = NewRandomDateTime(),
                 LACode = NewRandomString(),
+                LAOrg = NewRandomString(),
                 CrmAccountId = NewRandomString(),
                 LegalName = NewRandomString(),
                 NavVendorNo = NewRandomString(),

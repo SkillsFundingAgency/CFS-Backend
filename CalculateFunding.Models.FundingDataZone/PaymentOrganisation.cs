@@ -28,6 +28,7 @@ namespace CalculateFunding.Models.FundingDataZone
         [Required]
         public string OrganisationType { get; set; }
 
+        [Required]
         public string Ukprn { get; set; }
 
         public string Upin { get; set; }
@@ -37,6 +38,7 @@ namespace CalculateFunding.Models.FundingDataZone
         public string Urn { get; set; }
 
         public string LaCode { get; set; }
+        public string LaOrg { get; set; }
 
         public string CompanyHouseNumber { get; set; }
     }

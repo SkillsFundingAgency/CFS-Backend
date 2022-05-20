@@ -23,6 +23,7 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
         public string Urn { get; set; }
 
         public string LaCode { get; set; }
+        public string LaOrg { get; set; }
 
         public string CompanyHouseNumber { get; set; }
     }

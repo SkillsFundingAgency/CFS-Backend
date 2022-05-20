@@ -530,6 +530,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             {
                 x.UKPRN = null;
                 x.LACode = null;
+                x.LAOrg = null;
                 x.Name = null;
                 x.Status = null;
                 x.TrustStatusViewModelString = null;
@@ -1359,6 +1360,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 DateClosed = null,
                 ProviderProfileIdType = "",
                 LACode = "LA (code)",
+                LAOrg = "LA (UKPRN)",
                 NavVendorNo = "",
                 CrmAccountId = "",
                 LegalName = "",

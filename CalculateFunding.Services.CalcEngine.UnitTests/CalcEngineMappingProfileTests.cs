@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Calculator
             MapperConfiguration config = new MapperConfiguration(c => c.AddProfile<CalcEngineMappingProfile>());
             Action action = new Action(() =>
             {
-                config.AssertConfigurationIsValid();
+                config.AssertConfigurationIsValid(); 
             });
 
             //Act/Assert

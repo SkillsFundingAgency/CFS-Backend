@@ -360,6 +360,7 @@ namespace CalculateFunding.Services.Providers
                     DateOpened = x.DateOpened,
                     DateClosed = x.DateClosed,
                     LACode = x.LACode,
+                    LAOrg = x.LAOrg,
                     CrmAccountId = x.CrmAccountId,
                     LegalName = x.LegalName,
                     NavVendorNo = x.NavVendorNo,

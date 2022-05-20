@@ -944,6 +944,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 DateClosed = null,
                 ProviderProfileIdType = "",
                 LACode = "LA (code)",
+                LAOrg = "LA (UKPRN)",
                 NavVendorNo = "",
                 CrmAccountId = "",
                 LegalName = "",

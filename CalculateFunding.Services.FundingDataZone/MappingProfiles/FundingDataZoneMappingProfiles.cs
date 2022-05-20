@@ -19,6 +19,8 @@ namespace CalculateFunding.Services.FundingDataZone.MappingProfiles
             CreateMap<PublishingAreaOrganisation, PaymentOrganisation>()
                 .ForMember(_ => _.Name,
                     opt => opt.MapFrom(_ => _.LaCode))
+             .ForMember(_ => _.Ukprn,
+                    opt => opt.MapFrom(_ => _.LaOrg))
                 .ForMember(_ => _.OrganisationType,
                     opt => opt.MapFrom(_ => _.PaymentOrganisationType));
 

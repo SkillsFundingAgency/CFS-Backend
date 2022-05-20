@@ -14,6 +14,7 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
                 Upin = NewRandomString(),
                 Urn = NewRandomString(),
                 LaCode = NewRandomString(),
+                LaOrg = NewRandomString(),
                 TrustCode = NewRandomString(),
                 CompanyHouseNumber = NewRandomString(),
                 PaymentOrganisationId = NewRandomNumberBetween(1, int.MaxValue),

@@ -72,6 +72,8 @@ namespace CalculateFunding.Models.Providers
 
         [JsonProperty("laCode")]
         public string LaCode { get; set; }
+        [JsonProperty("laOrg")]
+        public string LAOrg { get; set; }
 
         [JsonProperty("navVendorNo")]
         public string NavVendorNo { get; set; }
