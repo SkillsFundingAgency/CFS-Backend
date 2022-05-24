@@ -2,6 +2,7 @@
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -58,7 +59,10 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                         
                         if (publishedFunding.Current.ProviderFundings.Any())
                         {
-                            providers = await _publishedFundingRepository.QueryPublishedProvider(specificationId, publishedFunding.Current.ProviderFundings);
+                            foreach (IEnumerable<string> fundingIds in publishedFunding.Current.ProviderFundings.ToBatches(100))
+                            {
+                                providers = providers.Concat(await _publishedFundingRepository.QueryPublishedProvider(specificationId, fundingIds));
+                            }
                         }
 
                         publishedfundingsWithProviders.Add(new PublishedFundingWithProvider { PublishedFunding = publishedFunding, PublishedProviders = providers });
