@@ -50,7 +50,6 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
         public string LACode { get; set; }
 
         [Display(Name = "Local authorirty Organisation (LA UKPRN)")]
-        [Required]
         public string LAOrg { get; set; }
 
         [Display(Name = "NAV vendor number")]

@@ -50,6 +50,7 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
             provider.DateOpened = Provider.DateOpened;
             provider.DateClosed = Provider.DateClosed;
             provider.LACode = Provider.LACode;
+            provider.LAOrg = Provider.LAOrg;
             provider.NavVendorNo = Provider.NavVendorNo;
             provider.CrmAccountId = Provider.CrmAccountId;
             provider.LegalName = Provider.LegalName;
