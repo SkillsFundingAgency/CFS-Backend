@@ -531,7 +531,7 @@ namespace CalculateFunding.Services.Jobs
 
                             JobDefinition jobDefinition = jobDefinitions.FirstOrDefault(j => j.Id == parentJob.JobDefinitionId);
 
-                            if (parentJob.CompletionStatus == CompletionStatus.Superseded)
+                            if (parentJob.CompletionStatus == CompletionStatus.Superseded || parentJob.CompletionStatus == CompletionStatus.TimedOut)
                             {
                                 return;
                             }

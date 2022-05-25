@@ -886,6 +886,82 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
+        public async Task ProcessJobCompletion_JobHasParentJobTimedOutWithMultipleCompletedChildrenWithAllSucceededAndPreCompletionJobsNotRunning_ThenPreCompletionJobNotQueued()
+        {
+            // Arrange
+            string parentJobId = "parent123";
+            string jobId = "child123";
+            string preCompletionJobDefinition = "PreCompletionJobDefinitionId";
+
+            Job job = new Job { Id = jobId, ParentJobId = parentJobId, CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed };
+
+            Job job2 = new Job { Id = "child456", ParentJobId = parentJobId, RunningStatus = RunningStatus.Completed, CompletionStatus = CompletionStatus.Succeeded };
+
+            Job job3 = new Job { Id = "child789", ParentJobId = parentJobId, RunningStatus = RunningStatus.Completed, CompletionStatus = CompletionStatus.Succeeded };
+
+            Job preCompletionJob = new Job
+            {
+                Id = "preCompletionJob",
+                ParentJobId = parentJobId,
+                JobDefinitionId = preCompletionJobDefinition,
+                RunningStatus = RunningStatus.InProgress
+            };
+
+            Job parentJob = new Job
+            {
+                Id = parentJobId,
+                RunningStatus = RunningStatus.Completed,
+                CompletionStatus = CompletionStatus.TimedOut,
+                JobDefinitionId = jobDefinitionId,
+                Trigger = new Trigger { }
+            };
+
+            ILogger logger = CreateLogger();
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(job);
+
+            jobRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJob);
+
+            jobRepository
+                .GetChildJobsForParent(Arg.Is(parentJobId))
+                .Returns(new List<Job> { job, job2 });
+
+            jobRepository
+                .CreateJob(Arg.Any<Job>())
+                .Returns(preCompletionJob);
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(new[] { new JobDefinition { Id = jobDefinitionId, PreCompletionJobs = new[] { preCompletionJobDefinition } },
+                    new JobDefinition { Id = preCompletionJobDefinition } });
+
+            JobManagementService jobManagementService = CreateJobManagementService(jobRepository,
+                logger: logger,
+                jobDefinitionsService: jobDefinitionsService);
+
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
+
+            string json = JsonConvert.SerializeObject(JobSummary);
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["jobId"] = jobId;
+
+            // Act
+            await jobManagementService.Process(message);
+
+            // Assert
+            await jobRepository
+                .Received(0)
+                .UpdateJob(Arg.Is<Job>(j => j.Id == parentJobId && j.RunningStatus == RunningStatus.Completing));
+        }
+
+
+        [TestMethod]
         public async Task ProcessJobCompletion_JobHasParentThatIsCompleted_ThenNotificationSent()
         {
             // Arrange
