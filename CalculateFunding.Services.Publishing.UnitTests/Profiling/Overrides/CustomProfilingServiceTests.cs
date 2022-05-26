@@ -593,12 +593,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             IEnumerable<ProfilePeriod> profilePeriods = request.ProfilePeriods;
             FundingLine fundingLine = publishedProvider.Current.FundingLines.Single(fl => fl.FundingLineCode == fundingLineOne);
 
+            PublishedProviderVersion newProviderVersion = publishedProvider.Current.Clone() as PublishedProviderVersion;
+
+            newProviderVersion.Status = publishedProvider.Current.Status switch
+            {
+                PublishedProviderStatus.Draft => PublishedProviderStatus.Draft,
+                _ => PublishedProviderStatus.Updated
+            };
+
             AndTheCustomProfilePeriodsWereUsedOn(fundingLine, profilePeriods);
             AndANewProviderVersionWasCreatedFor(publishedProvider, expectedRequestedStatus, author);
             AndProfilingAuditUpdatedForFundingLines(publishedProvider, new[] { fundingLineOne }, author);
             AndErrorsAreCleared(publishedProvider, fundingLineOne);
             AndPublishCsvReportsJobCreated();
-            AndThePublishedProviderIsIndex(publishedProvider);
+            AndThePublishedProviderIsIndex(newProviderVersion);
         }
 
         private void AndErrorsAreCleared(PublishedProvider publishedProvider, string fundingLineCode)
@@ -747,8 +755,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 It.IsAny<Reference>()), Times.Once);
         }
 
-        private void AndThePublishedProviderIsIndex(PublishedProvider publishedProvider) =>
-            _publishedProviderIndexerService.Verify(_ => _.IndexPublishedProvider(publishedProvider.Current), Times.Once);
+        private void AndThePublishedProviderIsIndex(PublishedProviderVersion publishedProviderVersion) =>
+            _publishedProviderIndexerService.Verify(_ => _.IndexPublishedProvider(publishedProviderVersion), Times.Once);
 
         private ValidationResult NewValidationResult(Action<ValidationResultBuilder> setUp = null)
         {

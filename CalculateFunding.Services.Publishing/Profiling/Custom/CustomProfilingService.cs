@@ -141,18 +141,22 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             currentProviderVersion.ResetErrors(_ => 
                 (_.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch ||
                 _.Type == PublishedProviderErrorType.ProfilingConsistencyCheckFailure) && _.FundingLineCode == fundingLineCode);
-            
+
+            PublishedProviderVersion newProviderVersion = currentProviderVersion.Clone() as PublishedProviderVersion;
+
+            newProviderVersion.Status = currentProviderVersion.Status switch
+            {
+                PublishedProviderStatus.Draft => PublishedProviderStatus.Draft,
+                _ => PublishedProviderStatus.Updated
+            };
+
             await _publishedProviderVersionCreation.UpdatePublishedProviderStatus(new[] { publishedProvider },
                 author,
-                currentProviderVersion.Status switch
-                {
-                    PublishedProviderStatus.Draft => PublishedProviderStatus.Draft,
-                    _ => PublishedProviderStatus.Updated
-                },
+                newProviderVersion.Status,
                 correlationId: correlationId,
                 force: true);
 
-            await _publishedProviderIndexerService.IndexPublishedProvider(publishedProvider.Current);
+            await _publishedProviderIndexerService.IndexPublishedProvider(newProviderVersion);
 
             _logger.Information(
                 $"Successfully applied custom profiling {request.CustomProfileName} to published provider {publishedProviderId}");
