@@ -31,6 +31,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         private readonly AsyncPolicy _policiesResilience;
         private readonly IReleaseManagementRepository _releaseManagementRepository;
         private readonly IFeatureManagerSnapshot _featureManagerSnapshot;
+        private readonly IReleaseCandidateService _releaseCandidateService;
 
         public SqlImportContextBuilder(ICosmosRepository cosmos,
             IPoliciesApiClient policies,
@@ -38,7 +39,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
             IReleaseManagementRepository releaseManagementRepository,
-            IFeatureManagerSnapshot featureManagerSnapshot)
+            IFeatureManagerSnapshot featureManagerSnapshot,
+            IReleaseCandidateService releaseCandidateService)
         {
             Guard.ArgumentNotNull(cosmos, nameof(cosmos));
             Guard.ArgumentNotNull(policies, nameof(policies));
@@ -47,6 +49,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
+            Guard.ArgumentNotNull(releaseCandidateService, nameof(releaseCandidateService));
 
             _cosmos = cosmos;
             _policies = policies;
@@ -56,6 +59,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             _policiesResilience = resiliencePolicies.PoliciesApiClient;
             _releaseManagementRepository = releaseManagementRepository;
             _featureManagerSnapshot = featureManagerSnapshot;
+            _releaseCandidateService = releaseCandidateService;
         }
 
         public async Task<ISqlImportContext> CreateImportContext(
@@ -94,6 +98,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 Calculations = new CalculationDataTableBuilder(uniqueCalculations),
                 Providers = new ProviderDataTableBuilder(),
                 Funding = new PublishedProviderVersionDataTableBuilder(
+                    _releaseCandidateService,
                     providerVersionInChannels, 
                     sqlExportSource,
                     isLatestReleasedVersionChannelPopulationEnabled),

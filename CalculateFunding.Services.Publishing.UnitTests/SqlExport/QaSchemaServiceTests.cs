@@ -661,6 +661,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                         Type = "[varchar](8)",
                         AllowNulls = false
                     });
+
+                fundingColumns.Add(
+                    new SqlColumnDefinition
+                    {
+                        Name = "ReleaseCandidate",
+                        Type = "[bit]",
+                        AllowNulls = false
+                    });
             }
 
             Dictionary<string, SqlColumnDefinition> fundingColumnsDictionary = fundingColumns.ToDictionary(_ => _.Name);

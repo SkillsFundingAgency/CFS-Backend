@@ -102,6 +102,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             builder.AddScoped<IPublishedProviderLoaderForFundingGroupData, PublishedProviderLoaderForFundingGroupData>();
             builder.AddScoped<IFundingGroupDataPersistenceService, FundingGroupDataPersistenceService>();
             builder.AddSingleton<IPublishedProvidersSearchService, PublishedProvidersSearchService>();
+            builder.AddSingleton<IReleaseCandidateService, ReleaseCandidateService>();
 
             builder.AddTransient<IDetectProviderVariations, ProviderVariationsDetection>();
             builder.AddTransient<IVariationStrategyServiceLocator, VariationStrategyServiceLocator>();

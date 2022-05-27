@@ -383,6 +383,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ChannelOrganisationGroupChangeDetector, IChannelOrganisationGroupChangeDetector>();
             RegisterTypeAs<ExistingReleasedProvidersForChannelFilterService, IExistingReleasedProvidersForChannelFilterService>();
 
+            RegisterTypeAs<ReleaseCandidateService, IReleaseCandidateService>();
+
             RegisterFactoryAs<IReleaseProviderPersistenceService>((svc) =>
             {
                 IReleaseManagementRepository releaseManagementRepository = svc.Resolve<IReleaseManagementRepository>();

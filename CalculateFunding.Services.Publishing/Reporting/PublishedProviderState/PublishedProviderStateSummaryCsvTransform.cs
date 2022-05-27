@@ -7,13 +7,21 @@ using System.Dynamic;
 using System.Linq;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
 {
     public class PublishedProviderStateSummaryCsvTransform : IPublishedProviderStateSummaryCsvTransform
     {
+        private readonly IReleaseCandidateService _releaseCandidateService;
+
         private readonly ArrayPool<ExpandoObject> _expandoObjectsPool
             = ArrayPool<ExpandoObject>.Create(PublishedProviderStateSummaryCsvGenerator.BatchSize, 4);
+
+        public PublishedProviderStateSummaryCsvTransform(IReleaseCandidateService releaseCandidateService)
+        {
+            _releaseCandidateService = releaseCandidateService;
+        }
 
         public bool IsForJobDefinition(string jobDefinitionName)
         {
@@ -56,9 +64,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
                 row["Allocation DateTime"] = publishedProviderVersion.Date.ToString("s");
                 row["Is Indicative"] = publishedProviderVersion.IsIndicative.ToString();
 
-                List<int> releasedMajorVersions = new List<int>();
-                string[] fundsTransferChannels = { "Contracting", "Payment" };
-                int fundsTransferChannelMajorVersion = 0;
+                List<ReleaseChannel> releaseChannels = new List<ReleaseChannel>();
 
                 foreach (string channel in distinctChannels)
                 {
@@ -66,22 +72,10 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
                     int providerChannelMajorVersion = providerChannel?.MajorVersion ?? 0;
                     row[$"{channel} released version"] = providerChannel?.MajorVersion;
 
-                    if (fundsTransferChannels.Contains(channel))
-                    {
-                        if (fundsTransferChannelMajorVersion < providerChannelMajorVersion)
-                        {
-                            fundsTransferChannelMajorVersion = providerChannelMajorVersion;
-                        }
-                    }
-                    else 
-                    {
-                        releasedMajorVersions.Add(providerChannelMajorVersion);
-                    }
+                    releaseChannels.Add(providerChannel ?? new ReleaseChannel { ChannelCode = channel, MajorVersion = providerChannelMajorVersion });
                 }
 
-                releasedMajorVersions.Add(fundsTransferChannelMajorVersion);
-
-                row["Release candidate"] = releasedMajorVersions.Any(_ => _ < publishedProviderVersion.MajorVersion);
+                row["Release candidate"] = _releaseCandidateService.IsReleaseCandidate(publishedProviderVersion.MajorVersion, releaseChannels);
 
                 yield return (ExpandoObject)row;
             }

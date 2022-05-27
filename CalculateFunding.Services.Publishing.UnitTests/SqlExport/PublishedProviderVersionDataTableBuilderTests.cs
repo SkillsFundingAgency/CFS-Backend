@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.SqlExport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -37,6 +38,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             };
 
             DataTableBuilder = new PublishedProviderVersionDataTableBuilder(
+                new ReleaseCandidateService(),
                 providerVersionInChannels,
                 sqlExportSource,
                 latestReleasedVersionChannelPopulationEnabled);
@@ -99,6 +101,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 dataRowValues.Add($"{PaymentMajorVersion}.0");
                 dataRowValues.Add($"{ContractingMajorVersion}.0");
                 dataRowValues.Add($"{ChannelCodeOneMajorVersion}.0");
+
+                dataRowValues.Add(true);
             }
 
             return dataRowValues.ToArray();
@@ -132,6 +136,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 dataColumns.Add(NewDataColumn<string>("LatestPaymentReleaseVersion", 8));
                 dataColumns.Add(NewDataColumn<string>("LatestContractReleaseVersion", 8));
                 dataColumns.Add(NewDataColumn<string>("LatestChannelCodeOneReleaseVersion", 8));
+
+                dataColumns.Add(NewDataColumn<bool>("ReleaseCandidate"));
             }
 
             return dataColumns.ToArray();

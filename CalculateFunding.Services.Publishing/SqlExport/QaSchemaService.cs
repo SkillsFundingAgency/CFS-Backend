@@ -466,6 +466,13 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                         AllowNulls = true
                     });
                 }
+
+                fundingColumnDefinitions.Add(new SqlColumnDefinition
+                {
+                    Name = "ReleaseCandidate",
+                    Type = "[bit]",
+                    AllowNulls = false
+                });
             }
 
             return fundingColumnDefinitions;

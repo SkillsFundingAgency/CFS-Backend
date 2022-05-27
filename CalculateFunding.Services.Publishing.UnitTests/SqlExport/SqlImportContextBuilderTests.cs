@@ -30,6 +30,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
         private Mock<IFeatureManagerSnapshot> _featureManagerSnapshot;
 
+        private Mock<IReleaseCandidateService> _candidateService;
+
         private SqlImportContextBuilder _contextBuilder;
 
         [TestInitialize]
@@ -40,6 +42,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             _publishedProviderVersions = new Mock<ICosmosDbFeedIterator>();
             _featureManagerSnapshot = new Mock<IFeatureManagerSnapshot>();
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
+            _candidateService = new Mock<IReleaseCandidateService>();
 
             _contextBuilder = new SqlImportContextBuilder(_cosmos.Object,
                 Policies.Object,
@@ -51,7 +54,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                     PoliciesApiClient = Policy.NoOpAsync()
                 },
                 _releaseManagementRepository.Object,
-                _featureManagerSnapshot.Object);
+                _featureManagerSnapshot.Object,
+                _candidateService.Object);
         }
 
         [DataTestMethod]
