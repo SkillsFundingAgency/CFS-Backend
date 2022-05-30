@@ -112,6 +112,8 @@
             public const string ReleaseProvidersToChannelsJob = nameof(ReleaseProvidersToChannelsJob);
 
             public const string PopulateCalculationResultsQaDatabaseJob = nameof(PopulateCalculationResultsQaDatabaseJob);
+
+            public const string PublishingReportsJob = nameof(PublishingReportsJob);
         }
 
         public static class NotificationChannels

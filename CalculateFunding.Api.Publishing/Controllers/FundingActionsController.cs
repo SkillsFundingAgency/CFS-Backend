@@ -133,29 +133,27 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="specificationId">The specification id</param>
         /// <returns></returns>
         [HttpGet("api/specifications/{specificationId}/queue-all-csv-jobs")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Job>))]
+        [ProducesResponseType(200, Type = typeof(Job))]
         public async Task<IActionResult> QueueAllCsvJobs([FromRoute] string specificationId)
         {
-            List<Task<IEnumerable<Job>>> tasks = new List<Task<IEnumerable<Job>>>();
-
-            tasks.Add(_publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve,
+            (Job ParentJob, IEnumerable<Job> Child) approvalJobs = await _publishFundingCsvJobsService.QueueCsvPublishingJobs(GeneratePublishingCsvJobsCreationAction.Approve,
                 specificationId,
                 Request.GetCorrelationId(),
-                Request.GetUser()));
+                Request.GetUser());
 
-            tasks.Add(_publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh,
+            await _publishFundingCsvJobsService.QueueCsvPublishingJobs(GeneratePublishingCsvJobsCreationAction.Refresh,
                 specificationId,
                 Request.GetCorrelationId(),
-                Request.GetUser()));
+                Request.GetUser(),
+                parentJob: approvalJobs.ParentJob);
 
-            tasks.Add(_publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Release,
+            await _publishFundingCsvJobsService.QueueCsvPublishingJobs(GeneratePublishingCsvJobsCreationAction.Release,
                 specificationId,
                 Request.GetCorrelationId(),
-                Request.GetUser()));
+                Request.GetUser(),
+                parentJob: approvalJobs.ParentJob);
 
-            IEnumerable<Job>[] jobs = await TaskHelper.WhenAllAndThrow(tasks.ToArray());
-
-            return new OkObjectResult(jobs.SelectMany(_ => _));
+            return new OkObjectResult(approvalJobs.ParentJob);
         }
 
         private string GetCorrelationId()

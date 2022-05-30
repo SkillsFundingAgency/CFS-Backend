@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string fundingStreamId, 
             string fundingPeriodId, 
             string providerId, 
+            string correlationId,
             ProfilePatternKey profilePatternKey,
             Reference author);
     }

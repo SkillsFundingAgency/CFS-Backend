@@ -1049,7 +1049,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         fundingPeriodId,
                         It.IsAny<IEnumerable<string>>(),
                         It.IsAny<string>(),
-                        It.IsAny<Reference>()),
+                        It.IsAny<Reference>(),
+                        true,
+                        null),
                         Times.Once);
         }
 

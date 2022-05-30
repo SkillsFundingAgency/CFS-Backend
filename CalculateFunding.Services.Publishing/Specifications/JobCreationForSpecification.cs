@@ -68,13 +68,9 @@ namespace CalculateFunding.Services.Publishing.Specifications
                         Message = TriggerMessage
                     },
                     CorrelationId = correlationId,
-                    Compress = compress
+                    Compress = compress,
+                    ParentJobId = parentJobId
                 });
-
-                if (!string.IsNullOrWhiteSpace(parentJobId))
-                {
-                    job.ParentJobId = parentJobId;
-                }
 
                 if (job != null)
                 {

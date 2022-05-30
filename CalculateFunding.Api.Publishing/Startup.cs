@@ -308,6 +308,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateRefreshPublishedFundingCsvJobsCreation>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateApprovePublishedFundingCsvJobsCreation>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateReleasePublishedFundingCsvJobsCreation>();
+            builder.AddScoped<ICreatePublishingReportsJob, CreatePublishingReportsJob>();
             builder.AddScoped<ICreateGeneratePublishedProviderEstateCsvJobs, CreateGeneratePublishedProviderEstateCsvJobs>();
             builder.AddScoped<ICreateGeneratePublishedProviderStateSummaryCsvJobs, CreateGeneratePublishedProviderStateSummaryCsvJobs>();
             builder.AddTransient<ICreateGeneratePublishedFundingCsvJobs, GeneratePublishedFundingCsvJobCreation>();
@@ -496,7 +497,7 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
 
             builder
-                .AddSingleton<IPublishedProviderProfilingService, PublishedProviderProfilingService>()
+                .AddScoped<IPublishedProviderProfilingService, PublishedProviderProfilingService>()
                 .AddSingleton<IPublishedProviderErrorDetection, PublishedProviderErrorDetection>()
                 .AddSingleton<IErrorDetectionStrategyLocator, ErrorDetectionStrategyLocator>()
                 .AddSingleton<IDetectPublishedProviderErrors, FundingLineValueProfileMismatchErrorDetector>()

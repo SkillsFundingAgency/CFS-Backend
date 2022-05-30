@@ -147,7 +147,7 @@ namespace CalculateFunding.Services.Publishing
 
                     _logger.Information("Creating generate Csv jobs");
 
-                    await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve, specificationId, fundingPeriodId, new[] { fundingStreamId }, correlationId, author);
+                    await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve, specificationId, fundingPeriodId, new[] { fundingStreamId }, correlationId, author, true);
                 }
 
                 transaction.Complete();

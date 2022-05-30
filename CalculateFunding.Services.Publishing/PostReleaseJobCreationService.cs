@@ -35,7 +35,8 @@ namespace CalculateFunding.Services.Publishing
                 specification.FundingPeriod.Id,
                 specification.FundingStreams.Select(fs => fs.Id),
                 correlationId,
-                author);
+                author,
+                true);
 
             await _createPublishDatasetsDataCopyJob.CreateJob(specification.Id, author, correlationId);
 

@@ -27,7 +27,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="specificationId">Target specification to queue reporting jobs from</param>
         /// <returns></returns>
         [HttpGet("api/specifications/{createAction}/{specificationId}/queue-report-jobs")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Job>))]
+        [ProducesResponseType(200, Type = typeof(Job))]
         public async Task<IActionResult> QueueReportJobs(
             [FromRoute] GeneratePublishingCsvJobsCreationAction createAction,
             [FromRoute] string specificationId)
@@ -35,10 +35,10 @@ namespace CalculateFunding.Api.Publishing.Controllers
             Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
             
-            return new OkObjectResult(await _publishFundingCsvJobsService.QueueCsvJobs(createAction,
+            return new OkObjectResult((await _publishFundingCsvJobsService.QueueCsvPublishingJobs(createAction,
                 specificationId,
                 correlationId,
-                user));
+                user)).ParentJob);
         }
     }
 }

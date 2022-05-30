@@ -8,7 +8,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     public interface IGeneratePublishedFundingCsvJobsCreation
     {
         Task<IEnumerable<Job>> CreateJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest);
-        
+
+        Task<Job> CreatePublishingReportJob(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest);
+
         bool IsForAction(GeneratePublishingCsvJobsCreationAction action);
     }
 }

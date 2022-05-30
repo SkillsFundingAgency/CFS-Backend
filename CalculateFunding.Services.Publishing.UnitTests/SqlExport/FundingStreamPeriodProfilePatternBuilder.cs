@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
     {
         private IEnumerable<ProfilePeriodPattern> _patterns;
         private string _profilePatternDisplayName;
-        private IEnumerable<string> _providerTypeSubTypes;
+        private IEnumerable<ProviderTypeSubType> _providerTypeSubTypes;
         private string _profilePatternKey;
         private string _fundingStreamId;
         private string _fundingPeriodId;
@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             return this;
         }
 
-    public FundingStreamPeriodProfilePatternBuilder WithFundingStreamId(string fundingStreamId)
+        public FundingStreamPeriodProfilePatternBuilder WithFundingStreamId(string fundingStreamId)
         {
             _fundingStreamId = fundingStreamId;
 
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             return this;
         }
 
-        public FundingStreamPeriodProfilePatternBuilder WithProviderTypeSubTypes(IEnumerable<string> providerTypeSubTypes)
+        public FundingStreamPeriodProfilePatternBuilder WithProviderTypeSubTypes(IEnumerable<ProviderTypeSubType> providerTypeSubTypes)
         {
             _providerTypeSubTypes = providerTypeSubTypes;
             return this;
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 AllowUserToEditProfilePattern = false,
                 ProfilePattern = _patterns?.ToArray() ?? Array.Empty<ProfilePeriodPattern>(),
                 ProfilePatternDisplayName = _profilePatternDisplayName ?? NewRandomString(),
-                ProviderSubTypes = _providerTypeSubTypes
+                ProviderTypeSubTypes = _providerTypeSubTypes
             };
         }
     }

@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<IReProfilingRequestBuilder> _reProfilingRequestBuilder;
         private Mock<IProfilingApiClient> _profiling;
         private Mock<IPoliciesService> _policiesService;
+        private Mock<IPublishedFundingCsvJobsService> _publishFundingCsvJobsService;
 
         private Reference _author;
 
@@ -69,6 +70,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _reProfilingRequestBuilder = new Mock<IReProfilingRequestBuilder>();
             _profiling = new Mock<IProfilingApiClient>();
             _policiesService = new Mock<IPoliciesService>();
+            _publishFundingCsvJobsService = new Mock<IPublishedFundingCsvJobsService>();
 
             _author = NewReference();
 
@@ -101,8 +103,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _policiesService.Object,
                new ReProfilingResponseMapper(),
                 Logger.None,
-             
-                PublishingResilienceTestHelper.GenerateTestPolicies());
+                PublishingResilienceTestHelper.GenerateTestPolicies(),
+                _publishFundingCsvJobsService.Object);
         }
 
         [TestMethod]
@@ -584,7 +586,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private async Task<IActionResult> WhenProfilePatternKeyIsAssigned(string fundingStreamId,
             string fundingPeriodId,
             string providerId,
-            ProfilePatternKey profilePatternKey) => await _service.AssignProfilePatternKey(fundingStreamId, fundingPeriodId, providerId, profilePatternKey, _author);
+            ProfilePatternKey profilePatternKey) => await _service.AssignProfilePatternKey(fundingStreamId, fundingPeriodId, providerId, null, profilePatternKey, _author);
 
         private void ThenResultShouldBe(IActionResult actionResult,
             HttpStatusCode httpStatusCode)

@@ -9,7 +9,24 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishedFundingCsvJobsService
     {
-        Task<IEnumerable<Job>> QueueCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string correlationId, Reference author);
-        Task<IEnumerable<Job>> GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string fundingPeriodId, IEnumerable<string> fundingStreamIds, string correlationId, Reference author);
+        Task<(Job ParentJob, IEnumerable<Job> ChildJobs)> QueueCsvPublishingJobs(GeneratePublishingCsvJobsCreationAction createActionType, 
+            string specificationId, 
+            string correlationId, 
+            Reference author,
+            Job parentJob = null);
+        Task<(Job ParentJob, IEnumerable<Job> ChildJobs)> QueueCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, 
+            string specificationId, 
+            string correlationId, 
+            Reference author, 
+            bool queueParentJob = false,
+            Job parentJob = null);
+        Task<(Job ParentJob, IEnumerable<Job> ChildJobs)> GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, 
+            string specificationId, 
+            string fundingPeriodId, 
+            IEnumerable<string> fundingStreamIds, 
+            string correlationId, 
+            Reference author, 
+            bool queueParentJob = false,
+            Job parentJob = null);
     }
 }

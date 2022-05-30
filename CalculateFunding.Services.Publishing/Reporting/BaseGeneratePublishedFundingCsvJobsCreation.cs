@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
 {
     public abstract class BaseGeneratePublishedFundingCsvJobsCreation : IGeneratePublishedFundingCsvJobsCreation
     {
+        private readonly ICreatePublishingReportsJob _createPublishingReportsJob;
         private readonly ICreateGeneratePublishedFundingCsvJobs _createGeneratePublishedFundingCsvJobs;
         private readonly ICreateGeneratePublishedProviderEstateCsvJobs _createGeneratePublishedProviderEstateCsvJobs;
         private readonly ICreateGeneratePublishedProviderStateSummaryCsvJobs _createGeneratePublishedProviderStateSummaryCsvJob;
@@ -20,7 +21,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
         protected BaseGeneratePublishedFundingCsvJobsCreation(
             ICreateGeneratePublishedFundingCsvJobs createGeneratePublishedFundingCsvJobs,
             ICreateGeneratePublishedProviderEstateCsvJobs createGeneratePublishedProviderEstateCsvJob,
-            ICreateGeneratePublishedProviderStateSummaryCsvJobs createGeneratePublishedProviderStateSummaryCsvJob)
+            ICreateGeneratePublishedProviderStateSummaryCsvJobs createGeneratePublishedProviderStateSummaryCsvJob,
+            ICreatePublishingReportsJob createPublishingReportsJob)
         {
             Guard.ArgumentNotNull(createGeneratePublishedFundingCsvJobs, nameof(createGeneratePublishedFundingCsvJobs));
             Guard.ArgumentNotNull(createGeneratePublishedProviderEstateCsvJob, nameof(createGeneratePublishedProviderEstateCsvJob));
@@ -29,9 +31,19 @@ namespace CalculateFunding.Services.Publishing.Reporting
             _createGeneratePublishedFundingCsvJobs = createGeneratePublishedFundingCsvJobs;
             _createGeneratePublishedProviderEstateCsvJobs = createGeneratePublishedProviderEstateCsvJob;
             _createGeneratePublishedProviderStateSummaryCsvJob = createGeneratePublishedProviderStateSummaryCsvJob;
+            _createPublishingReportsJob = createPublishingReportsJob;
         }
 
         public abstract Task<IEnumerable<Job>> CreateJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest);
+
+        public async Task<Job> CreatePublishingReportJob(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
+        {
+            return await _createPublishingReportsJob.CreateJob(
+                publishedFundingCsvJobsRequest.SpecificationId,
+                publishedFundingCsvJobsRequest.User,
+                publishedFundingCsvJobsRequest.CorrelationId        
+            );
+        }
 
         protected async Task<IEnumerable<Job>> CreatePublishedProviderEstateCsvJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
         {
@@ -43,7 +55,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
                     publishedFundingCsvJobsRequest.SpecificationId,
                     publishedFundingCsvJobsRequest.User,
                     publishedFundingCsvJobsRequest.CorrelationId,
-                    JobProperties(FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate, null, null, fundingStreamId, publishedFundingCsvJobsRequest.FundingPeriodId)));
+                    JobProperties(FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate, null, null, fundingStreamId, publishedFundingCsvJobsRequest.FundingPeriodId),
+                    parentJobId: publishedFundingCsvJobsRequest.ParentJobId));
             }
 
             return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
@@ -59,14 +72,16 @@ namespace CalculateFunding.Services.Publishing.Reporting
                     publishedFundingCsvJobsRequest.SpecificationId,
                     publishedFundingCsvJobsRequest.CorrelationId, 
                     publishedFundingCsvJobsRequest.User, 
-                    FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues, 
+                    FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues,
+                    publishedFundingCsvJobsRequest.ParentJobId,
                     fundingStreamId: fundingStreamId, 
                     fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
 
                 tasks.Add(CreatePublishedFundingCsvJob(publishedFundingCsvJobsRequest.SpecificationId,
                     publishedFundingCsvJobsRequest.CorrelationId,
                     publishedFundingCsvJobsRequest.User, 
-                    FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues, 
+                    FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues,
+                    publishedFundingCsvJobsRequest.ParentJobId,
                     fundingStreamId: fundingStreamId, 
                     fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
             }
@@ -85,6 +100,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                    publishedFundingCsvJobsRequest.CorrelationId,
                    publishedFundingCsvJobsRequest.User,
                    jobType,
+                   publishedFundingCsvJobsRequest.ParentJobId,
                    fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId,
                    fundingStreamId: publishedFundingCsvJobsRequest.FundingStreamIds.FirstOrDefault()));
             }
@@ -96,6 +112,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                    publishedFundingCsvJobsRequest.CorrelationId,
                    publishedFundingCsvJobsRequest.User,
                    FundingLineCsvGeneratorJobType.CurrentProfileValues,
+                   publishedFundingCsvJobsRequest.ParentJobId,
                    fundingLineName: Name,
                    fundingLineCode: Code,
                    fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId,
@@ -106,6 +123,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                    publishedFundingCsvJobsRequest.CorrelationId,
                    publishedFundingCsvJobsRequest.User,
                    FundingLineCsvGeneratorJobType.HistoryProfileValues,
+                   publishedFundingCsvJobsRequest.ParentJobId,
                    fundingLineName: Name,
                    fundingLineCode: Code,
                    fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId,
@@ -125,7 +143,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
                     publishedFundingCsvJobsRequest.SpecificationId,
                     publishedFundingCsvJobsRequest.CorrelationId,
                     publishedFundingCsvJobsRequest.User, 
-                    FundingLineCsvGeneratorJobType.PublishedGroups, 
+                    FundingLineCsvGeneratorJobType.PublishedGroups,
+                    publishedFundingCsvJobsRequest.ParentJobId,
                     fundingStreamId: fundingStreamId, 
                     fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
             }
@@ -143,7 +162,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
                     publishedFundingCsvJobsRequest.SpecificationId,
                     publishedFundingCsvJobsRequest.User,
                     publishedFundingCsvJobsRequest.CorrelationId,
-                    JobProperties(FundingLineCsvGeneratorJobType.PublishedProviderStateSummary, null, null, fundingStreamId, publishedFundingCsvJobsRequest.FundingPeriodId)));
+                    JobProperties(FundingLineCsvGeneratorJobType.PublishedProviderStateSummary, null, null, fundingStreamId, publishedFundingCsvJobsRequest.FundingPeriodId),
+                    parentJobId: publishedFundingCsvJobsRequest.ParentJobId));
             }
 
             return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
@@ -154,12 +174,16 @@ namespace CalculateFunding.Services.Publishing.Reporting
            string correlationId,
            Reference user,
            FundingLineCsvGeneratorJobType jobType,
+           string parentJobId,
            string fundingLineName = null,
            string fundingStreamId = null,
            string fundingPeriodId = null,
            string fundingLineCode = null)
         {
-            return _createGeneratePublishedFundingCsvJobs.CreateJob(specificationId, user, correlationId, JobProperties(jobType, fundingLineCode, fundingLineName, fundingStreamId, fundingPeriodId));
+            return _createGeneratePublishedFundingCsvJobs.CreateJob(specificationId,
+                user, correlationId,
+                JobProperties(jobType, fundingLineCode, fundingLineName, fundingStreamId, fundingPeriodId),
+                parentJobId: parentJobId);
         }
 
         private Dictionary<string, string> JobProperties(FundingLineCsvGeneratorJobType jobType, 

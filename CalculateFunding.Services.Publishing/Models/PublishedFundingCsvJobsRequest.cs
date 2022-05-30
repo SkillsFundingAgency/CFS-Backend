@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Models;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.Models
@@ -11,5 +12,6 @@ namespace CalculateFunding.Services.Publishing.Models
         public IEnumerable<(string Code, string Name)> FundingLines { get; set; }
         public IEnumerable<string> FundingStreamIds { get; set; }
         public string FundingPeriodId { get; set; }
+        public string ParentJobId { get; set; }
     }
 }

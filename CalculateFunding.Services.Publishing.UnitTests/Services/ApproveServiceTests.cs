@@ -447,7 +447,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         Arg.Is(fundingPeriodId),
                         Arg.Any<IEnumerable<string>>(),
                         Arg.Any<string>(),
-                        Arg.Any<Reference>());
+                        Arg.Any<Reference>(),
+                        true);
         }
 
         private void AndCalculationEngineApproveProviderRunning(string specificationId)

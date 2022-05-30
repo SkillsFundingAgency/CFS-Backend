@@ -11,7 +11,6 @@ using Polly;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -38,6 +37,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IReProfilingRequestBuilder _profilingRequestBuilder;
         private readonly IReProfilingResponseMapper _reProfilingResponseMapper;
+        private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
 
         public PublishedProviderProfilingService(IPublishedFundingRepository publishedFundingRepository,
             IPublishedProviderErrorDetection publishedProviderErrorDetection,
@@ -49,7 +49,8 @@ namespace CalculateFunding.Services.Publishing
             IPoliciesService policiesService,
             IReProfilingResponseMapper reProfilingResponseMapper,
             ILogger logger,
-            IPublishingResiliencePolicies publishingResiliencePolicies)
+            IPublishingResiliencePolicies publishingResiliencePolicies,
+            IPublishedFundingCsvJobsService publishFundingCsvJobsService)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishedProviderErrorDetection, nameof(publishedProviderErrorDetection));
@@ -64,6 +65,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(reProfilingResponseMapper, nameof(reProfilingResponseMapper));
+            Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
 
             _publishedFundingRepository = publishedFundingRepository;
             _publishedProviderErrorDetection = publishedProviderErrorDetection;
@@ -78,12 +80,14 @@ namespace CalculateFunding.Services.Publishing
             _logger = logger;
             _policiesService = policiesService;
             _reProfilingResponseMapper = reProfilingResponseMapper;
+            _publishFundingCsvJobsService = publishFundingCsvJobsService;
         }
 
         public async Task<IActionResult> AssignProfilePatternKey(
             string fundingStreamId, 
             string fundingPeriodId, 
             string providerId, 
+            string correlationId,
             ProfilePatternKey profilePatternKey,
             Reference author)
         {
@@ -132,6 +136,11 @@ namespace CalculateFunding.Services.Publishing
             await _publishedProviderErrorDetection.ApplyAssignProfilePatternErrorDetection(publishedProvider, context);
 
             await SavePublishedProvider(publishedProvider, newPublishedProviderVersion);
+
+            await _publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh,
+                newPublishedProviderVersion.SpecificationId,
+                correlationId,
+                author);
 
             return new StatusCodeResult((int)HttpStatusCode.OK);
         }

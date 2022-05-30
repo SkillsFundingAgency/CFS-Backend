@@ -15,8 +15,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public void SetUp()
         {
             JobsCreation = new GenerateApprovePublishedFundingCsvJobsCreation(
-                CreateGeneratePublishedFundingCsvJobs.Object, CreateGeneratePublishedProviderEstateCsvJobs.Object,
-                CreateGeneratePublishedProviderStateSummaryCsvJobs.Object);     
+                CreateGeneratePublishedFundingCsvJobs.Object, 
+                CreateGeneratePublishedProviderEstateCsvJobs.Object,
+                CreateGeneratePublishedProviderStateSummaryCsvJobs.Object, 
+                CreatePublishingReportsJob.Object);     
         }
         
         [TestMethod]

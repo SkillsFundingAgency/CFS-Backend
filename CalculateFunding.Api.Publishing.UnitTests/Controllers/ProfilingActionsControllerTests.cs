@@ -126,6 +126,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
                 .Setup(_ => _.AssignProfilePatternKey(_fundingStreamId,
                     _fundPeriodId,
                     _providerId,
+                    It.IsAny<string>(),
                     _profilePatternKey,
                     It.IsAny<Reference>()))
                 .ReturnsAsync(result);

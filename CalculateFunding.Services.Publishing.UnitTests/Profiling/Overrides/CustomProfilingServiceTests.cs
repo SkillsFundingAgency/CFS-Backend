@@ -752,7 +752,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             _publishedFundingCsvJobsService.Verify(_ => _.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh,
                 It.IsAny<string>(),
                 CorrelationId,
-                It.IsAny<Reference>()), Times.Once);
+                It.IsAny<Reference>(),
+                false,
+                null), Times.Once);
         }
 
         private void AndThePublishedProviderIsIndex(PublishedProviderVersion publishedProviderVersion) =>

@@ -182,6 +182,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<InMemoryFeatureManager, IFeatureManager>();
 
             RegisterTypeAs<GeneratePublishedFundingCsvJobCreation, ICreateGeneratePublishedFundingCsvJobs>();
+            RegisterTypeAs<CreatePublishingReportsJob, ICreatePublishingReportsJob>();
             RegisterTypeAs<CreateGeneratePublishedProviderEstateCsvJobs, ICreateGeneratePublishedProviderEstateCsvJobs>();
             RegisterTypeAs<CreateGeneratePublishedProviderStateSummaryCsvJobs, ICreateGeneratePublishedProviderStateSummaryCsvJobs>();
 
@@ -192,7 +193,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 .Select(_ => (IGeneratePublishedFundingCsvJobsCreation)Activator.CreateInstance(_, 
                     ResolveInstance<ICreateGeneratePublishedFundingCsvJobs>(), 
                     ResolveInstance<ICreateGeneratePublishedProviderEstateCsvJobs>(),
-                    ResolveInstance<ICreateGeneratePublishedProviderStateSummaryCsvJobs>()))
+                    ResolveInstance<ICreateGeneratePublishedProviderStateSummaryCsvJobs>(),
+                    ResolveInstance<ICreatePublishingReportsJob>()))
                 .ToArray();
             RegisterInstanceAs<IGeneratePublishedFundingCsvJobsCreationLocator>(new GeneratePublishedFundingCsvJobsCreationLocator(generatePublishedFundingCsvJobsCreations));
 

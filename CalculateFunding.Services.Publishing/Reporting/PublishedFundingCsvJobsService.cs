@@ -37,7 +37,12 @@ namespace CalculateFunding.Services.Publishing.Reporting
             _logger = logger;
         }
 
-        public async Task<IEnumerable<Job>> QueueCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string correlationId, Reference author)
+        public async Task<(Job ParentJob, IEnumerable<Job> ChildJobs)> QueueCsvPublishingJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string correlationId, Reference author, Job parentJob = null)
+        {
+            return await QueueCsvJobs(createActionType, specificationId, correlationId, author, true, parentJob);
+        }
+
+        public async Task<(Job ParentJob, IEnumerable<Job> ChildJobs)> QueueCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string correlationId, Reference author, bool queueParentJob = false, Job parentJob = null)
         {
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
 
@@ -58,11 +63,21 @@ namespace CalculateFunding.Services.Publishing.Reporting
                     specification.FundingPeriod.Id,
                     specification.FundingStreams.Select(_ => _.Id),
                     correlationId,
-                    author);
+                    author,
+                    queueParentJob,
+                    parentJob);
         }
 
-        public async Task<IEnumerable<Job>> GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string fundingPeriodId, IEnumerable<string> fundingStreamIds, string correlationId, Reference author)
+        public async Task<(Job ParentJob, IEnumerable<Job> ChildJobs)> GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, 
+            string specificationId, 
+            string fundingPeriodId, 
+            IEnumerable<string> fundingStreamIds, 
+            string correlationId, 
+            Reference author,
+            bool queueParentJob = false,
+            Job parentJob = null)
         {
+
             IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
                     .GetService(createActionType);
             IEnumerable<(string Code, string Name)> fundingLines = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
@@ -75,7 +90,14 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 FundingStreamIds = fundingStreamIds ?? Array.Empty<string>(),
                 FundingPeriodId = fundingPeriodId
             };
-            return await generateCsvJobs.CreateJobs(publishedFundingCsvJobsRequest);
+
+            if (queueParentJob)
+            {
+                parentJob ??= await generateCsvJobs.CreatePublishingReportJob(publishedFundingCsvJobsRequest);
+                publishedFundingCsvJobsRequest.ParentJobId = parentJob.Id;
+            }
+
+            return (parentJob, await generateCsvJobs.CreateJobs(publishedFundingCsvJobsRequest));
         }
     }
 }

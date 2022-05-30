@@ -9,6 +9,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class GenerateCsvJobsInMemoryClient : IGeneratePublishedFundingCsvJobsCreation
     {
+        public Task<Job> CreatePublishingReportJob(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<IEnumerable<Job>> CreateJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
         {
             RequestedSpecificationIds.Add(publishedFundingCsvJobsRequest.SpecificationId);

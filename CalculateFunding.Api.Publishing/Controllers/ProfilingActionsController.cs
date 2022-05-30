@@ -47,7 +47,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
            [FromBody] ProfilePatternKey profilePatternKey)
         {
             return await _publishedProviderProfilingService.AssignProfilePatternKey(
-                fundingStreamId, fundingPeriodId, providerId, profilePatternKey, Request.GetUserOrDefault());
+                fundingStreamId, fundingPeriodId, providerId, Request.GetCorrelationId(), profilePatternKey, Request.GetUserOrDefault());
         }
 
         /// <summary>

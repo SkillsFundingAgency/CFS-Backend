@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -54,6 +55,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             GivenSpecification(specificationId, fundingPeriodId, fundingStreamId);
             AndReportGenerator(actionType);
+
             await WhenQueueJobForCsvRequested(actionType, specificationId, correlationId);
             AndTheCsvGenerationJobsWereCreated(actionType, 
                 specificationId, 
@@ -73,6 +75,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             string correlationId = new RandomString();
 
             AndReportGenerator(actionType);
+            AndThePublishingReportJobCreated(specificationId,
+                fundingPeriodId,
+                actionType == GeneratePublishingCsvJobsCreationAction.Release ? new[] { fundingStreamId } : Array.Empty<string>());
+            
             await WhenGenerateJobForCsvRequested(actionType, 
                 specificationId, 
                 fundingPeriodId, 
@@ -138,6 +144,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Returns(_generatePublishedFundingCsvJobsCreation.Object);
         }
 
+        private void AndThePublishingReportJobCreated(string specificationId,
+            string fundingPeriodId,
+            IEnumerable<string> fundingStreamIds)
+        {
+            _generatePublishedFundingCsvJobsCreation.Setup(_ => _.CreatePublishingReportJob(It.Is<PublishedFundingCsvJobsRequest>(job =>
+                                                                                    job.SpecificationId == specificationId &&
+                                                                                    job.FundingPeriodId == fundingPeriodId &&
+                                                                                    job.FundingStreamIds.SequenceEqual(fundingStreamIds))))
+                .ReturnsAsync(new Job());
+        }
+
         private void AndTheCsvGenerationJobsWereCreated(GeneratePublishingCsvJobsCreationAction actionType, 
             string specificationId, 
             string fundingPeriodId, 
@@ -160,7 +177,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             IEnumerable<string> fundingStreamIds, 
             string correlationId)
         {
-            await _publishedFundingCsvJobsService.GenerateCsvJobs(actionType, specificationId, fundingPeriodId, fundingStreamIds, correlationId, null);
+            await _publishedFundingCsvJobsService.GenerateCsvJobs(actionType, specificationId, fundingPeriodId, fundingStreamIds, correlationId, null, true);
         }
 
         private async Task WhenQueueJobForCsvRequested(GeneratePublishingCsvJobsCreationAction actionType, 

@@ -389,6 +389,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateRefreshPublishedFundingCsvJobsCreation>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateApprovePublishedFundingCsvJobsCreation>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateReleasePublishedFundingCsvJobsCreation>();
+            builder.AddScoped<ICreatePublishingReportsJob, CreatePublishingReportsJob>();
 
             builder.AddScoped<IFundingLineCsvGenerator, FundingLineCsvGenerator>();
             builder.AddScoped<IFundingLineCsvTransform, PublishedProviderFundingLineCsvTransform>();

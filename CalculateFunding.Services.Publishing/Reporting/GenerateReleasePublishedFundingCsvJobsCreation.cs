@@ -1,11 +1,11 @@
-﻿using CalculateFunding.Common.Utility;
+﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Helpers;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Common.Helpers;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Reporting
 {
@@ -14,8 +14,12 @@ namespace CalculateFunding.Services.Publishing.Reporting
         public GenerateReleasePublishedFundingCsvJobsCreation(
             ICreateGeneratePublishedFundingCsvJobs createGeneratePublishedFundingCsvJobs,
             ICreateGeneratePublishedProviderEstateCsvJobs createGeneratePublishedProviderEstateCsvJob,
-            ICreateGeneratePublishedProviderStateSummaryCsvJobs createGeneratePublishedProviderStateSummaryCsvJob)
-            : base(createGeneratePublishedFundingCsvJobs, createGeneratePublishedProviderEstateCsvJob, createGeneratePublishedProviderStateSummaryCsvJob)
+            ICreateGeneratePublishedProviderStateSummaryCsvJobs createGeneratePublishedProviderStateSummaryCsvJob,
+            ICreatePublishingReportsJob createPublishingReportsJob)
+            : base(createGeneratePublishedFundingCsvJobs, 
+                  createGeneratePublishedProviderEstateCsvJob, 
+                  createGeneratePublishedProviderStateSummaryCsvJob,
+                  createPublishingReportsJob)
         {
         }
 
