@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Repositories.Common.Search.Results;
+﻿using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search.Results;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
     public interface IReleaseCandidateService
     {
-        bool IsReleaseCandidate(int publishedProviderMajorVersion, IEnumerable<ReleaseChannel> releaseChannels);
+        bool IsReleaseCandidate(PublishedProviderVersion publishedProviderVersion, IEnumerable<ReleaseChannel> releaseChannels);
     }
 }

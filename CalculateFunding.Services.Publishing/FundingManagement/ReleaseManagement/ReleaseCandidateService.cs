@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Repositories.Common.Search.Results;
+﻿using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -12,8 +13,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     {
         private string[] fundsTransferChannels = { "Contracting", "Payment" };
 
-        public bool IsReleaseCandidate(int publishedProviderMajorVersion, IEnumerable<ReleaseChannel> releaseChannels)
+        public bool IsReleaseCandidate(PublishedProviderVersion publishedProviderVersion, IEnumerable<ReleaseChannel> releaseChannels)
         {
+            if (publishedProviderVersion.Status == PublishedProviderStatus.Approved)
+            {
+                return true;
+            }
+
             if (releaseChannels == null || !releaseChannels.Any())
             {
                 return false;
@@ -31,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 releasedMajorVersions.Add((int)fundsTransferMajorVersion);
             }
 
-            return releasedMajorVersions.Any(_ => _ < publishedProviderMajorVersion);
+            return releasedMajorVersions.Any(_ => _ < publishedProviderVersion.MajorVersion);
         }
     }
 }

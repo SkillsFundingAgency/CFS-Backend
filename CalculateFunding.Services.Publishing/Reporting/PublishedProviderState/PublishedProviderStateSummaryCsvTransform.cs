@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
                     releaseChannels.Add(providerChannel ?? new ReleaseChannel { ChannelCode = channel, MajorVersion = providerChannelMajorVersion });
                 }
 
-                row["Release candidate"] = _releaseCandidateService.IsReleaseCandidate(publishedProviderVersion.MajorVersion, releaseChannels);
+                row["Release candidate"] = _releaseCandidateService.IsReleaseCandidate(publishedProviderVersion, releaseChannels);
 
                 yield return (ExpandoObject)row;
             }

@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Repositories.Common.Search.Results;
+﻿using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -12,17 +13,32 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
     [TestClass]
     public class ReleaseCandidateServiceTests
     {
-        static IEnumerable<object[]> DataSetupNoChannels =>
+        static IEnumerable<object[]> DataSetupNoChannelsButApproved =>
             new[] 
             {
                 new object[]
                 {
-                    1,
+                    new PublishedProviderVersion { MajorVersion = 1, Status = PublishedProviderStatus.Approved },
                     new List<ReleaseChannel>()
                 },
                 new object[]
                 {
-                    1,
+                    new PublishedProviderVersion { MajorVersion = 1, Status = PublishedProviderStatus.Approved },
+                    null
+                }
+            };
+
+        static IEnumerable<object[]> DataSetupNoChannelsAndNotApproved =>
+            new[]
+            {
+                new object[]
+                {
+                    new PublishedProviderVersion { MajorVersion = 1, Status = PublishedProviderStatus.Draft },
+                    new List<ReleaseChannel>()
+                },
+                new object[]
+                {
+                    new PublishedProviderVersion { MajorVersion = 1, Status = PublishedProviderStatus.Draft },
                     null
                 }
             };
@@ -32,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             {
                 new object[]
                 {
-                    1,
+                    new PublishedProviderVersion { MajorVersion = 1 },
                     new ReleaseChannel[]
                     {
                         new ReleaseChannel { ChannelCode = "Statment", MajorVersion = 1 },
@@ -47,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             {
                 new object[]
                 {
-                    2,
+                    new PublishedProviderVersion { MajorVersion = 2 },
                     new ReleaseChannel[]
                     {
                         new ReleaseChannel { ChannelCode = "Statment", MajorVersion = 1 },
@@ -58,30 +74,37 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             };
 
         [TestMethod]
-        [DynamicData(nameof(DataSetupNoChannels))]
-        public void IsReleaseCandidateIsFalseIfNoReleaseChannels(int publishedProviderMajorVersion, IEnumerable<ReleaseChannel> releaseChannels)
+        [DynamicData(nameof(DataSetupNoChannelsButApproved))]
+        public void IsReleaseCandidateIsTrueIfNoReleaseChannelsButApproved(PublishedProviderVersion publishedProviderVersion, IEnumerable<ReleaseChannel> releaseChannels)
         {
-            Assert.IsFalse(IsReleaseCandidateResult(publishedProviderMajorVersion, releaseChannels));
+            Assert.IsTrue(IsReleaseCandidateResult(publishedProviderVersion, releaseChannels));
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(DataSetupNoChannelsAndNotApproved))]
+        public void IsReleaseCandidateIsFalseIfNoReleaseChannelsAndNotApproved(PublishedProviderVersion publishedProviderVersion, IEnumerable<ReleaseChannel> releaseChannels)
+        {
+            Assert.IsFalse(IsReleaseCandidateResult(publishedProviderVersion, releaseChannels));
         }
 
         [TestMethod]
         [DynamicData(nameof(DataSetupMultiFundsTransferChannelsNotCandidate))]
-        public void IsReleaseCandidateIsFalseIfUptodate(int publishedProviderMajorVersion, IEnumerable<ReleaseChannel> releaseChannels)
+        public void IsReleaseCandidateIsFalseIfUptodate(PublishedProviderVersion publishedProviderVersion, IEnumerable<ReleaseChannel> releaseChannels)
         {
-            Assert.IsFalse(IsReleaseCandidateResult(publishedProviderMajorVersion, releaseChannels));
+            Assert.IsFalse(IsReleaseCandidateResult(publishedProviderVersion, releaseChannels));
         }
 
         [TestMethod]
         [DynamicData(nameof(DataSetupMultiFundsTransferChannelsCandidate))]
-        public void IsReleaseCandidateIsTrueIfPendingRelease(int publishedProviderMajorVersion, IEnumerable<ReleaseChannel> releaseChannels)
+        public void IsReleaseCandidateIsTrueIfPendingRelease(PublishedProviderVersion publishedProviderVersion, IEnumerable<ReleaseChannel> releaseChannels)
         {
-            Assert.IsTrue(IsReleaseCandidateResult(publishedProviderMajorVersion, releaseChannels));
+            Assert.IsTrue(IsReleaseCandidateResult(publishedProviderVersion, releaseChannels));
         }
 
-        private bool IsReleaseCandidateResult(int publishedProviderMajorVersion, IEnumerable<ReleaseChannel> releaseChannels)
+        private bool IsReleaseCandidateResult(PublishedProviderVersion publishedProviderVersion, IEnumerable<ReleaseChannel> releaseChannels)
         {
             ReleaseCandidateService releaseCandidateService = new ReleaseCandidateService();
-            return releaseCandidateService.IsReleaseCandidate(publishedProviderMajorVersion, releaseChannels);
+            return releaseCandidateService.IsReleaseCandidate(publishedProviderVersion, releaseChannels);
         }
     }
 }

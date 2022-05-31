@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     }
                 }
 
-                dataRowValues.Add(_releaseCandidateService.IsReleaseCandidate(dto.MajorVersion, releaseChannels));
+                dataRowValues.Add(_releaseCandidateService.IsReleaseCandidate(dto, releaseChannels));
             }
 
             DataTable.Rows.Add(dataRowValues.ToArray());
