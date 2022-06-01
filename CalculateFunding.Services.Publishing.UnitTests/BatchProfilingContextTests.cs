@@ -28,9 +28,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [DynamicData(nameof(AddProviderProfilingRequestDataExamples), DynamicDataSourceType.Method)]
         public void AddsRequestDataForSuppliedPublishedProviderVersions(PublishedProviderVersion providerVersion,
             bool isNew,
+            FundingLine[] fundingLines,
             ProviderProfilingRequestData expectedRequestData)
         {
-            WhenTheRequestDataIsAdded(providerVersion, isNew);
+            WhenTheRequestDataIsAdded(providerVersion, isNew, fundingLines: fundingLines);
 
             _context.ProfilingRequests
                 .Should()
@@ -705,6 +706,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                             fl.WithFundingLineType(FundingLineType.Information)),
                         paymentFundingLineTwo));
 
+            PublishedProviderVersion publishedProviderVersionEmptyFundingLines = NewPublishedProviderVersion(_ =>
+                _.WithFundingPeriodId(fundingPeriodId)
+                    .WithFundingStreamId(fundingStreamId)
+                    .WithProvider(NewProvider(p =>
+                        p.WithProviderType(providerType)
+                            .WithProviderSubType(providerSubType))));
+
             PublishedProviderVersion publishedProviderVersionWithCustomProfile = NewPublishedProviderVersion(_ =>
                 _.WithFundingPeriodId(fundingPeriodId)
                     .WithFundingStreamId(fundingStreamId)
@@ -735,6 +743,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 publishedProviderVersion,
                 false,
+                null,
                 NewProviderProfilingRequestData(_ => _.WithProfilePatternKeys((fundingLineCodeOne, profilePatternKey))
                     .WithInScopeFundingLines(new FundingLine[0])
                     .WithPublishedProviderVersion(publishedProviderVersion)
@@ -745,6 +754,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 publishedProviderVersionWithCustomProfile,
                 false,
+                null,
                 NewProviderProfilingRequestData(_ => _.WithProfilePatternKeys((fundingLineCodeOne, profilePatternKey))
                     .WithInScopeFundingLines(new FundingLine[0])
                     .WithPublishedProviderVersion(publishedProviderVersionWithCustomProfile)
@@ -754,6 +764,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProviderVersion expectedPublishedProvider = publishedProviderVersionNullPaymentFundingLine.DeepCopy();
             expectedPublishedProvider.FundingLines.ForEach(_ => _.Value = 10);
 
+            PublishedProviderVersion expectedPublishedProviderWithNullFundingLines = publishedProviderVersionEmptyFundingLines.DeepCopy();
+
             FundingLine expectedFundingLine = paymentFundingLineThree.DeepCopy();
             expectedFundingLine.Value = 10;
 
@@ -761,6 +773,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 publishedProviderVersionNullPaymentFundingLine,
                 false,
+                null,
                 NewProviderProfilingRequestData(_ => _.WithProfilePatternKeys((fundingLineCodeOne, profilePatternKey))
                     .WithInScopeFundingLines(expectedFundingLine)
                     .WithPublishedProviderVersion(expectedPublishedProvider)
@@ -769,8 +782,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             yield return new object[]
             {
+                publishedProviderVersionEmptyFundingLines,
+                false,
+                new FundingLine[] { expectedFundingLine },
+                NewProviderProfilingRequestData(_ => _.WithProfilePatternKeys()
+                    .WithInScopeFundingLines(expectedFundingLine)
+                    .WithPublishedProviderVersion(expectedPublishedProviderWithNullFundingLines)
+                    .WithFundingLinesToProfile(expectedFundingLine))
+            };
+
+            yield return new object[]
+            {
                 publishedProviderVersion,
                 true,
+                null,
                 NewProviderProfilingRequestData(_ => _.WithPublishedProviderVersion(publishedProviderVersion)
                     .WithFundingLinesToProfile(paymentFundingLineOne, paymentFundingLineTwo)
                     .WithProviderSubType(providerSubType)
@@ -887,14 +912,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         private void WhenTheRequestDataIsAdded(PublishedProviderVersion publishedProviderVersion,
-            bool isNew)
+            bool isNew,
+            FundingLine[] fundingLines = null)
             => _context.AddProviderProfilingRequestData(publishedProviderVersion,
                 new Dictionary<string, GeneratedProviderResult>
                 {
                     {
                         publishedProviderVersion.ProviderId, new GeneratedProviderResult
                         {
-                            FundingLines = publishedProviderVersion.FundingLines.DeepCopy().Select(_ => {
+                            FundingLines = fundingLines ?? publishedProviderVersion.FundingLines.DeepCopy().Select(_ => {
                                 _.Value ??= 10;
                                 return _;
                             })

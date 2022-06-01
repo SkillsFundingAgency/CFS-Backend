@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public ProviderProfilingRequestDataBuilder WithProfilePatternKeys(params (string key, string value)[] profilePatternKeys)
         {
             _profilePatternKeys = profilePatternKeys
-                .ToDictionary(_ => _.key, _ => _.value);
+                ?.ToDictionary(_ => _.key, _ => _.value);
 
             return this;
         }
