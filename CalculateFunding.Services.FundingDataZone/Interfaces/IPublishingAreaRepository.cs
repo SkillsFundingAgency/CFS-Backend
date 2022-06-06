@@ -18,5 +18,7 @@ namespace CalculateFunding.Services.FundingDataZone.Interfaces
         Task<IEnumerable<PublishingAreaOrganisation>> GetLocalAuthorities(int providerSnapshotId);
         Task<PublishingAreaProviderSnapshot> GetProviderSnapshotMetadata(int providerSnapshotId);
         Task<IEnumerable<PublishingAreaProviderSnapshot>> GetLatestProviderSnapshotsForAllFundingStreams();
+        Task PopulateFundingPeriods();
+        Task PopulateFundingPeriod(int providerSnapshotId);
     }
 }

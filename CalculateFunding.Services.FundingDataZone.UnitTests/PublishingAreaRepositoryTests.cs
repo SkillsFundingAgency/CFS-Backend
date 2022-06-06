@@ -165,7 +165,29 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
                 .Should()
                 .BeEquivalentTo(expectedMetadata);
         }
-        
+
+        [TestMethod]
+        public async Task PopulateFundingPeriod()
+        {
+            int providerSnapshotId = NewRandomNumber();
+
+            GivenTheSingleDapperReturnFor<string>("sp_PopulateProviderSnapshotFundingPeriodBySnapshotId",
+                _ => _.ProviderSnapshotId == providerSnapshotId,
+                null);
+
+            await WhenPopulateFundingPeriodIsExecuted(providerSnapshotId);
+        }
+
+        [TestMethod]
+        public async Task PopulateFundingPeriods()
+        {
+            GivenTheDapperReturnFor<string>("sp_PopulateAllProviderSnapshotFundingPeriod",
+                null,
+                CommandType.StoredProcedure);
+
+            await WhenPopulateFundingPeriodsIsExecuted();
+        }
+
         [TestMethod]
         public async Task GetAllOrganisations()
         {
@@ -323,7 +345,13 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
 
         private async Task<IEnumerable<PublishingAreaDatasetMetadata>> WhenThePublishingAreaDatasetMetadataIsQueried(string fundingStreamId)
             => await _repository.GetDatasetMetadata(fundingStreamId);
-        
+
+        private async Task WhenPopulateFundingPeriodsIsExecuted()
+            => await _repository.PopulateFundingPeriods();
+
+        private async Task WhenPopulateFundingPeriodIsExecuted(int providerSnapshotId)
+            => await _repository.PopulateFundingPeriod(providerSnapshotId);
+
         private async Task<IEnumerable<string>> WhenTheFundingStreamsWithDatasetsAreQueried()
             => await _repository.GetFundingStreamsWithDatasets();
 

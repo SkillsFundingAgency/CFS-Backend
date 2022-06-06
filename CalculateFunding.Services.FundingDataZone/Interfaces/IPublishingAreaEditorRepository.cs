@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Services.FundingDataZone.Interfaces;
 using CalculateFunding.Services.FundingDataZone.SqlModels;
-using Microsoft.AspNetCore.Mvc;
 
-namespace CalculateFunding.Services.FundingDataZone
+namespace CalculateFunding.Services.FundingDataZone.Interfaces
 {
     public interface IPublishingAreaEditorRepository : IPublishingAreaRepository
     {

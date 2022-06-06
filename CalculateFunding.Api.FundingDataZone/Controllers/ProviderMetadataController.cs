@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
@@ -16,19 +15,23 @@ namespace CalculateFunding.Api.FundingDataZone.Controllers
         private readonly IFundingStreamsWithProviderSnapshotsRetrievalService _fundingStreamsWithProviderSnapshotsRetrievalService;
         private readonly IProviderSnapshotMetadataRetrievalService _providerSnapshotMetadataRetrievalService;
         private readonly IProviderSnapshotForFundingStreamService _providerSnapshotForFundingStreamService;
+        private readonly IProviderSnapshotFundingPeriodService _providerSnapshotFundingPeriodService;
 
         public ProviderMetadataController(
             IFundingStreamsWithProviderSnapshotsRetrievalService fundingStreamsWithProviderSnapshotsRetrievalService,
             IProviderSnapshotForFundingStreamService providerSnapshotForFundingStreamService,
-            IProviderSnapshotMetadataRetrievalService providerSnapshotMetadataRetrievalService)
+            IProviderSnapshotMetadataRetrievalService providerSnapshotMetadataRetrievalService,
+            IProviderSnapshotFundingPeriodService providerSnapshotFundingPeriodService)
         {
             Guard.ArgumentNotNull(fundingStreamsWithProviderSnapshotsRetrievalService, nameof(fundingStreamsWithProviderSnapshotsRetrievalService));
             Guard.ArgumentNotNull(providerSnapshotMetadataRetrievalService, nameof(providerSnapshotMetadataRetrievalService));
             Guard.ArgumentNotNull(providerSnapshotForFundingStreamService, nameof(providerSnapshotForFundingStreamService));
-            
+            Guard.ArgumentNotNull(providerSnapshotFundingPeriodService, nameof(providerSnapshotFundingPeriodService));
+
             _fundingStreamsWithProviderSnapshotsRetrievalService = fundingStreamsWithProviderSnapshotsRetrievalService;
             _providerSnapshotForFundingStreamService = providerSnapshotForFundingStreamService;
             _providerSnapshotMetadataRetrievalService = providerSnapshotMetadataRetrievalService;
+            _providerSnapshotFundingPeriodService = providerSnapshotFundingPeriodService;
         }
 
         private const string ListFundingStreamsWithProviderSnapshotsDescription = @"
@@ -104,19 +107,19 @@ Used as input for:
         }
 
         private const string GetProviderSnapshotMetadataDescription = @"
-```
-Given I am CFS user
-And I provide a valid provider snapshot ID
-When I request information about a particular provider snapshot
-Then I am able to see all details about the provider snapshot
-```
-Used as input for:
+        ```
+        Given I am CFS user
+        And I provide a valid provider snapshot ID
+        When I request information about a particular provider snapshot
+        Then I am able to see all details about the provider snapshot
+        ```
+        Used as input for:
 
-- Browing provider snapshots
-";
+        - Browsing provider snapshots
+        ";
 
         /// <summary>
-        ///     Get provider snapshot metadata
+        /// Get provider snapshot metadata
         /// </summary>
         /// <param name="providerSnapshotId">Provider Snapshot Id</param>
         /// <returns></returns>
@@ -137,6 +140,55 @@ Used as input for:
             }
 
             return new OkObjectResult(snapshot);
+        }
+
+        private const string PopulateProviderSnapshotFundingPeriodDescription = @"
+        ```
+        Given I am CFS user
+        When I call populate funding period for given provider snapshot
+        Then I am able to see funding period of given provider snapshot
+        ```
+        Used as input for:
+
+        - Browsing provider snapshot funding period
+        ";
+
+        /// <summary>
+        /// Populate provider snapshot funding periods
+        /// </summary>
+        /// <returns></returns>
+        [SwaggerOperation(Summary = "Populate provider snapshot funding period metadata", Description = PopulateProviderSnapshotFundingPeriodDescription)]
+        [HttpGet("api/providers/snapshots/{providerSnapshotId}/populate-funding-periods")]
+        public async Task<ActionResult> PopulateProviderSnapshotFundingPeriod(
+            [FromRoute] int providerSnapshotId)
+        {
+            await _providerSnapshotFundingPeriodService.PopulateFundingPeriod(providerSnapshotId);
+
+            return new OkResult();
+        }
+
+        private const string PopulateProviderSnapshotFundingPeriodsDescription = @"
+        ```
+        Given I am CFS user
+        When I call populate funding period for all provider snapshots
+        Then I am able to see funding period of all provider snapshots
+        ```
+        Used as input for:
+
+        - Browsing provider snapshot funding period
+        ";
+
+        /// <summary>
+        /// Populate provider snapshot funding periods
+        /// </summary>
+        /// <returns></returns>
+        [SwaggerOperation(Summary = "Populate provider snapshots funding period metadata", Description = PopulateProviderSnapshotFundingPeriodsDescription)]
+        [HttpGet("api/providers/snapshots/populate-funding-periods")]
+        public async Task<ActionResult> PopulateProviderSnapshotFundingPeriods()
+        {
+            await _providerSnapshotFundingPeriodService.PopulateFundingPeriods();
+
+            return new OkResult();
         }
     }
 }

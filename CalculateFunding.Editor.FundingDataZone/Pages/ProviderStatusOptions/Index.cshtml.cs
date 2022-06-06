@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Services.FundingDataZone;
+using CalculateFunding.Services.FundingDataZone.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -15,7 +15,7 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.ProviderStatusOptions
             _repo = publishingAreaEditorRepository;
         }
 
-        public IEnumerable<CalculateFunding.Services.FundingDataZone.SqlModels.ProviderStatus> Statuses { get; private set; }
+        public IEnumerable<Services.FundingDataZone.SqlModels.ProviderStatus> Statuses { get; private set; }
 
         public async Task<IActionResult> OnGet()
         {

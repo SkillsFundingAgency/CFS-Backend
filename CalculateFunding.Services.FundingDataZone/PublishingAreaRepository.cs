@@ -39,6 +39,14 @@ namespace CalculateFunding.Services.FundingDataZone
                     FundingStreamId = fundingStreamId
                 });
 
+        public async Task PopulateFundingPeriods() => await Query<object>("sp_PopulateAllProviderSnapshotFundingPeriod");
+        public async Task PopulateFundingPeriod(int providerSnapshotId)
+            => await Query<object>("sp_PopulateProviderSnapshotFundingPeriodBySnapshotId",
+                new
+                {
+                    ProviderSnapshotId = providerSnapshotId
+                });
+
         public async Task<IEnumerable<string>> GetFundingStreamsWithDatasets() => await Query<string>("sp_getFundingStreamsWithDatasets");
 
         public async Task<IEnumerable<string>> GetFundingStreamsWithProviderSnapshots() => await Query<string>("sp_getFundingStreamsWithProviderSnapshots");

@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using CalculateFunding.Services.FundingDataZone;
+using CalculateFunding.Services.FundingDataZone.Interfaces;
 using CalculateFunding.Services.FundingDataZone.SqlModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
