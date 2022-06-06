@@ -53,7 +53,9 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 midYearType == MidYearType.OpenerCatchup ||
                 midYearType == MidYearType.Converter);
 
-            if (orderedProfilePeriodsForFundingLine.IsNullOrEmpty() && !midYearOpener)
+            if (orderedProfilePeriodsForFundingLine.IsNullOrEmpty() && 
+                GetFundingLine(fundingLineCode, publishedProviderVersion).Value.GetValueOrDefault() != 0 && 
+                !midYearOpener)
             {
                 throw new ArgumentOutOfRangeException(nameof(publishedProviderVersion), $"Did not locate profile periods corresponding to funding line id {fundingLineCode} against published provider: {publishedProviderVersion.ProviderId}");
             }
@@ -97,12 +99,18 @@ namespace CalculateFunding.Services.Publishing.Profiling
         private ProfilePeriod[] GetOrderedProfilePeriodsForFundingLine(string fundingLineCode,
             PublishedProviderVersion publishedProviderVersion)
         {
+            return new YearMonthOrderedProfilePeriods(GetFundingLine(fundingLineCode, publishedProviderVersion))
+                .ToArray();
+        }
+
+        private FundingLine GetFundingLine(string fundingLineCode,
+            PublishedProviderVersion publishedProviderVersion)
+        {
             FundingLine fundingLine = publishedProviderVersion.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
             Guard.ArgumentNotNull(fundingLine, nameof(fundingLine));
 
-            return new YearMonthOrderedProfilePeriods(fundingLine)
-                .ToArray();
+            return fundingLine;
         }
 
         private IEnumerable<ExistingProfilePeriod> BuildExistingProfilePeriods(ProfilePeriod[] profilePeriods, int paidUpToIndex)
