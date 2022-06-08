@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Publishing
                 return new NotFoundResult();
             }
 
-            bool fundingLineExists = latestPublishedProviderVersion.FundingLines.Any(_ => _.FundingLineCode == fundingLineCode);
+            bool fundingLineExists = latestPublishedProviderVersion.FundingLines.AnyWithNullCheck(_ => _.FundingLineCode == fundingLineCode);
             if (!fundingLineExists)
             {
                 return new NotFoundObjectResult("Funding line not found");
@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns
             )
         {
-            FundingLine fundingLine = latestPublishedProviderVersion.FundingLines.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
+            FundingLine fundingLine = latestPublishedProviderVersion.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
             FundingDate fundingDates = await _policiesService.GetFundingDate(
                fundingStreamId,
@@ -210,7 +210,7 @@ namespace CalculateFunding.Services.Publishing
                 .ToArray();
 
             fundingLineProfile.ProfilePatternTotal = latestPublishedProviderVersion
-                .FundingLines
+                .FundingLines?
                 .Where(_ => _.Type == FundingLineType.Payment)
                 .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)
                 ?.Value;
@@ -284,7 +284,7 @@ namespace CalculateFunding.Services.Publishing
                     specificationId);
 
             FundingLine[] fundingLines = Enumerable.DistinctBy(latestPublishedProviderVersion
-                .FundingLines
+                .FundingLines?
                 .Where(f => f.Type == FundingLineType.Payment)
                 , f => f.FundingLineCode)
                 .OrderBy(f => f.Name).ToArray();
@@ -405,8 +405,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             decimal? latestFundingLineValue = latestPublishedProviderVersion
-                .FundingLines
-                ?.FirstOrDefault(_ => _.FundingLineCode == fundingLineCode)
+                .FundingLines?.FirstOrDefault(_ => _.FundingLineCode == fundingLineCode)
                 .Value;
 
             decimal? latestCarryOverAmount = latestPublishedProviderVersion

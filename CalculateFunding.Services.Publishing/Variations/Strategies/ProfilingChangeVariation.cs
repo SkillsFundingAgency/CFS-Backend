@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             List<string> fundingLines = new List<string>();
 
             IDictionary<string, FundingLine> latestFundingLines =
-                refreshState.FundingLines.Where(_ => _.Type == FundingLineType.Payment)
+                refreshState.FundingLines?.Where(_ => _.Type == FundingLineType.Payment)
                     .ToDictionary(_ => _.FundingLineCode);
 
             foreach (FundingLine previousFundingLine in priorState.FundingLines?.Where(_ => _.Type == FundingLineType.Payment && 
@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         {
             foreach (ProfileVariationPointer variationPointer in providerVariationContext.VariationPointers ?? ArraySegment<ProfileVariationPointer>.Empty)
             {
-                FundingLine fundingLine = publishedProviderVersion?.FundingLines.SingleOrDefault(_ => _.FundingLineCode == variationPointer.FundingLineId);
+                FundingLine fundingLine = publishedProviderVersion?.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == variationPointer.FundingLineId);
 
                 if (fundingLine == null)
                 {

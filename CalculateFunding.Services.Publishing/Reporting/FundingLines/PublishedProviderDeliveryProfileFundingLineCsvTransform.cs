@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             IEnumerable<ProfilePeriodPattern> profilePeriodPatterns = null,
             IEnumerable<string> distinctFundingLineNames = null)
         {
-            FundingLine fundingLine = publishedProviderVersion.FundingLines.SingleOrDefault();
+            FundingLine fundingLine = publishedProviderVersion.FundingLines?.SingleOrDefault();
 
             if (fundingLine == null)
             {

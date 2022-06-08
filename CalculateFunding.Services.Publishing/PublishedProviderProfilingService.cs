@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Publishing
         {
             string fundingLineCode = profilePatternKey.FundingLineCode;
             
-            FundingLine fundingLine = newPublishedProviderVersion.FundingLines.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
+            FundingLine fundingLine = newPublishedProviderVersion.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
             if (fundingLine == null)
             {

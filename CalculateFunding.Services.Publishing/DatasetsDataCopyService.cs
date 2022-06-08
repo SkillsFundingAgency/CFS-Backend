@@ -262,7 +262,7 @@ namespace CalculateFunding.Services.Publishing
                 foreach (PublishedSpecificationItem item in relationship.PublishedSpecificationConfiguration.FundingLines)
                 {
                     FundingLine fundingLine =
-                        publishedProviderVersion.FundingLines.FirstOrDefault(f => f.TemplateLineId == item.TemplateId);
+                        publishedProviderVersion.FundingLines?.FirstOrDefault(f => f.TemplateLineId == item.TemplateId);
                     excelDataItem.FundingLines.Add(
                         $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{item.TemplateId}_{item.Name}",
                         fundingLine?.Value);

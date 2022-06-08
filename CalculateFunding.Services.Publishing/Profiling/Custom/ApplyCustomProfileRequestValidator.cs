@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                         {
                             ctx.AddFailure("Request", "No matching published provider located");
                         }
-                        else if (publishedProvider.Current.FundingLines.All(_ => _.FundingLineCode != fundingLineCode))
+                        else if (publishedProvider.Current.FundingLines == null || publishedProvider.Current.FundingLines.All(_ => _.FundingLineCode != fundingLineCode))
                         {
                             ctx.AddFailure(nameof(request.FundingLineCode),
                                 $"Did not locate a funding line with code {fundingLineCode}");

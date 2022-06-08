@@ -180,7 +180,7 @@ namespace CalculateFunding.Services.Publishing
                 }
             }
 
-            CalculateFunding.Models.Publishing.FundingLine publishedProviderFundingLine = publishedProviderVersion.FundingLines.FirstOrDefault(_ => _.TemplateLineId == fundingLine.TemplateLineId);
+            CalculateFunding.Models.Publishing.FundingLine publishedProviderFundingLine = publishedProviderVersion.FundingLines?.FirstOrDefault(_ => _.TemplateLineId == fundingLine.TemplateLineId);
             string calculationValue = null;
             if (publishedProviderFundingLine != null)
             {

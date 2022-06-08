@@ -263,7 +263,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             {
                 PublishedProvider publishedProvider = await _publishedFundingRepository.GetPublishedProvider(fundingStreamId, fundingPeriodId, providerId);
 
-                FundingLine fundingLine = publishedProvider.Current.FundingLines.FirstOrDefault(_ => _.FundingLineCode == "1619-024");
+                FundingLine fundingLine = publishedProvider.Current.FundingLines?.FirstOrDefault(_ => _.FundingLineCode == "1619-024");
 
                 if (fundingLine.Value == null && fundingLine.DistributionPeriods.IsNullOrEmpty())
                 {

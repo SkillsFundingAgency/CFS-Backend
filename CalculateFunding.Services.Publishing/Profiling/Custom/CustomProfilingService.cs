@@ -215,7 +215,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                     .ThenByDescending(_ => YearMonthOrderedProfilePeriods.MonthNumberFor(_.TypeValue))
                     .FirstOrDefault();
 
-                    DistributionPeriod currentDistributionPeriod = publishedProvider.Current.FundingLines.Where(_ => _.FundingLineCode == request.FundingLineCode).FirstOrDefault()?
+                    DistributionPeriod currentDistributionPeriod = publishedProvider.Current.FundingLines?.Where(_ => _.FundingLineCode == request.FundingLineCode).FirstOrDefault()?
                                                                 .DistributionPeriods.Where(_ => _.DistributionPeriodId == request.FundingPeriodId).FirstOrDefault();
 
                     if(currentDistributionPeriod == null)

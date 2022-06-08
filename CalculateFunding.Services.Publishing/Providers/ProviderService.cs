@@ -278,13 +278,16 @@ namespace CalculateFunding.Services.Publishing.Providers
                 predecessorProviderVersion.SpecificationId,
                 predecessorProviderVersion.TemplateVersion,
                 "Created by the system as not in scope but referenced as a successor provider",
-                predecessorProviderVersion.FundingLines.DeepCopy(),
+                predecessorProviderVersion.FundingLines?.DeepCopy(),
                 configuration.DisablePopulatePredecessorOnCreate);
 
-            foreach (ProfilePeriod profilePeriod in missingProvider.Current.FundingLines.SelectMany(_ =>
-                _.DistributionPeriods.SelectMany(dp => dp.ProfilePeriods)))
+            if (missingProvider.Current.FundingLines.AnyWithNullCheck())
             {
-                profilePeriod.ProfiledValue = 0;
+                foreach (ProfilePeriod profilePeriod in missingProvider.Current.FundingLines.SelectMany(_ =>
+                    _.DistributionPeriods.SelectMany(dp => dp.ProfilePeriods)))
+                {
+                    profilePeriod.ProfiledValue = 0;
+                }
             }
 
             return missingProvider;

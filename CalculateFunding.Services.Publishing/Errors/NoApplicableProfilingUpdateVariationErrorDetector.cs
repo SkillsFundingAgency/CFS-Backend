@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Publishing.Errors
                     }
                 }
 
-                publishedProvider.Current.FundingLines = publishedProvider.Current.FundingLines.Select(_ =>
+                publishedProvider.Current.FundingLines = publishedProvider.Current.FundingLines?.Select(_ =>
                 {
                     // persist changes if the current funding line has been changed through variation strategy
                     // or the funding line is custom profiled
@@ -88,7 +88,7 @@ namespace CalculateFunding.Services.Publishing.Errors
                         providerVariationContext.CurrentState.FundingLineHasCustomProfile(_.FundingLineCode) ||
                         !providerVariationContext.VariationPointers.AnyWithNullCheck(vp => vp.FundingLineId == _.FundingLineCode) ||
                         !_.Value.HasValue ||
-                        (providerVariationContext.ReleasedState.FundingLines.FirstOrDefault(rf => rf.FundingLineCode == _.FundingLineCode)?.Value == 0 && _.Value == 0))
+                        (providerVariationContext.ReleasedState.FundingLines?.FirstOrDefault(rf => rf.FundingLineCode == _.FundingLineCode)?.Value == 0 && _.Value == 0))
                     {
                         return _;
                     }
@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.Publishing.Errors
 
                         FundingLine currentFundingLine = providerVariationContext
                                                     .PreRefreshState
-                                                    .FundingLines
+                                                    .FundingLines?
                                                     .First(fl =>
                                                         fl.FundingLineCode == _.FundingLineCode);
 

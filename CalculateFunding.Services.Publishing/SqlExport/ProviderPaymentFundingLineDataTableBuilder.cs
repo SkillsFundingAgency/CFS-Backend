@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
     {
         protected override DataColumn[] GetDataColumns(PublishedProviderVersion dto)
         {
-            FundingLine[] paymentFundingLines = dto.FundingLines.Where(_ => _.Type == FundingLineType.Payment)
+            FundingLine[] paymentFundingLines = dto.FundingLines?.Where(_ => _.Type == FundingLineType.Payment)
                 .OrderBy(_ => _.TemplateLineId)
                 .ToArray();
 

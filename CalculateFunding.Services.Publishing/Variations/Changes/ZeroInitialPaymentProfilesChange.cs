@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
             IEnumerable<ProfileVariationPointer> variationPointers = VariationContext.VariationPointers;
 
-            if (variationPointers.IsNullOrEmpty())
+            if (variationPointers.IsNullOrEmpty() && RefreshState.FundingLines.AnyWithNullCheck())
             {
                 foreach (FundingLine fl in RefreshState.FundingLines)
                 {

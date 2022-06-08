@@ -58,8 +58,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
         protected override void AddDataRowToDataTable(PublishedProviderVersion dto)
         {
-            FundingLine fundingLine = dto.FundingLines.Single(_ => _.TemplateLineId == _templateId);
-            ProfileTotal[] profiling = new PaymentFundingLineProfileTotals(dto, fundingLine.FundingLineCode)
+            FundingLine fundingLine = dto.FundingLines?.SingleOrDefault(_ => _.TemplateLineId == _templateId);
+            ProfileTotal[] profiling = new PaymentFundingLineProfileTotals(dto, fundingLine?.FundingLineCode)
                 .ToArray();
 
             object[] profilePeriods = ProfilePeriodColumnValues(profiling).ToArray();

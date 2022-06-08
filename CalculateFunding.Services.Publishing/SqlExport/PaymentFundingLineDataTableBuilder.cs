@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         {
             IEnumerable<decimal?> paymentFundingLineValues = _paymentFundingLines.Values
                 .Select<CommonModels.FundingLine, (uint TemplateLineId, FundingLine FundingLineValue)>(_ =>
-                (_.TemplateLineId, dto.FundingLines.SingleOrDefault(flv => flv.TemplateLineId == _.TemplateLineId && flv.Type == FundingLineType.Payment)))
+                (_.TemplateLineId, dto.FundingLines?.SingleOrDefault(flv => flv.TemplateLineId == _.TemplateLineId && flv.Type == FundingLineType.Payment)))
                 .OrderBy(_ => _.TemplateLineId)
                 .Select(_ => _.FundingLineValue?.Value);
 

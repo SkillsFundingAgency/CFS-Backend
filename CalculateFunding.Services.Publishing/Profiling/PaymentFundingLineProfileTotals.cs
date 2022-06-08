@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
         public PaymentFundingLineProfileTotals(PublishedProviderVersion publishedProviderVersion)
         {
             _profileTotals = publishedProviderVersion
-                .FundingLines.Where(_ => _.Type == FundingLineType.Payment)
+                .FundingLines?.Where(_ => _.Type == FundingLineType.Payment)
                 .SelectMany(paymentFundingLine => new YearMonthOrderedProfilePeriods(paymentFundingLine))
                 .GroupBy(orderProfilePeriod => new
                 {
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
             string fundingLineId)
         {
             _profileTotals = publishedProviderVersion
-                .FundingLines.Where(_ => _.Type == FundingLineType.Payment)
+                .FundingLines?.Where(_ => _.Type == FundingLineType.Payment)
                 .Where(_ => _.FundingLineCode == fundingLineId)
                 .SelectMany(paymentFundingLine => new YearMonthOrderedProfilePeriods(paymentFundingLine))
                 .GroupBy(orderProfilePeriod => new

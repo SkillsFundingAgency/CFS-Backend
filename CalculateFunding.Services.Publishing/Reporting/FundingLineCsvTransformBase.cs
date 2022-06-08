@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
         {
             foreach (string fundingLineName in distinctFundingLineNames.OrderBy(_ => _))
             {
-                row[fundingLineName] = publishedProviderVersion.FundingLines.SingleOrDefault(_ => _.Name == fundingLineName)?.Value?.ToString(CultureInfo.InvariantCulture);
+                row[fundingLineName] = publishedProviderVersion.FundingLines?.SingleOrDefault(_ => _.Name == fundingLineName)?.Value?.ToString(CultureInfo.InvariantCulture);
             }
         }
 

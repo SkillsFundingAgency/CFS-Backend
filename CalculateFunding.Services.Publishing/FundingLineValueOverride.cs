@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing
             foreach (FundingLine fundingLine in paymentFundingLines.Where(_ => _.Value == null))
             {
                 FundingLine releasedFundingLineVersion =
-                    releasedPublishedProviderVersion.FundingLines.SingleOrDefault(_ => _.TemplateLineId == fundingLine.TemplateLineId);
+                    releasedPublishedProviderVersion.FundingLines?.SingleOrDefault(_ => _.TemplateLineId == fundingLine.TemplateLineId);
 
                 // only zero funding line if it has previously been released with a value
                 if (releasedFundingLineVersion != null && releasedFundingLineVersion.Value.HasValue)

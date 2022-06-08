@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             IApplyProviderVariations variationApplications,
             PublishedProviderVersion currentState)
         {
-            FundingLine fundingLine = refreshState.FundingLines.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
+            FundingLine fundingLine = refreshState.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
             string profilePatternKey = refreshState.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
 

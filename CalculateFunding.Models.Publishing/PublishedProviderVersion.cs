@@ -435,7 +435,7 @@ namespace CalculateFunding.Models.Publishing
 
         private FundingLine GetFundingLine(string fundingLineCode)
         {
-            FundingLine fundingLine = FundingLines.SingleOrDefault(fl => fl.FundingLineCode == fundingLineCode);
+            FundingLine fundingLine = FundingLines?.SingleOrDefault(fl => fl.FundingLineCode == fundingLineCode);
             
             Guard.Ensure(fundingLine != null, $"Did not locate a funding line with code {fundingLineCode}");
 
