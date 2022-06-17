@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         private readonly IExistingReleasedProviderVersionsLoadService _existingReleasedProviderVersionsLoadService;
         private readonly IPublishedProviderLookupService _publishedProviderLookupService;
         private readonly ICreatePublishIntegrityJob _createPublishIntegrityJob;
-
+        private const int IntegrityJobProvidersBatchSize = 500;
 
         public ReleaseProvidersToChannelsService(
             ISpecificationService specificationService,
@@ -214,16 +214,31 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 _logger.Information("SQL rollback complete for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
 
 
-                _logger.Information("Queuing integrity checker job for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
-                await _createPublishIntegrityJob.CreateJob(specification.Id,
+                _logger.Information("Queuing integrity checker jobs for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
+                
+                if (model.ProviderIds.IsNullOrEmpty())
+                {
+                    await _createPublishIntegrityJob.CreateJob(specification.Id,
                             author,
                             correlationId,
-                            model.ProviderIds.IsNullOrEmpty() ? null : new Dictionary<string, string>
-                            {
-                            { "providers-batch", JsonExtensions.AsJson(model.ProviderIds.Select(_ => $"{specification.FundingStreams.Single().Id}-{specification.FundingPeriod.Id}-{_}")) }
-                            },
                             parentJobId: jobId);
-                _logger.Information("Queued integrity checker job for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
+                }
+                else
+                {
+                    foreach (IEnumerable<string> providerIds in model.ProviderIds.ToBatches(IntegrityJobProvidersBatchSize))
+                    {
+                        await _createPublishIntegrityJob.CreateJob(specification.Id,
+                                author,
+                                correlationId,
+                                model.ProviderIds.IsNullOrEmpty() ? null : new Dictionary<string, string>
+                                {
+                                { "providers-batch", JsonExtensions.AsJson(providerIds.Select(_ => $"{specification.FundingStreams.Single().Id}-{specification.FundingPeriod.Id}-{_}")) }
+                                },
+                                parentJobId: jobId);
+                    }
+                }
+                
+                _logger.Information("Queued integrity checker jobs for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
 
                 _logger.Information("Queuing published provider search indexer job for release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
                 await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specificationId, jobId);

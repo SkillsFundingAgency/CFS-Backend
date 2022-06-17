@@ -190,8 +190,13 @@ namespace CalculateFunding.Services.Publishing
                                 releasedProviderSummary.ProviderId)))
                         .Where(_ => _.Status == PublishedProviderStatus.Released);
 
-                    providerVersionsToSave[channel]
-                        .Add(releasedPublishedProviderVersions.Single(_ => _.FundingId == releasedProviderSummary.FundingId));
+                    PublishedProviderVersion publishedProviderVersion =  releasedPublishedProviderVersions.SingleOrDefault(_ => _.FundingId == releasedProviderSummary.FundingId);
+
+                    if (publishedProviderVersion != null)
+                    {
+                        providerVersionsToSave[channel]
+                            .Add(publishedProviderVersion);
+                    }
                 }
                 catch (StorageException ex)
                 {
