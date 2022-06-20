@@ -194,10 +194,10 @@ namespace CalculateFunding.Services.Profiling.Services
 
                 IEnumerable<DeliveryProfilePeriod> orderedDeliveryProfilePeriods = new YearMonthOrderedProfilePeriods<DeliveryProfilePeriod>(profiledValues);
                 
-                DeliveryProfilePeriod lastUsedProfilePeriod = orderedDeliveryProfilePeriods.Last(p => p.ProfileValue != 0);
+                DeliveryProfilePeriod lastUsedProfilePeriod = orderedDeliveryProfilePeriods.LastOrDefault(p => p.ProfileValue > 0) ?? orderedDeliveryProfilePeriods.Last();
 
                 IEnumerable<DeliveryProfilePeriod> withoutLast = profiledValues
-                    .Where(p => !(p.Year == lastUsedProfilePeriod.Year && p.TypeValue == lastUsedProfilePeriod.TypeValue && p.Occurrence == lastUsedProfilePeriod.Occurrence));
+                        .Where(p => !(p.Year == lastUsedProfilePeriod.Year && p.TypeValue == lastUsedProfilePeriod.TypeValue && p.Occurrence == lastUsedProfilePeriod.Occurrence));
 
                 calculatedDeliveryProfile.AddRange(
                     new YearMonthOrderedProfilePeriods<DeliveryProfilePeriod>(
