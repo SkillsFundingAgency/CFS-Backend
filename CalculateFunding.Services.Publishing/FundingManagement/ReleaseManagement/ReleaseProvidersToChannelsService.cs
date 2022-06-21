@@ -318,7 +318,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             await LoadGivenProvidersFromFundingApprovals(providerIds);
 
             _logger.Information("Releasing providers in approved state for specification '{SpecificationId}'", specificationId);
-            IEnumerable<string> providerIdsReleased = await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(specification);
+            IEnumerable<string> providerIdsReleased = await _releaseApprovedProvidersService.ReleaseProvidersInApprovedState(specification, Retrying);
             _logger.Information("A total of '{Count}' approved providers released for specification '{SpecificationId}'", providerIdsReleased.Count(), specificationId);
 
             _logger.Information("Refreshing context with approved providers ");

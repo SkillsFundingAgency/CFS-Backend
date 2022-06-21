@@ -29,13 +29,20 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _releaseToChannelSqlMappingContext = releaseToChannelSqlMappingContext;
         }
 
-        public async Task<IEnumerable<string>> ReleaseProvidersInApprovedState(SpecificationSummary specification)
+        public async Task<IEnumerable<string>> ReleaseProvidersInApprovedState(SpecificationSummary specification, bool retrying = false)
         {
             Guard.ArgumentNotNull(specification, nameof(specification));
 
-            PublishedProvider[] providersToRelease = _publishedProvidersLoadContext
-                .Values
-                .Where(_ => _.Current.Status == PublishedProviderStatus.Approved).ToArray(); // Ensure array so cosmos query doesn't get loaded multiple times each eval
+            PublishedProvider[] providersToRelease = _publishedProvidersLoadContext.Values.ToArray();
+
+            // if not in a retry loop then filter out providers which are not in the approved state
+            // if this is a retry then we may need to re-generate missing documents so we need to process providers regardless
+            if (!retrying)
+            {
+                providersToRelease = providersToRelease
+                    .Where(_ => _.Current.Status == PublishedProviderStatus.Approved).ToArray(); // Ensure array so cosmos query doesn't get loaded multiple times each eval
+            }
+
 
             if (providersToRelease.Any())
             {

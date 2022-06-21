@@ -234,7 +234,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _channelsService.Setup(s => s.GetAndVerifyChannels(It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync(new List<KeyValuePair<string, Channel>>());
 
-            _releaseApprovedProvidersService.Setup(s => s.ReleaseProvidersInApprovedState(It.IsAny<SpecificationSummary>()))
+            _releaseApprovedProvidersService.Setup(s => s.ReleaseProvidersInApprovedState(It.IsAny<SpecificationSummary>(), false))
                 .ReturnsAsync(new List<string>());
 
             Message message = new Message

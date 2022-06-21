@@ -108,6 +108,8 @@ namespace CalculateFunding.Services.Processing
             }
         }
 
+        public bool Retrying => Job != null && !(Job.RunningStatus == RunningStatus.Queued || Job.RunningStatus == RunningStatus.QueuedWithService);
+
         private async Task<JobViewModel> EnsureJobCanBeProcessed(string jobId)
         {
             try

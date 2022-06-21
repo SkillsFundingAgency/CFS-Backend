@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
     public interface IReleaseApprovedProvidersService
     {
-        Task<IEnumerable<string>> ReleaseProvidersInApprovedState(SpecificationSummary specification);
+        Task<IEnumerable<string>> ReleaseProvidersInApprovedState(SpecificationSummary specification, bool retrying = false);
     }
 }
