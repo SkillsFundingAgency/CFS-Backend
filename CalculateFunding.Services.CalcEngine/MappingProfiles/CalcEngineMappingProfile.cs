@@ -26,8 +26,6 @@ namespace CalculateFunding.Services.CalcEngine.MappingProfiles
             CreateMap<Common.ApiClient.Providers.Models.Search.ProviderVersionSearchResult, Models.ProviderLegacy.ProviderSummary>()
                 .ForMember(dst => dst.CompaniesHouseNumber, map => map.Ignore())
                 .ForMember(dst => dst.GroupIdNumber, map => map.Ignore())
-                .ForMember(dst => dst.GovernmentOfficeRegionName, map => map.Ignore())
-                .ForMember(dst => dst.GovernmentOfficeRegionCode, map => map.Ignore())
                 .ForMember(dst => dst.DistrictName, map => map.Ignore())
                 .ForMember(dst => dst.DistrictCode, map => map.Ignore())
                 .ForMember(dst => dst.WardName, map => map.Ignore())
@@ -39,9 +37,7 @@ namespace CalculateFunding.Services.CalcEngine.MappingProfiles
                 .ForMember(dst => dst.LowerSuperOutputAreaName, map => map.Ignore())
                 .ForMember(dst => dst.LowerSuperOutputAreaCode, map => map.Ignore())
                 .ForMember(dst => dst.ParliamentaryConstituencyName, map => map.Ignore())
-                .ForMember(dst => dst.ParliamentaryConstituencyCode, map => map.Ignore())
-                .ForMember(dst => dst.Predecessors, map => map.Ignore())
-                .ForMember(dst => dst.Successors, map => map.Ignore());
+                .ForMember(dst => dst.ParliamentaryConstituencyCode, map => map.Ignore());
         }
     }
 }
