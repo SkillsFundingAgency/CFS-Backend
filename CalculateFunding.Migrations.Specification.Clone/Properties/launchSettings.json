@@ -2,7 +2,7 @@
   "profiles": {
     "CalculateFunding.Migrations.Specification.Clone": {
       "commandName": "Project",
-      "commandLineArgs": "--src-spec-id \"12029966-3937-4392-9324-41d1d2d9aa68\" --trg-period-id \"AY-2223\" --trg-funding-template-version \"5.0\" --include-released-data-dataset false"
+      "commandLineArgs": "--src-spec-id \"8c8f7da2-f371-49c9-abad-dd0f91a20c9b\" --trg-period-id \"AS-2324\" --trg-funding-template-version \"1.0\" --include-released-data-dataset true"
     }
   }
 }

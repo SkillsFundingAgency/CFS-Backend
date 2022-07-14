@@ -141,8 +141,9 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                     CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel = new CreateDefinitionSpecificationRelationshipModel
                     {
                         SpecificationId = cloneSpecificationSummary.Id,
-                        Name = $"{releasedDatasetSpecificationRelationshipViewModel.Name}",
-                        Description = releasedDatasetSpecificationRelationshipViewModel.RelationshipDescription,
+                        Name = specificationMappingOption.DetermineTargetRelationshipName(releasedDatasetSpecificationRelationshipViewModel.Name),
+                        Description = string.IsNullOrEmpty(specificationMappingOption.TargetRelationshipDescription) ? releasedDatasetSpecificationRelationshipViewModel.RelationshipDescription
+                                        : specificationMappingOption.TargetRelationshipDescription,
                         IsSetAsProviderData = releasedDatasetSpecificationRelationshipViewModel.IsProviderData,
                         ConverterEnabled = releasedDatasetSpecificationRelationshipViewModel.ConverterEnabled,
                         RelationshipType = releasedDatasetSpecificationRelationshipViewModel.RelationshipType,
@@ -198,6 +199,16 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                         ValueType = additionalCalculation.ValueType
                     };
 
+                    if (cloneOptions.IncludeReleasedDataDateset.GetValueOrDefault())
+                    {
+                        (bool, string) updateDetails = UpdateDatasetNameInSource(calculationEditModel.SourceCode);
+                        if (updateDetails.Item1)
+                        {
+                            calculationEditModel.SourceCode = updateDetails.Item2;
+                            _logger.Information($"Dataset name updated in calculation {templateCalculation.Id} : {templateCalculation.Name}");
+                        }
+                    }
+
                     await _targetDataOperations.EditCalculationWithSkipInstruct(cloneSpecificationSummary.Id, templateCalculation.Id, calculationEditModel);
                 }
                 else
@@ -211,6 +222,16 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                         ValueType = additionalCalculation.ValueType,
                         Author = additionalCalculation.Author
                     };
+
+                    if (cloneOptions.IncludeReleasedDataDateset.GetValueOrDefault())
+                    {
+                        (bool, string) updateDetails = UpdateDatasetNameInSource(calculationCreateModel.SourceCode);
+                        if (updateDetails.Item1)
+                        {
+                            calculationCreateModel.SourceCode = updateDetails.Item2;
+                            _logger.Information($"Dataset name updated in calculation {calculationCreateModel.Name}");
+                        }
+                    }
 
                     try
                     {
@@ -262,6 +283,16 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                         SpecificationId = cloneSpecificationSummary.Id,
                         ValueType = templateCalculationWithChange.ValueType
                     };
+
+                    if (cloneOptions.IncludeReleasedDataDateset.GetValueOrDefault())
+                    {
+                        (bool, string) updateDetails = UpdateDatasetNameInSource(calculationEditModel.SourceCode);
+                        if (updateDetails.Item1)
+                        {
+                            calculationEditModel.SourceCode = updateDetails.Item2;
+                            _logger.Information($"Dataset name updated in calculation {calculationEditModel.CalculationId} : {calculationEditModel.Name}");
+                        }
+                    }
 
                     try
                     {
@@ -356,6 +387,18 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
             }
 
             return true;
+        }
+
+        public (bool, string) UpdateDatasetNameInSource(string sourceSourceCode)
+        {
+            string amendedCode = sourceSourceCode;
+
+            foreach(SpecificationMappingOption mappingOption in _specificationMappingOptions.Where(_ => _.HasChangedRelationshipName))
+            {
+                amendedCode = amendedCode.Replace(mappingOption.FullyQualifiedSourceRelationshipName, mappingOption.FullyQualifiedTargetRelationshipName);
+            }
+
+            return (!sourceSourceCode.Equals(amendedCode), amendedCode);
         }
 
         private async Task ThenTheJobSucceeds(string jobId,
