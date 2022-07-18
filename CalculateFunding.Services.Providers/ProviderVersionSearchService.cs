@@ -392,7 +392,9 @@ namespace CalculateFunding.Services.Providers
                     Status = m.Result.Status,
                     PhaseOfEducation = m.Result.PhaseOfEducation,
                     ReasonEstablishmentOpened = m.Result.ReasonEstablishmentOpened,
+                    ReasonEstablishmentOpenedCode = m.Result.ReasonEstablishmentOpenedCode,
                     ReasonEstablishmentClosed = m.Result.ReasonEstablishmentClosed,
+                    ReasonEstablishmentClosedCode = m.Result.ReasonEstablishmentClosedCode,
                     Successor = m.Result.Successor,
                     TrustStatus = m.Result.TrustStatus,
                     TrustName = m.Result.TrustName,
@@ -438,6 +440,11 @@ namespace CalculateFunding.Services.Providers
                     Successors = m.Result.Successors,
                     FurtherEducationTypeCode = m.Result.FurtherEducationTypeCode,
                     FurtherEducationTypeName = m.Result.FurtherEducationTypeName,
+                    StatutoryLowAge = m.Result.StatutoryLowAge,
+                    StatutoryHighAge = m.Result.StatutoryHighAge,
+                    OfficialSixthFormCode = m.Result.OfficialSixthFormCode,
+                    OfficialSixthFormName = m.Result.OfficialSixthFormName,
+                    StatusCode = m.Result.StatusCode,
                 });
             }
         }
