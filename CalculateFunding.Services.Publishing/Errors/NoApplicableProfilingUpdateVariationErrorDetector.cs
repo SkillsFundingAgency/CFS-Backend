@@ -83,12 +83,16 @@ namespace CalculateFunding.Services.Publishing.Errors
                     // or there is no variation pointer set for the current funding line
                     // or the current value is null
                     // or the current value is zero and the released value is zero
+                    // or the refresh value equals the released value but not the prerefresh value
+                    //   - (the value has changed from released value but then changed back in subsequent refresh)
                     if ((providerVariationContext.AllAffectedFundingLineCodes != null &&
                         providerVariationContext.AllAffectedFundingLineCodes.Contains(_.FundingLineCode)) ||
                         providerVariationContext.CurrentState.FundingLineHasCustomProfile(_.FundingLineCode) ||
                         !providerVariationContext.VariationPointers.AnyWithNullCheck(vp => vp.FundingLineId == _.FundingLineCode) ||
                         !_.Value.HasValue ||
-                        (providerVariationContext.ReleasedState.FundingLines?.FirstOrDefault(rf => rf.FundingLineCode == _.FundingLineCode)?.Value == 0 && _.Value == 0))
+                        (providerVariationContext.ReleasedState.FundingLines?.FirstOrDefault(rf => rf.FundingLineCode == _.FundingLineCode)?.Value == 0 && _.Value == 0) ||
+                        ((providerVariationContext.ReleasedState.FundingLines?.FirstOrDefault(rf => rf.FundingLineCode == _.FundingLineCode)?.Value == _.Value)
+                                && (providerVariationContext.PreRefreshState.FundingLines?.FirstOrDefault(cf => cf.FundingLineCode == _.FundingLineCode)?.Value != _.Value)))
                     {
                         return _;
                     }
