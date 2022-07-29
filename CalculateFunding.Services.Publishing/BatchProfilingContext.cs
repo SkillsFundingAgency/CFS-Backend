@@ -21,16 +21,26 @@ namespace CalculateFunding.Services.Publishing
 
         public IDictionary<string, ProfilingBatch> ProfilingBatches { get; set; }
 
-        public void AddProviderProfilingRequestData(PublishedProviderVersion providerVersion,
+        public void AddProviderProfilingRequestData(PublishedProvider publishedProvider,
             IDictionary<string, GeneratedProviderResult> generatedProviderResults,
             bool isNewProvider)
         {
+            PublishedProviderVersion providerVersion = publishedProvider.Current;
+            PublishedProviderVersion releasedProviderVersion = publishedProvider.Released;
             Provider provider = providerVersion.Provider;
             
             // only profile a value if not null and it's not equal to zero
+            // OR previous released version contains value
             FundingLine[] fundingLines = generatedProviderResults[provider.ProviderId]
                 .FundingLines?
-                .Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue && _.Value != 0 && !providerVersion.FundingLineHasCustomProfile(_.FundingLineCode))
+                .Where(_ => _.Type == FundingLineType.Payment
+                            && 
+                            _.Value.HasValue 
+                            && 
+                                (_.Value != 0 ||
+                                ((releasedProviderVersion?.FundingLines?.Any(pfl => pfl.Type == FundingLineType.Payment && pfl.FundingLineCode == _.FundingLineCode && pfl.Value != null && pfl.Value != 0)) ?? false))
+                            && 
+                            !providerVersion.FundingLineHasCustomProfile(_.FundingLineCode))
                 .ToArray();
 
             // add all funding lines which were previously either null payment on released or weren't included in last release

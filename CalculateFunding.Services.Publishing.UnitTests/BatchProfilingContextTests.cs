@@ -26,12 +26,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         [TestMethod]
         [DynamicData(nameof(AddProviderProfilingRequestDataExamples), DynamicDataSourceType.Method)]
-        public void AddsRequestDataForSuppliedPublishedProviderVersions(PublishedProviderVersion providerVersion,
+        public void AddsRequestDataForSuppliedPublishedProviderVersions(PublishedProvider publishedProvider,
             bool isNew,
             FundingLine[] fundingLines,
             ProviderProfilingRequestData expectedRequestData)
         {
-            WhenTheRequestDataIsAdded(providerVersion, isNew, fundingLines: fundingLines);
+            WhenTheRequestDataIsAdded(publishedProvider, isNew, fundingLines: fundingLines);
 
             _context.ProfilingRequests
                 .Should()
@@ -706,12 +706,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                             fl.WithFundingLineType(FundingLineType.Information)),
                         paymentFundingLineTwo));
 
+            PublishedProvider publishedProvider = new PublishedProvider
+            {
+                Current = publishedProviderVersion
+            };
+
             PublishedProviderVersion publishedProviderVersionEmptyFundingLines = NewPublishedProviderVersion(_ =>
                 _.WithFundingPeriodId(fundingPeriodId)
                     .WithFundingStreamId(fundingStreamId)
                     .WithProvider(NewProvider(p =>
                         p.WithProviderType(providerType)
                             .WithProviderSubType(providerSubType))));
+
+            PublishedProvider publishedProviderEmptyFundingLines = new PublishedProvider
+            {
+                Current = publishedProviderVersionEmptyFundingLines
+            };
 
             PublishedProviderVersion publishedProviderVersionWithCustomProfile = NewPublishedProviderVersion(_ =>
                 _.WithFundingPeriodId(fundingPeriodId)
@@ -726,6 +736,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         paymentFundingLineTwo)
                     .WithCustomProfiles(new[] { new FundingLineProfileOverrides { FundingLineCode = paymentFundingLineTwo.FundingLineCode } }));
 
+            PublishedProvider publishedProviderWithCustomProfile = new PublishedProvider
+            {
+                Current = publishedProviderVersionWithCustomProfile
+            };
+
             PublishedProviderVersion publishedProviderVersionNullPaymentFundingLine = NewPublishedProviderVersion(_ =>
                 _.WithFundingPeriodId(fundingPeriodId)
                     .WithFundingStreamId(fundingStreamId)
@@ -739,9 +754,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         paymentFundingLineThree,
                         paymentFundingLineFour));
 
+            PublishedProvider publishedProviderNullPaymentFundingLine = new PublishedProvider
+            {
+                Current = publishedProviderVersionNullPaymentFundingLine
+            };
+
             yield return new object[]
             {
-                publishedProviderVersion,
+                publishedProvider,
                 false,
                 null,
                 NewProviderProfilingRequestData(_ => _.WithProfilePatternKeys((fundingLineCodeOne, profilePatternKey))
@@ -752,7 +772,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             yield return new object[]
             {
-                publishedProviderVersionWithCustomProfile,
+                publishedProviderWithCustomProfile,
                 false,
                 null,
                 NewProviderProfilingRequestData(_ => _.WithProfilePatternKeys((fundingLineCodeOne, profilePatternKey))
@@ -771,7 +791,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             yield return new object[]
             {
-                publishedProviderVersionNullPaymentFundingLine,
+                publishedProviderNullPaymentFundingLine,
                 false,
                 null,
                 NewProviderProfilingRequestData(_ => _.WithProfilePatternKeys((fundingLineCodeOne, profilePatternKey))
@@ -782,7 +802,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             yield return new object[]
             {
-                publishedProviderVersionEmptyFundingLines,
+                publishedProviderEmptyFundingLines,
                 false,
                 new FundingLine[] { expectedFundingLine },
                 NewProviderProfilingRequestData(_ => _.WithProfilePatternKeys()
@@ -793,7 +813,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             yield return new object[]
             {
-                publishedProviderVersion,
+                publishedProvider,
                 true,
                 null,
                 NewProviderProfilingRequestData(_ => _.WithPublishedProviderVersion(publishedProviderVersion)
@@ -911,16 +931,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return apiProfilePeriodBuilder.Build();
         }
 
-        private void WhenTheRequestDataIsAdded(PublishedProviderVersion publishedProviderVersion,
+        private void WhenTheRequestDataIsAdded(PublishedProvider publishedProvider,
             bool isNew,
             FundingLine[] fundingLines = null)
-            => _context.AddProviderProfilingRequestData(publishedProviderVersion,
+            => _context.AddProviderProfilingRequestData(publishedProvider,
                 new Dictionary<string, GeneratedProviderResult>
                 {
                     {
-                        publishedProviderVersion.ProviderId, new GeneratedProviderResult
+                        publishedProvider.Current.ProviderId, new GeneratedProviderResult
                         {
-                            FundingLines = fundingLines ?? publishedProviderVersion.FundingLines.DeepCopy().Select(_ => {
+                            FundingLines = fundingLines ?? publishedProvider.Current.FundingLines.DeepCopy().Select(_ => {
                                 _.Value ??= 10;
                                 return _;
                             })

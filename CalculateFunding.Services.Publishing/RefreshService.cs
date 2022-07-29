@@ -590,7 +590,7 @@ namespace CalculateFunding.Services.Publishing
                     continue;
                 }
 
-                batchProfilingContext.AddProviderProfilingRequestData(publishedProvider.Value.Current,
+                batchProfilingContext.AddProviderProfilingRequestData(publishedProvider.Value,
                     generatedPublishedProviderData,
                     isNewProvider);
             }
