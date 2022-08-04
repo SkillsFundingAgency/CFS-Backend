@@ -212,7 +212,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             string version)
         {
             Ensure(
-                dataset?.ProviderVersionId != providerVersionId && dataset?.Version.ToString() != version,
+                dataset?.ProviderVersionId != providerVersionId || dataset?.Version.ToString() != version,
                 $"Converter wizard does not run a second time against a dataset with same ProviderVersionId={providerVersionId} and dataset Version={version} as the existing one");
         }
 
