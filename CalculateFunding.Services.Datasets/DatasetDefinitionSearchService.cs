@@ -111,7 +111,7 @@ namespace CalculateFunding.Services.Datasets
 
                             return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
-                                Facets = new[]{ filterPair.Key },
+                                Facets = new[]{ $"{filterPair.Key},count:{searchModel.FacetCount}" },
                                 SearchMode = (SearchMode)searchModel.SearchMode,
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
