@@ -412,7 +412,15 @@ namespace CalculateFunding.Services.Providers
                     FurtherEducationTypeCode = x.FurtherEducationTypeCode,
                     FurtherEducationTypeName = x.FurtherEducationTypeName,
                     Predecessors = x.Predecessors,
-                    Successors = x.Successors
+                    Successors = x.Successors,
+                    PhaseOfEducationCode = x.PhaseOfEducationCode,
+                    StatutoryLowAge = x.StatutoryLowAge,
+                    StatutoryHighAge = x.StatutoryHighAge,
+                    OfficialSixthFormCode = x.OfficialSixthFormCode,
+                    OfficialSixthFormName = x.OfficialSixthFormName,
+                    StatusCode = x.StatusCode,
+                    ReasonEstablishmentOpenedCode = x.ReasonEstablishmentOpenedCode,
+                    ReasonEstablishmentClosedCode = x.ReasonEstablishmentClosedCode
                 });
         }
 
