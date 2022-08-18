@@ -356,7 +356,7 @@ namespace CalculateFunding.Services.Publishing
                             IsIndicative = m.Result.IsIndicative,
                             HasErrors = m.Result.HasErrors,
                             Errors = m.Result.Errors,
-                            DateOpened = m.Result.DateOpened,
+                            OpenedDate = m.Result.DateOpened,
                             MajorVersion = m.Result.MajorVersion,
                             MinorVersion = m.Result.MinorVersion,
                             ReleaseChannels = releaseChannelLookupByProviderId != null ? 
