@@ -1,7 +1,9 @@
 ﻿using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Models;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -96,43 +98,59 @@ namespace CalculateFunding.Services.Publishing.Errors
                     {
                         return _;
                     }
-                    else
+                    if (providerVariationContext.VariationPointers.AnyWithNullCheck(vp => vp.FundingLineId == _.FundingLineCode))
                     {
-                        string fundingLineCode = _.FundingLineCode;
-
-                        FundingLine currentFundingLine = providerVariationContext
-                                                    .PreRefreshState
-                                                    .FundingLines?
-                                                    .First(fl =>
-                                                        fl.FundingLineCode == _.FundingLineCode);
-
-                        string errorMessage = $"Post Profiling and Variations - No applicable variation strategy executed for profiling update from £{GetValueOrExcluded(currentFundingLine.Value)} to £{GetValueOrExcluded(_.Value)} against funding line {fundingLineCode}.";
-
-                        // only add the error if the funding line values don't match
-                        if (_.Value != currentFundingLine.Value)
+                        if (_?.DistributionPeriods?.SelectMany(_ => _.ProfilePeriods)?.Any() ?? false)
                         {
-                            errorCheck.AddError(new PublishedProviderError
+                            DateTime? startOfDistibutionPeriodsForFundingLine = _?.DistributionPeriods.SelectMany(_ => _.ProfilePeriods)
+                            .Select(_ => new DateTime(_.Year, DateTime.ParseExact(_.TypeValue, "MMMM", CultureInfo.CurrentCulture).Month, _.Occurrence + 1))
+                            .OrderBy(_ => _).FirstOrDefault();
+
+                            DateTime variationPointerDate = providerVariationContext.VariationPointers.Where(vp => vp.FundingLineId == _.FundingLineCode)
+                                    .Select(_ => new DateTime(_.Year, DateTime.ParseExact(_.TypeValue, "MMMM", CultureInfo.CurrentCulture).Month, _.Occurrence + 1))
+                                    .OrderBy(_ => _).FirstOrDefault();
+
+                            if (variationPointerDate <= startOfDistibutionPeriodsForFundingLine)
                             {
-                                Type = PublishedProviderErrorType.NoApplicableProfilingUpdateVariation,
-                                DetailedErrorMessage = errorMessage,
-                                SummaryErrorMessage = errorMessage,
-                                FundingStreamId = publishedProvider.Current.FundingStreamId,
-                                FundingLineCode = fundingLineCode,
-                                Identifier = fundingLineCode
-                            });
+                                return _;
+                            }
                         }
-
-                        // if a funding line is not changed through re-profiling then we need to make sure we don't override the existing profiling
-                        return new FundingLine
-                        {
-                            FundingLineCode = _.FundingLineCode,
-                            Name = _.Name,
-                            TemplateLineId = _.TemplateLineId,
-                            DistributionPeriods = currentFundingLine.DistributionPeriods,
-                            Type = _.Type,
-                            Value = currentFundingLine.Value
-                        };
                     }
+
+                    string fundingLineCode = _.FundingLineCode;
+
+                    FundingLine currentFundingLine = providerVariationContext
+                                                .PreRefreshState
+                                                .FundingLines?
+                                                .First(fl =>
+                                                    fl.FundingLineCode == _.FundingLineCode);
+
+                    string errorMessage = $"Post Profiling and Variations - No applicable variation strategy executed for profiling update from £{GetValueOrExcluded(currentFundingLine.Value)} to £{GetValueOrExcluded(_.Value)} against funding line {fundingLineCode}.";
+
+                    // only add the error if the funding line values don't match
+                    if (_.Value != currentFundingLine.Value)
+                    {
+                        errorCheck.AddError(new PublishedProviderError
+                        {
+                            Type = PublishedProviderErrorType.NoApplicableProfilingUpdateVariation,
+                            DetailedErrorMessage = errorMessage,
+                            SummaryErrorMessage = errorMessage,
+                            FundingStreamId = publishedProvider.Current.FundingStreamId,
+                            FundingLineCode = fundingLineCode,
+                            Identifier = fundingLineCode
+                        });
+                    }
+
+                    // if a funding line is not changed through re-profiling then we need to make sure we don't override the existing profiling
+                    return new FundingLine
+                    {
+                        FundingLineCode = _.FundingLineCode,
+                        Name = _.Name,
+                        TemplateLineId = _.TemplateLineId,
+                        DistributionPeriods = currentFundingLine.DistributionPeriods,
+                        Type = _.Type,
+                        Value = currentFundingLine.Value
+                    };
                 }).ToList();
             }
 
