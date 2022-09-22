@@ -165,10 +165,10 @@ namespace CalculateFunding.Generators.Schema12
             {
                 Name = templateFundingLine.Name,
                 FundingLineCode = templateFundingLine.FundingLineCode,
-                Value = publishedFundingLine.Value.DecimalAsObject(),
+                Value = publishedFundingLine?.Value?.DecimalAsObject(),
                 TemplateLineId = templateFundingLine.TemplateLineId,
                 Type = templateFundingLine.Type.ToString(),
-                DistributionPeriods = publishedFundingLine.DistributionPeriods?.Where(_ => _ != null).Select(distributionPeriod => new
+                DistributionPeriods = publishedFundingLine?.DistributionPeriods?.Where(_ => _ != null).Select(distributionPeriod => new
                 {
                     Value = distributionPeriod.Value.DecimalAsObject(),
                     distributionPeriod.DistributionPeriodId,

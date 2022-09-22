@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
+﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
@@ -25,6 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private ChannelOrganisationGroupChangeDetector _service;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private Mock<IPublishedProvidersLoadContext> _publishedProvidersLoadContext;
+        private Mock<IMapper> _mapper;
 
         private SpecificationSummary _specificationSummary;
         private Channel _channel;
@@ -34,8 +36,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         {
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _publishedProvidersLoadContext = new Mock<IPublishedProvidersLoadContext>();
+            _mapper = new Mock<IMapper>();
 
-            _service = new ChannelOrganisationGroupChangeDetector(_releaseManagementRepository.Object, _publishedProvidersLoadContext.Object);
+            _service = new ChannelOrganisationGroupChangeDetector(_releaseManagementRepository.Object, _publishedProvidersLoadContext.Object, _mapper.Object);
 
             _specificationSummary = NewSpecificationSummary();
             _channel = NewChannel();

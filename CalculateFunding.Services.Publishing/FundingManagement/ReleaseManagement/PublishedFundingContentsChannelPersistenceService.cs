@@ -89,6 +89,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
                             IPublishedFundingContentsGenerator generator = _publishedFundingContentsGeneratorResolver.GetService(templateContents.SchemaVersion);
 
+                            publishedFundingVersion.Status = PublishedFundingStatus.Released;
                             string contents = generator.GenerateContents(publishedFundingVersion, templateContents);
 
                             if (string.IsNullOrWhiteSpace(contents))

@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
+﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
@@ -16,15 +17,18 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
     {
         private readonly IReleaseManagementRepository _repo;
         private readonly IPublishedProvidersLoadContext _publishedProvidersLoadContext;
+        private readonly IMapper _mapper;
 
         public ChannelOrganisationGroupChangeDetector(IReleaseManagementRepository releaseManagementRepository,
-            IPublishedProvidersLoadContext publishedProvidersLoadContext)
+            IPublishedProvidersLoadContext publishedProvidersLoadContext,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(releaseManagementRepository, nameof(releaseManagementRepository));
             Guard.ArgumentNotNull(publishedProvidersLoadContext, nameof(publishedProvidersLoadContext));
 
             _repo = releaseManagementRepository;
             _publishedProvidersLoadContext = publishedProvidersLoadContext;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<OrganisationGroupResult>> DetermineFundingGroupsToCreateBasedOnProviderVersions(
@@ -48,6 +52,26 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 {
                     organisationGroupsToCreateNewVersions.Add(organisationGroupResult);
                     continue;
+                }
+
+                IEnumerable<string> missing = existingProviders.Where(p => organisationGroupResult.Providers.Select(_ => _.ProviderId).All(p2 => p2 != p.ProviderId)).Select(_ => _.ProviderId);
+                if (missing.Any())
+                {
+                    IEnumerable<PublishedProvider> missingProviders =
+                        await _publishedProvidersLoadContext.GetOrLoadProviders(missing);
+                    List<ApiClientProviderModels.Provider> organisationGroupProviders = organisationGroupResult.Providers.ToList();
+
+                    foreach (PublishedProvider provider in missingProviders)
+                    {
+                        ApiClientProviderModels.Provider apiProvider = _mapper.Map<ApiClientProviderModels.Provider>(provider.Released.Provider);
+
+                        if (apiProvider != null)
+                        {
+                            organisationGroupProviders.Add(apiProvider);
+                        }
+                    }
+
+                    organisationGroupResult.Providers = organisationGroupProviders;
                 }
 
                 if (GroupContainsDifferentProviderIds(organisationGroupResult, existingProviders))
