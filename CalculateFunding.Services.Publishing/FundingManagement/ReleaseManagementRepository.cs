@@ -512,7 +512,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 });
         }
 
-        public async Task<bool> ContainsFundingId(int? channelId, string fundingId)
+        public async Task<bool>  ContainsFundingId(int? channelId, string fundingId)
         {
             int totalItems = await QuerySingleSql<int>(
                 @$"SELECT COUNT(*) FROM FundingGroupVersions 
@@ -575,7 +575,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             return QuerySql<ProviderVersionInChannel>(
             @$"
-				SELECT RPVC.ReleasedProviderVersionChannelId, RPVC.[ChannelId], C.ChannelCode, C.ChannelName, RPV.MajorVersion, RPV.MinorVersion, RP.ProviderId
+				SELECT RPVC.ReleasedProviderVersionChannelId, RPVC.[ChannelId], C.ChannelCode, C.ChannelName, RPV.MajorVersion, RPV.MinorVersion, RP.ProviderId, RPVC.ChannelVersion
 				FROM ReleasedProviderVersionChannels RPVC
 				INNER JOIN ReleasedProviderVersions RPV on RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
 				INNER JOIN (
@@ -624,6 +624,33 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     specificationId,
                     channelId,
                 });
+        }
+
+        public async Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionChannelVersionInFundingGroups(string specificationId)
+        {
+            return await QuerySql<LatestProviderVersionInFundingGroup>($@"
+				SELECT RPV.MajorVersion, FGV.ChannelVersion, FGV.ChannelId
+					, RP.ProviderId
+					, FG.OrganisationGroupTypeCode
+					, FG.OrganisationGroupIdentifierValue
+					, FG.OrganisationGroupName
+					, FG.OrganisationGroupTypeClassification
+					, GR.GroupingReasonCode
+				FROM FundingGroupVersions FGV
+				INNER JOIN 
+				(SELECT FundingGroupId, MAX(MajorVersion) AS LatestVersion FROM FundingGroupVersions FGVAgg
+				GROUP BY FundingGroupId) LatestFundingGroupVersion ON FGV.FundingGroupId = LatestFundingGroupVersion.FundingGroupId AND FGV.MajorVersion = LatestFundingGroupVersion.LatestVersion
+				INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
+				INNER JOIN FundingGroupProviders FGP ON FGP.FundingGroupVersionId = FGV.FundingGroupVersionId
+                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionChannelId = FGP.ReleasedProviderVersionChannelId
+				INNER JOIN ReleasedProviderVersions RPV ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
+				INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+				INNER JOIN GroupingReasons GR ON GR.GroupingReasonId = FGV.GroupingReasonId 
+				WHERE FG.SpecificationId = @{nameof(specificationId)}",
+                new
+                {
+                    specificationId
+                }, _transaction);
         }
 
         public async Task<ReleasedProviderVersion> CreateReleasedProviderVersionUsingAmbientTransaction(ReleasedProviderVersion providerVersion)
@@ -739,10 +766,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         public async Task<IEnumerable<ReleasedProviderSummary>> GetReleasedProviderSummaryBySpecificationId(string specificationId)
         {
             return await QuerySql<ReleasedProviderSummary>($@"
-                SELECT RPVC.ChannelId, RP.ProviderId, RPV.FundingId
+                SELECT RPVC.ChannelId, RP.ProviderId, RPV.FundingId, RPVC.ChannelVersion, CH.ChannelName
                 FROM ReleasedProviderVersionChannels RPVC
                 INNER JOIN ReleasedProviderVersions RPV ON RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
                 INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+				INNER JOIN Channels CH ON CH.ChannelId = RPVC.ChannelId
                 WHERE RP.SpecificationId =  {nameof(specificationId)}",
                 new
                 {
@@ -753,10 +781,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         public async Task<IEnumerable<ReleasedProviderSummary>> GetLatestReleasedProviderSummaryBySpecificationId(string specificationId)
         {
             return await QuerySql<ReleasedProviderSummary>($@"
-                SELECT RPVC.ChannelId, RP.ProviderId, RPV.FundingId
+                SELECT RPVC.ChannelId, RP.ProviderId, RPV.FundingId, RPVC.ChannelVersion, CH.ChannelName
                 FROM ReleasedProviderVersionChannels RPVC
                 INNER JOIN ReleasedProviderVersions RPV ON RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
                 INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+				INNER JOIN Channels CH ON CH.ChannelId = RPVC.ChannelId
                 INNER JOIN 
                 (SELECT ReleasedProviderId, MAX(MajorVersion) AS LatestVersion FROM ReleasedProviderVersions 
                 GROUP BY ReleasedProviderId) LatestReleasedProviderVersion ON RPV.ReleasedProviderId = LatestReleasedProviderVersion.ReleasedProviderId AND RPV.MajorVersion = LatestReleasedProviderVersion.LatestVersion
@@ -949,6 +978,20 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return variationReasons;
         }
 
+        public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionChannel(Guid fundingGroupId, int channelId,  ISqlTransaction transaction = null)
+        {
+            return await QuerySql<FundingGroupVersion>($@"
+                SELECT  top 1 * 
+                FROM FundingGroupVersions 
+                WHERE FundingGroupId = @{nameof(fundingGroupId)}
+                AND ChannelId = @{nameof(channelId)} order by MajorVersion desc",
+                new
+                {
+                    fundingGroupId,
+                    channelId
+                }, transaction);
+        }
+
         public async Task<IEnumerable<ReleasedProviderVersionChannel>> BulkCreateReleasedProviderVersionChannelsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersionChannel> releasedProviderVersionChannels)
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));
@@ -962,6 +1005,21 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 _transaction);
 
             return releasedProviderVersionChannels;
+        }
+
+        public async Task<IEnumerable<int>> GetLatestReleasedProviderVersionsId(string specificationId, string providerIds, int channelId, ISqlTransaction transaction = null)
+        {          
+            return await QuerySql<int>(@$"
+                SELECT RPVC.ChannelVersion FROM ReleasedProviderVersions RPV
+                INNER JOIN (
+                SELECT ReleasedProviderId, MAX(MajorVersion) as LatestMajorVersion FROM ReleasedProviderVersions 
+                GROUP BY ReleasedProviderId) LRPV ON RPV.ReleasedProviderId = LRPV.ReleasedProviderId AND RPV.MajorVersion = LRPV.LatestMajorVersion
+                INNER JOIN ReleasedProviders RP ON RPV.ReleasedProviderId = RP.ReleasedProviderId
+                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
+                WHERE RP.SpecificationId = @{nameof(specificationId)}
+                AND RP.ProviderId = @{nameof(providerIds)}
+                AND RPVC.ChannelId =  @{ nameof(channelId)} ",
+                new { specificationId, providerIds, channelId }, transaction);
         }
     }
 }

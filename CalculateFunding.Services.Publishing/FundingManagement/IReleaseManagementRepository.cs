@@ -1,6 +1,8 @@
-﻿using CalculateFunding.Models.External.V4;
+﻿using CalculateFunding.Common.Sql.Interfaces;
+using CalculateFunding.Models.External.V4;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -51,7 +53,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersions(string specificationId, IEnumerable<int> channelIds);
 
         Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsUsingAmbientTransaction(string specificationId, IEnumerable<int> channelIds);
-
+        Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionChannelVersionInFundingGroups(string specificationId);
         Task<FundingGroupVersion> CreateFundingGroupVersion(FundingGroupVersion fundingGroupVersion);
         Task<FundingGroupVersionVariationReason> CreateFundingGroupVariationReason(FundingGroupVersionVariationReason reason);
         Task<IEnumerable<Specification>> GetSpecifications();
@@ -87,6 +89,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<IEnumerable<ReleasedDataAllocationHistory>> GetPublishedProviderTransactionHistory(string specificationId, string providerId);
         Task<ReleasedProvider> CreateReleasedProvider(ReleasedProvider releasedProvider);
         Task<ReleasedProviderVersion> CreateReleasedProviderVersion(ReleasedProviderVersion releasedProviderVersion);
+        Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionChannel(Guid fundingGroupId, int channelId, ISqlTransaction transaction = null);
 
         /// <summary>
         /// Get all released providers
@@ -132,5 +135,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<IEnumerable<ReleasedProviderVersion>> BulkCreateReleasedProviderVersionsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersion> releasedProviderVersions);
         Task<IEnumerable<ReleasedProviderChannelVariationReason>> BulkCreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(IEnumerable<ReleasedProviderChannelVariationReason> variationReasons);
         Task<IEnumerable<ReleasedProviderVersionChannel>> BulkCreateReleasedProviderVersionChannelsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersionChannel> releasedProviderVersionChannels);
+        Task<IEnumerable<int>> GetLatestReleasedProviderVersionsId(string specificationId, string providerIds, int channelId, ISqlTransaction transaction = null);
     }
 }

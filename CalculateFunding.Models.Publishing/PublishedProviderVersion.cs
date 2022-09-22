@@ -26,6 +26,13 @@ namespace CalculateFunding.Models.Publishing
         public string FundingId => $"{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{MajorVersion}_{MinorVersion}";
 
         /// <summary>
+        /// Release management v4 API endpoints target specific channel.
+        /// This will used for getting channel specific version to downtsteram application 
+        /// </summary>
+        [JsonProperty("channelVersion")]
+        public List<ChannelVersion> ChannelVersions { get; set; }
+
+        /// <summary>
         /// Logical ID for this published provider to identify it between datastores and consistent between versions
         /// </summary>
         [JsonProperty("publishedProviderId")]

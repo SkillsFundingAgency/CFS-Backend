@@ -15,5 +15,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Models
         public string AuthorId { get; set; }
 
         public string AuthorName { get; set; }
+
+        public int ChannelVersion { get; set; }
     }
 }

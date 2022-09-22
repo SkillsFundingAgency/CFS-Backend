@@ -296,6 +296,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 ReleasedProviderVersionId = expectedProviderVersionChannel.ReleasedProviderVersionId,
                 StatusChangedDate = expectedProviderVersionChannel.StatusChangedDate,
                 ChannelId = channel.ChannelId,
+                ChannelVersion = expectedProviderVersionChannel.ChannelVersion
             };
             return expected;
         }
@@ -416,6 +417,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 StatusChangedDate = expectedInput.StatusChangedDate,
                 TemplateVersion = expectedInput.TemplateVersion,
                 TotalFunding = expectedInput.TotalFunding,
+                ChannelVersion = expectedInput.ChannelVersion
             };
             return expected;
         }

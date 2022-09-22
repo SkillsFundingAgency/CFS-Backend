@@ -15,5 +15,8 @@
         public string OrganisationGroupTypeClassification { get; set; }
 
         public string GroupingReasonCode { get; set; }
+
+        public int ChannelVersion { get; set; }
+        public int ChannelId { get; set; }
     }
 }

@@ -334,6 +334,9 @@ this.ScenarioInitialize(scenarioInfo);
                 table1213.AddRow(new string[] {
                             "AuthorName",
                             string.Format("{0}", authorName)});
+                table1213.AddRow(new string[] {
+                            "ChannelVersion",
+                            "1"});
 #line 70
  testRunner.And("there is a released provider version channel record created in the release manage" +
                         "ment repository", ((string)(null)), table1213, "And ");
@@ -359,11 +362,14 @@ this.ScenarioInitialize(scenarioInfo);
                 table1214.AddRow(new string[] {
                             "AuthorName",
                             string.Format("{0}", authorName)});
-#line 78
+                table1214.AddRow(new string[] {
+                            "ChannelVersion",
+                            "1"});
+#line 79
  testRunner.And("there is a released provider version channel record created in the release manage" +
                         "ment repository", ((string)(null)), table1214, "And ");
 #line hidden
-#line 86
+#line 88
  testRunner.And("there are a total of \'2\' released provider version channel records created in the" +
                         " release management repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -379,7 +385,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1215.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000001"});
-#line 88
+#line 90
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1215, "And ");
 #line hidden
@@ -395,7 +401,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1216.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000001"});
-#line 93
+#line 95
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1216, "And ");
 #line hidden
@@ -411,7 +417,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1217.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000002"});
-#line 98
+#line 100
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1217, "And ");
 #line hidden
@@ -427,11 +433,11 @@ this.ScenarioInitialize(scenarioInfo);
                 table1218.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000002"});
-#line 103
+#line 105
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1218, "And ");
 #line hidden
-#line 108
+#line 110
  testRunner.And("there are a total of \'4\' released provider version channel variation reason recor" +
                         "ds created in the release management repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -468,7 +474,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1219.AddRow(new string[] {
                             "OrganisationGroupTypeClassification",
                             "LegalEntity"});
-#line 110
+#line 112
  testRunner.And("there is a funding group created in the release management repository", ((string)(null)), table1219, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1220 = new TechTalk.SpecFlow.Table(new string[] {
@@ -504,7 +510,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1220.AddRow(new string[] {
                             "OrganisationGroupTypeClassification",
                             "GeographicalBoundary"});
-#line 122
+#line 124
  testRunner.And("there is a funding group created in the release management repository", ((string)(null)), table1220, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1221 = new TechTalk.SpecFlow.Table(new string[] {
@@ -540,10 +546,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table1221.AddRow(new string[] {
                             "OrganisationGroupTypeClassification",
                             "LegalEntity"});
-#line 134
+#line 136
  testRunner.And("there is a funding group created in the release management repository", ((string)(null)), table1221, "And ");
 #line hidden
-#line 146
+#line 148
  testRunner.And("there are a total of \'3\' funding group records created in the release management " +
                         "repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -601,7 +607,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table1222.AddRow(new string[] {
                             "EarliestPaymentAvailableDate",
                             string.Format("{0}", currentDateTime)});
-#line 148
+                table1222.AddRow(new string[] {
+                            "ChannelVersion",
+                            "1"});
+#line 150
  testRunner.And("there is a funding group version created in the release management repository", ((string)(null)), table1222, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1223 = new TechTalk.SpecFlow.Table(new string[] {
@@ -658,7 +667,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table1223.AddRow(new string[] {
                             "EarliestPaymentAvailableDate",
                             string.Format("{0}", currentDateTime)});
-#line 167
+                table1223.AddRow(new string[] {
+                            "ChannelVersion",
+                            "1"});
+#line 170
  testRunner.And("there is a funding group version created in the release management repository", ((string)(null)), table1223, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1224 = new TechTalk.SpecFlow.Table(new string[] {
@@ -715,10 +727,13 @@ this.ScenarioInitialize(scenarioInfo);
                 table1224.AddRow(new string[] {
                             "EarliestPaymentAvailableDate",
                             string.Format("{0}", currentDateTime)});
-#line 186
+                table1224.AddRow(new string[] {
+                            "ChannelVersion",
+                            "1"});
+#line 190
  testRunner.And("there is a funding group version created in the release management repository", ((string)(null)), table1224, "And ");
 #line hidden
-#line 205
+#line 210
  testRunner.And("there are a total of \'3\' funding group version records created in the release man" +
                         "agement repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -734,7 +749,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1225.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
-#line 207
+#line 212
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1225, "And ");
 #line hidden
@@ -750,7 +765,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1226.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
-#line 212
+#line 217
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1226, "And ");
 #line hidden
@@ -766,7 +781,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1227.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
-#line 217
+#line 222
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1227, "And ");
 #line hidden
@@ -782,7 +797,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1228.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
-#line 222
+#line 227
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1228, "And ");
 #line hidden
@@ -798,7 +813,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1229.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
-#line 227
+#line 232
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1229, "And ");
 #line hidden
@@ -814,11 +829,11 @@ this.ScenarioInitialize(scenarioInfo);
                 table1230.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
-#line 232
+#line 237
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1230, "And ");
 #line hidden
-#line 237
+#line 242
  testRunner.And("there are a total of \'6\' funding group version variation reason records created i" +
                         "n the release management repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -834,7 +849,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1231.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000001"});
-#line 239
+#line 244
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1231, "And ");
 #line hidden
@@ -850,7 +865,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1232.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000001"});
-#line 244
+#line 249
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1232, "And ");
 #line hidden
@@ -866,45 +881,45 @@ this.ScenarioInitialize(scenarioInfo);
                 table1233.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000002"});
-#line 249
+#line 254
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1233, "And ");
 #line hidden
-#line 254
+#line 259
  testRunner.And("there are a total of \'3\' funding group providers created in the release managemen" +
                         "t repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 256
+#line 261
  testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Informat" +
                         "ion-LocalAuthority-212-1_0\' in the channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 257
+#line 262
  testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Payment-" +
                         "LocalAuthority-10004002-1_0\' in the channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 258
+#line 263
  testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Payment-" +
                         "LocalAuthority-10004002-1_0\' in the channel \'Payment\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 259
+#line 264
  testRunner.And("there are \'3\' files contained in the funding groups blob storage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 261
+#line 266
  testRunner.And("there is content blob created for the released published provider with ID \'PSG-AY" +
                         "-2122-10071688-1_0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 262
+#line 267
  testRunner.And("there are \'1\' files contained in the published providers blob storage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 264
+#line 269
  testRunner.And("there is content blob created for the released provider with ID \'PSG-AY-2122-1007" +
                         "1688-1_0\' in channel \'Payment\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 265
+#line 270
  testRunner.And("there is content blob created for the released provider with ID \'PSG-AY-2122-1007" +
                         "1688-1_0\' in channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 266
+#line 271
  testRunner.And("there are \'2\' files contained in the released providers blob storage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -956,7 +971,7 @@ this.InitialReleaseOfProvidersIntoChannels_SingleProviderInApprovedState("PSG", 
             argumentsOfScenario.Add("CorrelationId", correlationId);
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Initial release of providers into channels - single provider in Released state (e" +
                     "g already released to another channel)", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 275
+#line 280
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -980,17 +995,17 @@ this.ScenarioInitialize(scenarioInfo);
                             "ProviderId"});
                 table1234.AddRow(new string[] {
                             string.Format("{0}-{1}-10071689", fundingStreamId, fundingPeriodId)});
-#line 276
+#line 281
  testRunner.Given("funding is released for providers", ((string)(null)), table1234, "Given ");
 #line hidden
-#line 279
+#line 284
  testRunner.And("release management repo has prereq data populated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1235 = new TechTalk.SpecFlow.Table(new string[] {
                             "Statement"});
                 table1235.AddRow(new string[] {
                             "Payment"});
-#line 280
+#line 285
  testRunner.And("funding is released for channels", ((string)(null)), table1235, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1236 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1020,7 +1035,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1236.AddRow(new string[] {
                             "TemplateVersion",
                             "1.2"});
-#line 283
+#line 288
  testRunner.And("the following specification exists", ((string)(null)), table1236, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1237 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1038,14 +1053,14 @@ this.ScenarioInitialize(scenarioInfo);
                 table1237.AddRow(new string[] {
                             "FundingPeriodId",
                             string.Format("{0}", fundingPeriodId)});
-#line 293
+#line 298
  testRunner.And("the following specification exists in release management", ((string)(null)), table1237, "And ");
 #line hidden
-#line 299
+#line 304
  testRunner.And(string.Format("published provider \'10071689\' exists for funding stream \'{0}\' in period \'{1}\' in " +
                             "cosmos from json", fundingStreamId, fundingPeriodId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 300
+#line 305
  testRunner.And(string.Format("a funding configuration exists for funding stream \'{0}\' in funding period \'{1}\' i" +
                             "n resources in file modifier \'Batch\'", fundingStreamId, fundingPeriodId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1067,16 +1082,16 @@ this.ScenarioInitialize(scenarioInfo);
                 table1238.AddRow(new string[] {
                             "EndDate",
                             "2022-08-31 23:59:59"});
-#line 301
+#line 306
  testRunner.And("the funding period exists in the policies service", ((string)(null)), table1238, "And ");
 #line hidden
-#line 308
+#line 313
  testRunner.And(string.Format("the provider version \'{0}\' exists in the provider service for \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 309
+#line 314
  testRunner.And(string.Format("all providers in provider version \'{0}\' are in scope", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 310
+#line 315
  testRunner.And(string.Format("the payment organisations are available for provider snapshot \'{0}\' from FDZ", providerSnapshotId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1239 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1085,13 +1100,13 @@ this.ScenarioInitialize(scenarioInfo);
                 table1239.AddRow(new string[] {
                             "JobId",
                             "<JobId>"});
-#line 311
+#line 316
  testRunner.And("the following job is requested to be queued for the current specification", ((string)(null)), table1239, "And ");
 #line hidden
-#line 314
+#line 319
  testRunner.And("the job is submitted to the job service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 315
+#line 320
  testRunner.And(string.Format("the current date and time is \'{0}\'", currentDateTime), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1240 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1106,7 +1121,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1240.AddRow(new string[] {
                             "AuthorId",
                             string.Format("{0}", authorId)});
-#line 316
+#line 321
  testRunner.When("funding is released to channels for selected providers", ((string)(null)), table1240, "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table1241 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1121,10 +1136,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table1241.AddRow(new string[] {
                             "ProviderId",
                             "10071689"});
-#line 322
+#line 327
  testRunner.Then("there is a released provider record in the release management repository", ((string)(null)), table1241, "Then ");
 #line hidden
-#line 327
+#line 332
  testRunner.And("there is a total of \'1\' released provider records in the release management repoi" +
                         "story", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1149,11 +1164,11 @@ this.ScenarioInitialize(scenarioInfo);
                 table1242.AddRow(new string[] {
                             "CoreProviderVersionId",
                             string.Format("{0}", providerVersionId)});
-#line 329
+#line 334
  testRunner.And("there is a released provider version record created in the release management rep" +
                         "ository", ((string)(null)), table1242, "And ");
 #line hidden
-#line 337
+#line 342
  testRunner.And("there is a total of \'1\' released provider version records in the release manageme" +
                         "nt repoistory", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1178,7 +1193,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table1243.AddRow(new string[] {
                             "AuthorName",
                             string.Format("{0}", authorName)});
-#line 339
+                table1243.AddRow(new string[] {
+                            "ChannelVersion",
+                            "1"});
+#line 344
  testRunner.And("there is a released provider version channel record created in the release manage" +
                         "ment repository", ((string)(null)), table1243, "And ");
 #line hidden
@@ -1203,11 +1221,14 @@ this.ScenarioInitialize(scenarioInfo);
                 table1244.AddRow(new string[] {
                             "AuthorName",
                             string.Format("{0}", authorName)});
-#line 347
+                table1244.AddRow(new string[] {
+                            "ChannelVersion",
+                            "1"});
+#line 353
  testRunner.And("there is a released provider version channel record created in the release manage" +
                         "ment repository", ((string)(null)), table1244, "And ");
 #line hidden
-#line 355
+#line 362
  testRunner.And("there are a total of \'2\' released provider version channel records created in the" +
                         " release management repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1223,7 +1244,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1245.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000001"});
-#line 357
+#line 364
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1245, "And ");
 #line hidden
@@ -1239,7 +1260,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1246.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000001"});
-#line 362
+#line 369
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1246, "And ");
 #line hidden
@@ -1255,7 +1276,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1247.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000002"});
-#line 367
+#line 374
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1247, "And ");
 #line hidden
@@ -1271,11 +1292,11 @@ this.ScenarioInitialize(scenarioInfo);
                 table1248.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000002"});
-#line 372
+#line 379
  testRunner.And("there is a released provider channel variation created in the release management " +
                         "repository", ((string)(null)), table1248, "And ");
 #line hidden
-#line 377
+#line 384
  testRunner.And("there are a total of \'4\' released provider version channel variation reason recor" +
                         "ds created in the release management repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1312,7 +1333,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1249.AddRow(new string[] {
                             "OrganisationGroupTypeClassification",
                             "LegalEntity"});
-#line 379
+#line 386
  testRunner.And("there is a funding group created in the release management repository", ((string)(null)), table1249, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1250 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1348,7 +1369,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1250.AddRow(new string[] {
                             "OrganisationGroupTypeClassification",
                             "GeographicalBoundary"});
-#line 391
+#line 398
  testRunner.And("there is a funding group created in the release management repository", ((string)(null)), table1250, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1251 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1384,10 +1405,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table1251.AddRow(new string[] {
                             "OrganisationGroupTypeClassification",
                             "LegalEntity"});
-#line 403
+#line 410
  testRunner.And("there is a funding group created in the release management repository", ((string)(null)), table1251, "And ");
 #line hidden
-#line 415
+#line 422
  testRunner.And("there are a total of \'3\' funding group records created in the release management " +
                         "repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1445,7 +1466,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table1252.AddRow(new string[] {
                             "EarliestPaymentAvailableDate",
                             string.Format("{0}", currentDateTime)});
-#line 417
+                table1252.AddRow(new string[] {
+                            "ChannelVersion",
+                            "1"});
+#line 424
  testRunner.And("there is a funding group version created in the release management repository", ((string)(null)), table1252, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1253 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1502,7 +1526,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table1253.AddRow(new string[] {
                             "EarliestPaymentAvailableDate",
                             string.Format("{0}", currentDateTime)});
-#line 436
+                table1253.AddRow(new string[] {
+                            "ChannelVersion",
+                            "1"});
+#line 444
  testRunner.And("there is a funding group version created in the release management repository", ((string)(null)), table1253, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table1254 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1559,10 +1586,13 @@ this.ScenarioInitialize(scenarioInfo);
                 table1254.AddRow(new string[] {
                             "EarliestPaymentAvailableDate",
                             string.Format("{0}", currentDateTime)});
-#line 455
+                table1254.AddRow(new string[] {
+                            "ChannelVersion",
+                            "1"});
+#line 464
  testRunner.And("there is a funding group version created in the release management repository", ((string)(null)), table1254, "And ");
 #line hidden
-#line 474
+#line 484
  testRunner.And("there are a total of \'3\' funding group version records created in the release man" +
                         "agement repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1578,7 +1608,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1255.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
-#line 476
+#line 486
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1255, "And ");
 #line hidden
@@ -1594,7 +1624,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1256.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
-#line 481
+#line 491
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1256, "And ");
 #line hidden
@@ -1610,7 +1640,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1257.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
-#line 486
+#line 496
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1257, "And ");
 #line hidden
@@ -1626,7 +1656,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1258.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
-#line 491
+#line 501
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1258, "And ");
 #line hidden
@@ -1642,7 +1672,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1259.AddRow(new string[] {
                             "VariationReason",
                             "FundingUpdated"});
-#line 496
+#line 506
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1259, "And ");
 #line hidden
@@ -1658,11 +1688,11 @@ this.ScenarioInitialize(scenarioInfo);
                 table1260.AddRow(new string[] {
                             "VariationReason",
                             "ProfilingUpdated"});
-#line 501
+#line 511
  testRunner.And("there is a funding group variation reason created in the release management repos" +
                         "itory", ((string)(null)), table1260, "And ");
 #line hidden
-#line 506
+#line 516
  testRunner.And("there are a total of \'6\' funding group version variation reason records created i" +
                         "n the release management repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1678,7 +1708,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1261.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000001"});
-#line 508
+#line 518
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1261, "And ");
 #line hidden
@@ -1694,7 +1724,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table1262.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000001"});
-#line 513
+#line 523
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1262, "And ");
 #line hidden
@@ -1710,41 +1740,41 @@ this.ScenarioInitialize(scenarioInfo);
                 table1263.AddRow(new string[] {
                             "ReleasedProviderVersionChannelId",
                             "00000000-0000-0000-0000-000000000002"});
-#line 518
+#line 528
  testRunner.And("there is the provider version associated with the funding group version in the re" +
                         "lease management repository", ((string)(null)), table1263, "And ");
 #line hidden
-#line 523
+#line 533
  testRunner.And("there are a total of \'3\' funding group providers created in the release managemen" +
                         "t repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 525
+#line 535
  testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Informat" +
                         "ion-LocalAuthority-212-1_0\' in the channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 526
+#line 536
  testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Payment-" +
                         "LocalAuthority-10004002-1_0\' in the channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 527
+#line 537
  testRunner.And("there is content blob created for the funding group with ID \'PSG-AY-2122-Payment-" +
                         "LocalAuthority-10004002-1_0\' in the channel \'Payment\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 528
+#line 538
  testRunner.And("there are \'3\' files contained in the funding groups blob storage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 530
+#line 540
  testRunner.And("there are \'0\' files contained in the published providers blob storage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 532
+#line 542
  testRunner.And("there is content blob created for the released provider with ID \'PSG-AY-2122-1007" +
                         "1689-1_0\' in channel \'Payment\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 533
+#line 543
  testRunner.And("there is content blob created for the released provider with ID \'PSG-AY-2122-1007" +
                         "1689-1_0\' in channel \'Statement\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 534
+#line 544
  testRunner.And("there are \'2\' files contained in the released providers blob storage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -1769,7 +1799,7 @@ this.ScenarioInitialize(scenarioInfo);
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:CorrelationId", "Corr")]
         public virtual void InitialReleaseOfProvidersIntoChannels_SingleProviderInReleasedStateEgAlreadyReleasedToAnotherChannel_PSG()
         {
-#line 275
+#line 280
 this.InitialReleaseOfProvidersIntoChannels_SingleProviderInReleasedStateEgAlreadyReleasedToAnotherChannel("PSG", "AY-2122", "3812005f-13b3-4d00-a118-d6cb0e2b2402", "PE and Sport Grant", "PSG-2021-10-11-77", "77", "2022-02-10 14:18:00", "AuthId", "Author Name", "Corr", ((string[])(null)));
 #line hidden
         }

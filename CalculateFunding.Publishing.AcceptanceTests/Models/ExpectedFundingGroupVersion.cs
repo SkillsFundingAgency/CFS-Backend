@@ -37,5 +37,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Models
         public DateTime ExternalPublicationDate { get; set; }
 
         public DateTime EarliestPaymentAvailableDate { get; set; }
+
+        public int ChannelVersion { get; set; }
     }
 }

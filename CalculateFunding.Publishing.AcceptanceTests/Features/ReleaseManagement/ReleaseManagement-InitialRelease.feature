@@ -75,6 +75,7 @@ Scenario Outline: Initial release of providers into channels - single provider i
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
+		| ChannelVersion                   | 1                                    |
 	And there is a released provider version channel record created in the release management repository
 		| Field                            | Value                                |
 		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000002 |
@@ -83,6 +84,7 @@ Scenario Outline: Initial release of providers into channels - single provider i
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
+		| ChannelVersion                   | 1                                    |
 	And there are a total of '2' released provider version channel records created in the release management repository
 
 	And there is a released provider channel variation created in the release management repository
@@ -164,6 +166,7 @@ Scenario Outline: Initial release of providers into channels - single provider i
 		| TotalFunding                 | 17780                                           |
 		| ExternalPublicationDate      | <CurrentDateTime>                               |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
+		| ChannelVersion               | 1                                               |
 	And there is a funding group version created in the release management repository
 		| Field                        | Value                                          |
 		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000002           |
@@ -183,6 +186,7 @@ Scenario Outline: Initial release of providers into channels - single provider i
 		| TotalFunding                 | 17780                                          |
 		| ExternalPublicationDate      | <CurrentDateTime>                              |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                              |
+		| ChannelVersion               | 1                                               |
 	And there is a funding group version created in the release management repository
 		| Field                        | Value                                           |
 		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000003            |
@@ -202,6 +206,7 @@ Scenario Outline: Initial release of providers into channels - single provider i
 		| TotalFunding                 | 17780                                           |
 		| ExternalPublicationDate      | <CurrentDateTime>                               |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
+		| ChannelVersion               | 1                                               |
 	And there are a total of '3' funding group version records created in the release management repository
 
 	And there is a funding group variation reason created in the release management repository
@@ -344,6 +349,7 @@ Scenario Outline: Initial release of providers into channels - single provider i
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
+		| ChannelVersion                   | 1                                    |
 	And there is a released provider version channel record created in the release management repository
 		| Field                            | Value                                |
 		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000002 |
@@ -352,6 +358,7 @@ Scenario Outline: Initial release of providers into channels - single provider i
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
+		| ChannelVersion                   | 1                                    |
 	And there are a total of '2' released provider version channel records created in the release management repository
 
 	And there is a released provider channel variation created in the release management repository
@@ -433,6 +440,7 @@ Scenario Outline: Initial release of providers into channels - single provider i
 		| TotalFunding                 | 17780                                           |
 		| ExternalPublicationDate      | <CurrentDateTime>                               |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
+		| ChannelVersion               | 1                                               |
 	And there is a funding group version created in the release management repository
 		| Field                        | Value                                          |
 		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000002           |
@@ -452,6 +460,7 @@ Scenario Outline: Initial release of providers into channels - single provider i
 		| TotalFunding                 | 17780                                          |
 		| ExternalPublicationDate      | <CurrentDateTime>                              |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                              |
+		| ChannelVersion               | 1                                               |
 	And there is a funding group version created in the release management repository
 		| Field                        | Value                                           |
 		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000003            |
@@ -471,6 +480,7 @@ Scenario Outline: Initial release of providers into channels - single provider i
 		| TotalFunding                 | 17780                                           |
 		| ExternalPublicationDate      | <CurrentDateTime>                               |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
+		| ChannelVersion               | 1                                               |
 	And there are a total of '3' funding group version records created in the release management repository
 
 	And there is a funding group variation reason created in the release management repository

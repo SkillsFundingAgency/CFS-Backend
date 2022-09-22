@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     throw new NonRetriableException($"Provider version not found for providerId {providerId}");
                 }
 
-                PublishedProvider publishedProvider = await _publishProvidersLoadContext.GetOrLoadProvider(providerId, providerVersion.MajorVersion);
+                PublishedProvider publishedProvider = await _publishProvidersLoadContext.GetOrLoadProvider(providerId, providerVersion.MajorVersion);               
                 publishedProviders.Add(publishedProvider);
             }
 

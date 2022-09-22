@@ -24,5 +24,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
 
         [Required]
         public string AuthorName { get; set; }
+
+        [Required]
+        public int ChannelVersion { get; set; }
     }
 }

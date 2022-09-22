@@ -7,6 +7,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
 using CalculateFunding.Services.Publishing.Models;
 using Serilog;
 using System;
@@ -238,15 +239,65 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _logger.Information("Persisting funding group providers for channel '{ChannelCode}'", channel.ChannelCode);
             await _fundingGroupProviderPersistenceService.PersistFundingGroupProviders(channel.ChannelId, fundingGroupData, providersInGroupsToRelease);
 
+            #region SavePublishedProviderContents
+            _logger.Information("Retrieving existing latest versions of providers in channel after updating the ChannelVersions");
+            IEnumerable<Channel> channels = await _repo.GetChannels();
+            //ReleaseManagement: No need to add SpecToSpec for now
+            channels = channels.Where(p => p.ChannelId < (int)ChannelType.SpecToSpec);
+            IEnumerable<ProviderVersionInChannel> latestVersionOfProvidersInChannel = await _repo.GetLatestPublishedProviderVersionsUsingAmbientTransaction(specification.Id, channels.Select(c => c.ChannelId));
+            _logger.Information($"Retrieved total of '{latestVersionOfProvidersInChannel.Count()}' latest versions of providers in channel");
+
+            providersToReleaseInBatch.ForEach(providerToRelease =>
+            {
+                var publishedVersionChannels = latestVersionOfProvidersInChannel.Where(s => s.ProviderId == providerToRelease.ProviderId);
+                List<ChannelVersion> channelVersions = new List<ChannelVersion>();
+                channels.ForEach(channel =>
+                {
+                    var publishedVersionChannel = publishedVersionChannels.Where(s => s.ChannelId == channel.ChannelId).FirstOrDefault();
+                    channelVersions.Add(new ChannelVersion
+                    {
+                        type = channel.ChannelName,
+                        value = publishedVersionChannel != null ? publishedVersionChannel.ChannelVersion : 0,
+                    });
+                });
+                providerToRelease.ChannelVersions = channelVersions;
+            });
+
             _logger.Information("Persisting released provider blob document contents for channel '{ChannelCode}'", channel.ChannelCode);
             await _publishedProviderContentChannelPersistenceService
                 .SavePublishedProviderContents(specification, providersToReleaseInBatch, channel, variationReasonsForProviders);
+            #endregion
 
+            #region SavePublishedFundingContents
+
+            IEnumerable<LatestProviderVersionInFundingGroup> fundingGroupVersions = await _repo.GetLatestProviderVersionChannelVersionInFundingGroups(specification.Id);
+            IEnumerable<PublishedFundingVersion> publishedFundingVersions = fundingGroupData.Select(_ => _.PublishedFundingVersion);
             _logger.Information("Persisting funding group blob document contents for channel '{ChannelCode}'", channel.ChannelCode);
+
+            fundingGroupData.ForEach(fgd =>
+            {
+                fgd.OrganisationGroupResult.Providers.ForEach(p =>
+                {
+                    List<ChannelVersion> channelVersions = new List<ChannelVersion>();
+                    channels.ForEach(c =>
+                    {
+                        var fundingGroupVersion = fundingGroupVersions.Where(_ => _.ProviderId == p.ProviderId && _.ChannelId == c.ChannelId).FirstOrDefault();
+                        int fundingGroupChannelVersion = fundingGroupVersion != null ? fundingGroupVersion.ChannelVersion : 0;
+                        channelVersions.Add(new ChannelVersion
+                        {
+                            type = c.ChannelName,
+                            value = fundingGroupChannelVersion,
+                        });
+                    });
+                    fgd.PublishedFundingVersion.ChannelVersions = channelVersions;
+                });
+            });
+
             await _publishedFundingContentsChannelPersistenceService
-                .SavePublishedFundingContents(fundingGroupData.Select(_ => _.PublishedFundingVersion), channel);
+                .SavePublishedFundingContents(publishedFundingVersions, channel);
 
             _logger.Information("Completed release for channel '{ChannelCode}'", channel.ChannelCode);
+            #endregion
         }
     }
 }

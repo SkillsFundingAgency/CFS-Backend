@@ -28,6 +28,13 @@ namespace CalculateFunding.Models.Publishing
         public string FundingStreamId { get; set; }
 
         /// <summary>
+        /// Release management v4 API endpoints target specific channel.
+        /// This will used for getting channel specific version to downtsteram application 
+        /// </summary>
+        [JsonProperty("channelVersion")]
+        public List<ChannelVersion> ChannelVersions { get; set; }
+
+        /// <summary>
         /// Funding Stream Name
         /// </summary>
         [JsonProperty("fundingStreamName")]

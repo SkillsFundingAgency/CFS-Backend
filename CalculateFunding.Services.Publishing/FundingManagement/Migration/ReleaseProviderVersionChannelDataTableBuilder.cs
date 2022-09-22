@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Migration
                 NewDataColumn<DateTime>("StatusChangedDate"),
                 NewDataColumn<string>("AuthorId", 64),
                 NewDataColumn<string>("AuthorName", 512),
+                NewDataColumn<int>("ChannelVersion")
             };
 
         protected override void AddDataRowToDataTable(ReleasedProviderVersionChannel dto)
@@ -25,7 +26,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Migration
                 dto.ChannelId,
                 dto.StatusChangedDate,
                 dto.AuthorId,
-                dto.AuthorName);
+                dto.AuthorName,
+                dto.ChannelVersion);
         }
 
         protected override void EnsureTableNameIsSet(ReleasedProviderVersionChannel dto)

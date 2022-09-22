@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Publishing
                 // TODO: extract interface
                 IEnumerable<string> providerIds = organisationGroup.OrganisationGroupResult.Providers.Select(p => p.ProviderId);
                 IEnumerable<string> publishedProvidersIds = publishedProviders.Select(p => p.Current.ProviderId);
-
+                
                 List<PublishedProvider> publishedProvidersForOrganisationGroup = new List<PublishedProvider>(publishedProviders.Where(p
                     => p.Released != null && providerIds.Contains(p.Released.ProviderId)));
                 List<PublishedProviderVersion> publishedProviderVersionsForOrganisationGroup = new List<PublishedProviderVersion>(
@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Publishing
                     ExternalPublicationDate = publishedFundingInput.PublishingDates.ExternalPublicationDate.TrimToTheMinute(),
                     Author = author,
                     JobId = jobId,
-                    CorrelationId = correlationId,
+                    CorrelationId = correlationId
                 };
 
                 publishedFundingVersion.FundingId = _publishedFundingIdGeneratorResolver.GetService(templateMetadataContents.SchemaVersion).GetFundingId(publishedFundingVersion);

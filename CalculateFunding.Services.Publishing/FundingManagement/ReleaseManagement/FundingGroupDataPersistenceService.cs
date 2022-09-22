@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 if (string.IsNullOrWhiteSpace(pfv.FundingId))
                 {
                     throw new InvalidOperationException("Funding ID is null or empty");
-                }
+                }                
 
                 FundingGroupVersion fundingGroupVersion = new FundingGroupVersion
                 {
@@ -78,7 +78,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     FundingId = pfv.FundingId,
                     TotalFunding = pfv.TotalFunding ?? 0m,
                     ExternalPublicationDate = pfv.ExternalPublicationDate,
-                    EarliestPaymentAvailableDate = pfv.EarliestPaymentAvailableDate
+                    EarliestPaymentAvailableDate = pfv.EarliestPaymentAvailableDate,
+                    ChannelVersion = await GetFundingGroupChannelVersion(fundingGroupId, channelId)
                 };
 
                 createVariationReasons.AddRange(pfv.VariationReasons.Select(variationReason =>
@@ -94,9 +95,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     fundingGroupVersionsForChannel = new Dictionary<string, FundingGroupVersion>();
                     _releaseToChannelSqlMappingContext.FundingGroupVersions.Add(channelId, fundingGroupVersionsForChannel);
                 }
-
+                
                 fundingGroupVersionsForChannel.Add(pfv.FundingId, fundingGroupVersion);
-
                 fundingGroupVersions.Add(fundingGroupVersion);
             }
 
@@ -113,6 +113,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             }
 
             return fundingGroupVersions;
+        }
+        private async Task<int> GetFundingGroupChannelVersion(Guid fundingGroupId, int channelId)
+        {
+            var channelVersionEntry = await _releaseManagementRepository.GetFundingGroupVersionChannel(fundingGroupId, channelId);
+            int channelVersion = (channelVersionEntry != null && channelVersionEntry.Count() > 0) ? channelVersionEntry.FirstOrDefault().ChannelVersion : 0;
+            return (channelVersion + 1);
         }
     }
 }

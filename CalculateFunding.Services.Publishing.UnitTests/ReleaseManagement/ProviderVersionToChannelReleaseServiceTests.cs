@@ -31,6 +31,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private Mock<IReleaseToChannelSqlMappingContext> _releaseToChannelSqlMappingContext;
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private Mock<ILogger> _logger;
+        private Specification _specification;
 
         [TestInitialize]
         public void Initialise()
@@ -81,6 +82,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                         })
                 }
             };
+            _specification = new Specification { SpecificationId = new RandomString() };
+            _releaseToChannelSqlMappingContext.SetupGet(_ => _.Specification)
+                .Returns(_specification);
         }
 
         [TestMethod]
@@ -133,7 +137,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                     ChannelId = new RandomNumberBetween(1, 10),
                     StatusChangedDate = DateTime.UtcNow,
                     AuthorId = Guid.NewGuid().ToString(),
-                    AuthorName = Guid.NewGuid().ToString()
+                    AuthorName = Guid.NewGuid().ToString(),
+                    ChannelVersion = new RandomNumberBetween(1, 10)
                 });
         }
 

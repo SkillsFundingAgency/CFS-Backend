@@ -146,7 +146,6 @@ namespace CalculateFunding.Services.Publishing
             if (isChannelsEnabled)
             {
                 IEnumerable<Channel> channels = (await _releaseManagementRepository.GetChannels()).ToList();
-
                 await CheckFundingVersions(specificationId, publishedFundingVersions, channels, publishAll);
                 await CheckProviderVersions(specificationId, batchProviders, channels, fundingStream, fundingPeriod, templateMapping, publishAll);
             }
@@ -174,9 +173,24 @@ namespace CalculateFunding.Services.Publishing
             {
                 Channel channel = channels.Single(_ => _.ChannelId == releasedProviderSummary.ChannelId);
                 string blobName = PublishedProviderChannelVersionService.GetBlobName(releasedProviderSummary.FundingId, channel.ChannelCode);
-
+                
                 try
                 {
+                    var allProviderChannels = releasedProviderSummariesToSearch.Where(p => p.ProviderId == releasedProviderSummary.ProviderId);
+                    List<ChannelVersion> channelVersions = new List<ChannelVersion>();
+                    channels.ForEach(c =>
+                    {
+                        //ReleaseManagement: No need to add SpecToSpec for now
+                        if (c.ChannelId < (int)ChannelType.SpecToSpec)
+                        {
+                            var providerChannel = allProviderChannels.Where(p => p.ChannelName == c.ChannelName).FirstOrDefault();
+                            channelVersions.Add(new ChannelVersion
+                            {
+                                type = c.ChannelName,
+                                value = providerChannel != null ? providerChannel.ChannelVersion : 0,
+                            });
+                        }
+                    });
                     bool blobExists = await _blobClient.GetBlockBlobReference(blobName).ExistsAsync();
                     if (blobExists) continue;
                     if (!providerVersionsToSave.ContainsKey(channel))
@@ -191,7 +205,7 @@ namespace CalculateFunding.Services.Publishing
                         .Where(_ => _.Status == PublishedProviderStatus.Released);
 
                     PublishedProviderVersion publishedProviderVersion =  releasedPublishedProviderVersions.SingleOrDefault(_ => _.FundingId == releasedProviderSummary.FundingId);
-
+                    publishedProviderVersion.ChannelVersions = channelVersions;
                     if (publishedProviderVersion != null)
                     {
                         providerVersionsToSave[channel]
@@ -206,6 +220,7 @@ namespace CalculateFunding.Services.Publishing
 
             foreach ((Channel channel, List<PublishedProviderVersion> providerVersionToSave) in providerVersionsToSave)
             {
+
                 await _publishedProviderContentChannelPersistenceService.SavePublishedProviderContents(templateMapping,
                     providerVersionToSave, channel);
             }
@@ -231,11 +246,28 @@ namespace CalculateFunding.Services.Publishing
 
                 PublishedFundingVersion publishedFunding =
                     publishedFundingVersions.SingleOrDefault(_ => _.FundingId == fundingGroupVersion.FundingId);
-
                 if (publishedFunding == null)
                 {
                     throw new NonRetriableException($"PublishedFundingVersion with FundingId = {fundingGroupVersion.FundingId} not found in list of publishedFundingVersions");
                 }
+
+                List<ChannelVersion> channelVersions = new List<ChannelVersion>();
+                channels.ForEach(c =>
+                {
+                    //ReleaseManagement: No need to add SpecToSpec for now
+                    if (c.ChannelId < (int)ChannelType.SpecToSpec)
+                    {
+                        var fundingGroupVersion = fundingGroupVersionsToCheck.Where(_ => _.FundingId == publishedFunding.FundingId && _.ChannelId == c.ChannelId).FirstOrDefault();
+                        int fundingGroupChannelVersion = fundingGroupVersion != null ? fundingGroupVersion.ChannelVersion : 0;
+                        channelVersions.Add(new ChannelVersion
+                        {
+                            type = c.ChannelName,
+                            value = fundingGroupChannelVersion,
+                        });
+                    }
+                });
+                publishedFunding.ChannelVersions = channelVersions;
+
 
                 string blobName = PublishedFundingContentsChannelPersistenceService.GetBlobName(publishedFunding, channel);
 

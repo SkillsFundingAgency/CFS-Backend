@@ -80,6 +80,7 @@ namespace CalculateFunding.Generators.Schema12
             {
                 Id = publishedProviderVersion.FundingId,
                 FundingVersion = $"{publishedProviderVersion.MajorVersion}_{publishedProviderVersion.MinorVersion}",
+                ChannelVersion = publishedProviderVersion.ChannelVersions,
                 Provider = new
                 {
                     Identifier = publishedProviderVersion.ProviderId,

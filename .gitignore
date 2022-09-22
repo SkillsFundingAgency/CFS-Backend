@@ -321,3 +321,9 @@ __pycache__/
 **/Properties/serviceDependencies.json
 **/Properties/serviceDependencies.local.json
 CalculateFunding.Editor.FundingDataZone/wwwroot/lib/
+CalculateFunding.Migrations.Specification.Clone/CalculateFunding.Migrations.Specification.Clone.csproj
+CalculateFunding.Migrations.Specification.Clone/CalculateFunding.Migrations.Specification.Clone.csproj
+CalculateFunding.Migrations.Specification.Clone/CalculateFunding.Migrations.Specification.Clone.csproj
+CalculateFunding.Migrations.Specification.Etl/CalculateFunding.Migrations.Specification.Etl.csproj
+CalculateFunding.Migrations.Specification.Etl/CalculateFunding.Migrations.Specification.Etl.csproj
+CalculateFunding.Migrations.Specification.Clone/CalculateFunding.Migrations.Specification.Clone.csproj

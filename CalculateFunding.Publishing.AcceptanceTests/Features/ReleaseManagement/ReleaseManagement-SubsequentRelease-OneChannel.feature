@@ -77,6 +77,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
+		| ChannelVersion                   | 1                                    |
 	And a released provider version channel record exists in the release management repository
 		| Field                            | Value                                |
 		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000002 |
@@ -85,6 +86,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
+		| ChannelVersion                   | 1                                    |
 	And a released provider version channel record exists in the release management repository
 		| Field                            | Value                                |
 		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000003 |
@@ -93,6 +95,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
+		| ChannelVersion                   | 1                                    |
 	And a released provider version channel record exists in the release management repository
 		| Field                            | Value                                |
 		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000004 |
@@ -101,6 +104,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
+		| ChannelVersion                   | 1                                    |
 	And the next released provider version channel identifier for new records should be 5
 
 	And a funding group record exists in the release management repository
@@ -160,6 +164,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| TotalFunding                 | 17780                                           |
 		| ExternalPublicationDate      | <CurrentDateTime>                               |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
+		| ChannelVersion               | 1                                               |
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                          |
 		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000002           |
@@ -179,6 +184,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| TotalFunding                 | 17780                                          |
 		| ExternalPublicationDate      | <CurrentDateTime>                              |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                              |
+		| ChannelVersion               | 1                                               |
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                           |
 		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000003            |
@@ -198,6 +204,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| TotalFunding                 | 17780                                           |
 		| ExternalPublicationDate      | <CurrentDateTime>                               |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
+		| ChannelVersion               | 1                                               |
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                           |
 		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000004            |
@@ -217,6 +224,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| TotalFunding                 | 17780                                           |
 		| ExternalPublicationDate      | <CurrentDateTime>                               |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
+		| ChannelVersion               | 1                                               |
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                          |
 		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000005           |
@@ -236,6 +244,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| TotalFunding                 | 17780                                          |
 		| ExternalPublicationDate      | <CurrentDateTime>                              |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                              |
+		| ChannelVersion               | 1                                               |
 	And a funding group version exists in the release management repository
 		| Field                        | Value                                           |
 		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000006            |
@@ -255,6 +264,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| TotalFunding                 | 17780                                           |
 		| ExternalPublicationDate      | <CurrentDateTime>                               |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
+		| ChannelVersion               | 1                                               |
 	And a total of '6' funding group version records exist in the release management repository
 	And the next funding group version identifier for new records should be 7
 
@@ -300,6 +310,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
+		| ChannelVersion                   | 1                                    |
 	And there are a total of '5' released provider version channel records created in the release management repository
 
 	And there is a released provider channel variation created in the release management repository
@@ -364,6 +375,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| TotalFunding                 | 17780                                           |
 		| ExternalPublicationDate      | <CurrentDateTime>                               |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                               |
+		| ChannelVersion               | 2                                               |
 	And there is a funding group version created in the release management repository
 		| Field                        | Value                                          |
 		| FundingGroupVersionId        | 00000000-0000-0000-0000-000000000008           |
@@ -383,6 +395,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| TotalFunding                 | 17780                                          |
 		| ExternalPublicationDate      | <CurrentDateTime>                              |
 		| EarliestPaymentAvailableDate | <CurrentDateTime>                              |
+		| ChannelVersion               | 2                                               |
 	And there are a total of '8' funding group version records created in the release management repository
 
 	And there is a funding group variation reason created in the release management repository

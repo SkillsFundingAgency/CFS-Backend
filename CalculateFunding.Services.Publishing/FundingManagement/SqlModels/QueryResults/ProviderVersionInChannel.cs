@@ -19,5 +19,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
         public string ProviderId { get; set; }
 
         public string CoreProviderVersionId { get; set; }
+
+        public int ChannelVersion { get; set; }
     }
 }

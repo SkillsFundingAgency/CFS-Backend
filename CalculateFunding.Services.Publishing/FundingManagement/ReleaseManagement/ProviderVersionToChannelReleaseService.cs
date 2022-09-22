@@ -37,17 +37,19 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             int channelId, DateTime statusChangedDate)
         {
             List<ReleasedProviderVersionChannel> releasedProviderVersionChannelsToCreate = new List<ReleasedProviderVersionChannel>();
-
+            
             foreach (string releasedProviderId in releasedProviders)
             {
+                Guid releasedProviderVersionId = GetReleaseProviderVersionId(releasedProviderId, channelId);
                 ReleasedProviderVersionChannel releasedProviderVersionChannel = new ReleasedProviderVersionChannel
                 {
                     ReleasedProviderVersionChannelId = _providerVersionChannelIdentifierGenerator.GenerateIdentifier(),
-                    ReleasedProviderVersionId = GetReleaseProviderVersionId(releasedProviderId, channelId),
+                    ReleasedProviderVersionId = releasedProviderVersionId,
                     ChannelId = channelId,
                     StatusChangedDate = statusChangedDate,
                     AuthorId = _releaseToChannelSqlMappingContext.Author.Id,
-                    AuthorName = _releaseToChannelSqlMappingContext.Author.Name
+                    AuthorName = _releaseToChannelSqlMappingContext.Author.Name,
+                    ChannelVersion = GetReleaseProviderChannelVersion(_releaseToChannelSqlMappingContext.Specification.SpecificationId, releasedProviderId,channelId),
                 };
 
                 releasedProviderVersionChannelsToCreate.Add(releasedProviderVersionChannel);
@@ -73,6 +75,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             _logger.Error($"GetReleaseProviderVersionId: Provider {providerId} not found in sql context for {channelId}");
             throw new KeyNotFoundException($"GetReleaseProviderVersionId: Provider {providerId} not found in sql context for {channelId}");
+        }
+
+        private int GetReleaseProviderChannelVersion(string SpecificationId, string releasedProviderId, int channelId)
+        {
+            var channelVersionResult = _repo.GetLatestReleasedProviderVersionsId(SpecificationId, releasedProviderId, channelId);
+            var channelVersion = (channelVersionResult != null && channelVersionResult.Result != null)
+                ? channelVersionResult.Result.FirstOrDefault() : 0;
+            return channelVersion + 1;
         }
     }
 }

@@ -27,7 +27,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 NewDataColumn<int>("GroupingReasonId"),
                 NewDataColumn<decimal>("TotalFunding"),
                 NewDataColumn<DateTime>("ExternalPublicationDate"),
-                NewDataColumn<DateTime>("EarliestPaymentAvailableDate")
+                NewDataColumn<DateTime>("EarliestPaymentAvailableDate"),
+                NewDataColumn<int>("ChannelVersion"),
             };
 
         protected override void AddDataRowToDataTable(FundingGroupVersion dto)
@@ -48,7 +49,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 dto.GroupingReasonId,
                 dto.TotalFunding,
                 dto.ExternalPublicationDate,
-                dto.EarliestPaymentAvailableDate);
+                dto.EarliestPaymentAvailableDate,
+                dto.ChannelVersion);
         }
 
         protected override void EnsureTableNameIsSet(FundingGroupVersion dto)

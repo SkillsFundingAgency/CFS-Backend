@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Utility;
+﻿using CalculateFunding.Common.Sql.Interfaces;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External.V4;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
@@ -914,6 +915,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(GetLatestReleasedProviderVersionsInternal(specificationId, providerIds));
         }
 
+        public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionChannel(Guid fundingGroupId, int channelId, ISqlTransaction transaction = null)
+        {
+            return (_fundingGroupVersions.Values
+                    .Where(_ =>
+                        _.FundingGroupId == fundingGroupId
+                        && _.ChannelId == channelId));
+        }
+        public async Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionChannelVersionInFundingGroups(string specificationId)
+        {
+            return Enumerable.Empty<LatestProviderVersionInFundingGroup>();
+        }
         private IEnumerable<LatestReleasedProviderVersion> GetLatestReleasedProviderVersionsInternal(string specificationId, IEnumerable<string> providerIds = null)
         {
             Dictionary<Guid, ReleasedProvider> releasedProvidersForSpecification;
@@ -982,6 +994,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<IEnumerable<FundingStream>> GetFundingStreamsUsingAmbientTransaction()
         {
             return GetFundingStreams();
+        }
+
+        public Task<IEnumerable<int>> GetLatestReleasedProviderVersionsId(string specificationId, string providerIds, int channelId, ISqlTransaction transaction = null)
+        {
+            return null;
         }
     }
 }

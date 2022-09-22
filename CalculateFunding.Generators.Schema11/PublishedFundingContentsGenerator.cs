@@ -103,6 +103,7 @@ namespace CalculateFunding.Generators.Schema11
                     publishedFundingVersion.TemplateVersion,
                     Id = publishedFundingVersion.FundingId,
                     FundingVersion = $"{publishedFundingVersion.MajorVersion}_{publishedFundingVersion.MinorVersion}",
+                    ChannelVersion = publishedFundingVersion.ChannelVersions,
                     Status = publishedFundingVersion.Status.ToString(),
                     FundingStream = new
                     {
