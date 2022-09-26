@@ -62,8 +62,8 @@ namespace CalculateFunding.Api.External.V4.Services
                 _logger.Error("Failed to find blob with id {fundingId} and channel ID: {channelCode}", fundingId, channel.ChannelCode);
                 return new NotFoundResult();
             }
-
-            return new FileStreamResult(fundingDocument, "application/json");
+            Stream contents = _channelUrlToChannelResolver.GetContentWithChannelVersion(fundingDocument, channel.ChannelCode).Result;
+            return new FileStreamResult(contents, "application/json");
         }
     }
 }

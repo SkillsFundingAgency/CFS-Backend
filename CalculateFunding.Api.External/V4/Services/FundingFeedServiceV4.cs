@@ -5,7 +5,6 @@ using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.V4;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing;
-using CalculateFunding.Services.Publishing.FundingManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -162,7 +161,7 @@ namespace CalculateFunding.Api.External.V4.Services
                 Stopwatch sw = Stopwatch.StartNew();
 
                 IDictionary<ExternalFeedFundingGroupItem, Stream> contents = await _publishedFundingRetrievalService.GetFundingFeedDocuments(batchItems, channelCode, cancellationToken);
-
+         
                 sw.Stop();
 
                 _logger.Debug("Batch of document retrieved in {ElapsedMilliseconds}ms", sw.ElapsedMilliseconds);
@@ -181,7 +180,6 @@ namespace CalculateFunding.Api.External.V4.Services
             await _feedWriter.OutputFeedFooter(response.BodyWriter);
             await response.BodyWriter.FlushAsync();
         }
-
 
         private async Task OutputFeedItemBatch(HttpRequest request,
             PipeWriter writer,
@@ -210,6 +208,8 @@ namespace CalculateFunding.Api.External.V4.Services
                     return;
                 }
 
+                Stream contents = _channelUrlToChannelResolver.GetContentWithChannelVersion(item.Value, channelCode).Result;
+
                 count++;
                 ExternalFeedFundingGroupItem feedItem = item.Key;
 
@@ -217,7 +217,7 @@ namespace CalculateFunding.Api.External.V4.Services
 
                 bool hasMoreItems = !isLastBatch || (isLastBatch && count != feedDocumentCount);
 
-                await _feedWriter.OutputFeedItem(writer, link, item.Key, item.Value, hasMoreItems);
+                await _feedWriter.OutputFeedItem(writer, link, item.Key, contents, hasMoreItems);
 
                 await writer.FlushAsync();
             }
@@ -278,5 +278,6 @@ namespace CalculateFunding.Api.External.V4.Services
                 Entries = fundingFeedResults
             };
         }
+
     }
 }
