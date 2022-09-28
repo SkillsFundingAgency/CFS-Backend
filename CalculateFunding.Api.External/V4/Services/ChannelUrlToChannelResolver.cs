@@ -54,7 +54,7 @@ namespace CalculateFunding.Api.External.V4.Services
             var fundingVersion = (string)funding["fundingVersion"];
             var channelVersion = funding["channelVersion"];
 
-            if (channelVersion == null)
+            if (channelVersion == null || channelVersion.Count() == 0)
             {
                 List<ChannelVersion> channelVersions = new List<ChannelVersion>();
                 var channels = await _repo.GetChannels();
@@ -67,7 +67,14 @@ namespace CalculateFunding.Api.External.V4.Services
                         value = channel.ChannelCode.ToLower() == channelCode.ToLower() ? Convert.ToInt32(fundingVersion.Split('_')[0]) : 0
                     });
                 });
-                funding.Property("fundingVersion").AddAfterSelf(new JProperty("channelVersion", JToken.FromObject(channelVersions)));
+                if (funding.ContainsKey("channelVersion"))
+                {
+                    funding["channelVersion"] = JToken.FromObject(channelVersions);
+                }
+                else
+                {
+                    funding.Property("fundingVersion").AddAfterSelf(new JProperty("channelVersion", JToken.FromObject(channelVersions)));
+                }
                 return new MemoryStream(Encoding.UTF8.GetBytes(loadDocument.ToString(Formatting.None)));
             }
             return content;
