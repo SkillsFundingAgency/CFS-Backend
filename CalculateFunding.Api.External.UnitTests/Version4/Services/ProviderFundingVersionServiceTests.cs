@@ -200,6 +200,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version4.Services
             IChannelUrlToChannelResolver channelUrlToChannelResolver = Substitute.For<IChannelUrlToChannelResolver>();
 
             channelUrlToChannelResolver.ResolveUrlToChannel(channelUrlKey).Returns(new Channel { ChannelCode = channelCode, ChannelId = channelId });
+           
+            channelUrlToChannelResolver.GetContentWithChannelProviderVersion(memoryStream, channelCode).Returns(memoryStream);
 
             FundingManagementInterfaces.IReleaseManagementRepository releaseManagementRepository = Substitute.For<FundingManagementInterfaces.IReleaseManagementRepository>();
 
@@ -287,6 +289,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version4.Services
 
             releaseManagementRepository.ContainsProviderVersion(1234, providerFundingVersion).Returns(true);
             
+            channelUrlToChannelResolver.GetContentWithChannelProviderVersion(memoryStream ,channelCode).Returns(memoryStream);
+
             IBlobDocumentPathGenerator blobDocumentPathGenerator = new BlobDocumentPathGenerator();
 
             ProviderFundingVersionService service = CreateProviderFundingVersionService(logger,
@@ -362,6 +366,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version4.Services
             IChannelUrlToChannelResolver channelUrlToChannelResolver = Substitute.For<IChannelUrlToChannelResolver>();
 
             channelUrlToChannelResolver.ResolveUrlToChannel(channelUrlKey).Returns(new Channel { ChannelCode = channelCode, ChannelId = channelId });
+
+            channelUrlToChannelResolver.GetContentWithChannelProviderVersion(memoryStream, channelCode).Returns(memoryStream);
 
             FundingManagementInterfaces.IReleaseManagementRepository releaseManagementRepository = Substitute.For<FundingManagementInterfaces.IReleaseManagementRepository>();
 

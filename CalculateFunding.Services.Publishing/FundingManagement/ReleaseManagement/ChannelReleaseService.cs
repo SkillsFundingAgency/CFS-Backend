@@ -281,7 +281,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     List<ChannelVersion> channelVersions = new List<ChannelVersion>();
                     channels.ForEach(c =>
                     {
-                        var fundingGroupVersion = fundingGroupVersions.Where(_ => _.ProviderId == p.ProviderId && _.ChannelId == c.ChannelId).FirstOrDefault();
+                        var fundingGroupVersion = fundingGroupVersions.Where(_ => _.ProviderId == p.ProviderId && _.ChannelId == c.ChannelId
+                          && _.OrganisationGroupIdentifierValue.Equals(fgd.PublishedFundingVersion.OrganisationGroupIdentifierValue)).FirstOrDefault();
                         int fundingGroupChannelVersion = fundingGroupVersion != null ? fundingGroupVersion.ChannelVersion : 0;
                         channelVersions.Add(new ChannelVersion
                         {

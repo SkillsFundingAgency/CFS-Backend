@@ -82,7 +82,8 @@ namespace CalculateFunding.Api.External.V4.Services
                 if (_cacheSettings.IsEnabled && _fileSystemCache.Exists(cacheKey))
                 {
                     Stream cachedStream = _fileSystemCache.Get(cacheKey);
-                    return GetResultStream(cachedStream);
+                    var cachedContent = _channelUrlToChannelResolver.GetContentWithChannelProviderVersion(cachedStream, channel.ChannelCode).Result;
+                    return GetResultStream(cachedContent);
                 }
 
                 bool exists = await _blobClientPolicy.ExecuteAsync(() => _blobClient.BlobExistsAsync(blobName));
@@ -98,12 +99,13 @@ namespace CalculateFunding.Api.External.V4.Services
 
                 Stream blobStream = await _blobClientPolicy.ExecuteAsync(() => _blobClient.DownloadToStreamAsync(blob));
 
+                Stream content = _channelUrlToChannelResolver.GetContentWithChannelProviderVersion(blobStream, channel.ChannelCode).Result;
+
                 if (_cacheSettings.IsEnabled)
                 {
-                    _fileSystemCache.Add(cacheKey, blobStream);
-                }
-
-                return GetResultStream(blobStream);
+                    _fileSystemCache.Add(cacheKey, content);
+                }               
+                return GetResultStream(content);
             }
             catch (Exception ex)
             {

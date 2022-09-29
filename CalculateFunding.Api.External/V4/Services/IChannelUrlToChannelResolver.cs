@@ -9,5 +9,6 @@ namespace CalculateFunding.Api.External.V4.Services
         Task<Channel> ResolveUrlToChannel(string urlKey);
 
         Task<Stream> GetContentWithChannelVersion(Stream content, string channelCode);
+        Task<Stream> GetContentWithChannelProviderVersion(Stream content, string channelCode);
     }
 }
