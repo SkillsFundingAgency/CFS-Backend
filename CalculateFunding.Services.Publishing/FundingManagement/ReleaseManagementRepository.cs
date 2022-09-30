@@ -636,6 +636,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 					, FG.OrganisationGroupName
 					, FG.OrganisationGroupTypeClassification
 					, GR.GroupingReasonCode
+                    , FGV.FundingId
 				FROM FundingGroupVersions FGV
 				INNER JOIN 
 				(SELECT FundingGroupId, MAX(MajorVersion) AS LatestVersion FROM FundingGroupVersions FGVAgg
