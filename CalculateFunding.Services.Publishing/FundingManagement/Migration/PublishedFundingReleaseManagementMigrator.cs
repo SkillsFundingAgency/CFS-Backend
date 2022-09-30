@@ -158,9 +158,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             _logger.Information($"Importing {_releasedProviderVersions.Count} ReleasedProviderVersions");
             await dataImporter.ImportDataTable(releasedProviderVersionsBuilder, SqlBulkCopyOptions.KeepIdentity);
 
+            _logger.Information("Loading PopulateLinkingTables for migration");
             await PopulateLinkingTables(channels, variationReasons);
+            _logger.Information("Completed PopulateLinkingTables for migration");
 
+            _logger.Information("Loading MigrateBlobs to Container for migration");
             await MigrateBlobs();
+            _logger.Information("Completed MigrateBlobs for migration");
         }
 
         private void DetectMissingPublishedProviderVersionRecordsFromFundingGroups()
@@ -564,7 +568,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             SemaphoreSlim throttle = new SemaphoreSlim(BlobClientThrottleCount);
             List<Task> trackedTasks = new List<Task>(_blobsToMigrate.Count);
-
+            _logger.Information("Initiating MigrateBlobs for Copy blobs to Container");
             foreach (BlobToMigrate blob in _blobsToMigrate)
             {
                 await throttle.WaitAsync();
@@ -589,7 +593,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     }
                 }));
             }
-
+            _logger.Information("Initiating WhenAllAndThrow task for Copy blobs to Container");
             await TaskHelper.WhenAllAndThrow(trackedTasks.ToArray());
         }
 
