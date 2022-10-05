@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Api.External.V4.Interfaces;
+using CalculateFunding.Api.External.V4.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
@@ -130,7 +131,13 @@ namespace CalculateFunding.Api.External.V4.Services
 
             IEnumerable<string> fundingGroupsVersionsForProvider = await _releaseManagementRepository.GetFundingGroupIdsForProviderFunding(channel.ChannelId, publishedProviderVersion);
 
-            return new OkObjectResult(fundingGroupsVersionsForProvider);
+            List<Funding> fundingIds = new List<Funding>();
+            foreach (string groupId in fundingGroupsVersionsForProvider)
+            {
+                fundingIds.Add(new Funding { fundingId = groupId });
+            }
+
+            return new OkObjectResult(fundingIds);
         }
 
         private FileStreamResult GetResultStream(Stream stream)

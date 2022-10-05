@@ -21,6 +21,7 @@ using NSubstitute.ExceptionExtensions;
 using Serilog;
 using System.Collections.Generic;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
+using CalculateFunding.Api.External.V4.Models;
 
 namespace CalculateFunding.Api.External.UnitTests.Version4.Services
 {
@@ -39,6 +40,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version4.Services
         {
             //Arrange
             IEnumerable<string> fundingGroups = new[] { "id1" };
+            IEnumerable<Funding> fundingIds = new List<Funding>() { new Funding { fundingId = "id1" } };
 
             FundingManagementInterfaces.IReleaseManagementRepository releaseManagementRepository = Substitute.For<FundingManagementInterfaces.IReleaseManagementRepository>();
 
@@ -64,7 +66,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version4.Services
             IEnumerable<dynamic> fundingIdResults = contentResult.Value as IEnumerable<dynamic>;
 
             fundingIdResults.Should()
-                .BeEquivalentTo(fundingGroups);
+                .BeEquivalentTo(fundingIds);
         }
 
         [TestMethod]
