@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     StatusChangedDate = statusChangedDate,
                     AuthorId = _releaseToChannelSqlMappingContext.Author.Id,
                     AuthorName = _releaseToChannelSqlMappingContext.Author.Name,
-                    ChannelVersion = GetReleaseProviderChannelVersion(_releaseToChannelSqlMappingContext.Specification.SpecificationId, releasedProviderId,channelId),
+                    ChannelVersion = await GetReleaseProviderChannelVersion(_releaseToChannelSqlMappingContext.Specification.SpecificationId, releasedProviderId,channelId),
                 };
 
                 releasedProviderVersionChannelsToCreate.Add(releasedProviderVersionChannel);
@@ -77,11 +77,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             throw new KeyNotFoundException($"GetReleaseProviderVersionId: Provider {providerId} not found in sql context for {channelId}");
         }
 
-        private int GetReleaseProviderChannelVersion(string SpecificationId, string releasedProviderId, int channelId)
+        private async Task<int> GetReleaseProviderChannelVersion(string SpecificationId, string releasedProviderId, int channelId)
         {
-            var channelVersionResult = _repo.GetLatestReleasedProviderVersionsId(SpecificationId, releasedProviderId, channelId);
-            var channelVersion = (channelVersionResult != null && channelVersionResult.Result != null)
-                ? channelVersionResult.Result.FirstOrDefault() : 0;
+            var channelVersionResult = await _repo.GetLatestReleasedProviderVersionsId(SpecificationId, releasedProviderId, channelId);
+            var channelVersion = (channelVersionResult != null && channelVersionResult.Count() > 0)
+                ? channelVersionResult.FirstOrDefault().ChannelVersion : 0;
             return channelVersion + 1;
         }
     }

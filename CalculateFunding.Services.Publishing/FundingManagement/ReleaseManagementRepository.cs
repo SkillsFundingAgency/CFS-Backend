@@ -570,6 +570,35 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             return await GetLatestPublishedProviderVersionsInternal(specificationId, channelIds, _transaction);
         }
+        public async Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsByChannelIdUsingAmbientTransaction(string specificationId, IEnumerable<int> channelIds)
+        {
+            return await GetLatestPublishedProviderVersionsByChannelId(specificationId, channelIds, _transaction);
+        }
+        public Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsByChannelId(string specificationId, IEnumerable<int> channelIds, ISqlTransaction transaction = null)
+        {
+            return QuerySql<ProviderVersionInChannel>(
+            @$"
+				SELECT RPVC.ReleasedProviderVersionChannelId, RPVC.[ChannelId], C.ChannelCode, C.ChannelName, RPV.MajorVersion, RPV.MinorVersion, RP.ProviderId, RPVC.ChannelVersion
+				FROM ReleasedProviderVersionChannels RPVC
+				INNER JOIN ReleasedProviderVersions RPV on RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
+				INNER JOIN (
+				SELECT Max(MajorVersion) As MajorVersion, RPV.ReleasedProviderId, RPVC.ChannelId
+				FROM ReleasedProviderVersions RPV
+				INNER JOIN ReleasedProviders RP ON RPV.ReleasedProviderId = RP.ReleasedProviderId
+                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
+				WHERE RP.SpecificationId = @{nameof(specificationId)}
+				GROUP BY RPV.ReleasedProviderId, RPVC.ChannelId) LatestVersion ON LatestVersion.ChannelId = RPVC.[ChannelId]
+				AND LatestVersion.MajorVersion = RPV.MajorVersion 
+				AND LatestVersion.ReleasedProviderId = RPV.ReleasedProviderId
+				INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+                INNER JOIN Channels C ON C.ChannelId = RPVC.ChannelId
+				WHERE RPVC.ChannelId IN @{nameof(channelIds)}",
+            new
+            {
+                specificationId,
+                channelIds,
+            }, transaction);
+        }
 
         private Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsInternal(string specificationId, IEnumerable<int> channelIds, ISqlTransaction sqlTransaction)
         {
@@ -593,7 +622,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 channelIds,
             },
             sqlTransaction);
-        }
+        }      
 
         public async Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionInFundingGroups(string specificationId, int channelId)
         {
@@ -1008,18 +1037,25 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             return releasedProviderVersionChannels;
         }
 
-        public async Task<IEnumerable<int>> GetLatestReleasedProviderVersionsId(string specificationId, string providerIds, int channelId, ISqlTransaction transaction = null)
-        {          
-            return await QuerySql<int>(@$"
-                SELECT RPVC.ChannelVersion FROM ReleasedProviderVersions RPV
+        public async Task<IEnumerable<ReleasedProviderVersionChannel>> GetLatestReleasedProviderVersionsId(string specificationId, string providerIds, int channelId, ISqlTransaction transaction = null)
+        {
+            return await QuerySql<ReleasedProviderVersionChannel>(@$"
+                SELECT RPVC.*
+                FROM ReleasedProviderVersionChannels RPVC
+                INNER JOIN ReleasedProviderVersions RPV on RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
                 INNER JOIN (
-                SELECT ReleasedProviderId, MAX(MajorVersion) as LatestMajorVersion FROM ReleasedProviderVersions 
-                GROUP BY ReleasedProviderId) LRPV ON RPV.ReleasedProviderId = LRPV.ReleasedProviderId AND RPV.MajorVersion = LRPV.LatestMajorVersion
+                SELECT Max(MajorVersion) As MajorVersion, RPV.ReleasedProviderId, RPVC.ChannelId
+                FROM ReleasedProviderVersions RPV
                 INNER JOIN ReleasedProviders RP ON RPV.ReleasedProviderId = RP.ReleasedProviderId
                 INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
                 WHERE RP.SpecificationId = @{nameof(specificationId)}
-                AND RP.ProviderId = @{nameof(providerIds)}
-                AND RPVC.ChannelId =  @{ nameof(channelId)} ",
+                GROUP BY RPV.ReleasedProviderId, RPVC.ChannelId) LatestVersion ON LatestVersion.ChannelId = RPVC.[ChannelId]
+                AND LatestVersion.MajorVersion = RPV.MajorVersion
+                AND LatestVersion.ReleasedProviderId = RPV.ReleasedProviderId
+               INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+                INNER JOIN Channels C ON C.ChannelId = RPVC.ChannelId
+                WHERE  RP.ProviderId = @{nameof(providerIds)}
+                AND RPVC.ChannelId =  @{nameof(channelId)}",
                 new { specificationId, providerIds, channelId }, transaction);
         }
     }

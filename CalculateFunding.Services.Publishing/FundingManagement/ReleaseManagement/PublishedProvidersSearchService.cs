@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             if (channelIds.Any())
             {
-                IEnumerable<ProviderVersionInChannel> versions = await _releaseManagementRepository.GetLatestPublishedProviderVersions(
+                IEnumerable<ProviderVersionInChannel> versions = await _releaseManagementRepository.GetLatestPublishedProviderVersionsByChannelId(
                             searchRequest.SpecificationId, channelIds);
 
                 IEnumerable<IGrouping<string, ProviderVersionInChannel>> versionsGroupedByProviderId = versions.GroupBy(_ => _.ProviderId);

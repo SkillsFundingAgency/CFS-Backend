@@ -258,7 +258,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private void GivenLatestProviderVersionInChannels(string specificationId, FundingConfiguration fundingConfiguration, params ProviderVersionInChannel[] providerVersionInChannels)
         {
             IEnumerable<string> visibleChannels = fundingConfiguration.ReleaseChannels.Where(_ => _.IsVisible).Select(_ => _.ChannelCode);
-            _repo.Setup(_ => _.GetLatestPublishedProviderVersions(It.Is<string>(s => s == specificationId), It.IsAny<IEnumerable<int>>()))
+            _repo.Setup(_ => _.GetLatestPublishedProviderVersionsByChannelId(It.Is<string>(s => s == specificationId), It.IsAny<IEnumerable<int>>(), null))
                 .ReturnsAsync(providerVersionInChannels.Where(_ => visibleChannels.Contains(_.ChannelCode)));
         }
 

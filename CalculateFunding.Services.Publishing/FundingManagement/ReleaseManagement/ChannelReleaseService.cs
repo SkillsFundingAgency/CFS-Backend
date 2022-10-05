@@ -244,7 +244,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IEnumerable<Channel> channels = await _repo.GetChannels();
             //ReleaseManagement: No need to add SpecToSpec for now
             channels = channels.Where(p => p.ChannelId < (int)ChannelType.SpecToSpec);
-            IEnumerable<ProviderVersionInChannel> latestVersionOfProvidersInChannel = await _repo.GetLatestPublishedProviderVersionsUsingAmbientTransaction(specification.Id, channels.Select(c => c.ChannelId));
+            IEnumerable<ProviderVersionInChannel> latestVersionOfProvidersInChannel = await _repo.GetLatestPublishedProviderVersionsByChannelIdUsingAmbientTransaction(specification.Id, channels.Select(c => c.ChannelId));
             _logger.Information($"Retrieved total of '{latestVersionOfProvidersInChannel.Count()}' latest versions of providers in channel");
 
             providersToReleaseInBatch.ForEach(providerToRelease =>

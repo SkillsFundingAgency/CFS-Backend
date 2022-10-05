@@ -542,7 +542,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
-
+        public async Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsByChannelIdUsingAmbientTransaction(string specificationId, IEnumerable<int> channelIds)
+        {
+            return await GetLatestPublishedProviderVersionsByChannelId(specificationId, channelIds);
+        }
         public Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionsBySpecificationId(string specificationId)
         {
             throw new NotImplementedException();
@@ -694,6 +697,79 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             _specifications.TryGetValue(id, out result);
 
             return Task.FromResult(result);
+        }
+
+        public Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsByChannelId(string specificationId, IEnumerable<int> channelIds, ISqlTransaction transaction = null)
+        {
+            Dictionary<Guid, ReleasedProvider> releasedProvidersForSpecification = _releasedProviders.Values
+                    .Where(_ => _.SpecificationId == specificationId)
+                    .ToDictionary(_ => _.ReleasedProviderId);
+
+            Guid[] releasedProviderIds = releasedProvidersForSpecification.Values.Select(_ => _.ReleasedProviderId).ToArray();
+
+            // ReleasedProviderVersionId is the key
+            IEnumerable<ReleasedProviderVersion> releasedProviderVersionsInSpec = _releasedProviderVersions.Values.Where(_ => releasedProviderIds.Contains(_.ReleasedProviderId));
+
+            IEnumerable<ReleasedProviderVersionChannel> providerVersionsInChannelsSpecified =
+                _releasedProviderVersionChannels.Values
+                    .Where(_ => channelIds.Contains(_.ChannelId));
+
+            Dictionary<int, Dictionary<Guid, ProviderVersionInChannel>> results = new Dictionary<int, Dictionary<Guid, ProviderVersionInChannel>>();
+
+            Dictionary<int, Channel> channels = _channels.Values.ToDictionary(_ => _.ChannelId);
+
+
+            foreach (var rpvc in providerVersionsInChannelsSpecified)
+            {
+                ReleasedProviderVersion releasedProviderVersion = _releasedProviderVersions[rpvc.ReleasedProviderVersionId];
+                ReleasedProvider releasedProvider = _releasedProviders[releasedProviderVersion.ReleasedProviderId];
+
+                if (!results.TryGetValue(rpvc.ChannelId, out Dictionary<Guid, ProviderVersionInChannel> channelResults))
+                {
+                    channelResults = new Dictionary<Guid, ProviderVersionInChannel>();
+                    results.Add(rpvc.ChannelId, channelResults);
+                }
+
+                if (channelResults.ContainsKey(releasedProvider.ReleasedProviderId))
+                {
+                    // Already processed this provider, the latest version is added to the results return dictionary
+                    continue;
+                }
+
+                ReleasedProviderVersion latestProviderVersionInChannel = releasedProviderVersionsInSpec.Where(
+                    _ => _.ReleasedProviderId == releasedProvider.ReleasedProviderId)
+                    .OrderByDescending(_ => _.MajorVersion).FirstOrDefault();
+
+                if (latestProviderVersionInChannel == null)
+                {
+                    continue;
+                }
+
+                // Check to determine if this version is the latest, else wait until that version is the latest
+                if (latestProviderVersionInChannel.ReleasedProviderVersionId != rpvc.ReleasedProviderVersionId)
+                {
+                    continue;
+                }
+
+                Channel channel = channels[rpvc.ChannelId];
+
+                ProviderVersionInChannel providerVersionInChannel = new ProviderVersionInChannel()
+                {
+                    ChannelCode = channel.ChannelCode,
+                    ChannelId = channel.ChannelId,
+                    ChannelName = channel.ChannelName,
+                    CoreProviderVersionId = latestProviderVersionInChannel.CoreProviderVersionId,
+                    MajorVersion = latestProviderVersionInChannel.MajorVersion,
+                    MinorVersion = latestProviderVersionInChannel.MinorVersion,
+                    ProviderId = _releasedProviders[latestProviderVersionInChannel.ReleasedProviderId].ProviderId,
+                    ReleasedProviderVersionChannelId = rpvc.ReleasedProviderVersionChannelId,
+                };
+
+                channelResults.Add(latestProviderVersionInChannel.ReleasedProviderId, providerVersionInChannel);
+            }
+
+
+            return Task.FromResult(results.SelectMany(_ => _.Value.Values));
         }
 
         public Task<IEnumerable<Specification>> GetSpecifications()
@@ -996,7 +1072,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return GetFundingStreams();
         }
 
-        public Task<IEnumerable<int>> GetLatestReleasedProviderVersionsId(string specificationId, string providerIds, int channelId, ISqlTransaction transaction = null)
+        public async Task<IEnumerable<ReleasedProviderVersionChannel>> GetLatestReleasedProviderVersionsId(string specificationId, string providerIds, int channelId, ISqlTransaction transaction = null)
         {
             return null;
         }

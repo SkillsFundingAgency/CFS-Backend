@@ -135,6 +135,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<IEnumerable<ReleasedProviderVersion>> BulkCreateReleasedProviderVersionsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersion> releasedProviderVersions);
         Task<IEnumerable<ReleasedProviderChannelVariationReason>> BulkCreateReleasedProviderChannelVariationReasonsUsingAmbientTransaction(IEnumerable<ReleasedProviderChannelVariationReason> variationReasons);
         Task<IEnumerable<ReleasedProviderVersionChannel>> BulkCreateReleasedProviderVersionChannelsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersionChannel> releasedProviderVersionChannels);
-        Task<IEnumerable<int>> GetLatestReleasedProviderVersionsId(string specificationId, string providerIds, int channelId, ISqlTransaction transaction = null);
+        Task<IEnumerable<ReleasedProviderVersionChannel>> GetLatestReleasedProviderVersionsId(string specificationId, string providerIds, int channelId, ISqlTransaction transaction = null);
+        Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsByChannelId(string specificationId, IEnumerable<int> channelIds, ISqlTransaction transaction = null);
+
+        Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersionsByChannelIdUsingAmbientTransaction(string specificationId, IEnumerable<int> channelIds);
     }
 }
