@@ -5,6 +5,7 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
         private Mock<IReleaseManagementRepository> _releaseManagementRepository;
         private IEnumerable<string> _providers;
         private string _specificationId;
+        private Mock<ILogger> _logger;
 
         [TestInitialize]
         public void Initialise()
@@ -30,9 +32,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             _releaseManagementRepository = new Mock<IReleaseManagementRepository>();
             _releaseToChannelSqlMappingContext.SetupGet(_ => _.ReleasedProviders).Returns(new Dictionary<string, ReleasedProvider>());
             _identifierGenerator = new Mock<IUniqueIdentifierProvider>();
+            _logger = new Mock<ILogger>();
             _service = new ReleaseProviderPersistenceService(_releaseToChannelSqlMappingContext.Object,
                 _releaseManagementRepository.Object,
-                _identifierGenerator.Object
+                _identifierGenerator.Object,
+                 _logger.Object
                 );
         }
 

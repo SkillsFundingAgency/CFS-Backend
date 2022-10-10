@@ -61,8 +61,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             if (releasedProviderVersionChannelsToCreate.Any())
             {
+                //Below Logs only for testing purpose.We need to remove after testing
+                _logger.Information("Inserting bulkdate to ReleasedProviderVersionChannel table");
                 await _repo.BulkCreateReleasedProviderVersionChannelsUsingAmbientTransaction(
-                    releasedProviderVersionChannelsToCreate);
+                    releasedProviderVersionChannelsToCreate);              
             }
         }
 

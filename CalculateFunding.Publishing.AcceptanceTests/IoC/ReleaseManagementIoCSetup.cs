@@ -392,8 +392,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 IReleaseManagementRepository releaseManagementRepository = svc.Resolve<IReleaseManagementRepository>();
                 IReleaseToChannelSqlMappingContext context = svc.Resolve<IReleaseToChannelSqlMappingContext>();
                 IReleaseManagementIdentifierGeneratorStepContext releaseManagementIdentifierGeneratorStepContext = svc.Resolve<IReleaseManagementIdentifierGeneratorStepContext>();
-
-                return new ReleaseProviderPersistenceService(context, releaseManagementRepository, releaseManagementIdentifierGeneratorStepContext.ReleasedProvider);
+                ILogger logger = svc.Resolve<ILogger>();
+                return new ReleaseProviderPersistenceService(context, releaseManagementRepository, releaseManagementIdentifierGeneratorStepContext.ReleasedProvider, logger);
             });
 
             RegisterFactoryAs<IProviderVersionReleaseService>((svc) =>
