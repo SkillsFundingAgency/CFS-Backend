@@ -743,6 +743,36 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await deleteTask;
         }
 
+        public async Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds)
+        {
+            string queryString;
+            object queryParams = null;
+            if (fundingStreamIds == null)
+            {
+                queryString = @"SELECT TOP 1 fs.fundingStreamId FROM FundingGroups fg
+                INNER JOIN Specifications s on fg.SpecificationId = s.SpecificationId
+                INNER JOIN FundingStreams fs on s.FundingStreamId = fs.FundingStreamId";
+            }
+            else
+            {
+                queryString = @$"SELECT TOP 1 fs.fundingStreamId FROM FundingGroups fg
+                INNER JOIN Specifications s on fg.SpecificationId = s.SpecificationId
+                INNER JOIN FundingStreams fs on s.FundingStreamId = fs.FundingStreamId
+                WHERE fs.FundingStreamCode IN @{nameof(fundingStreamIds)}";
+
+                queryParams = new
+                       {
+                           fundingStreamIds
+                       };
+            }
+
+            int id = await QuerySingleSql<int>(
+                queryString,
+                queryParams);
+            
+            return id > 0;
+        }
+
         public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionsBySpecificationId(string specificationId)
         {
             return await QuerySql<FundingGroupVersion>($@"

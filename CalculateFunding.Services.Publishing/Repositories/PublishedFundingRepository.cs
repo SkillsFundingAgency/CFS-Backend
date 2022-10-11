@@ -1963,28 +1963,38 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return _repository.GetFeedIterator(query, batchSize);
         }
 
-        public ICosmosDbFeedIterator GetPublishedFundingVersionDocumentIdIterator(int cosmosBatchSize)
+        public ICosmosDbFeedIterator GetPublishedFundingVersionDocumentIdIterator(int cosmosBatchSize, string[] fundingStreams = null)
         {
-            CosmosDbQuery query = new CosmosDbQuery()
-            {
-                QueryText = @"SELECT
+            string queryText = @"SELECT
                                     {
                                         'id':c.content.id,
                                         'partitionKey':c.content.partitionKey
                                     } as content
                                 FROM c
                                 WHERE c.documentType = 'PublishedFundingVersion'
-                                AND c.deleted = false"
+                                AND c.deleted = false";
+            string fundingStreamsQueryText = string.Empty;
+
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>();
+
+            if (fundingStreams != null)
+            {
+                fundingStreamsQueryText = " AND ARRAY_CONTAINS(@fundingStreams, c.content.fundingStreamId)";
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@fundingStreams", fundingStreams));
+            }
+
+            CosmosDbQuery query = new CosmosDbQuery()
+            {
+                QueryText = string.Concat(queryText, fundingStreamsQueryText),
+                Parameters = cosmosDbQueryParameters
             };
 
             return _repository.GetFeedIterator(query, cosmosBatchSize);
         }
 
-        public ICosmosDbFeedIterator GetReleasedPublishedProviderVersionIdIterator(int cosmosBatchSize)
+        public ICosmosDbFeedIterator GetReleasedPublishedProviderVersionIdIterator(int cosmosBatchSize, string[] fundingStreams = null)
         {
-            CosmosDbQuery query = new CosmosDbQuery()
-            {
-                QueryText = @"SELECT
+            string queryText = @"SELECT
                                     {
                                         'id':c.content.id,
                                         'partitionKey':c.content.partitionKey
@@ -1992,7 +2002,21 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                 FROM c
                                 WHERE c.documentType = 'PublishedProviderVersion' 
                                 AND c.deleted = false 
-                                AND c.content.status = 'Released'"
+                                AND c.content.status = 'Released'";
+            string fundingStreamsQueryText = string.Empty;
+
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>();
+
+            if (fundingStreams != null)
+            {
+                fundingStreamsQueryText = " AND ARRAY_CONTAINS(@fundingStreams, c.content.fundingStreamId)";
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@fundingStreams", fundingStreams));
+            }
+
+            CosmosDbQuery query = new CosmosDbQuery()
+            {
+                QueryText = string.Concat(queryText, fundingStreamsQueryText),
+                Parameters = cosmosDbQueryParameters
             };
 
             return _repository.GetFeedIterator(query, cosmosBatchSize);

@@ -149,7 +149,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<string>> RemoveIdsInError(IEnumerable<string> publishedProviderIds);
 
         Task<IEnumerable<string>> GetPublishedProviderIds(string specificationId);
-        ICosmosDbFeedIterator GetPublishedFundingVersionDocumentIdIterator(int cosmosBatchSize);
+        ICosmosDbFeedIterator GetPublishedFundingVersionDocumentIdIterator(int cosmosBatchSize, string[] fundingStreamIds = null);
         Task<IEnumerable<string>> GetPublishedProviderPublishedProviderIds(string specificationId);
 
         Task DeletePublishedProviders(IEnumerable<PublishedProvider> publishedProviders);
@@ -176,7 +176,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<PublishedProviderFundingSummary>> GetReleaseFundingPublishedProviders(IEnumerable<string> publishedProviderIds, string specificationId, params PublishedProviderStatus[] statuses);
         Task<IEnumerable<PublishedProviderVersion>> GetUnreleasedPublishedProviderVersions(string specificationId, string providerId);
         ICosmosDbFeedIterator GetReleasedPublishedProviderIterator(int batchSize);
-        ICosmosDbFeedIterator GetReleasedPublishedProviderVersionIdIterator(int batchSize);
+        ICosmosDbFeedIterator GetReleasedPublishedProviderVersionIdIterator(int batchSize, string[] fundingStreamIds = null);
         Task<IEnumerable<string>> GetPublishedProviderEligibleToBeReleasedPublishedProviderIds(string specificationId);
     }
 }

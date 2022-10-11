@@ -122,13 +122,13 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             _logger.Information("Loading PublishedFundingVersions for migration");
             await _fundingMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications,
-                _cosmosRepo.GetPublishedFundingVersionDocumentIdIterator(CosmosBatchSize), ProcessPublishedFundingVersions);
+                _cosmosRepo.GetPublishedFundingVersionDocumentIdIterator(CosmosBatchSize, fundingStreams.Keys.ToArray()), ProcessPublishedFundingVersions);
             _logger.Information($"Loaded '{_publishedFundingVersions.Count}' PublishedFundingVersions for migration");
 
             _logger.Information("Loading PublishedProviderVersions for migration");
             await _providerMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications,
-                _cosmosRepo.GetReleasedPublishedProviderVersionIdIterator(CosmosBatchSize), ProcessPublishedProviderVersions);
+                _cosmosRepo.GetReleasedPublishedProviderVersionIdIterator(CosmosBatchSize, fundingStreams.Keys.ToArray()), ProcessPublishedProviderVersions);
             _logger.Information($"Loaded '{_publishedProviderVersions.Count}' PublishedProviderVersions for migration");
 
             DetectMissingPublishedProviderVersionRecordsFromFundingGroups();
@@ -505,9 +505,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                         AuthorName = publishedProviderVersion.Author.Name,
                     };
 
-                    createReleasedProviderVersionChannels.AddOrUpdate($"{releasedProviderVersionChannel.ChannelId}_{releasedProviderVersionChannel.ReleasedProviderVersionId}",
+                    releasedProviderVersionChannel = createReleasedProviderVersionChannels.AddOrUpdate($"{releasedProviderVersionChannel.ChannelId}_{releasedProviderVersionChannel.ReleasedProviderVersionId}",
                         releasedProviderVersionChannel,
-                        (id, existing) => { return releasedProviderVersionChannel; }
+                        (id, existing) => { return existing; }
                     );
 
                     FundingGroupProvider fundingGroupProvider = new FundingGroupProvider

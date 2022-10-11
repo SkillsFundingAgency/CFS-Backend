@@ -633,12 +633,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public ICosmosDbFeedIterator GetPublishedFundingVersionDocumentIdIterator(int cosmosBatchSize)
+        public ICosmosDbFeedIterator GetPublishedFundingVersionDocumentIdIterator(int cosmosBatchSize, string[] fundingStreamIds = null)
         {
             throw new NotImplementedException();
         }
 
-        public ICosmosDbFeedIterator GetReleasedPublishedProviderVersionIdIterator(int batchSize)
+        public ICosmosDbFeedIterator GetReleasedPublishedProviderVersionIdIterator(int batchSize, string[] fundingStreamIds = null)
         {
             throw new NotImplementedException();
         }

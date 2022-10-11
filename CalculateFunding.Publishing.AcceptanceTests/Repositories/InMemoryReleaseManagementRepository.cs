@@ -1076,5 +1076,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             return null;
         }
+
+        public Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

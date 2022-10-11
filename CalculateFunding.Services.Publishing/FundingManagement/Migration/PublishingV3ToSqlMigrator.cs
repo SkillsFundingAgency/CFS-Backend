@@ -119,6 +119,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         private async Task PopulateData(string[] fundingStreamIds)
         {
+            fundingStreamIds = fundingStreamIds.IsNullOrEmpty() ? null : fundingStreamIds;
+
             ApiResponse<IEnumerable<SpecificationSummary>> publishedSpecificationsRequest = await _specsClientPolicy.ExecuteAsync(() => _specsClient.GetSpecificationsSelectedForFunding());
 
             IEnumerable<SpecificationSummary> publishedSpecifications = publishedSpecificationsRequest?.Content;
@@ -133,7 +135,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 return;
             }
 
-            await ClearDatabase();
+            // await ClearDatabase();
+            if (await DatabaseHasExistingFundingData(fundingStreamIds))
+            {
+                throw new NonRetriableException($"Unable to run release managment data migration job as there is existing data in release management database");
+            }
 
             _groupingReasons = await _channelsService.PopulateGroupingReasons();
             _variationReasons = await _channelsService.PopulateVariationReasons();
@@ -142,12 +148,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await PopulateFundingStreamsAndPeriods(publishedSpecifications);
             await PopulateSpecifications(publishedSpecifications);
 
-            await PopulateFundingAndProviders();
+            await PopulateFundingAndProviders(fundingStreamIds);
         }
 
         private async Task ClearDatabase()
         {
             await _repo.ClearDatabase();
+        }
+
+        private async Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds)
+        {
+            return await _repo.DatabaseHasExistingFundingData(fundingStreamIds);
         }
 
         private async Task PopulateSpecifications(IEnumerable<Common.ApiClient.Specifications.Models.SpecificationSummary> specifications)
@@ -174,9 +185,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
         }
 
-        private async Task PopulateFundingAndProviders()
+        private async Task PopulateFundingAndProviders(string[] fundingStreamIds)
         {
-            await _fundingMigrator.Migrate(_fundingStreams,
+            Dictionary<string, SqlModels.FundingStream> fundingStreamsToMigrate =
+                fundingStreamIds == null ? _fundingStreams : _fundingStreams.Where(_ => fundingStreamIds.Contains(_.Key)).ToDictionary(_ => _.Key, _ => _.Value);
+
+            await _fundingMigrator.Migrate(fundingStreamsToMigrate,
                                            _fundingPeriods,
                                            _channels,
                                            _groupingReasons,
