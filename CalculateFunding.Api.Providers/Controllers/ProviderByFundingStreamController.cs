@@ -90,5 +90,19 @@ namespace CalculateFunding.Api.Providers.Controllers
             [FromBody] SearchModel search) =>
             await _fundingStreamProviderVersionService.SearchCurrentProviderVersionsForFundingStream(fundingStreamId,
                 search);
+
+        /// <summary>
+        ///     Searches across all of the providers in the Current
+        ///     provider version id for the funding stream
+        /// </summary>
+        /// <param name="providerVersionId">the funding stream to get the current provider version from</param>
+        /// <param name="search">the search parameters</param>
+        /// <returns>ProviderVersionSearchResults</returns>
+        [HttpPost("api/providers/providerversions/{providerVersionId}/current/search")]
+        [ProducesResponseType(200, Type = typeof(ProviderVersionSearchResults))]
+        public async Task<IActionResult> SearchFundingStreamForProvidersByProviderVersionId([FromRoute] string providerVersionId,
+            [FromBody] SearchModel search) =>
+            await _fundingStreamProviderVersionService.SearchProvidersForSpecification(providerVersionId,
+                search);
     }
 }

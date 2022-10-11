@@ -17,6 +17,8 @@ namespace CalculateFunding.Services.Providers.Interfaces
 
         Task<IActionResult> SearchCurrentProviderVersionsForFundingStream(string fundingStreamId,
             SearchModel search);
+        Task<IActionResult> SearchProvidersForSpecification(string providerVersionId,
+            SearchModel search);
         Task<IActionResult> GetCurrentProviderMetadataForFundingStream(string fundingStreamId);
         Task<IActionResult> GetCurrentProviderMetadataForAllFundingStreams();
     }

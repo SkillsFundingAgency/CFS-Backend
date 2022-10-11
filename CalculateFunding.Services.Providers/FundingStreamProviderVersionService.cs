@@ -169,6 +169,16 @@ namespace CalculateFunding.Services.Providers
                 => _providerVersionSearch.SearchProviders(currentProviderVersion.ProviderVersionId, search));
         }
 
+        public async Task<IActionResult> SearchProvidersForSpecification(string providerVersionId,
+            SearchModel search)
+        {
+            Guard.ArgumentNotNull(search, nameof(search));
+            Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
+
+            return await _providerVersionSearchPolicy.ExecuteAsync(()
+                => _providerVersionSearch.SearchProviders(providerVersionId, search));
+        }
+
         public async Task<ServiceHealth> IsHealthOk()
         {
             Task<ServiceHealth>[] healthChecks = new[]
