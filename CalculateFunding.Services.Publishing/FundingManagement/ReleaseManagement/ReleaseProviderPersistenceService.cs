@@ -50,14 +50,27 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 //Below Logs only for testing purpose .We need to remove after testing
                 var releaseProviders = releasedProviders.Select(x => x.ProviderId);
                 _logger.Information("Inserting ReleaseProviders list to database '{Providers}'", releaseProviders);
-
-                await _releaseManagementRepository
-                    .BulkCreateReleasedProvidersUsingAmbientTransaction(releasedProviders);
-
+               
+                ////bug:108261 - added the below line for quick fix issue for sandbox 
+                List<ReleasedProvider> releasedProviderList = new List<ReleasedProvider>();
+                foreach (var providerId in releaseProviders)
+                {
+                   
+                    var checkProviderIsAvaiable = await _releaseManagementRepository.CheckIsExistingReleaseProviderId(providerId, specificationId);
+                    if(checkProviderIsAvaiable == null)
+                    {
+                        releasedProviderList.Add(releasedProviders.Where(x => x.ProviderId == providerId).FirstOrDefault());
+                    }
+                }
+                ////bug:108261 - added the below line for quick fix issue for sandbox 
+                if (releasedProviderList.Any())
+                {
+                    await _releaseManagementRepository
+                   .BulkCreateReleasedProvidersUsingAmbientTransaction(releasedProviderList);                  
+                }
                 _releaseToChannelSqlMappingContext.ReleasedProviders.AddOrUpdateRange(
-                    releasedProviders.ToDictionary(_ => _.ProviderId));
+                       releasedProviders.ToDictionary(_ => _.ProviderId));
             }
-
             return releasedProviders;
         }
     }

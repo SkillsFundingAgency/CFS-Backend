@@ -1081,5 +1081,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ReleasedProvider> CheckIsExistingReleaseProviderId(string providerId, string specificationId)
+        {
+            List<string> ids = new List<string>();
+            ids.Add(providerId);
+
+            return Task.FromResult(GetReleasedProviders(specificationId, ids).Result.FirstOrDefault());
+        }
     }
 }

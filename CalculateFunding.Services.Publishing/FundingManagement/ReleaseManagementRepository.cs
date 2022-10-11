@@ -1088,5 +1088,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 AND RPVC.ChannelId =  @{nameof(channelId)}",
                 new { specificationId, providerIds, channelId }, transaction);
         }
+
+        public async Task<ReleasedProvider> CheckIsExistingReleaseProviderId(string providerId ,string specificationId)
+        {         
+            return await QuerySingleSql<ReleasedProvider>(@$"SELECT * FROM ReleasedProviders  
+                WHERE  ProviderId = @{nameof(providerId)}
+                AND SpecificationId =  @{nameof(specificationId)}",
+               new
+               {
+                   providerId,
+                   specificationId
+               });
+        }
     }
 }
