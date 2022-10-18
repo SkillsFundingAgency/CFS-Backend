@@ -152,22 +152,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _logger.Information("A total of {Count} organisation groups are generated for channel '{ChannelCode}'", allOrganisationGroups.Count(), channel.ChannelCode);
 
             _logger.Information("Determing which organisation groups to persist with new data for channel '{ChannelCode}'", channel.ChannelCode);
-            IEnumerable<OrganisationGroupResult> organisationGroupsToCreate =
+            (IEnumerable<OrganisationGroupResult> organisationGroupsToCreate, Dictionary<string, PublishedProviderVersion> providersInGroupsToCreate) =
                 await _channelOrganisationGroupChangeDetector.DetermineFundingGroupsToCreateBasedOnProviderVersions(allOrganisationGroups,
                     specification,
                     channel);
             _logger.Information("A total of '{Count}' new FundingGroups should be created for channel '{ChannelCode}'", organisationGroupsToCreate.Count(), channel.ChannelCode);
-
-            _logger.Information("Retrieving published providers in groups to create for release to channel");
-            IEnumerable<PublishedProvider> publishedProvidersInGroupsToCreate = await _publishProvidersLoadContext.GetOrLoadProviders(organisationGroupsToCreate
-                    .SelectMany(_ => _.Providers)
-                    .Select(_ => _.ProviderId)
-                    .Distinct());
-            _logger.Information("A total of {Count} published providers in groups to create loaded for release to channel", publishedProvidersInGroupsToCreate.Count());
-
-            _logger.Information("Retrieving released provider versions in groups to create for release to channel");
-            Dictionary<string, PublishedProviderVersion> providersInGroupsToCreate = publishedProvidersInGroupsToCreate.Select(_ => _.Released).ToDictionary(_ => _.ProviderId);
-            _logger.Information("A total of {Count} released provider versions in groups to create loaded for release to channel", providersInGroupsToCreate.Count());
 
             _logger.Information("Creating funding groups for channel '{ChannelCode}'", channel.ChannelCode);
             IEnumerable<FundingGroup> fundingGroups =
@@ -179,7 +168,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 await _fundingGroupDataGenerator.Generate(organisationGroupsToCreate,
                                                           specification,
                                                           channel,
-                                                          providersInGroupsToCreate.Keys,
+                                                          providersInGroupsToCreate.Keys.Where(_ => batchPublishedProviderIds.Contains(_)),
                                                           author,
                                                           jobId,
                                                           correlationId);

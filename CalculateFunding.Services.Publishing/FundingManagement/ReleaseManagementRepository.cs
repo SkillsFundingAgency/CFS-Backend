@@ -608,11 +608,12 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 				FROM ReleasedProviderVersionChannels RPVC
 				INNER JOIN ReleasedProviderVersions RPV on RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
 				INNER JOIN (
-				SELECT Max(MajorVersion) As MajorVersion, RPV.ReleasedProviderId
+				SELECT Max(MajorVersion) As MajorVersion, RPV.ReleasedProviderId, RPVC.ChannelId
 				FROM ReleasedProviderVersions RPV
+                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
 				INNER JOIN ReleasedProviders RP ON RPV.ReleasedProviderId = RP.ReleasedProviderId
 				WHERE RP.SpecificationId = @{nameof(specificationId)}
-				GROUP BY RPV.ReleasedProviderId) LatestVersion ON LatestVersion.MajorVersion = RPV.MajorVersion AND LatestVersion.ReleasedProviderId = RPV.ReleasedProviderId
+				GROUP BY RPV.ReleasedProviderId, RPVC.ChannelId) LatestVersion ON LatestVersion.MajorVersion = RPV.MajorVersion AND LatestVersion.ChannelId = RPVC.ChannelId AND LatestVersion.ReleasedProviderId = RPV.ReleasedProviderId
 				INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
                 INNER JOIN Channels C ON C.ChannelId = RPVC.ChannelId
 				WHERE RPVC.ChannelId IN @{nameof(channelIds)}",
@@ -634,6 +635,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 					, FG.OrganisationGroupName
 					, FG.OrganisationGroupTypeClassification
 					, GR.GroupingReasonCode
+                    , RPV.FundingId
 				FROM FundingGroupVersions FGV
 				INNER JOIN 
 				(SELECT FundingGroupId, MAX(MajorVersion) AS LatestVersion FROM FundingGroupVersions FGVAgg

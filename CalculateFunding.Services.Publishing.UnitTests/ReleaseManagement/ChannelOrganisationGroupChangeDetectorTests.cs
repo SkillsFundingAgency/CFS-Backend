@@ -114,7 +114,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
             GivenLatestProviderVersionInFundingGroups(latestProviderVersionInFundingGroups);
             AndGetOrLoadProviders(publishedProviders);
 
-            IEnumerable<OrganisationGroupResult> results
+            (IEnumerable<OrganisationGroupResult> results, Dictionary<string, PublishedProviderVersion> providersInGroupsToCreate)
                 = await WhenDetermineFundingGroupsToCreateBasedOnProviderVersions(organisationGroupResults, _specificationSummary, _channel);
 
             results.Count().Should().Be(2);
@@ -137,7 +137,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
                 .ReturnsAsync(publishedProviders);
         }
 
-        private async Task<IEnumerable<OrganisationGroupResult>> WhenDetermineFundingGroupsToCreateBasedOnProviderVersions(
+        private async Task<(IEnumerable<OrganisationGroupResult>, Dictionary<string, PublishedProviderVersion>)> WhenDetermineFundingGroupsToCreateBasedOnProviderVersions(
             IEnumerable<OrganisationGroupResult> channelOrganisationGroups,
             SpecificationSummary specificationSummary,
             Channel channel)

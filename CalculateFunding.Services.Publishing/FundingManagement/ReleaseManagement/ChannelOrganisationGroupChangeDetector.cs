@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OrganisationGroupResult>> DetermineFundingGroupsToCreateBasedOnProviderVersions(
+        public async Task<(IEnumerable<OrganisationGroupResult>, Dictionary<string, PublishedProviderVersion>)> DetermineFundingGroupsToCreateBasedOnProviderVersions(
             IEnumerable<OrganisationGroupResult> channelOrganisationGroups, 
             SpecificationSummary specification, 
             Channel channel)
@@ -41,6 +41,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             ILookup<string, LatestProviderVersionInFundingGroup> existingGroupProviders 
                 = latestProviderVersionInFundingGroups.ToLookup(_ => GenerateGroupingKey(_));
+
+            Dictionary<string, PublishedProviderVersion> providerVersionsInGroups = new Dictionary<string, PublishedProviderVersion>();
 
             List<OrganisationGroupResult> organisationGroupsToCreateNewVersions = new List<OrganisationGroupResult>();
             foreach (OrganisationGroupResult organisationGroupResult in channelOrganisationGroups)
@@ -54,19 +56,22 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     continue;
                 }
 
-                IEnumerable<string> missing = existingProviders.Where(p => organisationGroupResult.Providers.Select(_ => _.ProviderId).All(p2 => p2 != p.ProviderId)).Select(_ => _.ProviderId);
-                if (missing.Any())
+                IEnumerable<(string,int)> missingProviders = existingProviders.Where(p => organisationGroupResult.Providers.Select(_ => _.ProviderId).All(p2 => p2 != p.ProviderId)).Select(_ => (_.ProviderId, _.MajorVersion));
+                if (missingProviders.Any())
                 {
-                    IEnumerable<PublishedProvider> missingProviders =
-                        await _publishedProvidersLoadContext.GetOrLoadProviders(missing);
+                    
                     List<ApiClientProviderModels.Provider> organisationGroupProviders = organisationGroupResult.Providers.ToList();
 
-                    foreach (PublishedProvider provider in missingProviders)
+                    foreach ((string, int) missingProvider in missingProviders)
                     {
-                        ApiClientProviderModels.Provider apiProvider = _mapper.Map<ApiClientProviderModels.Provider>(provider.Released.Provider);
+                        PublishedProviderVersion providerVersion =
+                            await _publishedProvidersLoadContext.LoadProviderVersion(missingProvider.Item1, missingProvider.Item2);
+
+                        ApiClientProviderModels.Provider apiProvider = _mapper.Map<ApiClientProviderModels.Provider>(providerVersion?.Provider);
 
                         if (apiProvider != null)
                         {
+                            providerVersionsInGroups.TryAdd(providerVersion.ProviderId, providerVersion);
                             organisationGroupProviders.Add(apiProvider);
                         }
                     }
@@ -97,7 +102,17 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 }
             }
 
-            return organisationGroupsToCreateNewVersions;
+            IEnumerable<PublishedProvider> publishedProvidersInGroups = await _publishedProvidersLoadContext.GetOrLoadProviders(organisationGroupsToCreateNewVersions
+                    .SelectMany(_ => _.Providers)
+                    .Select(_ => _.ProviderId)
+                    .Distinct());
+
+            foreach (PublishedProviderVersion batchPublishedProviderVersion in publishedProvidersInGroups.Select(_ => _.Released))
+            {
+                providerVersionsInGroups.TryAdd(batchPublishedProviderVersion.ProviderId, batchPublishedProviderVersion);
+            }
+
+            return (organisationGroupsToCreateNewVersions, providerVersionsInGroups);
         }
 
         private static bool GroupContainsDifferentProviderIds(
