@@ -15,5 +15,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
             PublishStatus? status,
             string searchTerm,
             int? page);
+
+        Task RemoveCalculations(string specificationId, string calcType);
     }
 }

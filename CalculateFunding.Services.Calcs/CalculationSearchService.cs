@@ -14,6 +14,8 @@ using CalculateFunding.Services.Core.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Serilog;
+using CalculateFunding.Models.Messages;
+using System;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -119,6 +121,28 @@ namespace CalculateFunding.Services.Calcs
 
                 return new StatusCodeResult(500);
             }
+        }
+
+        public async Task RemoveCalculations(string specificationId, string calcType)
+        {
+            string searchFilter = $"(specificationId eq '{specificationId}') and (calculationType eq '{calcType}')";            
+
+            try
+            {
+                SearchResults<CalculationIndex> results = await _searchRepository.Search("", new SearchParameters { Filter = searchFilter }, allResults: true);
+                if (results != null || results?.Results.Count > 0)
+                {
+                    _logger.Information("Successfully retrieved the calculation records");
+                    await _searchRepository.Remove(results.Results.Select(calcResult => calcResult.Result));
+                    _logger.Information("Successfully removed the calculation records");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"An error occurred when attempting to delete calculations for the specification {specificationId}: {ex.Message}");
+                throw;
+            }
+           
         }
 
         IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel)

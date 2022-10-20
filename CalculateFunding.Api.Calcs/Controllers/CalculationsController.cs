@@ -334,5 +334,10 @@ namespace CalculateFunding.Api.Calcs.Controllers
         [Produces(typeof(CalculationIdentifier))]
         public IActionResult GenerateCalculationIdentifier([FromBody] GenerateIdentifierModel generateIdentifierModel) 
             => _calcsService.GenerateCalculationIdentifier(generateIdentifierModel);
+
+        [Route("api/calcs/remove-calculation-for-specification/{specificationId}/{calcType}")]
+        [HttpDelete]
+        [ProducesResponseType(200)]
+        public async Task RemoveCalculationForSpecification([FromRoute] string specificationId, [FromRoute] string calcType) => await _calcsSearchService.RemoveCalculations(specificationId, calcType);
     }
 }
