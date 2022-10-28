@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="8.0.4" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="8.0.5" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="6.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="2.1.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="5.0.2" />

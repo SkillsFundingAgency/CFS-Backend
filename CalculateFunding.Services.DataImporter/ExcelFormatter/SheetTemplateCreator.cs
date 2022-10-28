@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.DataImporter.ExcelFormatter
 			    new CellLevelErrorKey(DatasetCellReasonForFailure.MaxOrMinValueExceeded, "Max. or Min. value exceeded"),
 			    new CellLevelErrorKey(DatasetCellReasonForFailure.ProviderIdValueMissing, "Provider ID value missing"),
 			    new CellLevelErrorKey(DatasetCellReasonForFailure.DuplicateEntriesInTheProviderIdColumn, "Duplicate entries in the provider ID column"),
-			    new CellLevelErrorKey(DatasetCellReasonForFailure.ProviderIdMismatchWithServiceProvider, "Provider ID does not exist in the current funding stream provider"),
+			    new CellLevelErrorKey(DatasetCellReasonForFailure.ProviderIdMismatchWithServiceProvider, "Provider ID not in scoped set of providers"),
 				new CellLevelErrorKey(DatasetCellReasonForFailure.NewProviderMissingAllDataSchemaFields, "New provider to be inserted. All data schema fields required on upload file for new providers."),
 				new CellLevelErrorKey(DatasetCellReasonForFailure.ExtraHeaderField, "Extra header fields that does not exists in the current data schema"),
 				new CellLevelErrorKey(DatasetCellReasonForFailure.ProviderIdNotInCorrectFormat, "Provider ID not in the correct format"),

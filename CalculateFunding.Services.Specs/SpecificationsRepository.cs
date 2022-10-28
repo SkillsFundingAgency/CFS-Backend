@@ -12,6 +12,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
+using Microsoft.Azure.Amqp.Framing;
 using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
 
 namespace CalculateFunding.Services.Specs
@@ -173,5 +174,39 @@ namespace CalculateFunding.Services.Specs
 
             return await _repository.RawQuery<string>(cosmosDbQuery);
         }
+
+        public async Task<IEnumerable<string>> GetDistinctProviderVersionIdsFromSpecifications(IEnumerable<string> specificationIds)
+        {
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @" SELECT c.content.current.providerVersionId AS providerVersionId, c.content.current.date AS date 
+                                FROM specifications c                                 
+                                WHERE ARRAY_CONTAINS(@SpecificationIds, c.content.current.specificationId)                                     
+                                AND c.content.current.providerVersionId != null
+                                AND c.documentType = 'Specification'
+                                AND c.deleted = false
+                                AND c.content.current.publishStatus !='Draft'
+                                ORDER BY c.content.current.date DESC",
+
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@SpecificationIds", specificationIds.Select(_ => _.ToString()).ToArray())
+                }
+            };     
+
+            HashSet<string> providerVersionIds = new HashSet<string>();
+
+            IEnumerable<dynamic> results = await _repository.DynamicQuery(cosmosDbQuery);
+
+            if (results.Any())
+            {
+                results.ForEach(_ =>
+                {
+                   providerVersionIds.Add((string)_.providerVersionId);
+                });
+            }
+
+            return providerVersionIds;
+        }      
     }
 }

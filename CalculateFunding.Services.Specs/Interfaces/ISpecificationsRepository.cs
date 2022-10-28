@@ -41,5 +41,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task DeleteSpecifications(string specificationId, DeletionType deletionType);
         Task<IEnumerable<string>> GetDistinctFundingStreamsForSpecifications();
+        Task<IEnumerable<string>> GetDistinctProviderVersionIdsFromSpecifications(IEnumerable<string> specificationIds);
     }
 }

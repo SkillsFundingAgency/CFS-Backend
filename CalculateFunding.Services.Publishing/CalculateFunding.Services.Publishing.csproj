@@ -13,12 +13,12 @@
   <ItemGroup>
 	<PackageReference Include="CacheCow.Server" Version="2.9.0" />
 	<PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="3.1.0" />
-	<PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="8.0.4" />
+	<PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="8.0.5" />
 	<PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="8.3.1" />
 	<PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="9.2.0" />
 	<PackageReference Include="CalculateFunding.Common.ApiClient.FundingDataZone" Version="3.2.0" />
 	<PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="5.3.0" />
-	<PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.4" />
+	<PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="7.0.5" />
 	<PackageReference Include="CalculateFunding.Common.JobManagement" Version="8.0.0" />   
     <PackageReference Include="CalculateFunding.Common.Models" Version="3.0.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="3.1.0" />

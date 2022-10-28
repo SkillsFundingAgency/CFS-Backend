@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
                 ("Max. or Min. value exceeded", Color.FromArgb(255, 217, 102)),
                 ("Provider ID value missing", Color.FromArgb(255, 255, 114)),
                 ("Duplicate entries in the provider ID column", Color.FromArgb(122, 124, 255)),
-                ("Provider ID does not exist in the current funding stream provider", Color.FromArgb(255, 178, 255)),
+                ("Provider ID not in scoped set of providers", Color.FromArgb(255, 178, 255)),
                 ("New provider to be inserted. All data schema fields required on upload file for new providers.", Color.FromArgb(146, 208, 80)),
                 ("Columns not included on the data schema", Color.FromArgb(255, 0, 0)),
                 ("Provider ID not in the correct format", Color.FromArgb(0, 176, 240)),

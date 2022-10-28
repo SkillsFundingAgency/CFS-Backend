@@ -246,14 +246,14 @@ namespace CalculateFunding.Services.Datasets
         {
             CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
-                QueryText = @"SELECT d.content.Specification.id AS specificationId
+                QueryText = @"SELECT DISTINCT Value d.content.current.specification.id
                             FROM    datasets d
                             WHERE   d.deleted = false 
                                     AND d.documentType = ""DefinitionSpecificationRelationship"" 
-                                    AND d.content.DatasetDefinition.id = @DatasetDefinitionId",
+                                    AND d.content.current.datasetDefinition.id = @DatasetDefinitionId",
                 Parameters = new[]
                 {
-                    new CosmosDbQueryParameter("@DatasetDefinitionID", datasetDefinitionId)
+                    new CosmosDbQueryParameter("@DatasetDefinitionId", datasetDefinitionId)
                 }
             };
 
@@ -263,7 +263,7 @@ namespace CalculateFunding.Services.Datasets
 
             foreach (dynamic result in results)
             {
-                specificationIds.Add(result.specificationId);
+                specificationIds.Add(result);
             }
 
             return specificationIds;

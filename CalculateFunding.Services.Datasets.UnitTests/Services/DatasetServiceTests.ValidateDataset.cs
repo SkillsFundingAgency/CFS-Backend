@@ -394,7 +394,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public void OnValidateDataset_GivenProvidersApiFailed_ThrowsRetriableException()
         {
             //Arrange
-            string errorMessage = $"Failed to fetch current providers for funding stream {FundingStreamId} with status code: BadRequest";
+            string errorMessage = $"Failed to fetch provider target period for funding stream {FundingStreamId} with status code: BadRequest";
 
             GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
                 .WithDefinitionId(DataDefinitionId)
@@ -437,7 +437,9 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
                 Id = DataDefinitionId,
-                FundingStreamId = FundingStreamId
+                FundingStreamId = FundingStreamId,
+                ValidateProviders = true,
+                ValidateProvidersByYearRange = 2                
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -481,6 +483,375 @@ namespace CalculateFunding.Services.Datasets.Services
                 providersApiClient: providersApiClient,
                 mapper: mapper,
                 policyRepository: policyRepository);
+
+            // Act
+            Func<Task> result = () => service.Run(message);
+
+            // Assert
+            result
+               .Should()
+               .ThrowExactly<RetriableException>()
+               .Which
+               .Message
+               .Should()
+               .Be(errorMessage);
+        }
+
+        [TestMethod]
+        public void OnValidateDataset_GivenSpecificationsFetchFailed_ThrowsNonRetriableException()
+        {
+            //Arrange
+            string errorMessage = $"Failed validation - No specifications to get providers for funding stream {FundingStreamId};";
+
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
+
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefinitionId },
+                { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefinitionId,
+                FundingStreamId = FundingStreamId,
+                ValidateProviders = true,
+                ValidateProvidersByYearRange = 2
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+            datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
+                .Returns(new List<string>());
+
+            List<DatasetValidationError> errors = new List<DatasetValidationError>
+            {
+                new DatasetValidationError { ErrorMessage = "error" }
+            };
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                new ValidationFailure("prop1", "any error")
+            });
+
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = errors }
+            };
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            ProviderVersion providerVersion = new ProviderVersion
+            {
+                FundingStream = FundingStreamId,
+                TargetDate = DateTimeOffset.Now,
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            };
+            providersApiClient
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
+                .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.OK, providerVersion));
+            
+            IMapper mapper = CreateMapper();
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                datasetUploadValidator: datasetUploadValidator,
+                providersApiClient: providersApiClient,
+                mapper: mapper,
+                policyRepository: policyRepository);
+
+            // Act
+            Func<Task> result = () => service.Run(message);
+
+            // Assert
+            result
+               .Should()
+               .ThrowExactly<NonRetriableException>()
+               .Which
+               .Message
+               .Should()
+               .Be(errorMessage);
+        }
+
+        [TestMethod]
+        public void OnValidateDataset_GivenSpecificationApiFailed_ThrowsRetriableException()
+        {
+            //Arrange
+            string errorMessage = $"Failed to fetch specification provider version Ids to get providers for funding stream {FundingStreamId} with status code: BadRequest";
+
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
+
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefinitionId },
+                { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefinitionId,
+                FundingStreamId = FundingStreamId,
+                ValidateProviders = true,
+                ValidateProvidersByYearRange = 2
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+            datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
+               .Returns(new List<string> { "289eb3f8-b331-4a29-ad20-7209fe3560fb", "3b0d6cad-9173-4a89-ba07-013ae3a27d17" });
+
+            List<DatasetValidationError> errors = new List<DatasetValidationError>
+            {
+                new DatasetValidationError { ErrorMessage = "error" }
+            };
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                new ValidationFailure("prop1", "any error")
+            });
+
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = errors }
+            };
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            ProviderVersion providerVersion = new ProviderVersion
+            {
+                FundingStream = FundingStreamId,
+                TargetDate = DateTimeOffset.Now,
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            };
+            providersApiClient
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
+                .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.OK, providerVersion));
+
+            ISpecificationsApiClient specificationApiClient = CreateSpecificationsApiClient();
+            specificationApiClient
+                .GetDistinctProviderVersionIdsFromSpecifications(Arg.Any<IEnumerable<string>>())
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.BadRequest));
+
+            IMapper mapper = CreateMapper();
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                datasetUploadValidator: datasetUploadValidator,
+                providersApiClient: providersApiClient,
+                mapper: mapper,
+                policyRepository: policyRepository,
+                specificationsApiClient: specificationApiClient);
+
+            // Act
+            Func<Task> result = () => service.Run(message);
+
+            // Assert
+            result
+               .Should()
+               .ThrowExactly<RetriableException>()
+               .Which
+               .Message
+               .Should()
+               .Be(errorMessage);
+        }      
+
+        [TestMethod]
+        public void OnValidateDataset_GivenProviderApiToGetProvidersByVersionIdFailed_ThrowsRetriableException()
+        {
+            //Arrange
+            string errorMessage = $"Failed to fetch providers for funding stream {FundingStreamId} with status code: BadRequest";
+
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
+
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefinitionId },
+                { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefinitionId,
+                FundingStreamId = FundingStreamId,
+                ValidateProviders = true,
+                ValidateProvidersByYearRange = 2
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+            datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
+               .Returns(new List<string> { "289eb3f8-b331-4a29-ad20-7209fe3560fb", "3b0d6cad-9173-4a89-ba07-013ae3a27d17" });
+
+            List<DatasetValidationError> errors = new List<DatasetValidationError>
+            {
+                new DatasetValidationError { ErrorMessage = "error" }
+            };
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                new ValidationFailure("prop1", "any error")
+            });
+
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = errors }
+            };
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            ProviderVersion providerVersion = new ProviderVersion
+            {
+                FundingStream = FundingStreamId,
+                TargetDate = DateTimeOffset.Now,
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            };
+            providersApiClient
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
+                .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.OK, providerVersion));
+            providersApiClient
+                .GetProvidersByVersion(Arg.Any<string>())
+                .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.BadRequest));
+
+            ISpecificationsApiClient specificationApiClient = CreateSpecificationsApiClient();
+            specificationApiClient
+                .GetDistinctProviderVersionIdsFromSpecifications(Arg.Any<IEnumerable<string>>())
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, new List<string> { "289eb3f8-b331-4a29-ad20-7209fe3560fb", "3b0d6cad-9173-4a89-ba07-013ae3a27d17" }));
+
+            IMapper mapper = CreateMapper();
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                datasetUploadValidator: datasetUploadValidator,
+                providersApiClient: providersApiClient,
+                mapper: mapper,
+                policyRepository: policyRepository,
+                specificationsApiClient: specificationApiClient);
 
             // Act
             Func<Task> result = () => service.Run(message);
@@ -3721,7 +4092,9 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId,
-                Name = name
+                Name = name,
+                ValidateProviders = true,
+                ValidateProvidersByYearRange = 2
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -3809,7 +4182,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"No provider version for the funding stream {FundingStreamId}"));
+                .Error(Arg.Is($"No provider target period for the funding stream {FundingStreamId}"));
 
             await cacheProvider
                  .Received(1)
@@ -3819,7 +4192,379 @@ namespace CalculateFunding.Services.Datasets.Services
                      s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
                      s.OperationId == message.UserProperties["operation-id"].ToString() &&
                      s.ValidationFailures.ContainsKey(nameof(datasetDefinition.FundingStreamId)) &&
-                     s.ValidationFailures[nameof(datasetDefinition.FundingStreamId)].Any(_ => _ == $"No provider version for the funding stream {FundingStreamId}")
+                     s.ValidationFailures[nameof(datasetDefinition.FundingStreamId)].Any(_ => _ == $"No provider target period for the funding stream {FundingStreamId}")
+                     ));
+        }
+
+        [TestMethod]
+        public async Task OnValidateDataset_GivenSpecificationApiValidDatasetToMergeWithValidateFailures_ThenItThrowsValidationFailures()
+        {
+            //Arrange
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string name = "name";
+            const string description = "updated description";
+            const string operationId = "operationId";
+            const int newRowCount = 3;
+            const int updatedRowCount = 2;
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", DataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", DatasetId },
+                    { "name", name },
+                    { "description", description },
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithVersion(2)
+                                                                    .WithFundingStreamId(FundingStreamId)
+                                                                    .WithDatasetId(DatasetId)
+                                                                    .WithFileName("blah.xlsx")
+                                                                    .WithMergeExistingVersion(true)
+                                                                    .WithComment("MergeTest")
+                                                                    .WithLastUpdatedBy(new ReferenceBuilder()
+                                                                    .WithId(authorId)
+                                                                    .WithName(authorName))
+                                                                    .WithDescription(description));
+
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefinitionId,
+                FundingStreamId = FundingStreamId,
+                Name = name,
+                ValidateProviders = true,
+                ValidateProvidersByYearRange = 2
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+            datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
+               .Returns(new List<string> { "289eb3f8-b331-4a29-ad20-7209fe3560fb", "3b0d6cad-9173-4a89-ba07-013ae3a27d17" });
+
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Description = "description",
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = model.DatasetId,
+                Current = existingDatasetVersion,
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
+                Name = name,
+            };
+
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                .Returns(new[] { existingDataset });
+
+            datasetRepository.GetDatasetByDatasetId(model.DatasetId)
+                .Returns(existingDataset);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            ProviderVersion providerVersion = new ProviderVersion
+            {
+                FundingStream = FundingStreamId,
+                TargetDate = DateTimeOffset.Now,
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            };
+            providersApiClient
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
+                .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.OK, providerVersion));
+
+            ISpecificationsApiClient specificationApiClient = CreateSpecificationsApiClient();
+            specificationApiClient
+                .GetDistinctProviderVersionIdsFromSpecifications(Arg.Any<IEnumerable<string>>())
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.NotFound));
+
+            DatasetDataTableMergeResult tableMergeResult = new DatasetDataTableMergeResult()
+            {
+                TableDefinitionName = "Test-data-definition-name",
+                NewRowsCount = newRowCount,
+                UpdatedRowsCount = updatedRowCount
+            };
+            DatasetDataMergeResult mergeResult = new DatasetDataMergeResult();
+            mergeResult.TablesMergeResults.Add(tableMergeResult);
+
+            IDatasetDataMergeService datasetDataMergeService = CreateDatasetDataMergeService();
+            datasetDataMergeService.Merge(
+                Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<DatasetEmptyFieldEvaluationOption>())
+                .Returns(mergeResult);
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                searchRepository: searchRepository,
+                cacheProvider: cacheProvider,
+                jobManagement: jobManagement,
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository,
+                datasetDataMergeService: datasetDataMergeService,
+                specificationsApiClient: specificationApiClient);
+
+            // Act
+            Func<Task> invocation = async () => await service.Run(message);
+
+            // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"No specification provider version Ids to get providers for the funding stream {FundingStreamId}"));
+
+            await cacheProvider
+                 .Received(1)
+                 .SetAsync<DatasetValidationStatusModel>(
+                 Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                 Arg.Is<DatasetValidationStatusModel>(s =>
+                     s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
+                     s.OperationId == message.UserProperties["operation-id"].ToString() &&
+                     s.ValidationFailures.ContainsKey(nameof(datasetDefinition.FundingStreamId)) &&
+                     s.ValidationFailures[nameof(datasetDefinition.FundingStreamId)].Any(_ => _ == $"No specification provider version Ids to get providers for the funding stream {FundingStreamId}")
+                     ));
+        }
+
+        [TestMethod]
+        public async Task OnValidateDataset_GivenProviderApiValidDatasetToMergeWithValidateFailures_ThenItThrowsValidationFailures()
+        {
+            //Arrange
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string name = "name";
+            const string description = "updated description";
+            const string operationId = "operationId";
+            const int newRowCount = 3;
+            const int updatedRowCount = 2;
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", DataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", DatasetId },
+                    { "name", name },
+                    { "description", description },
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithVersion(2)
+                                                                    .WithFundingStreamId(FundingStreamId)
+                                                                    .WithDatasetId(DatasetId)
+                                                                    .WithFileName("blah.xlsx")
+                                                                    .WithMergeExistingVersion(true)
+                                                                    .WithComment("MergeTest")
+                                                                    .WithLastUpdatedBy(new ReferenceBuilder()
+                                                                    .WithId(authorId)
+                                                                    .WithName(authorName))
+                                                                    .WithDescription(description));
+
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefinitionId,
+                FundingStreamId = FundingStreamId,
+                Name = name,
+                ValidateProviders = true,
+                ValidateProvidersByYearRange = 2
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+            datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
+               .Returns(new List<string> { "289eb3f8-b331-4a29-ad20-7209fe3560fb", "3b0d6cad-9173-4a89-ba07-013ae3a27d17" });
+
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Description = "description",
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = model.DatasetId,
+                Current = existingDatasetVersion,
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
+                Name = name,
+            };
+
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                .Returns(new[] { existingDataset });
+
+            datasetRepository.GetDatasetByDatasetId(model.DatasetId)
+                .Returns(existingDataset);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            ProviderVersion providerVersion = new ProviderVersion
+            {
+                FundingStream = FundingStreamId,
+                TargetDate = DateTimeOffset.Now,
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            };
+            providersApiClient
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
+                .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.OK, providerVersion));
+            providersApiClient
+               .GetProvidersByVersion(Arg.Any<string>())
+               .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.NotFound));
+
+
+            ISpecificationsApiClient specificationApiClient = CreateSpecificationsApiClient();
+            specificationApiClient
+                .GetDistinctProviderVersionIdsFromSpecifications(Arg.Any<IEnumerable<string>>())
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, new List<string> { "289eb3f8-b331-4a29-ad20-7209fe3560fb", "3b0d6cad-9173-4a89-ba07-013ae3a27d17" }));
+
+            DatasetDataTableMergeResult tableMergeResult = new DatasetDataTableMergeResult()
+            {
+                TableDefinitionName = "Test-data-definition-name",
+                NewRowsCount = newRowCount,
+                UpdatedRowsCount = updatedRowCount
+            };
+            DatasetDataMergeResult mergeResult = new DatasetDataMergeResult();
+            mergeResult.TablesMergeResults.Add(tableMergeResult);
+
+            IDatasetDataMergeService datasetDataMergeService = CreateDatasetDataMergeService();
+            datasetDataMergeService.Merge(
+                Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<DatasetEmptyFieldEvaluationOption>())
+                .Returns(mergeResult);
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                searchRepository: searchRepository,
+                cacheProvider: cacheProvider,
+                jobManagement: jobManagement,
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository,
+                datasetDataMergeService: datasetDataMergeService,
+                specificationsApiClient: specificationApiClient);
+
+            // Act
+            Func<Task> invocation = async () => await service.Run(message);
+
+            // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Provider version is not available for the funding stream {FundingStreamId}"));
+
+            await cacheProvider
+                 .Received(1)
+                 .SetAsync<DatasetValidationStatusModel>(
+                 Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                 Arg.Is<DatasetValidationStatusModel>(s =>
+                     s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
+                     s.OperationId == message.UserProperties["operation-id"].ToString() &&
+                     s.ValidationFailures.ContainsKey(nameof(datasetDefinition.FundingStreamId)) &&
+                     s.ValidationFailures[nameof(datasetDefinition.FundingStreamId)].Any(_ => _ == $"Provider version is not available for the funding stream {FundingStreamId}")
                      ));
         }
 

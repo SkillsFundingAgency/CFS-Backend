@@ -326,6 +326,14 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.GetDistinctFundingStreamsForSpecifications();
         }
 
+        [Route("api/specs/providerversionid-from-specifications")]
+        [HttpPost]
+        [Produces(typeof(IEnumerable<string>))]
+        public async Task<IActionResult> GetDistinctProviderVersionFromSpecifications([FromBody] IEnumerable<string> specificationIds)
+        {
+            return await _specService.GetDistinctProviderVersionIdsFromSpecifications(specificationIds);
+        }
+
         [Route("api/specs/{specificationId}/report-metadata/{fundingPeriodId}")]
         [HttpGet]
         [Produces(typeof(IEnumerable<SpecificationReport>))]

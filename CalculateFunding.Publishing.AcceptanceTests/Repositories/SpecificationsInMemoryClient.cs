@@ -240,5 +240,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<IEnumerable<string>>> GetDistinctProviderVersionIdsFromSpecifications(IEnumerable<string> specificationIds) =>
+           throw new NotImplementedException();
     }
 }

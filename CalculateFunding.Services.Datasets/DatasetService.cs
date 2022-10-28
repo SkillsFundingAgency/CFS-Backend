@@ -1956,28 +1956,108 @@ namespace CalculateFunding.Services.Datasets
 
             ConcurrentBag<ProviderSummary> summaries = new ConcurrentBag<ProviderSummary>();
 
-            ApiResponse<ApiClientProviders.Models.ProviderVersion> providerVersionResponse
-                = await _providersApiClientPolicy.ExecuteAsync(() =>
-                    _providersApiClient.GetCurrentProvidersForFundingStream(datasetDefinition.FundingStreamId));
-
-            if (!providerVersionResponse.StatusCode.IsSuccess() && providerVersionResponse.StatusCode != HttpStatusCode.NotFound)
+            if (datasetDefinition.ValidateProviders)
             {
-                string errorMessage = $"Failed to fetch current providers for funding stream {datasetDefinition.FundingStreamId} with status code: {providerVersionResponse.StatusCode}";
+                ApiResponse<ApiClientProviders.Models.ProviderVersion> currentProviderVersionResponse
+                    = await _providersApiClientPolicy.ExecuteAsync(() =>
+                        _providersApiClient.GetCurrentProvidersForFundingStream(datasetDefinition.FundingStreamId));
 
-                _logger.Error(errorMessage);
+                if (!currentProviderVersionResponse.StatusCode.IsSuccess() && currentProviderVersionResponse.StatusCode != HttpStatusCode.NotFound)
+                {
+                    string errorMessage = $"Failed to fetch provider target period for funding stream {datasetDefinition.FundingStreamId} with status code: {currentProviderVersionResponse.StatusCode}";
 
-                throw new RetriableException(errorMessage);
-            }
+                    _logger.Error(errorMessage);
 
-            if (providerVersionResponse.StatusCode == HttpStatusCode.NotFound || providerVersionResponse.Content == null || providerVersionResponse.Content.Providers.IsNullOrEmpty())
-            {
-                _logger.Error($"No provider version for the funding stream {datasetDefinition.FundingStreamId}");
-                validationFailures.Add(nameof(datasetDefinition.FundingStreamId), new string[] {$"No provider version for the funding stream {datasetDefinition.FundingStreamId}"});
+                    throw new RetriableException(errorMessage);
+                }
 
-                return (validationFailures, rowCount);
-            }
+                if (currentProviderVersionResponse.StatusCode == HttpStatusCode.NotFound || currentProviderVersionResponse.Content == null)
+                {
+                    _logger.Error($"No provider target period for the funding stream {datasetDefinition.FundingStreamId}");
+                    validationFailures.Add(nameof(datasetDefinition.FundingStreamId), new string[] { $"No provider target period for the funding stream {datasetDefinition.FundingStreamId}" });
 
-            Parallel.ForEach(providerVersionResponse.Content.Providers, (provider) => { summaries.Add(_mapper.Map<ProviderSummary>(provider)); });
+                    return (validationFailures, rowCount);
+                }
+
+                if (datasetDefinition.ValidateProvidersByYearRange.HasValue && datasetDefinition.ValidateProvidersByYearRange.GetValueOrDefault() > 0)
+                {
+                    IEnumerable<string> specificationIds = await _datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinition.Id);
+
+                    if (specificationIds.Any())
+                    {
+                        var startDate = currentProviderVersionResponse.Content.TargetDate.AddYears(-datasetDefinition.ValidateProvidersByYearRange.GetValueOrDefault());
+                        var endDate = currentProviderVersionResponse.Content.TargetDate;
+                        ApiResponse<IEnumerable<string>> providerVersionIdsFromSpecifications =
+                                       await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetDistinctProviderVersionIdsFromSpecifications(specificationIds));
+
+                        if (!providerVersionIdsFromSpecifications.StatusCode.IsSuccess() && providerVersionIdsFromSpecifications.StatusCode != HttpStatusCode.NotFound)
+                        {
+                            string errorMessage = $"Failed to fetch specification provider version Ids to get providers for funding stream {datasetDefinition.FundingStreamId} with status code: {providerVersionIdsFromSpecifications.StatusCode}";
+
+                            _logger.Error(errorMessage);
+
+                            throw new RetriableException(errorMessage);
+                        }
+
+                        if (providerVersionIdsFromSpecifications.StatusCode == HttpStatusCode.NotFound || providerVersionIdsFromSpecifications.Content == null)
+                        {
+                            _logger.Error($"No specification provider version Ids to get providers for the funding stream {datasetDefinition.FundingStreamId}");
+                            validationFailures.Add(nameof(datasetDefinition.FundingStreamId), new string[] { $"No specification provider version Ids to get providers for the funding stream {datasetDefinition.FundingStreamId}" });
+
+                            return (validationFailures, rowCount);
+                        }
+
+                        foreach (var providerVersionId in providerVersionIdsFromSpecifications.Content)
+                        {
+                            ApiResponse<ApiClientProviders.Models.ProviderVersion> providerVersionResponse
+                                    = await _providersApiClientPolicy.ExecuteAsync(() =>
+                                        _providersApiClient.GetProvidersByVersion(providerVersionId));
+
+                            if (!providerVersionResponse.StatusCode.IsSuccess() && providerVersionResponse.StatusCode != HttpStatusCode.NotFound)
+                            {
+                                string errorMessage = $"Failed to fetch providers for funding stream {datasetDefinition.FundingStreamId} with status code: {providerVersionResponse.StatusCode}";
+
+                                _logger.Error(errorMessage);
+
+                                throw new RetriableException(errorMessage);
+                            }
+
+                            if (providerVersionResponse.StatusCode == HttpStatusCode.NotFound || providerVersionResponse.Content == null || providerVersionResponse.Content.Providers.IsNullOrEmpty())
+                            {
+                                _logger.Error($"Provider version is not available for the funding stream {datasetDefinition.FundingStreamId}");
+                                validationFailures.Add(nameof(datasetDefinition.FundingStreamId), new string[] { $"Provider version is not available for the funding stream {datasetDefinition.FundingStreamId}" });
+
+                                return (validationFailures, rowCount);
+                            }
+
+                            if (providerVersionResponse.Content.TargetDate.Date >= startDate.Date && providerVersionResponse.Content.TargetDate.Date <= endDate.Date)
+                            {
+                                Parallel.ForEach(providerVersionResponse.Content.Providers, (provider) =>
+                                {
+                                    if (!summaries.Any(x => x.UKPRN.Equals(provider.UKPRN)))
+                                    {
+                                        summaries.Add(_mapper.Map<ProviderSummary>(provider));
+                                    }
+                                });
+                            }
+                        }                       
+                    }
+                    else
+                    {
+                        _logger.Error($"No specifications to get providers for funding stream {datasetDefinition.FundingStreamId}");
+                        validationFailures.Add(nameof(datasetDefinition.FundingStreamId), new string[] { $"No specifications to get providers for funding stream {datasetDefinition.FundingStreamId}" });
+                        return (validationFailures, rowCount);
+                    }
+                }
+
+                if (summaries.IsEmpty)
+                {
+                    _logger.Error($"No provider versions for the funding stream {datasetDefinition.FundingStreamId}");
+                    validationFailures.Add(nameof(datasetDefinition.FundingStreamId), new string[] { $"No provider versions for the funding stream {datasetDefinition.FundingStreamId}" });
+
+                    return (validationFailures, rowCount);
+                }
+            }           
 
             using ExcelPackage excelPackage = new ExcelPackage(datasetStream);
             DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(

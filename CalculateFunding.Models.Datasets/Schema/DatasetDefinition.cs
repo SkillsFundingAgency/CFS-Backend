@@ -23,6 +23,9 @@ namespace CalculateFunding.Models.Datasets.Schema
 
         [JsonProperty("validateProviders")]
         public bool ValidateProviders { get; set; }
+
+        [JsonProperty("validateProvidersByYearRange")]
+        public int? ValidateProvidersByYearRange { get; set; }
     }
 
 }

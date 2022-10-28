@@ -66,5 +66,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> GetDistinctFundingStreamsForSpecifications();
         Task<IActionResult> SetProviderVersion(AssignSpecificationProviderVersionModel assignSpecificationProviderVersionModel, Reference user);
         Task<IActionResult> GetSpecificationsWithProviderVersionUpdatesAsUseLatest();
+        Task<IActionResult> GetDistinctProviderVersionIdsFromSpecifications(IEnumerable<string> specificationIds);
     }
 }

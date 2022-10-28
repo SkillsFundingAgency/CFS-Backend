@@ -1803,6 +1803,14 @@ WHERE   s.documentType = @DocumentType",
             return new OkObjectResult(fundingStreamIds);
         }
 
+        public async Task<IActionResult> GetDistinctProviderVersionIdsFromSpecifications(IEnumerable<string> specificationIds)
+        {
+            IEnumerable<string> providerVersionIds =
+                await _specificationsRepository.GetDistinctProviderVersionIdsFromSpecifications(specificationIds);
+
+            return new OkObjectResult(providerVersionIds);
+        }
+
         public async Task<IActionResult> SetProviderVersion(AssignSpecificationProviderVersionModel assignSpecificationProviderVersionModel, Reference user)
         {
             ValidationResult validationResult = await _assignSpecificationProviderVersionModelValidator.ValidateAsync(assignSpecificationProviderVersionModel);
