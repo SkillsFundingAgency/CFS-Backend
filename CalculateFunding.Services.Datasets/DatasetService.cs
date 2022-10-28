@@ -1981,7 +1981,7 @@ namespace CalculateFunding.Services.Datasets
 
                 if (datasetDefinition.ValidateProvidersByYearRange.HasValue && datasetDefinition.ValidateProvidersByYearRange.GetValueOrDefault() > 0)
                 {
-                    IEnumerable<string> specificationIds = await _datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinition.Id);
+                    IEnumerable<string> specificationIds = await _datasetRepository.GetRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinition.Id);
 
                     if (specificationIds.Any())
                     {

@@ -676,7 +676,7 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
                 .Returns(datasetDefinitions);
-            datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
+            datasetRepository.GetRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
                .Returns(new List<string> { "289eb3f8-b331-4a29-ad20-7209fe3560fb", "3b0d6cad-9173-4a89-ba07-013ae3a27d17" });
 
             List<DatasetValidationError> errors = new List<DatasetValidationError>
@@ -800,7 +800,7 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
                 .Returns(datasetDefinitions);
-            datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
+            datasetRepository.GetRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
                .Returns(new List<string> { "289eb3f8-b331-4a29-ad20-7209fe3560fb", "3b0d6cad-9173-4a89-ba07-013ae3a27d17" });
 
             List<DatasetValidationError> errors = new List<DatasetValidationError>
@@ -4275,7 +4275,7 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
                 .Returns(datasetDefinitions);
-            datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
+            datasetRepository.GetRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
                .Returns(new List<string> { "289eb3f8-b331-4a29-ad20-7209fe3560fb", "3b0d6cad-9173-4a89-ba07-013ae3a27d17" });
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
@@ -4459,7 +4459,7 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
                 .Returns(datasetDefinitions);
-            datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
+            datasetRepository.GetRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Any<string>())
                .Returns(new List<string> { "289eb3f8-b331-4a29-ad20-7209fe3560fb", "3b0d6cad-9173-4a89-ba07-013ae3a27d17" });
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()

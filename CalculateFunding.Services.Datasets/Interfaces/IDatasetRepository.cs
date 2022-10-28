@@ -74,5 +74,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<ConverterDataMergeLog> GetConverterDataMergeLog(string jobId);
 
         Task<IEnumerable<OldDefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsToMigrate();
+
+        Task<IEnumerable<string>> GetRelationshipSpecificationIdsForDatasetDefinitionId(string datasetDefinitionId);
     }
 }

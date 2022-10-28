@@ -12,7 +12,6 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
-using Microsoft.Azure.Amqp.Framing;
 using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
 
 namespace CalculateFunding.Services.Specs
