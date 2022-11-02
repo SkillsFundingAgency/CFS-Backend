@@ -127,12 +127,12 @@ namespace CalculateFunding.Services.Core.Helpers
 
         public static AsyncBulkheadPolicy GenerateTotalNetworkRequestsPolicy(PolicySettings settings)
         {
-            return Policy.BulkheadAsync(settings.MaximumSimultaneousNetworkRequests);
+            return Policy.BulkheadAsync(settings.MaximumSimultaneousNetworkRequests, settings.MaximumQueuingActions);
         }
 
         public static BulkheadPolicy GenerateTotalNetworkRequestsNonAsyncPolicy(PolicySettings settings)
         {
-            return Policy.Bulkhead(settings.MaximumSimultaneousNetworkRequests);
+            return Policy.Bulkhead(settings.MaximumSimultaneousNetworkRequests, settings.MaximumQueuingActions);
         }
     }
 }

@@ -209,17 +209,12 @@ namespace CalculateFunding.Services.Providers
                 return new NoContentResult();
             }
 
-            await using MemoryStream stream = new MemoryStream(providerSummaries.AsJsonBytes())
-            {
-                Position = 0
-            };
-
             if (string.IsNullOrWhiteSpace(providerVersionId) && IsFileSystemCacheEnabled)
             {
-                _fileSystemCache.Add(cacheKey, stream);
+                _fileSystemCache.Add(cacheKey, providerSummaries.AsJson());
             }
 
-            return GetActionResultForStream(stream, specificationId);
+            return GetActionResultForString(providerSummaries.AsJson(), specificationId);
         }
 
         private void EnsureFolderExists(string folderName)
@@ -330,9 +325,7 @@ namespace CalculateFunding.Services.Providers
 
             if (fileSystemEnabled)
             {
-                await using Stream providerVersionStream = new MemoryStream(providerVersion.AsJsonBytes());
-                
-                _fileSystemCache.Add(fileSystemCacheKey, providerVersionStream);
+                _fileSystemCache.Add(fileSystemCacheKey, providerVersion.AsJson());
             }
 
             IEnumerable<Provider> sourceProviders = providerVersion.Providers;
@@ -515,13 +508,19 @@ namespace CalculateFunding.Services.Providers
             using StreamReader reader = new StreamReader(stream);
             string providerVersionString = reader.ReadToEnd();
 
-            if (!string.IsNullOrWhiteSpace(providerVersionString))
+            return GetActionResultForString(providerVersionString, specificationId);
+        }
+
+        private IActionResult GetActionResultForString(string content,
+            string specificationId)
+        {
+            if (!string.IsNullOrWhiteSpace(content))
             {
                 return new ContentResult
                 {
-                    Content = providerVersionString,
+                    Content = content,
                     ContentType = "application/json",
-                    StatusCode = (int) HttpStatusCode.OK
+                    StatusCode = (int)HttpStatusCode.OK
                 };
             }
 

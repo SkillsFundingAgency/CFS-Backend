@@ -13,7 +13,11 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         Task Write(string path, 
             Stream content, 
             CancellationToken cancellationToken = default);
-        
+
+        Task Write(string path,
+            string content,
+            CancellationToken cancellationToken = default);
+
         bool Exists(string path);
         
         void CreateFolder(string path);

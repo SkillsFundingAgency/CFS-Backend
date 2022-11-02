@@ -55,6 +55,18 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             await WriteStreamToFile(path, content, FileMode.CreateNew, cancellationToken);
         }
 
+        public async Task Write(string path,
+            string content,
+            CancellationToken cancellationToken = default)
+        {
+            using (FileStream stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write))
+            using (StreamWriter writer = new StreamWriter(stream))
+            {
+                await writer.WriteAsync(content);
+                await writer.FlushAsync();
+            }
+        }
+
         private async Task WriteStreamToFile(string path,
             Stream content,
             FileMode fileMode,

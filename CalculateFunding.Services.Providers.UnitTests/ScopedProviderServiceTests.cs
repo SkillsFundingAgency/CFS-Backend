@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -80,22 +81,15 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _bytesWrittenToFileSystemCache = new Dictionary<string, byte[]>();
 
             _fileSystemCache.Setup(_ => _.Add(It.IsAny<FileSystemCacheKey>(),
-                    It.IsAny<Stream>(),
+                    It.IsAny<string>(),
                     default,
                     false))
-                .Callback<FileSystemCacheKey, Stream, CancellationToken, bool>((key,
+                .Callback<FileSystemCacheKey, string, CancellationToken, bool>((key,
                     stream,
                     cancellationToken,
                     ensureFolderExists) =>
                 {
-                    byte[] writtenBytes = new byte[stream.Length];
-
-                    for (int bytePosition = 0; bytePosition < stream.Length; bytePosition++)
-                    {
-                        writtenBytes[bytePosition] = (byte)stream.ReadByte();
-                    }
-
-                    _bytesWrittenToFileSystemCache[key.Key] = writtenBytes;
+                    _bytesWrittenToFileSystemCache[key.Key] = Encoding.UTF8.GetBytes(stream); ;
                 });
         }
 
@@ -125,7 +119,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Should()
                 .Be("application/json");
         }
-        
+
         [TestMethod]
         public async Task FetchCoreProviderData_ReturnsBlobDataForFdzProviderSourcesAndAddsToFileSystemCacheForProviderVersionIdIfNotAlreadyCached()
         {
@@ -135,13 +129,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
             Provider providerOne = NewProvider();
             Provider providerTwo = NewProvider();
             ProviderVersion providerVersion = NewProviderVersion(_ => _.WithProviders(providerOne, providerTwo));
-            
+
             AndTheProviderVersion(providerVersionId, providerVersion);
-            
+
             ContentResult result = await WhenTheCoreProviderDataIsFetched(specificationId, providerVersionId) as ContentResult;
-            
+
             ProviderSummary[] expectedProviderSummaries = MapProvidersToSummaries(providerOne, providerTwo);
-            
+
             result
                 .Content
                 .Should()
@@ -151,7 +145,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .ContentType
                 .Should()
                 .Be("application/json");
-            
+
             AndTheFileSystemCacheDataWasWritten(new ProviderVersionFileSystemCacheKey(providerVersionId).Key,
                 providerVersion.AsJsonBytes());
         }
