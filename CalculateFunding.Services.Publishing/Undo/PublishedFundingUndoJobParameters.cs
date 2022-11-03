@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CalculateFunding.Common.Utility;
 using Microsoft.Azure.ServiceBus;
 
@@ -9,6 +10,10 @@ namespace CalculateFunding.Services.Publishing.Undo
         public const string ForCorrelationIdPropertyName = "for-correlation-id";
         public const string ForSpecificationIdPropertyName = "specification-id";
         public const string IsHardDeletePropertyName = "is-hard-delete";
+        public const string ForApiVersionPropertyName = "api-version";
+        public const string ForChannelCodesPropertyName = "channel-codes";
+        public const string APIVersion_3 = "v3";
+        public const string APIVersion_4 = "v4";
 
         public PublishedFundingUndoJobParameters()
         {
@@ -21,6 +26,8 @@ namespace CalculateFunding.Services.Publishing.Undo
             IsHardDelete = Convert.ToBoolean(GetUserProperty(message, IsHardDeletePropertyName));
             ForCorrelationId = GetUserProperty(message, ForCorrelationIdPropertyName);
             ForSpecificationId = GetUserProperty(message, ForSpecificationIdPropertyName);
+            ForApiVersion = GetUserProperty(message, ForApiVersionPropertyName);
+            ForChannelCodes = GetUserProperty(message, ForChannelCodesPropertyName);
             JobId = GetUserProperty(message, "jobId");
         }
 
@@ -29,6 +36,10 @@ namespace CalculateFunding.Services.Publishing.Undo
         public string ForCorrelationId { get; }
 
         public string ForSpecificationId { get; }
+
+        public string ForApiVersion { get; }
+
+        public string ForChannelCodes { get; }
 
         public string JobId { get; }
 
@@ -41,6 +52,6 @@ namespace CalculateFunding.Services.Publishing.Undo
 
         protected static string GetUserProperty(Message message, string name) 
             => message.UserProperties.TryGetValue(name, out object property) ? property?.ToString() : 
-               throw new ArgumentOutOfRangeException(name, $"Did not locate user property {name}");
+               throw new ArgumentOutOfRangeException(name, $"Did not locate user property {name}");           
     }
 }

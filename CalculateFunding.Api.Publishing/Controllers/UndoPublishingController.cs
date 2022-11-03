@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
+using CalculateFunding.Services.Publishing.Undo;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Publishing.Controllers
@@ -22,13 +24,16 @@ namespace CalculateFunding.Api.Publishing.Controllers
         [HttpGet("api/publishing/undo/{forCorrelationId}/{specificationId}/{hardDelete}")]
         [ApiExplorerSettings(IgnoreApi = true)]
         [ProducesResponseType(typeof(Job), 200)]
-        public async Task<IActionResult> UndoPublishing([FromRoute] string forCorrelationId, [FromRoute] string specificationId, [FromRoute] bool hardDelete)
+        public async Task<IActionResult> UndoPublishing([FromRoute] string forCorrelationId, [FromRoute] string specificationId, [FromRoute] bool hardDelete, 
+            [FromHeader] List<string> channelCodes, [FromHeader] string apiVersion = PublishedFundingUndoJobParameters.APIVersion_3)
         {
             return Ok(await _service.QueueJob(forCorrelationId,
                 specificationId,
                 hardDelete,
                 Request.GetUser(),
-                Request.GetCorrelationId()));
+                Request.GetCorrelationId(),
+                apiVersion,
+                channelCodes));
         }
-    }
+    }   
 }

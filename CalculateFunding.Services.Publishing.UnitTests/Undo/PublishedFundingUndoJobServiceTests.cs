@@ -93,6 +93,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         {
             GivenTheMessageProperties(("is-hard-delete", NewRandomFlag().ToString()),
                 ("for-correlation-id", NewRandomString()),
+                ("api-version", string.Empty),
+                ("channel-codes", null),
                 ("specification-id", NewRandomString()));
 
             Func<Task> invocation = WhenTheJobIsRun;
@@ -133,6 +135,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             GivenTheMessageProperties(("jobId", jobId),
                 ("for-correlation-id", NewRandomString()),
                 ("specification-id", NewRandomString()),
+                ("api-version", string.Empty),
+                ("channel-codes", null),
                 ("is-hard-delete", isHardDelete.ToString()));
             AndTheTaskFactoryIsForTheSuppliedParameters();
             AndTheJobCanBeTracked(jobId);
@@ -154,6 +158,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             GivenTheMessageProperties(("jobId", jobId),
                 ("for-correlation-id", correlationId),
                 ("specification-id", specificationId),
+                ("api-version", string.Empty),
+                ("channel-codes", null),
                 ("is-hard-delete", NewRandomFlag().ToString()));
             AndTheTaskFactoryIsForTheSuppliedParameters();
             AndTheJobCanBeTracked(jobId);
@@ -190,7 +196,29 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 NewRandomFlag(),
                 NewUser(),
                 NewRandomString(),
-                NewRandomString());
+                NewRandomString(),
+                "v3",
+                null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("forCorrelationId");
+        }
+
+        [TestMethod]
+        public void QueuesUndoJobsGuardsAgainstMissingForCorrelationIdForv4API()
+        {
+            Func<Task> invocation = () => WhenTheJobIsQueued(null,
+                NewRandomFlag(),
+                NewUser(),
+                NewRandomString(),
+                NewRandomString(),
+                "v4",
+                new List<string>() { "Statement" });
 
             invocation
                 .Should()
@@ -208,7 +236,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 NewRandomFlag(),
                 null,
                 NewRandomString(),
-                NewRandomString());
+                NewRandomString(),
+                "v3",
+                null);
 
             invocation
                 .Should()
@@ -218,18 +248,40 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .Should()
                 .Be("user");
         }
+        [TestMethod]
+        public void QueuesUndoJobsGuardsAgainstMissingUserForv4API()
+        {
+            Func<Task> invocation = () => WhenTheJobIsQueued(NewRandomString(),
+                NewRandomFlag(),
+                null,
+                NewRandomString(),
+                NewRandomString(),
+                "v4",
+                new List<string>() { "Statement" });
 
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("user");
+        }
         private async Task<Job> WhenTheJobIsQueued(string forCorrelationId,
             bool isHardDelete,
             Reference user,
             string specificationId,
-            string correlationId)
+            string correlationId,
+            string apiVersion,
+            List<string> channelCodes)
         {
             return await _service.QueueJob(forCorrelationId,
                 specificationId,
                 isHardDelete,
                 user,
-                correlationId);
+                correlationId,
+                apiVersion,
+                channelCodes);
         }
 
         private async Task WhenTheJobIsRun()

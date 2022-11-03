@@ -19,7 +19,10 @@ namespace CalculateFunding.Services.Publishing.Undo
         private const string ForCorrelationIdPropertyName = PublishedFundingUndoJobParameters.ForCorrelationIdPropertyName;
         private const string ForSpecificationIdPropertyName = PublishedFundingUndoJobParameters.ForSpecificationIdPropertyName;
         private const string IsHardDeletePropertyName = PublishedFundingUndoJobParameters.IsHardDeletePropertyName;
-        
+        private const string ForApiVersionPropertyName = PublishedFundingUndoJobParameters.ForApiVersionPropertyName;
+        private const string ForChannelCodesPropertyName = PublishedFundingUndoJobParameters.ForChannelCodesPropertyName;
+
+
         private readonly IJobsApiClient _jobs;
         private readonly AsyncPolicy _resilience;
         private readonly ILogger _logger;
@@ -41,7 +44,9 @@ namespace CalculateFunding.Services.Publishing.Undo
             string specificationId,
             bool isHardDelete,
             Reference user,
-            string correlationId)
+            string correlationId,
+            string apiVersion,
+            List<string> channelCodes)
         {
             try
             {
@@ -57,7 +62,9 @@ namespace CalculateFunding.Services.Publishing.Undo
                         {ForSpecificationIdPropertyName, specificationId },
                         {IsHardDeletePropertyName, isHardDelete.ToString()},
                         {"user-id", user.Id},
-                        {"user-name", user.Name}
+                        {"user-name", user.Name},
+                        {ForApiVersionPropertyName, apiVersion},
+                        {ForChannelCodesPropertyName, String.Join(",", channelCodes) }
                     },
                     Trigger = new Trigger
                     {

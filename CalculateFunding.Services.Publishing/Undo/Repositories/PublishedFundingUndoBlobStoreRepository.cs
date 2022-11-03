@@ -39,7 +39,16 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
         {
             await RemoveBlob($"{publishedFundingVersion.FundingId}.json", "publishedfunding");
         }
-
+        public async Task RemoveReleasedGroupBlob(PublishedFundingVersion publishedFundingVersion, string channelCode)
+        {
+            string blobName = $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.GroupingReason}-{publishedFundingVersion.OrganisationGroupTypeCode}-{publishedFundingVersion.OrganisationGroupIdentifierValue}-{publishedFundingVersion.MajorVersion}_{publishedFundingVersion.MinorVersion}.json";
+            await RemoveBlob($"{channelCode}/{blobName}", "releasedgroups");
+        }
+        public async Task RemoveReleasedprovidersBlob(PublishedProviderVersion publishedProviderVersion, string channelCode)
+        {
+            string blobName = $"{publishedProviderVersion.FundingStreamId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.ProviderId}-{publishedProviderVersion.MajorVersion}_{publishedProviderVersion.MinorVersion}.json";
+            await RemoveBlob($"{channelCode}/{blobName}", "releasedproviders");
+        }
         private async Task RemoveBlob(string name, string container)
         {
             try

@@ -40,6 +40,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                     {PublishedFundingUndoJobParameters.ForCorrelationIdPropertyName, _forCorrelationId ?? NewRandomString()},
                     {PublishedFundingUndoJobParameters.IsHardDeletePropertyName, _isHardDelete.GetValueOrDefault(NewRandomFlag())},
                     {"jobId", NewRandomString()},
+                    {PublishedFundingUndoJobParameters.ForApiVersionPropertyName, "v3" },
+                    {PublishedFundingUndoJobParameters.ForChannelCodesPropertyName, string.Empty },
                     {PublishedFundingUndoJobParameters.ForSpecificationIdPropertyName, _specificationId ?? NewRandomString()}
                 }
             });

@@ -8,5 +8,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces.Undo
         Task RemovePublishedProviderVersionBlob(PublishedProviderVersion publishedProviderVersion);
         
         Task RemovePublishedFundingVersionBlob(PublishedFundingVersion publishedFundingVersion);
+
+        Task RemoveReleasedGroupBlob(PublishedFundingVersion publishedFundingVersion, string channelCode);
+
+        Task RemoveReleasedprovidersBlob(PublishedProviderVersion publishedProviderVersion, string channelCode);
     }
 }

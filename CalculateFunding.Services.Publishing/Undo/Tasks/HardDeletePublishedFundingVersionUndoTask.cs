@@ -25,10 +25,12 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             dynamic context, 
             IEnumerable<PublishedFundingVersion> publishedFundingVersions)
         {
+            string ApiVersion = ((CalculateFunding.Services.Publishing.Undo.Tasks.UndoTaskBase.FeedContext)context).TaskContext.Parameters.ForApiVersion;
+            string channelCodes = ((CalculateFunding.Services.Publishing.Undo.Tasks.UndoTaskBase.FeedContext)context).TaskContext.Parameters.ForChannelCodes;
             Task[] undoTasks = new[]
             {
                 DeleteDocuments(publishedFundingVersions, _ => _.PartitionKey, true),
-                DeleteBlobDocuments(publishedFundingVersions)
+                DeleteBlobDocuments(publishedFundingVersions, ApiVersion, channelCodes)
             };
 
             await TaskHelper.WhenAllAndThrow(undoTasks);

@@ -41,6 +41,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             string specificationId = NewRandomString();
             bool isHardDelete = NewRandomFlag();
             Reference user = NewReference();
+            string apiVersion = "v3";
+            List<string> channelCodes = new List<string>();
             
             Job expectedJob = new Job();
             
@@ -49,25 +51,64 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 user,
                 correlationId,
                 specificationId,
-                expectedJob);
+                expectedJob,
+                apiVersion,
+                channelCodes);
 
             Job actualJob = await _jobCreation.CreateJob(forCorrelationId,
                 specificationId,
                 isHardDelete,
                 user,
-                correlationId);
+                correlationId,
+                apiVersion,
+                channelCodes);
 
             actualJob
                 .Should()
                 .BeSameAs(expectedJob);
         }
+        [TestMethod]
+        public async Task QueuesPublishedFundingUndoJobForSuppliedCorrelationIdForV4API()
+        {
+            string forCorrelationId = NewRandomString();
+            string correlationId = NewRandomString();
+            string specificationId = NewRandomString();
+            bool isHardDelete = NewRandomFlag();
+            Reference user = NewReference();
+            string apiVersion = "v4";
+            List<string> channelCodes = new List<string>() { "Statement" };
 
+            Job expectedJob = new Job();
+
+            GivenTheJobForRequest(forCorrelationId,
+                isHardDelete,
+                user,
+                correlationId,
+                specificationId,
+                expectedJob,
+                apiVersion,
+                channelCodes);
+
+            Job actualJob = await _jobCreation.CreateJob(forCorrelationId,
+                specificationId,
+                isHardDelete,
+                user,
+                correlationId,
+                apiVersion,
+                channelCodes);
+
+            actualJob
+                .Should()
+                .BeSameAs(expectedJob);
+        }
         private void GivenTheJobForRequest(string forCorrelationId,
             bool isHardDelete,
             Reference user,
             string correlationId,
             string specificationId,
-            Job expectedJob)
+            Job expectedJob,
+            string apiVersion,
+            List<string> channelCodes)
         {
             _jobs.Setup(_ => _.CreateJob(It.Is<JobCreateModel>(jcm =>
                     jcm.CorrelationId == correlationId &&
@@ -79,7 +120,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                         "specification-id", specificationId,
                         "is-hard-delete", isHardDelete.ToString(),
                         "user-id", user.Id,
-                        "user-name", user.Name
+                        "user-name", user.Name,
+                        "api-version", apiVersion,
+                        "channel-codes", string.Join(",", channelCodes)
                     ))))
                 .ReturnsAsync(expectedJob);
         }

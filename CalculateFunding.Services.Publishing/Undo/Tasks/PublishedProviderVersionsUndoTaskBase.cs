@@ -63,10 +63,34 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             dynamic context, 
             IEnumerable<PublishedProviderVersion> publishedProviderVersions);
 
-        protected async Task DeleteBlobDocuments(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
+        protected async Task DeleteBlobDocuments(IEnumerable<PublishedProviderVersion> publishedProviderVersions, string apiVersion, string channelCodes)
         {
             LogInformation($"Requesting deletion of {publishedProviderVersions.Count()} published provider version blobs");
             
+            foreach (PublishedProviderVersion publishedProviderVersion in publishedProviderVersions.Where(_ => _.MajorVersion > 0 && _.MinorVersion == 0))
+            {
+                //if api version is 4, delete the channel specific blobs
+                if ((!string.IsNullOrEmpty(apiVersion)) && apiVersion.Equals(PublishedFundingUndoJobParameters.APIVersion_4))
+                {
+                    IEnumerable<string> eligibleChannels = channelCodes.Split(',').ToList();
+                    eligibleChannels.ForEach(channelCode =>
+                    {
+                        if (!string.IsNullOrWhiteSpace(channelCode))
+                        {
+                            BlobStore.RemoveReleasedprovidersBlob(publishedProviderVersion, channelCode);
+                        }
+                    });
+                }
+                else
+                {
+                    await BlobStore.RemovePublishedProviderVersionBlob(publishedProviderVersion);
+                }
+            }
+        }
+        protected async Task DeleteBlobDocuments(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
+        {
+            LogInformation($"Requesting deletion of {publishedProviderVersions.Count()} published provider version blobs");
+
             foreach (PublishedProviderVersion publishedProviderVersion in publishedProviderVersions.Where(_ => _.MajorVersion > 0 && _.MinorVersion == 0))
             {
                 await BlobStore.RemovePublishedProviderVersionBlob(publishedProviderVersion);

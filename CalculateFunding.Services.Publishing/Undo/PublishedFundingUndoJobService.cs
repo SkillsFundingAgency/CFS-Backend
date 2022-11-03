@@ -40,7 +40,9 @@ namespace CalculateFunding.Services.Publishing.Undo
             string specificationId,
             bool isHardDelete,
             Reference user,
-            string correlationId)
+            string correlationId,
+            string apiVersion,
+            List<string> channelCodes)
         {
             Guard.IsNullOrWhiteSpace(forCorrelationId, nameof(forCorrelationId));
             Guard.ArgumentNotNull(user, nameof(user));
@@ -49,7 +51,9 @@ namespace CalculateFunding.Services.Publishing.Undo
                 specificationId,
                 isHardDelete,
                 user,
-                correlationId);
+                correlationId,
+                apiVersion,
+                channelCodes);
         }
 
         public override async Task Process(Message message)

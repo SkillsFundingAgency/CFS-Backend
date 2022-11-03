@@ -62,10 +62,34 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             dynamic context, 
             IEnumerable<PublishedFundingVersion> publishedFundingVersions);
 
-        protected async Task DeleteBlobDocuments(IEnumerable<PublishedFundingVersion> publishedFundingVersions)
+        protected async Task DeleteBlobDocuments(IEnumerable<PublishedFundingVersion> publishedFundingVersions, string apiVersion, string channelCodes)
         {
             LogInformation($"Deleting {publishedFundingVersions.Count()} published funding version blobs");
             
+            foreach (PublishedFundingVersion publishedProviderVersion in publishedFundingVersions.Where(_ => _.MajorVersion > 0 && _.MinorVersion == 0))
+            {
+                //if api version is 4, delete the channel specific blobs
+                if ((!string.IsNullOrEmpty(apiVersion)) && apiVersion.Equals(PublishedFundingUndoJobParameters.APIVersion_4))
+                {
+                    IEnumerable<string> eligibleChannels = channelCodes.Split(',').ToList();
+                    eligibleChannels.ForEach(channelCode =>
+                    {
+                        if (!string.IsNullOrWhiteSpace(channelCode))
+                        {
+                            BlobStore.RemoveReleasedGroupBlob(publishedProviderVersion, channelCode);
+                        }
+                    });
+                }
+                else
+                {
+                    await BlobStore.RemovePublishedFundingVersionBlob(publishedProviderVersion);
+                }
+            }
+        }
+        protected async Task DeleteBlobDocuments(IEnumerable<PublishedFundingVersion> publishedFundingVersions)
+        {
+            LogInformation($"Deleting {publishedFundingVersions.Count()} published funding version blobs");
+
             foreach (PublishedFundingVersion publishedProviderVersion in publishedFundingVersions.Where(_ => _.MajorVersion > 0 && _.MinorVersion == 0))
             {
                 await BlobStore.RemovePublishedFundingVersionBlob(publishedProviderVersion);
