@@ -320,5 +320,10 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         public async Task<IActionResult> GenerateCsvForAllPublishedProvidersForRelease(
             [FromRoute] string specificationId) =>
             await _publishedProviderStatusService.GetProviderDataForAllReleaseAsCsv(specificationId);
+
+        [HttpPost("api/publishedprovider/approvedproviderids/{specificationId}")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
+        public async Task<IActionResult> CheckAndGetApprovedProviderIds([FromBody] IEnumerable<string> publishedProviderIds, [FromRoute] string specificationId) =>
+           await _providerFundingPublishingService.CheckAndGetApprovedProviderIds(publishedProviderIds, specificationId);
     }
 }

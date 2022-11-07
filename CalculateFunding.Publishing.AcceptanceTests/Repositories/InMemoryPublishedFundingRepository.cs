@@ -647,6 +647,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<IEnumerable<string>> CheckAndGetApprovedProviderIds(IEnumerable<string> publishedProviderIds, string specificationId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

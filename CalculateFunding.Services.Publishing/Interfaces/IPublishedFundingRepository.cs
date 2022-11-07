@@ -178,5 +178,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         ICosmosDbFeedIterator GetReleasedPublishedProviderIterator(int batchSize);
         ICosmosDbFeedIterator GetReleasedPublishedProviderVersionIdIterator(int batchSize, string[] fundingStreamIds = null);
         Task<IEnumerable<string>> GetPublishedProviderEligibleToBeReleasedPublishedProviderIds(string specificationId);
+        Task<IEnumerable<string>> CheckAndGetApprovedProviderIds(IEnumerable<string> publishedProviderIds, string specificationId);
     }
 }

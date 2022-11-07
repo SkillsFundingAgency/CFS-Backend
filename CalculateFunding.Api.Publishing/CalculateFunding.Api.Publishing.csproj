@@ -17,7 +17,7 @@
     <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.9.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="8.0.5" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="6.0.2" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="8.7.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="8.7.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="2.1.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="5.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="6.0.3" />

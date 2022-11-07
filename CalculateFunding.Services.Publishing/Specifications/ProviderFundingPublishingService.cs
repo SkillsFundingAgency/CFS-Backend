@@ -448,5 +448,17 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             return new OkObjectResult(null);
         }
+
+        public async Task<IActionResult> CheckAndGetApprovedProviderIds(IEnumerable<string> publishedProviderIds, string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            IEnumerable<string> publishedProviderId = await ResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.CheckAndGetApprovedProviderIds(publishedProviderIds,specificationId));
+
+            return new OkObjectResult(publishedProviderId);
+
+        }
+
     }
 }

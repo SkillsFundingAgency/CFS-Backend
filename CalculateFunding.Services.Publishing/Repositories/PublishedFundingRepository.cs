@@ -2021,5 +2021,47 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             return _repository.GetFeedIterator(query, cosmosBatchSize);
         }
+
+       
+        /// </summary>
+        /// <param name="publishedProviderIds">the ids from the batch of published providers</param>
+        /// <param name="specificationId"></param>     
+        /// <returns></returns>
+        public async Task<IEnumerable<string>> CheckAndGetApprovedProviderIds(IEnumerable<string> publishedProviderIds,
+            string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNotEmpty(publishedProviderIds, nameof(publishedProviderIds));                   
+           
+            CosmosDbQuery query = new CosmosDbQuery
+            {               
+                QueryText = @"
+                              SELECT Value
+                                c.content.current.publishedProviderId
+                            FROM publishedProvider c
+                            WHERE c.documentType = 'PublishedProvider'
+                            AND c.content.current.specificationId = @specificationId
+                            AND (c.content.current.status = 'Approved' OR c.content.current.status = 'Released' )                                              
+                            AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
+                            AND c.deleted = false
+                            And ARRAY_CONTAINS(@publishedProviderIds,  c.content.current.publishedProviderId)",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@publishedProviderIds", publishedProviderIds.ToArray())                  
+                }
+            };
+
+            List<string> results = new List<string>();
+
+            IEnumerable<dynamic> queryResults = await _repository.DynamicQuery(query);
+
+            foreach (dynamic item in queryResults)
+            {
+                results.Add((string)item);
+            }
+
+            return results;
+        }
     }
 }

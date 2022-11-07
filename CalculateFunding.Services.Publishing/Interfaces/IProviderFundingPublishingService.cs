@@ -43,5 +43,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IActionResult> GetPublishedProviderErrorSummaries(string specificationId);
 
         Task<IActionResult> FixupPublishProviders(IEnumerable<string> providerIds, string fundingStreamId, string fundingPeriodId);
+
+        Task<IActionResult> CheckAndGetApprovedProviderIds(IEnumerable<string> publishedProviderIds, string specificationId);
     }
 }
