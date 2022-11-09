@@ -18,6 +18,11 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             string content,
             CancellationToken cancellationToken = default);
 
+        Task WritePoco<TPoco>(string path,
+            TPoco content,
+            bool useCamelCase = true,
+            CancellationToken cancellationToken = default);
+
         bool Exists(string path);
         
         void CreateFolder(string path);

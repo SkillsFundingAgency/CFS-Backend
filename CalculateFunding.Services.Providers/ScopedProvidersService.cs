@@ -26,8 +26,11 @@ using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Polly;
 using Serilog;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 using ProviderSource = CalculateFunding.Common.ApiClient.Models.ProviderSource;
 
 namespace CalculateFunding.Services.Providers
@@ -198,7 +201,7 @@ namespace CalculateFunding.Services.Providers
                 {
                     await using Stream cachedStream = _fileSystemCache.Get(cacheKey);
 
-                    return GetActionResultForStream(cachedStream, specificationId);
+                    return GetActionResultForStream<ProviderSummary>(cachedStream, specificationId);
                 }
             }
 
@@ -211,10 +214,10 @@ namespace CalculateFunding.Services.Providers
 
             if (string.IsNullOrWhiteSpace(providerVersionId) && IsFileSystemCacheEnabled)
             {
-                _fileSystemCache.Add(cacheKey, providerSummaries.AsJson());
+                _fileSystemCache.AddPoco<IEnumerable<ProviderSummary>>(cacheKey, providerSummaries);
             }
 
-            return GetActionResultForString(providerSummaries.AsJson(), specificationId);
+            return GetActionResultForIEnumerable<ProviderSummary>(providerSummaries);
         }
 
         private void EnsureFolderExists(string folderName)
@@ -266,18 +269,16 @@ namespace CalculateFunding.Services.Providers
             }
             
             // if the provider source is FDZ then we will need the provider version
-            ContentResult coreProviderData = await FetchCoreProviderData(specificationId,
-                specificationSummary.ProviderSource == ProviderSource.FDZ ? specificationSummary.ProviderVersionId : null) as ContentResult;
+            JsonResult coreProviderData = await FetchCoreProviderData(specificationId,
+                specificationSummary.ProviderSource == ProviderSource.FDZ ? specificationSummary.ProviderVersionId : null) as JsonResult;
 
-            string contentLiteral = coreProviderData?.Content;
-            
-            if (contentLiteral?.IsNullOrWhitespace() == true)
+            if (coreProviderData?.Value == null)
             {
                 throw new ArgumentOutOfRangeException(nameof(specificationId), 
                     $"Could not fetch core provider data for specification Id {specificationId}");
             }
 
-            IEnumerable<ProviderSummary> providers = contentLiteral.AsPoco<IEnumerable<ProviderSummary>>();
+            IEnumerable<ProviderSummary> providers = (IEnumerable<ProviderSummary>)coreProviderData.Value;
 
             return providers.Select(_ => _.Id).ToArray();
         }
@@ -325,7 +326,7 @@ namespace CalculateFunding.Services.Providers
 
             if (fileSystemEnabled)
             {
-                _fileSystemCache.Add(fileSystemCacheKey, providerVersion.AsJson());
+                _fileSystemCache.AddPoco(fileSystemCacheKey, providerVersion);
             }
 
             IEnumerable<Provider> sourceProviders = providerVersion.Providers;
@@ -495,7 +496,7 @@ namespace CalculateFunding.Services.Providers
             return false;
         }
 
-        private IActionResult GetActionResultForStream(Stream stream,
+        private IActionResult GetActionResultForStream<T>(Stream stream,
             string specificationId)
         {
             if (stream == null || stream.Length == 0)
@@ -505,10 +506,23 @@ namespace CalculateFunding.Services.Providers
 
             stream.Position = 0;
 
-            using StreamReader reader = new StreamReader(stream);
-            string providerVersionString = reader.ReadToEnd();
+            JsonSerializer serializer = new JsonSerializer();
+            serializer.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
-            return GetActionResultForString(providerVersionString, specificationId);
+            using (StreamReader reader = new StreamReader(stream))
+            using (JsonTextReader jsonTextReader = new JsonTextReader(reader))
+            {
+                return GetActionResultForIEnumerable<T>(serializer.Deserialize<IEnumerable<T>>(jsonTextReader));
+            }
+        }
+
+        private IActionResult GetActionResultForIEnumerable<T>(IEnumerable<T> items)
+        {
+            return new JsonResult(items)
+            {
+                ContentType = "application/json",
+                StatusCode = (int)HttpStatusCode.OK
+            };
         }
 
         private IActionResult GetActionResultForString(string content,

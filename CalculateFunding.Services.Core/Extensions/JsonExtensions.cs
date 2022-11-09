@@ -17,10 +17,13 @@ namespace CalculateFunding.Services.Core.Extensions
         public static TPoco AsPoco<TPoco>(this Stream jsonStream, bool useCamelCase = true)
             where TPoco : class
         {
-            using (BinaryReader reader = new BinaryReader(jsonStream))
+            JsonSerializer serializer = new JsonSerializer();
+            serializer.ContractResolver = NewJsonContractResolver(useCamelCase);
+
+            using (StreamReader reader = new StreamReader(jsonStream))
+            using (JsonTextReader jsonTextReader = new JsonTextReader(reader))
             {
-                return Encoding.UTF8.GetString(reader.ReadBytes((int) jsonStream.Length))
-                    .AsPoco<TPoco>();
+                return serializer.Deserialize<TPoco>(jsonTextReader);
             }
         }
 
@@ -63,6 +66,14 @@ namespace CalculateFunding.Services.Core.Extensions
                 jsonSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
             return jsonSerializerSettings;
+        }
+
+        private static IContractResolver NewJsonContractResolver(bool useCamelCase)
+        {
+            if (useCamelCase)
+                return new CamelCasePropertyNamesContractResolver();
+
+            return new DefaultContractResolver();
         }
     }
 }

@@ -165,6 +165,38 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             }
         }
 
+        public void AddPoco<TPoco>(FileSystemCacheKey key, TPoco contents, bool useCamelCase = true, CancellationToken cancellationToken = default, bool ensureFolderExists = false)
+        {
+            string cachePathForKey = CachePathForKey(key);
+
+            try
+            {
+                lock (KeyLockFor(key))
+                {
+                    if (ensureFolderExists)
+                    {
+                        EnsureFolderExists(Path.GetDirectoryName(cachePathForKey));
+                    }
+
+                    _fileSystemAccess.WritePoco<TPoco>(cachePathForKey, contents, useCamelCase, cancellationToken)
+                        .GetAwaiter()
+                        .GetResult();
+                }
+            }
+            catch (IOException) when (_fileSystemAccess.Exists(cachePathForKey))
+            {
+                _logger.Warning($"Detected file collision for {CachePathForKey(key)}. Swallowing exception");
+            }
+            catch (Exception exception)
+            {
+                string message = $"Unable to write content for file system cache item with key {key.Key}";
+
+                _logger.Error(exception, message);
+
+                throw new Exception(message, exception);
+            }
+        }
+
         public Stream Get(FileSystemCacheKey key)
         {
             try

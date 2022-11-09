@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -67,6 +69,21 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             }
         }
 
+        public async Task WritePoco<TPoco>(string path,
+            TPoco content,
+            bool useCamelCase = true,
+            CancellationToken cancellationToken = default)
+        {
+            using (FileStream stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write))
+            using (StreamWriter streamWriter = new StreamWriter(stream))
+            {
+                JsonSerializer jsonSerializer = new JsonSerializer();
+                jsonSerializer.ContractResolver = NewJsonContractResolver(useCamelCase);
+
+                await Task.Run(() => jsonSerializer.Serialize(streamWriter, content));
+            }
+        }
+
         private async Task WriteStreamToFile(string path,
             Stream content,
             FileMode fileMode,
@@ -92,6 +109,14 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         public bool FolderExists(string path)
         {
             return Directory.Exists(path);
+        }
+
+        private static IContractResolver NewJsonContractResolver(bool useCamelCase)
+        {
+            if (useCamelCase)
+                return new CamelCasePropertyNamesContractResolver();
+
+            return new DefaultContractResolver();
         }
     }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -80,17 +81,34 @@ namespace CalculateFunding.Services.Providers.UnitTests
             
             _bytesWrittenToFileSystemCache = new Dictionary<string, byte[]>();
 
-            _fileSystemCache.Setup(_ => _.Add(It.IsAny<FileSystemCacheKey>(),
-                    It.IsAny<string>(),
+            _fileSystemCache.Setup(_ => _.AddPoco(It.IsAny<FileSystemCacheKey>(),
+                    It.IsAny<IEnumerable<ProviderSummary>>(),
+                    true,
                     default,
                     false))
-                .Callback<FileSystemCacheKey, string, CancellationToken, bool>((key,
+                .Callback<FileSystemCacheKey, IEnumerable<ProviderSummary>, bool, CancellationToken, bool>((key,
                     stream,
+                    useCamelCase,
                     cancellationToken,
                     ensureFolderExists) =>
                 {
-                    _bytesWrittenToFileSystemCache[key.Key] = Encoding.UTF8.GetBytes(stream); ;
+                    _bytesWrittenToFileSystemCache[key.Key] = stream.AsJsonBytes();
                 });
+
+
+            _fileSystemCache.Setup(_ => _.AddPoco(It.IsAny<FileSystemCacheKey>(),
+                    It.IsAny<ProviderVersion>(),
+                    true,
+                    default,
+                    false))
+                .Callback<FileSystemCacheKey, ProviderVersion, bool, CancellationToken, bool>((key,
+                    stream,
+                    useCamelCase,
+                    cancellationToken,
+                    ensureFolderExists) =>
+                    {
+                        _bytesWrittenToFileSystemCache[key.Key] = stream.AsJsonBytes();
+                    });
         }
 
         [TestMethod]
@@ -107,12 +125,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
             AndTheProviderVersionInTheFileSystemCache(providerVersionId, NewProviderVersion(_ => 
                 _.WithProviders(providerOne, providerTwo)));
             
-            ContentResult result = await WhenTheCoreProviderDataIsFetched(specificationId, providerVersionId) as ContentResult;
-            
-            result
-                .Content
+            JsonResult result = await WhenTheCoreProviderDataIsFetched(specificationId, providerVersionId) as JsonResult;
+
+            ((IEnumerable<ProviderSummary>)result.Value)
                 .Should()
-                .Be(expectedProviderSummaries.AsJson());
+                .BeEquivalentTo(expectedProviderSummaries);
 
             result
                 .ContentType
@@ -132,14 +149,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             AndTheProviderVersion(providerVersionId, providerVersion);
 
-            ContentResult result = await WhenTheCoreProviderDataIsFetched(specificationId, providerVersionId) as ContentResult;
+            JsonResult result = await WhenTheCoreProviderDataIsFetched(specificationId, providerVersionId) as JsonResult;
 
             ProviderSummary[] expectedProviderSummaries = MapProvidersToSummaries(providerOne, providerTwo);
 
-            result
-                .Content
+            ((IEnumerable<ProviderSummary>)result.Value)
                 .Should()
-                .Be(expectedProviderSummaries.AsJson());
+                .BeEquivalentTo(expectedProviderSummaries);
 
             result
                 .ContentType
@@ -247,13 +263,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
             AndTheCachedScopedProvidersCount(cacheKeyScopedProviderSummariesCount, 1);
             AndTheCachedScopedProvidersInRange(cacheKeyScopedProviderSummaries, 1, 1, cachedProviderSummaries);
             
-            ContentResult contentResult = await WhenTheCoreProviderDataIsFetched(specificationId) as ContentResult;
+            JsonResult contentResult = await WhenTheCoreProviderDataIsFetched(specificationId) as JsonResult;
             
             contentResult
                 .Should()
                 .NotBeNull();
 
-            IEnumerable<ProviderSummary> actualProviderSummaries = contentResult.Content?.AsPoco<IEnumerable<ProviderSummary>>();
+            IEnumerable<ProviderSummary> actualProviderSummaries = (IEnumerable<ProviderSummary>)contentResult.Value;
 
             actualProviderSummaries
                 .Should()
@@ -404,13 +420,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
             AndTheCacheGuidForTheSpecification(cacheGuidKey, cacheGuid);
             AndTheProviderSummariesInTheFileSystemCache(specificationId, cacheGuid, cachedProviderSummaries);
             
-            ContentResult contentResult = await WhenTheCoreProviderDataIsFetched(specificationId) as ContentResult;
+            JsonResult contentResult = await WhenTheCoreProviderDataIsFetched(specificationId) as JsonResult;
             
             contentResult
                 .Should()
                 .NotBeNull();
 
-            IEnumerable<ProviderSummary> actualProviderSummaries = contentResult.Content?.AsPoco<IEnumerable<ProviderSummary>>();
+            IEnumerable<ProviderSummary> actualProviderSummaries = ((IEnumerable<ProviderSummary>)contentResult.Value);
 
             actualProviderSummaries
                 .Should()
@@ -579,7 +595,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             string cacheGuid,
             IEnumerable<ProviderSummary> providerSummaries)
         {
-            AndTheFileSystemCacheDataWasWritten(new ScopedProvidersFileSystemCacheKey(specificationId, cacheGuid).Key, 
+            AndTheFileSystemCacheDataWasWritten(new ScopedProvidersFileSystemCacheKey(specificationId, cacheGuid).Key,
                 providerSummaries.AsJsonBytes());
         }
 
