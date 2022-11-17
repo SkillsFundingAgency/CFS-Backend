@@ -183,8 +183,7 @@ namespace CalculateFunding.Services.Specs
                                 WHERE ARRAY_CONTAINS(@SpecificationIds, c.content.current.specificationId)                                     
                                 AND c.content.current.providerVersionId != null
                                 AND c.documentType = 'Specification'
-                                AND c.deleted = false
-                                AND c.content.current.publishStatus !='Draft'
+                                AND c.deleted = false                                
                                 ORDER BY c.content.current.date DESC",
 
                 Parameters = new[]
