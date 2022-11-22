@@ -781,7 +781,20 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 SELECT *
                 FROM FundingGroupVersions FGV
                 INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
-                WHERE FG.SpecificationId =  {nameof(specificationId)}",
+                WHERE FG.SpecificationId =  @{nameof(specificationId)}",
+                new
+                {
+                    specificationId
+                });
+        }
+        public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionsForSpecificationId(string specificationId)
+        {
+            return await QuerySql<FundingGroupVersion>($@"
+                SELECT  *
+                  FROM FundingGroupVersions FGV
+                  INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
+                  INNER JOIN Channels C ON C.ChannelId=FGV.ChannelId 
+                  WHERE FG.SpecificationId =  @{nameof(specificationId)}",
                 new
                 {
                     specificationId
@@ -833,7 +846,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 INNER JOIN ReleasedProviderVersions RPV ON RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
                 INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
 				INNER JOIN Channels CH ON CH.ChannelId = RPVC.ChannelId
-                WHERE RP.SpecificationId =  {nameof(specificationId)}",
+                WHERE RP.SpecificationId =  @{nameof(specificationId)}",
                 new
                 {
                     specificationId
@@ -851,7 +864,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 INNER JOIN 
                 (SELECT ReleasedProviderId, MAX(MajorVersion) AS LatestVersion FROM ReleasedProviderVersions 
                 GROUP BY ReleasedProviderId) LatestReleasedProviderVersion ON RPV.ReleasedProviderId = LatestReleasedProviderVersion.ReleasedProviderId AND RPV.MajorVersion = LatestReleasedProviderVersion.LatestVersion
-                WHERE RP.SpecificationId = {nameof(specificationId)}",
+                WHERE RP.SpecificationId = @{nameof(specificationId)}",
                 new
                 {
                     specificationId

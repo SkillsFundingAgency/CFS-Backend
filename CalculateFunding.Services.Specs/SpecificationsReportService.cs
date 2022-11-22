@@ -154,6 +154,7 @@ namespace CalculateFunding.Services.Specs
                               type == JobType.HistoryOrganisationGroupValues ||
                               type == JobType.HistoryPublishedProviderEstate ||
                               type == JobType.PublishedGroups ||
+                              type == JobType.ChannelLevelPublishedGroup ||
                               type == JobType.PublishedProviderStateSummary) => ReportCategory.History,
                 JobType.CalcResult => ReportCategory.Live,
                 _ => ReportCategory.Undefined
@@ -174,8 +175,10 @@ namespace CalculateFunding.Services.Specs
                               type == JobType.PublishedProviderStateSummary
                                => ReportGroupingLevel.Current,
                 { } type when type == JobType.Released ||
-                                type == JobType.PublishedGroups
+                                type == JobType.PublishedGroups 
                                => ReportGroupingLevel.Released,
+                { } type when type == JobType.ChannelLevelPublishedGroup
+                               => ReportGroupingLevel.Channel,
                 _ => ReportGroupingLevel.Undefined
             };
 
@@ -185,6 +188,7 @@ namespace CalculateFunding.Services.Specs
                 { } type when type == JobType.CurrentOrganisationGroupValues ||
                               type == JobType.PublishedGroups ||
                               type == JobType.HistoryOrganisationGroupValues ||
+                              type == JobType.ChannelLevelPublishedGroup ||
                               type == JobType.PublishedGroups => ReportGrouping.Group,
                 { } type when type == JobType.CurrentProfileValues ||
                               type == JobType.HistoryProfileValues
@@ -212,6 +216,7 @@ namespace CalculateFunding.Services.Specs
                               type == JobType.HistoryOrganisationGroupValues ||
                               type == JobType.HistoryPublishedProviderEstate ||
                               type == JobType.PublishedGroups ||
+                              type == JobType.ChannelLevelPublishedGroup ||
                               type == JobType.PublishedProviderStateSummary) => ReportType.FundingLine,
                 JobType.CalcResult => ReportType.CalculationResult,
                 _ => throw new ArgumentOutOfRangeException()
@@ -248,13 +253,16 @@ namespace CalculateFunding.Services.Specs
 
             Enum.TryParse(jobTypeString, out JobType jobType);
 
+            string channelCode = (jobType == JobType.ChannelLevelPublishedGroup) && blobMetadata.TryGetValue("channel_code", out channelCode) ? channelCode: string.Empty;
+
             return new SpecificationReportIdentifier
             {
                 JobType = jobType,
                 FundingLineCode = fundingLineCode,
                 FundingPeriodId = fundingPeriodId,
                 FundingStreamId = fundingStreamId,
-                SpecificationId = specificationId
+                SpecificationId = specificationId,
+                channelCode = channelCode
             };
         }
 
@@ -267,6 +275,7 @@ namespace CalculateFunding.Services.Specs
                 case ReportType.FundingLine:
                     string fundingLineCode = WithPrefixDelimiterOrEmpty(id.FundingLineCode.ToASCII());
                     string fundingStreamId = WithPrefixDelimiterOrEmpty(id.FundingStreamId);
+                    string channelCode = WithPrefixDelimiterOrEmpty(id.channelCode);
 
                     switch (id.JobType)
                     {
@@ -278,7 +287,9 @@ namespace CalculateFunding.Services.Specs
                         case JobType.CurrentOrganisationGroupValues:
                         case JobType.HistoryOrganisationGroupValues:
                         case JobType.PublishedGroups:
-                            return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}{fundingLineCode}{fundingStreamId}.csv";
+                            return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}{fundingLineCode}{fundingStreamId}.csv";   
+                        case JobType.ChannelLevelPublishedGroup:
+                            return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}{fundingLineCode}{fundingStreamId}{channelCode}.csv";
                         case JobType.HistoryPublishedProviderEstate:
                         case JobType.PublishedProviderStateSummary:
                             return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}-{id.FundingPeriodId}.csv";

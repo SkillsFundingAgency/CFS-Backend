@@ -93,7 +93,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingLineCode = fundingLineCode,
                 FundingPeriodId = fundingPeriodId,
                 FundingStreamId = fundingStreamId,
-                SpecificationId = specificationId
+                SpecificationId = specificationId,
+                channelCode = String.Empty
             };
 
             BlobProperties blobProperties = new BlobProperties();

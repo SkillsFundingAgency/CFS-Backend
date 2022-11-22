@@ -193,7 +193,13 @@
 
             public const string GeneratePublishedProviderStateSummaryCsv = "publishing-generate-published-provider-state-summary-csv";
 
+            public const string GenerateChannelLevelPublishedGroupCsv = "publishing-generate-channel-level-published-group-csv";
+
             public const string GeneratePublishedProviderStateSummaryCsvPoisoned = "publishing-generate-published-provider-state-summary-csv/$DeadLetterQueue";
+
+            public const string GenerateChannelLevelPublishedGroupCsvPoisoned = "publishing-generate-channel-level-published-group-csv-poisoned/$DeadLetterQueue";
+
+            public const string GenerateChannelLevelPublishedGroupCsvPoisonedLocal = "publishing-generate-channel-level-published-group-csv-poisoned";
 
             public const string GeneratePublishedProviderStateSummaryCsvPoisonedLocal = "publishing-generate-published-provider-state-summary-csv-poison";
 

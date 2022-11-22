@@ -17,21 +17,25 @@ namespace CalculateFunding.Services.Publishing.Reporting
         private readonly ICreateGeneratePublishedFundingCsvJobs _createGeneratePublishedFundingCsvJobs;
         private readonly ICreateGeneratePublishedProviderEstateCsvJobs _createGeneratePublishedProviderEstateCsvJobs;
         private readonly ICreateGeneratePublishedProviderStateSummaryCsvJobs _createGeneratePublishedProviderStateSummaryCsvJob;
+        private readonly ICreateGenerateChannelLevelPublishedGroupCsvJobs _createGenerateChannelLevelPublishedGroupCsvJob;
 
         protected BaseGeneratePublishedFundingCsvJobsCreation(
             ICreateGeneratePublishedFundingCsvJobs createGeneratePublishedFundingCsvJobs,
             ICreateGeneratePublishedProviderEstateCsvJobs createGeneratePublishedProviderEstateCsvJob,
             ICreateGeneratePublishedProviderStateSummaryCsvJobs createGeneratePublishedProviderStateSummaryCsvJob,
-            ICreatePublishingReportsJob createPublishingReportsJob)
+            ICreatePublishingReportsJob createPublishingReportsJob,
+            ICreateGenerateChannelLevelPublishedGroupCsvJobs createGenerateChannelLevelPublishedGroupCsvJob)
         {
             Guard.ArgumentNotNull(createGeneratePublishedFundingCsvJobs, nameof(createGeneratePublishedFundingCsvJobs));
             Guard.ArgumentNotNull(createGeneratePublishedProviderEstateCsvJob, nameof(createGeneratePublishedProviderEstateCsvJob));
             Guard.ArgumentNotNull(createGeneratePublishedProviderStateSummaryCsvJob, nameof(createGeneratePublishedProviderStateSummaryCsvJob));
+            Guard.ArgumentNotNull(createGenerateChannelLevelPublishedGroupCsvJob, nameof(createGenerateChannelLevelPublishedGroupCsvJob));
 
             _createGeneratePublishedFundingCsvJobs = createGeneratePublishedFundingCsvJobs;
             _createGeneratePublishedProviderEstateCsvJobs = createGeneratePublishedProviderEstateCsvJob;
             _createGeneratePublishedProviderStateSummaryCsvJob = createGeneratePublishedProviderStateSummaryCsvJob;
             _createPublishingReportsJob = createPublishingReportsJob;
+            _createGenerateChannelLevelPublishedGroupCsvJob = createGenerateChannelLevelPublishedGroupCsvJob;
         }
 
         public abstract Task<IEnumerable<Job>> CreateJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest);
@@ -168,7 +172,24 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
             return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
         }
-        
+
+        protected async Task<IEnumerable<Job>> CreateChannelLevelPublishedGroupCsvJob(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
+        {
+            List<Task<Job>> tasks = new List<Task<Job>>();
+
+            foreach (string fundingStreamId in publishedFundingCsvJobsRequest.FundingStreamIds)
+            {
+                tasks.Add(_createGenerateChannelLevelPublishedGroupCsvJob.CreateJob(
+                    publishedFundingCsvJobsRequest.SpecificationId,
+                    publishedFundingCsvJobsRequest.User,
+                    publishedFundingCsvJobsRequest.CorrelationId,
+                    JobProperties(FundingLineCsvGeneratorJobType.ChannelLevelPublishedGroup, null, null, fundingStreamId, publishedFundingCsvJobsRequest.FundingPeriodId),
+                    parentJobId: publishedFundingCsvJobsRequest.ParentJobId));
+            }
+
+            return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
+        }
+
         private Task<Job> CreatePublishedFundingCsvJob(
            string specificationId,
            string correlationId,

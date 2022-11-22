@@ -227,6 +227,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<CreatePublishingReportsJob, ICreatePublishingReportsJob>();
             RegisterTypeAs<CreateGeneratePublishedProviderEstateCsvJobs, ICreateGeneratePublishedProviderEstateCsvJobs>();
             RegisterTypeAs<CreateGeneratePublishedProviderStateSummaryCsvJobs, ICreateGeneratePublishedProviderStateSummaryCsvJobs>();
+            RegisterTypeAs<CreateGenerateChannelLevelPublishedGroupCsvJobs, ICreateGenerateChannelLevelPublishedGroupCsvJobs>();
             RegisterTypeAs<ProcessDatasetObsoleteItemsJobCreation, ICreateProcessDatasetObsoleteItemsJob>();
 
             IGeneratePublishedFundingCsvJobsCreation[] generatePublishedFundingCsvJobsCreations =
@@ -237,7 +238,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                     ResolveInstance<ICreateGeneratePublishedFundingCsvJobs>(),
                     ResolveInstance<ICreateGeneratePublishedProviderEstateCsvJobs>(),
                     ResolveInstance<ICreateGeneratePublishedProviderStateSummaryCsvJobs>(),
-                    ResolveInstance<ICreatePublishingReportsJob>()))
+                    ResolveInstance<ICreatePublishingReportsJob>(),
+                    ResolveInstance<ICreateGenerateChannelLevelPublishedGroupCsvJobs>()))
                 .ToArray();
             RegisterInstanceAs<IGeneratePublishedFundingCsvJobsCreationLocator>(new GeneratePublishedFundingCsvJobsCreationLocator(generatePublishedFundingCsvJobsCreations));
 

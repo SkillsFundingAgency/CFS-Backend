@@ -9,6 +9,7 @@ namespace CalculateFunding.Models.Specs
         public string FundingStreamId { get; set; }
         public string FundingPeriodId { get; set; }
         public string FundingLineCode { get; set; }
+        public string channelCode { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -22,7 +23,8 @@ namespace CalculateFunding.Models.Specs
                 SpecificationId,
                 FundingStreamId,
                 FundingPeriodId,
-                FundingLineCode);
+                FundingLineCode,
+                channelCode);
         }
     }
 }

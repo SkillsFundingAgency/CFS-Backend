@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         protected Mock<ICreateGeneratePublishedFundingCsvJobs> CreateGeneratePublishedFundingCsvJobs;
         protected Mock<ICreateGeneratePublishedProviderEstateCsvJobs> CreateGeneratePublishedProviderEstateCsvJobs;
         protected Mock<ICreateGeneratePublishedProviderStateSummaryCsvJobs> CreateGeneratePublishedProviderStateSummaryCsvJobs;
+        protected Mock<ICreateGenerateChannelLevelPublishedGroupCsvJobs> CreateGenerateChannelLevelPublishedGroupCsvJobs;
         protected Mock<ICreatePublishingReportsJob> CreatePublishingReportsJob;
         protected BaseGeneratePublishedFundingCsvJobsCreation JobsCreation;
 
@@ -33,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             CreateGeneratePublishedFundingCsvJobs = new Mock<ICreateGeneratePublishedFundingCsvJobs>();
             CreateGeneratePublishedProviderEstateCsvJobs = new Mock<ICreateGeneratePublishedProviderEstateCsvJobs>();
             CreateGeneratePublishedProviderStateSummaryCsvJobs = new Mock<ICreateGeneratePublishedProviderStateSummaryCsvJobs>();
+            CreateGenerateChannelLevelPublishedGroupCsvJobs = new Mock<ICreateGenerateChannelLevelPublishedGroupCsvJobs>();
             CreatePublishingReportsJob = new Mock<ICreatePublishingReportsJob>();
         }
 

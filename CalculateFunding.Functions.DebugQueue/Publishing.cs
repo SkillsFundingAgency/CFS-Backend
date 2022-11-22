@@ -366,6 +366,34 @@ namespace CalculateFunding.Functions.DebugQueue
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
+        [FunctionName("on-publishing-generate-channel-level-published-group-csv")]
+        public static async Task RunGenerateChannelLevelPublishedGroupCsv([QueueTrigger(ServiceBusConstants.QueueNames.GenerateChannelLevelPublishedGroupCsv,
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnGenerateChannelLevelPublishedGroupCsv function = scope.ServiceProvider.GetService<OnGenerateChannelLevelPublishedGroupCsv>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-publishing-generate-channel-level-published-group-failure")]
+        public static async Task RunGenerateChannelLevelPublishedGroupCsvFailure([QueueTrigger(ServiceBusConstants.QueueNames.GenerateChannelLevelPublishedGroupCsvPoisonedLocal,
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnGenerateChannelLevelPublishedGroupCsvFailure function = scope.ServiceProvider.GetService<OnGenerateChannelLevelPublishedGroupCsvFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
         [FunctionName("on-publishing-generate-published-provider-state-summary-csv")]
         public static async Task RunGeneratePublishedProviderStateSummaryCsv([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedProviderStateSummaryCsv,
             Connection = "AzureConnectionString")] string item, ILogger log)

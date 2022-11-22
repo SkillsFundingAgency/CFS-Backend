@@ -17,6 +17,7 @@ namespace CalculateFunding.Models.Specs
         HistoryPublishedProviderEstate,
         PublishedGroups,
         CalcResult,
-        PublishedProviderStateSummary
+        PublishedProviderStateSummary,
+        ChannelLevelPublishedGroup
     }
 }

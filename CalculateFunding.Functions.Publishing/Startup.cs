@@ -45,6 +45,7 @@ using CalculateFunding.Services.Publishing.IoC;
 using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Reporting;
+using CalculateFunding.Services.Publishing.Reporting.ChannelLevelPublishedGroup;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderState;
@@ -314,6 +315,8 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsvFailure>();
                 builder.AddScoped<OnGeneratePublishedProviderStateSummaryCsv>();
                 builder.AddScoped<OnGeneratePublishedProviderStateSummaryCsvFailure>();
+                builder.AddScoped<OnGenerateChannelLevelPublishedGroupCsv>();
+                builder.AddScoped<OnGenerateChannelLevelPublishedGroupCsvFailure>();
                 builder.AddScoped<OnApproveBatchProviderFunding>();
                 builder.AddScoped<OnApproveBatchProviderFundingFailure>();
                 builder.AddScoped<OnPublishBatchProviderFunding>();
@@ -404,6 +407,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IPublishedFundingPredicateBuilder, PublishedFundingPredicateBuilder>();
 
             builder.AddScoped<IFundingLineCsvBatchProcessorServiceLocator, FundingLineCsvBatchProcessorServiceLocator>();
+            builder.AddScoped<IChannelLevelPublishedGroupsCsvBatchProcessorServiceLocator, ChannelLevelPublishedGroupsCsvBatchProcessorServiceLocator>();
+            builder.AddScoped<IFundingLineCsvBatchProcessor, ChannelLevelPublishedGroupsCsvBatchProcessor>();
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedProviderCsvBatchProcessor>();
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedProviderVersionCsvBatchProcessor>();
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedFundingOrganisationGroupCsvBatchProcessor>();
@@ -415,12 +420,17 @@ namespace CalculateFunding.Functions.Publishing
                 .AddSingleton<IHealthChecker, PublishedProviderEstateCsvGenerator>();
             builder.AddScoped<IPublishedProviderStateSummaryCsvGenerator, PublishedProviderStateSummaryCsvGenerator>()
                 .AddSingleton<IHealthChecker, PublishedProviderStateSummaryCsvGenerator>();
+            builder.AddScoped<IChannelLevelPublishedGroupCsvGenerator, ChannelLevelPublishedGroupCsvGenerator>()
+                .AddSingleton<IHealthChecker, ChannelLevelPublishedGroupCsvGenerator>();
             builder.AddScoped<IPublishedProviderCsvTransformServiceLocator, PublishedProviderCsvTransformServiceLocator>();
             builder.AddScoped<IPublishedProviderCsvTransform, PublishedProviderEstateCsvTransform>();
             builder.AddScoped<IPublishedProviderStateSummaryCsvTransformServiceLocator, PublishedProviderStateCsvTransformServiceLocator>();
             builder.AddScoped<IPublishedProviderStateSummaryCsvTransform, PublishedProviderStateSummaryCsvTransform>();
+            builder.AddScoped<IFundingLineCsvTransformServiceLocator, ChannelLevelPublishedGroupCsvTransformServiceLocator>();
+            builder.AddScoped<IFundingLineCsvTransform, ChannelLevelPublishedGroupCsvTransform>();
             builder.AddScoped<ICreateGeneratePublishedProviderEstateCsvJobs, CreateGeneratePublishedProviderEstateCsvJobs>();
             builder.AddScoped<ICreateGeneratePublishedProviderStateSummaryCsvJobs, CreateGeneratePublishedProviderStateSummaryCsvJobs>();
+            builder.AddScoped<ICreateGenerateChannelLevelPublishedGroupCsvJobs, CreateGenerateChannelLevelPublishedGroupCsvJobs>();
             builder.AddScoped<IPublishedFundingCsvJobsService, PublishedFundingCsvJobsService>();
 
             builder

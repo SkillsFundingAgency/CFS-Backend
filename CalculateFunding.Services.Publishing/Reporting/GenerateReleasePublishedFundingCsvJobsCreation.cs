@@ -15,11 +15,13 @@ namespace CalculateFunding.Services.Publishing.Reporting
             ICreateGeneratePublishedFundingCsvJobs createGeneratePublishedFundingCsvJobs,
             ICreateGeneratePublishedProviderEstateCsvJobs createGeneratePublishedProviderEstateCsvJob,
             ICreateGeneratePublishedProviderStateSummaryCsvJobs createGeneratePublishedProviderStateSummaryCsvJob,
-            ICreatePublishingReportsJob createPublishingReportsJob)
+            ICreatePublishingReportsJob createPublishingReportsJob,
+            ICreateGenerateChannelLevelPublishedGroupCsvJobs createGenerateChannelLevelPublishedGroupCsvJob)
             : base(createGeneratePublishedFundingCsvJobs, 
                   createGeneratePublishedProviderEstateCsvJob, 
                   createGeneratePublishedProviderStateSummaryCsvJob,
-                  createPublishingReportsJob)
+                  createPublishingReportsJob,
+                  createGenerateChannelLevelPublishedGroupCsvJob)
         {
         }
 

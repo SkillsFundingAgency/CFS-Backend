@@ -85,7 +85,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(channel);
         }
-
+        public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionsForSpecificationId(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
         public Task<FundingGroup> CreateFundingGroup(FundingGroup fundingGroup)
         {
             EnsureIdNotEmpty(fundingGroup.FundingGroupId, "Funding group");

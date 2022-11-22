@@ -13,5 +13,6 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         HistoryPublishedProviderEstate = 8,
         PublishedGroups = 9,
         PublishedProviderStateSummary = 10,
+        ChannelLevelPublishedGroup = 11
     }
 } 

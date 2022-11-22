@@ -18,7 +18,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 CreateGeneratePublishedFundingCsvJobs.Object, 
                 CreateGeneratePublishedProviderEstateCsvJobs.Object,
                 CreateGeneratePublishedProviderStateSummaryCsvJobs.Object, 
-                CreatePublishingReportsJob.Object);
+                CreatePublishingReportsJob.Object,
+                CreateGenerateChannelLevelPublishedGroupCsvJobs.Object);
         }
         
         [TestMethod]

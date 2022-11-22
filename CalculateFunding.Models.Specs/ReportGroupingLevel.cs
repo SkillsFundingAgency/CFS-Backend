@@ -9,6 +9,7 @@ namespace CalculateFunding.Models.Specs
         Undefined,
         Current,
         All,
-        Released
+        Released,
+        Channel
     }
 }
