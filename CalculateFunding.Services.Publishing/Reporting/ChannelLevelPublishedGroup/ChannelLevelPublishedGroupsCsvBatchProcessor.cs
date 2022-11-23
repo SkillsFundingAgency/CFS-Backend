@@ -108,7 +108,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                         AppendCsvFragment(tempPath, csvRows, outputHeaders);
                         processedResults = true;
                     }
-
+                    channelBasedPublishedFundingWithProviders = new Dictionary<string, List<PublishedFundingWithProvider>>();
                 }, BatchSize)
             );
 
