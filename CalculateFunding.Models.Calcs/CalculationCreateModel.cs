@@ -29,5 +29,7 @@ namespace CalculateFunding.Models.Calcs
         public string Description { get; set; }
 
         public Reference Author { get; set; }
+
+        public bool WasTemplateCalculation { get; set; } = false;
     }
 }

@@ -109,7 +109,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                  }
                  else
                  {
-                     if (calculationCreateModel.CalculationType == CalculationType.Additional)
+                     if (calculationCreateModel.CalculationType == CalculationType.Additional && !calculationCreateModel.WasTemplateCalculation)
                      {
                          PreviewRequest previewRequest = new PreviewRequest
                          {

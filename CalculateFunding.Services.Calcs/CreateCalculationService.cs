@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Calcs
                 Description = model.Description,
                 ValueType = model.ValueType.Value,
                 CalculationType = calculationType,
-                WasTemplateCalculation = false,
+                WasTemplateCalculation = model.WasTemplateCalculation && calculationType == CalculationType.Additional,
                 Namespace = calculationNamespace,
                 Name = model.Name,
                 DataType = calculationDataType,

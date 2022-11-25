@@ -461,12 +461,13 @@ namespace CalculateFunding.Services.Calcs
 
             CreateCalculationResponse createCalculationResponse = await _createCalculationService.CreateCalculation(specificationId,
                 model,
-                CalculationNamespace.Additional,
+                model.WasTemplateCalculation ? CalculationNamespace.Template : CalculationNamespace.Additional,
                 CalculationType.Additional,
                 overrideCreateModelAuthor ? model.Author : author,
                 correlationId,
                 CalculationDataType.Decimal,
-                initiateCalcRun: !skipCalcRun);
+                initiateCalcRun: !skipCalcRun
+                );
 
             if (createCalculationResponse.Succeeded)
             {

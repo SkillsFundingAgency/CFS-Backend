@@ -6,6 +6,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Migrations.Specification.Clone.Helpers;
+using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core.Constants;
 using Serilog;
 using System;
@@ -217,6 +218,8 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                     {
                         SpecificationId = cloneSpecificationSummary.Id,
                         Description = additionalCalculation.Description,
+                        WasTemplateCalculation = additionalCalculation.WasTemplateCalculation,
+                        FundingStreamId = additionalCalculation.FundingStreamId,
                         Name = additionalCalculation.Name,
                         SourceCode = additionalCalculation.SourceCode,
                         ValueType = additionalCalculation.ValueType,
@@ -244,9 +247,27 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                     }
                     catch(Exception ex)
                     {
-                        _logger.Error(ex, $"Error creating additional calculation {calculationCreateModel.Name} so calculation skipped. " +
+                        try
+                        {
+                            string sourceCode = SourceCodeHelpers.CommentOutCode(calculationCreateModel.SourceCode, "Commented out due to error during specification clone process", null, null);
+                            sourceCode = $"Return 0\r\n{sourceCode}";
+                            calculationCreateModel.SourceCode = sourceCode;
+
+                            await _targetDataOperations.CreateCalculation(
+                                                cloneSpecificationSummary.Id,
+                                                calculationCreateModel,
+                                                skipCalcRun: true,
+                                                skipQueueCodeContextCacheUpdate: true,
+                                                overrideCreateModelAuthor: true);
+
+                            _logger.Warning($"Calculation {calculationCreateModel.Id} ({calculationCreateModel.Name}) has been commented out due to error cloning.");
+                        }
+                        catch
+                        {
+                            _logger.Error(ex, $"Error creating additional calculation {calculationCreateModel.Name} so calculation skipped. " +
                             $"This is probably due to calculation referencing template calculation which is not in template. " +
                             $"Additional calculation will need to be manually created with correct details if required.");
+                        }
                     }
                 }
                 additionalCalculationIndex++;
@@ -273,6 +294,12 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                 {
                     Calculation targetCalculation = targetCalculations.SingleOrDefault(_ => _.Name == templateCalculationWithChange.Name);
 
+                    if (targetCalculation == null)
+                    {
+                        _logger.Warning($"Template calculation {templateCalculationWithChange.Name} skipped for edit as returned null.");
+                        continue;
+                    }
+
                     CalculationEditModel calculationEditModel = new CalculationEditModel
                     {
                         CalculationId = targetCalculation.Id,
@@ -297,14 +324,26 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
                     try
                     {
                         await _targetDataOperations.EditCalculationWithSkipInstruct(cloneSpecificationSummary.Id, targetCalculation.Id, calculationEditModel);
-
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error(ex, $"Edit SpecificationID={cloneSpecificationSummary.Id} TemplateCalculationID={targetCalculation.Id} failed with given exception message. " +
+                        try
+                        {
+                            string sourceCode = SourceCodeHelpers.CommentOutCode(calculationEditModel.SourceCode, "Commented out due to error during specification clone process", null, null);
+                            sourceCode = $"Return 0\r\n{sourceCode}";
+                            calculationEditModel.SourceCode = sourceCode;
+
+                            await _targetDataOperations.EditCalculationWithSkipInstruct(cloneSpecificationSummary.Id, targetCalculation.Id, calculationEditModel);
+
+                            _logger.Warning($"Calculation {calculationEditModel.CalculationId} ({calculationEditModel.Name}) has been commented out due to error cloning.");
+                        }
+                        catch
+                        {
+                            _logger.Error(ex, $"Edit SpecificationID={cloneSpecificationSummary.Id} TemplateCalculationID={targetCalculation.Id} failed with given exception message. " +
                             $"SpecificationClone operation is not interrupted for this error. Please check detailed error message for exception and possible fix." +
                             $"Possible scenarios are:" +
                             $"1. Source calculation has reference to a 'Released Data' and Clone operation does not include cloning 'Released Data' datasets to target specification. Fix: Please update calculation source code manually");
+                        }
                     }
 
                     templateCalculationWithChangeIndex++;
