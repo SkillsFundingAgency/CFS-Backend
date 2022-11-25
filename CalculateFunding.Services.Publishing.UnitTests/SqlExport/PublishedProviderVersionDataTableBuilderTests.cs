@@ -48,6 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 .WithFundingPeriodId(FundingPeriodId)
                 .WithTotalFunding(NewRandomUnsignedNumber())
                 .WithAuthor(NewAuthor(auth => auth.WithName(NewRandomStringWithMaxLength(32))))
+                .WithPublishedProviderStatus(PublishedProviderStatus.Released)
                 .WithVariationReasons(new List<VariationReason> { VariationReason.AuthorityFieldUpdated, VariationReason.CalculationValuesUpdated })
                 .WithProvider(NewProvider(prov => 
                     prov.WithStatus(NewRandomStringWithMaxLength(32)))));
@@ -56,6 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 .WithFundingPeriodId(FundingPeriodId)
                 .WithTotalFunding(NewRandomUnsignedNumber())
                 .WithAuthor(NewAuthor(auth => auth.WithName(NewRandomStringWithMaxLength(32))))
+                .WithPublishedProviderStatus(PublishedProviderStatus.Released)
                 .WithVariationReasons(new List<VariationReason> { VariationReason.CompaniesHouseNumberFieldUpdated, VariationReason.CountryCodeFieldUpdated })
                 .WithProvider(NewProvider(prov => 
                     prov.WithStatus(NewRandomStringWithMaxLength(32)))));

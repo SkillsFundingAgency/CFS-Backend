@@ -14,10 +14,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             foreach (FundingGroupVersion fundingGroupVersion in fundingGroupVersions)
             {
-                if (!results.TryGetValue(fundingGroupVersion.ChannelCode, out List<FundingGroupVersion> outFundingGroupVersions))
+                if (!results.TryGetValue(fundingGroupVersion.UrlKey, out List<FundingGroupVersion> outFundingGroupVersions))
                 {
                     outFundingGroupVersions = new List<FundingGroupVersion>();
-                    results.Add(fundingGroupVersion.ChannelCode, outFundingGroupVersions);
+                    results.Add(fundingGroupVersion.UrlKey, outFundingGroupVersions);
                 }
 
                 outFundingGroupVersions.Add(fundingGroupVersion);

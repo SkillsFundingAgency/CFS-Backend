@@ -7,4 +7,12 @@
         Payment = 3,
         SpecToSpec = 4
     }
+
+    public enum ChannelUrlKeys
+    {
+        Contracts = 1,
+        Statements = 2,
+        Payments = 3,
+        SpecToSpec = 4
+    }
 }

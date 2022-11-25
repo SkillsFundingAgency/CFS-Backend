@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 return true;
             }
 
-            if (releaseChannels == null || !releaseChannels.Any())
+            if (releaseChannels == null || !releaseChannels.Any() || publishedProviderVersion.Status == PublishedProviderStatus.Updated)
             {
                 return false;
             }

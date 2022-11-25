@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
 
         private readonly AsyncPolicy _blobClientPolicy;
 
-        protected override string JobDefinitionName => JobConstants.DefinitionNames.GeneratePublishedProviderStateSummaryCsvJob;
+        protected override string JobDefinitionName => JobConstants.DefinitionNames.GenerateChannelLevelPublishedGroupCsvJob;
 
         public ChannelLevelPublishedGroupCsvGenerator(
             IJobManagement jobManagement,
@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
                 fundingLineCode);
 
             string temporaryPath = fileInfo.TemporaryPath;
-            foreach (string channelCode in Enum.GetNames(typeof(ChannelType)))
+            foreach (string channelCode in Enum.GetNames(typeof(ChannelUrlKeys)))
             {
                 string tempPath = temporaryPath.Replace(_channelCodeString, channelCode);
                 EnsureFileIsNew(tempPath);
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
                     $" and funding line code {fundingLineName} , funding stream id {fundingStreamId} ");
             }
 
-            foreach (string channelCode in Enum.GetNames(typeof(ChannelType)))
+            foreach (string channelCode in Enum.GetNames(typeof(ChannelUrlKeys)))
             {
                 string tempPath = temporaryPath.Replace(_channelCodeString, channelCode);
                 if (_fileSystemAccess.Exists(tempPath))

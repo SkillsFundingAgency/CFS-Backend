@@ -2,6 +2,7 @@
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -53,15 +54,13 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             bool outputHeaders = true;
             bool processedResults = false;
             IEnumerable<FundingGroupVersion> fundingGroupVersions = await _repo.GetFundingGroupVersionsForSpecificationId(specificationId);
-            IDictionary<string, IEnumerable<FundingGroupVersion>> channelBasedFundingGroupVersion = fundingGroupVersions.GroupByChannelCode();
-            IDictionary<string, List<PublishedFundingWithProvider>> channelBasedPublishedFundingWithProviders = new Dictionary<string, List<PublishedFundingWithProvider>>();
             IDictionary<string, bool> outputHeaderEnabingGroup = new Dictionary<string, bool>();
             await _publishedFundingPolicy.ExecuteAsync(() => _publishedFundingRepository.PublishedGroupBatchProcessing(
                 specificationId,
                 async publishedFundings =>
                 {
                     List<PublishedFundingWithProvider> publishedfundingsWithProviders = new List<PublishedFundingWithProvider>();
-
+                    IDictionary<string, List<PublishedFundingWithProvider>> channelBasedPublishedFundingWithProviders = new Dictionary<string, List<PublishedFundingWithProvider>>();
                     foreach (PublishedFunding publishedFunding in publishedFundings)
                     {
                         IEnumerable<PublishedProvider> providers = Enumerable.Empty<PublishedProvider>();
@@ -73,30 +72,28 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                                 providers = providers.Concat(await _publishedFundingRepository.QueryPublishedProvider(specificationId, fundingIds));
                             }
                         }
-                        FundingGroupVersion ChannelBasedfundingGroupVersion = fundingGroupVersions.Where(_=>_.FundingId.Equals(publishedFunding.Current.FundingId)).FirstOrDefault();
-                        
-                        if (ChannelBasedfundingGroupVersion != null)
+                        IEnumerable<FundingGroupVersion> channelBasedfundingGroupVersion = fundingGroupVersions.Where(_=>_.FundingId.Equals(publishedFunding.Current.FundingId));
+                        channelBasedfundingGroupVersion.ForEach(_ =>
                         {
                             publishedFunding.Current.ChannelVersions = new List<ChannelVersion>() {
                                                                         new ChannelVersion()
                                                                         {
-                                                                            type = ChannelBasedfundingGroupVersion.ChannelCode,
-                                                                            value = ChannelBasedfundingGroupVersion.ChannelVersion
+                                                                            type = _.UrlKey,
+                                                                            value = _.ChannelVersion
                                                                         }
                                 };
-                            if (!channelBasedPublishedFundingWithProviders.TryGetValue(ChannelBasedfundingGroupVersion.ChannelCode, out List<PublishedFundingWithProvider> outPublishedFundingWithProvider))
+                            if (!channelBasedPublishedFundingWithProviders.TryGetValue(_.UrlKey, out List<PublishedFundingWithProvider> outPublishedFundingWithProvider))
                             {
                                 outPublishedFundingWithProvider = new List<PublishedFundingWithProvider>();
-                                channelBasedPublishedFundingWithProviders.Add(ChannelBasedfundingGroupVersion.ChannelCode, outPublishedFundingWithProvider);
+                                channelBasedPublishedFundingWithProviders.Add(_.UrlKey, outPublishedFundingWithProvider);
                             }
                             outPublishedFundingWithProvider.Add(new PublishedFundingWithProvider { PublishedFunding = publishedFunding, PublishedProviders = providers });
-                        }
-                            
+                        });                            
                     }
                     foreach(KeyValuePair<string, List<PublishedFundingWithProvider>> data in channelBasedPublishedFundingWithProviders)
                     {
                         IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(data.Value, jobType);
-                        string tempPath = temporaryFilePath.Replace("<channelCode>", data.Key);
+                        string tempPath = temporaryFilePath.Replace("<channelCode>", data.Key.ToPascalCase());
                         if (!outputHeaderEnabingGroup.TryGetValue(data.Key, out bool outputHeader))
                         {
                             outputHeaders = true;
@@ -108,7 +105,6 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                         AppendCsvFragment(tempPath, csvRows, outputHeaders);
                         processedResults = true;
                     }
-                    channelBasedPublishedFundingWithProviders = new Dictionary<string, List<PublishedFundingWithProvider>>();
                 }, BatchSize)
             );
 
