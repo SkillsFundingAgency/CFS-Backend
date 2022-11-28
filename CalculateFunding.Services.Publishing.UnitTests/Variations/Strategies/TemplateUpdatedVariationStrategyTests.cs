@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             GivenTheOtherwiseValidVariationContext(_ => 
             {
                 _.PriorState.TemplateVersion = "1.0";
-                _.ReleasedState.TemplateVersion = "2.0";
+                _.RefreshState.TemplateVersion = "2.0";
             });
 
             await WhenTheVariationsAreProcessed();

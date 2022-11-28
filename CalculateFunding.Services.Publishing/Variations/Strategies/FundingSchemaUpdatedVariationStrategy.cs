@@ -15,10 +15,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         protected override async Task<bool> Determine(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             string priorSchemaVersion = await providerVariationContext.GetPriorStateSchemaVersion();
-            string updatedSchemaVersion = await providerVariationContext.GetReleasedStateSchemaVersion();
+            string refreshSchemaVersion = await providerVariationContext.GetRefreshStateSchemaVersion();
 
-            if ((string.IsNullOrWhiteSpace(priorSchemaVersion) && string.IsNullOrWhiteSpace(updatedSchemaVersion)) ||
-                priorSchemaVersion == updatedSchemaVersion)
+            if ((string.IsNullOrWhiteSpace(priorSchemaVersion) && string.IsNullOrWhiteSpace(refreshSchemaVersion)) ||
+                priorSchemaVersion == refreshSchemaVersion)
             {
                 return false;
             }

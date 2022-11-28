@@ -242,6 +242,8 @@ namespace CalculateFunding.Services.Publishing.Models
         public async Task<string> GetPriorStateSchemaVersion() => PriorState == null ? null : await GetSchemaVersion(PriorState.FundingStreamId, PriorState.FundingPeriodId, PriorState.TemplateVersion);
         public async Task<string> GetReleasedStateSchemaVersion() => ReleasedState == null ? null : await GetSchemaVersion(ReleasedState.FundingStreamId, ReleasedState.FundingPeriodId, ReleasedState.TemplateVersion);
 
+        public async Task<string> GetRefreshStateSchemaVersion() => RefreshState == null ? null : await GetSchemaVersion(RefreshState.FundingStreamId, RefreshState.FundingPeriodId, RefreshState.TemplateVersion);
+
         public IDictionary<string, IEnumerable<OrganisationGroupResult>> OrganisationGroupResultsData { get; set; }
 
         public static string OrganisationGroupsKey(string fundingStreamId, string fundingPeriodId) => $"{fundingStreamId}:{fundingPeriodId}";

@@ -15,11 +15,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         protected override Task<bool> Determine(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
-            PublishedProviderVersion updatedState = providerVariationContext.ReleasedState;
+            PublishedProviderVersion refreshState = providerVariationContext.RefreshState;
 
             if (priorState == null ||
-                updatedState == null ||
-                priorState.TemplateVersion == updatedState.TemplateVersion)
+                refreshState == null ||
+                priorState.TemplateVersion == refreshState.TemplateVersion)
             {
                 return Task.FromResult(false);
             }

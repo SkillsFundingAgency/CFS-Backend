@@ -72,9 +72,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 _.PriorState.FundingStreamId = fundingStreamId;
                 _.PriorState.FundingPeriodId = fundingPeriodId;
                 _.PriorState.TemplateVersion = priorTemplateVersion;
-                _.ReleasedState.FundingStreamId = fundingStreamId;
-                _.ReleasedState.FundingPeriodId = fundingPeriodId;
-                _.ReleasedState.TemplateVersion = updatedTemplateVersion;
+                _.RefreshState.FundingStreamId = fundingStreamId;
+                _.RefreshState.FundingPeriodId = fundingPeriodId;
+                _.RefreshState.TemplateVersion = updatedTemplateVersion;
             });
             AndSchemaVersion(fundingStreamId, fundingPeriodId, priorTemplateVersion, priorSchemeVersion);
             AndSchemaVersion(fundingStreamId, fundingPeriodId, updatedTemplateVersion, updatedSchemVersion);
