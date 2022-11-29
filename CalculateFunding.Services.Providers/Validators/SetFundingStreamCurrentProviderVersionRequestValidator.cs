@@ -44,7 +44,8 @@ namespace CalculateFunding.Services.Providers.Validators
                             $"No funding stream located with Id {fundingStreamId}"));
                     }
                 });
-            
+          
+
             RuleFor(_ => _.ProviderVersionId)
                 .Cascade(CascadeMode.StopOnFirstFailure)
                 .NotEmpty()
@@ -80,16 +81,15 @@ namespace CalculateFunding.Services.Providers.Validators
                         }
 
                         SetFundingStreamCurrentProviderVersionRequest fundingStreamCurrentProviderVersionRequest = context.ParentContext.InstanceToValidate as SetFundingStreamCurrentProviderVersionRequest;
-
-                        ProviderSnapshot latestProviderSnapshot = providerSnapshotsResponse?.Content.FirstOrDefault(x => x.FundingStreamCode == fundingStreamCurrentProviderVersionRequest.FundingStreamId);
-
-                        if (latestProviderSnapshot?.ProviderVersionId != fundingStreamCurrentProviderVersionRequest.ProviderVersionId)
+                   
+                        IEnumerable<ProviderSnapshot> latestProviderSnapshot = providerSnapshotsResponse?.Content.Where(x => x.FundingStreamCode == fundingStreamCurrentProviderVersionRequest.FundingStreamId);
+                        if (!latestProviderSnapshot.Select(x => x.ProviderVersionId).Contains(fundingStreamCurrentProviderVersionRequest.ProviderVersionId))
                         {
                             context.AddFailure(new ValidationFailure("ProviderSnapshotId",
                                 $"Unable to set current to version as it is not currently the latest snapshot provider version"));
                         }
 
-                        if (latestProviderSnapshot?.ProviderSnapshotId !=  providerSnapshotId)
+                        if (!latestProviderSnapshot.Select(x => x?.ProviderSnapshotId).Contains(providerSnapshotId))
                         {
                             context.AddFailure(new ValidationFailure("ProviderSnapshotId",
                                 $"Unable to set current to version as the version doesn't match the snap shot"));

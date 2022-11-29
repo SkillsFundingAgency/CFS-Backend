@@ -8,6 +8,7 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
         private string _fundingStreamId;
         private string _providerVersionId;
         private int? _providerSnapshotId;
+        private string? _fundingPeriodId;
 
         public SetFundingStreamCurrentProviderVersionRequestBuilder WithFundingStreamId(string fundingStreamId)
         {
@@ -30,12 +31,20 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
             return this;
         }
 
+        public SetFundingStreamCurrentProviderVersionRequestBuilder WithFundingPeriodId(string? fundingPeriodId)
+        {
+            _fundingPeriodId = fundingPeriodId;
+
+            return this;
+        }
+
         public SetFundingStreamCurrentProviderVersionRequest Build() =>
             new SetFundingStreamCurrentProviderVersionRequest
             {
                 FundingStreamId = _fundingStreamId,
                 ProviderVersionId = _providerVersionId,
-                ProviderSnapshotId = _providerSnapshotId
+                ProviderSnapshotId = _providerSnapshotId,
+                FundingPeriodId = _fundingPeriodId
             };
     }
 }

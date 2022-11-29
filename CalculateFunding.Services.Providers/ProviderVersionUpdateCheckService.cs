@@ -21,6 +21,7 @@ using Serilog;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Services.Core.Constants;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Providers
 {
@@ -86,7 +87,7 @@ namespace CalculateFunding.Services.Providers
             }
 
             List<FundingConfiguration> fundingConfigurations = new List<FundingConfiguration>();
-
+           
             IEnumerable<FundingStream> fundingStreams = await GetFundingStreams();
             IEnumerable<CurrentProviderVersionMetadata> metadataForAllFundingStreams = await GetMetadataForAllFundingStreams();
 
@@ -96,7 +97,7 @@ namespace CalculateFunding.Services.Providers
                 {
                     continue;
                 }
-
+                
                 string fundingStreamId = fundingStream.Id;
 
                 IEnumerable<FundingConfiguration> fundingStreamConfigurations = await GetFundingConfigurationsByFundingStreamId(fundingStreamId);
@@ -121,6 +122,18 @@ namespace CalculateFunding.Services.Providers
                     continue;
                 }
 
+                IEnumerable<ProviderSnapshot> SnapshotIdWithFundingPeriod = await GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod();
+
+                if (SnapshotIdWithFundingPeriod.IsNullOrEmpty())
+                {
+                    continue;
+                }
+
+                var latestproviderSnapShotByFundingPeriod = SnapshotIdWithFundingPeriod.Where(_ => _.FundingStreamCode == fundingStreamId)
+                    .Select(_ => new ProviderSnapShotByFundingPeriod() { FundingPeriodName = _.FundingPeriodName, ProviderSnapshotId = _.ProviderSnapshotId }).ToList();
+
+                var latestfundingPeriodWithSnapShotId = JsonConvert.SerializeObject(latestproviderSnapShotByFundingPeriod);
+
                 ProviderSnapshot latestProviderSnapshot = providerSnapshots.FirstOrDefault(x => x.FundingStreamCode == fundingStreamId);
 
                 if (latestProviderSnapshot == null)
@@ -138,10 +151,14 @@ namespace CalculateFunding.Services.Providers
                 CurrentProviderVersionMetadata currentProviderVersionMetadata =
                     metadataForAllFundingStreams.SingleOrDefault(_ => _.FundingStreamId == fundingStreamId);
 
+                var currentProviderSnapShotByFundingPeriodMeta = currentProviderVersionMetadata.FundingPeriod;
+              
+                bool isLatestSnapShotByFundingPeriodAvailable = latestproviderSnapShotByFundingPeriod.Where(_ => !currentProviderSnapShotByFundingPeriodMeta.Select(_ =>_.ProviderSnapshotId).Contains(_.ProviderSnapshotId)).ToList().Any();
+
                 int latestProviderSnapshotId = latestProviderSnapshot.ProviderSnapshotId;
                 int? currentProviderSnapshotId = currentProviderVersionMetadata?.ProviderSnapshotId;
 
-                if (currentProviderSnapshotId != latestProviderSnapshotId)
+                if (currentProviderSnapshotId != latestProviderSnapshotId || isLatestSnapShotByFundingPeriodAvailable)
                 {
                     try
                     {
@@ -158,7 +175,7 @@ namespace CalculateFunding.Services.Providers
                             Properties = new Dictionary<string, string>
                             {
                                 {"fundingstream-id", fundingStreamId},
-                                {"providersnapshot-id", latestProviderSnapshotId.ToString()},
+                                {"providersnapshot-id", latestProviderSnapshotId.ToString()}                                
                             }
                         });
                     }
@@ -206,6 +223,22 @@ namespace CalculateFunding.Services.Providers
             return providerSnapshotResponse.Content;
         }
 
+        private async Task<IEnumerable<ProviderSnapshot>> GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod()
+        {
+            ApiResponse<IEnumerable<ProviderSnapshot>> providerSnapshotResponse
+                    = await _fundingDataZoneApiClientPolicy.ExecuteAsync(() =>
+                        _fundingDataZoneApiClient.GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod());
+
+            if (!providerSnapshotResponse.StatusCode.IsSuccess())
+            {
+                string errorMessage = $"Unable to retrieve latest provider snapshots for funding streams";
+                _logger.Error(errorMessage);
+                return Enumerable.Empty<ProviderSnapshot>();
+            }
+
+            return providerSnapshotResponse.Content;
+        }
+
         private async Task<IEnumerable<FundingConfiguration>> GetFundingConfigurationsByFundingStreamId(string fundingStreamId)
         {
             ApiResponse<IEnumerable<FundingConfiguration>> fundingConfigResponse
@@ -235,6 +268,6 @@ namespace CalculateFunding.Services.Providers
             }
 
             return fundingStreamsResponse.Content;
-        }
+        }       
     }
 }

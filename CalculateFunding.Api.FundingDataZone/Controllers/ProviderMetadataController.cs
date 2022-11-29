@@ -74,13 +74,13 @@ Used as input for:
         And I am able to the version of the snapshot based on the target date";
 
         [SwaggerOperation(Summary = "List all provider snapshots for a given funding stream", Description = GetProviderSnapshotsForFundingStreamDescription)]
-        [HttpGet("api/providers/fundingStreams/{fundingStreamId}/snapshots")]
+        [HttpGet("api/providers/fundingStreams/{fundingStreamId}/{fundingPeriodId}/snapshots")]
         [Produces(typeof(IEnumerable<ProviderSnapshot>))]
         public async Task<ActionResult<IEnumerable<ProviderSnapshot>>> GetProviderSnapshotsForFundingStream(
-            [FromRoute]string fundingStreamId)
+            [FromRoute]string fundingStreamId, [FromRoute] string fundingPeriodId)
         {
             IEnumerable<ProviderSnapshot> providerSnapshots = 
-                await _providerSnapshotForFundingStreamService.GetProviderSnapshotsForFundingStream(fundingStreamId);
+                await _providerSnapshotForFundingStreamService.GetProviderSnapshotsForFundingStream(fundingStreamId,fundingPeriodId);
             return new OkObjectResult(providerSnapshots);
         }
 
@@ -189,6 +189,28 @@ Used as input for:
             await _providerSnapshotFundingPeriodService.PopulateFundingPeriods();
 
             return new OkResult();
+        }
+
+        private const string GetLatestProviderSnapshotsForFundingStreamsWithFundingPeriodDescription = @"
+        Given I am CFS user
+        When I browse latest provider snapshots for funding streams
+        Then I am able to see all latest provider snapshots for all funding streams related to Funding Period
+        And I am able to see the snapshot display names
+        And I am able to see the description for those snapshots
+        And I am able to determine which date the snapshot data was targeted at
+        And I am able to see the version of the snapshot based on the target date";
+        /// <summary>
+        ///  Get latest provider snapshots for all funding streams
+        /// </summary>
+        /// <returns>Returns ProviderSnapshots</returns>
+        [SwaggerOperation(Summary = "List all provider snapshots for all funding streams", Description = GetLatestProviderSnapshotsForFundingStreamsDescription)]
+        [HttpGet("api/providers/fundingStreams/FundingPeriod/snapshots/latest")]
+        [Produces(typeof(IEnumerable<ProviderSnapshot>))]
+        public async Task<ActionResult<IEnumerable<ProviderSnapshot>>> GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod()
+        {
+            IEnumerable<ProviderSnapshot> providerSnapshots =
+                await _providerSnapshotForFundingStreamService.GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod();
+            return new OkObjectResult(providerSnapshots);
         }
     }
 }

@@ -27,5 +27,7 @@ namespace CalculateFunding.Models.FundingDataZone
 
         [Required]
         public string FundingStreamName { get; set; }
+
+        public string FundingPeriodName { get; set; }
     }
 }

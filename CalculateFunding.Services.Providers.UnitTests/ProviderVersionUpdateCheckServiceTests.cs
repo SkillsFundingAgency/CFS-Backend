@@ -117,7 +117,16 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 new CurrentProviderVersion
                 {
                     Id = $"Current_{_fundingStreamOneId}",
-                    ProviderSnapshotId = _currentProviderSnapshotId
+                    ProviderSnapshotId = _currentProviderSnapshotId,
+                    FundingPeriod = new List<ProviderSnapShotByFundingPeriod>
+                    {
+                        new ProviderSnapShotByFundingPeriod
+                        {
+                            FundingPeriodName = NewRandomString(),
+                            ProviderSnapshotId = _latestProviderSnapshotId,
+                            ProviderVersionId =NewRandomString()
+                        }
+                    }
                 }
             };
 
@@ -128,21 +137,24 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     TargetDate = DateTime.UtcNow.AddDays(1),
                     Version = 1,
                     ProviderSnapshotId = previousProviderSnapshotId,
-                    FundingStreamCode = _fundingStreamOneId
+                    FundingStreamCode = _fundingStreamOneId,
+                    FundingPeriodName = NewRandomString()
                 },
                 new ProviderSnapshot
                 {
                     TargetDate = DateTime.UtcNow.AddDays(2),
                     Version = 2,
                     ProviderSnapshotId = previousProviderSnapshotId,
-                    FundingStreamCode = NewRandomString()
+                    FundingStreamCode = NewRandomString(),
+                    FundingPeriodName = NewRandomString()
                 },
                 new ProviderSnapshot
                 {
                     TargetDate = DateTime.UtcNow.AddDays(2),
                     Version = 3,
                     ProviderSnapshotId = _latestProviderSnapshotId,
-                    FundingStreamCode = NewRandomString()
+                    FundingStreamCode = NewRandomString(),
+                    FundingPeriodName = NewRandomString()
                 }
             };
         }
@@ -176,12 +188,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
             FundingDataZoneProvider expectedProviderTwo = NewFundingDataZoneProvider();
 
             GivenTheFundingStreams(_fundingStreams);
-            if (currentVersionExists)
-			{
-				AndTheCurrentProviderVersions(_currentProviderVersions);
-			}
+            AndTheCurrentProviderVersions(_currentProviderVersions);
             AndTheCurrentProviderVersionSaved(currentProviderId, providerVersionId, providerSnapshot.ProviderSnapshotId);
             AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
+            AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod();            
+            AndTheMetadataFundingStreams();
             AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
             AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId, expectedProviderOne, expectedProviderTwo);
 
@@ -270,6 +281,16 @@ namespace CalculateFunding.Services.Providers.UnitTests
             params FundingDataZoneProvider[] providers)
             => _fundingDataZoneApiClient.Setup(_ => _.GetProvidersInSnapshot(providerSnapshotId))
                 .ReturnsAsync(new ApiResponse<IEnumerable<FundingDataZoneProvider>>(HttpStatusCode.OK, providers));
+
+        private void AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod() =>
+        _fundingDataZoneApiClient
+            .Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod())
+            .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, _providerSnapshots));
+
+        private void AndTheMetadataFundingStreams() =>
+            _providerVersionsMetadataRepository
+                .Setup(_ => _.GetCurrentProviderVersion(_fundingStreamOneId))
+                .ReturnsAsync(_currentProviderVersions.FirstOrDefault());
 
         private async Task WhenTheProviderVersionUpdateIsChecked() =>
             await _service.CheckProviderVersionUpdate();

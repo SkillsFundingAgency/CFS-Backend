@@ -34,7 +34,7 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <summary>
         ///     Fetches latest version of provider metadata for funding stream
         /// </summary>
-        /// <param name="fundingStreamId">the funding stream to get current provider metadata for</param>
+        /// <param name="fundingStreamId">the funding stream to get current provider metadata for</param>       
         /// <returns>ProviderVersion[]</returns>
         [HttpGet("api/providers/fundingstreams/{fundingStreamId}/current/metadata")]
         [ProducesResponseType(200, Type = typeof(CurrentProviderVersionMetadata))]
@@ -55,7 +55,7 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// </summary>
         /// <param name="fundingStreamId">the funding stream to update</param>
         /// <param name="providerVersionId">the new Current provider version id</param>
-        /// <param name="providerSnapshotId">ProviderSnapshotId (optional)</param>
+        /// <param name="providerSnapshotId">ProviderSnapshotId (optional)</param>       
         [HttpPut("api/providers/fundingstreams/{fundingStreamId}/current/{providerVersionId}")]
         [ProducesResponseType(201)]
         public async Task<IActionResult> SetCurrentProviderVersion([FromRoute] string fundingStreamId,

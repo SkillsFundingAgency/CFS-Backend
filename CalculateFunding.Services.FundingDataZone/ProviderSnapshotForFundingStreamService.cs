@@ -29,12 +29,19 @@ namespace CalculateFunding.Services.FundingDataZone
 
             return _mapper.Map<IEnumerable<ProviderSnapshot>>(providerSnapshots);
         }
-
-        public async Task<IEnumerable<ProviderSnapshot>> GetProviderSnapshotsForFundingStream(string fundingStreamId)
+        public async Task<IEnumerable<ProviderSnapshot>> GetProviderSnapshotsForFundingStream(string fundingStreamId ,string fundingPeriodId)
         {
-            IEnumerable<PublishingAreaProviderSnapshot> providerSnapshots = await _publishingAreaRepository.GetProviderSnapshots(fundingStreamId);
+            IEnumerable<PublishingAreaProviderSnapshot> providerSnapshots = await _publishingAreaRepository.GetProviderSnapshots(fundingStreamId, fundingPeriodId);
 
             return _mapper.Map<IEnumerable<ProviderSnapshot>>(providerSnapshots);
         }
+
+        public async Task<IEnumerable<ProviderSnapshot>> GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod()
+        {
+            IEnumerable<PublishingAreaProviderSnapshot> providerSnapshots = await _publishingAreaRepository.GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod();
+
+            return _mapper.Map<IEnumerable<ProviderSnapshot>>(providerSnapshots);
+        }
+
     }
 }

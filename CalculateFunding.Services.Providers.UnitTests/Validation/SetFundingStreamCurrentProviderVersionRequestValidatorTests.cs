@@ -30,6 +30,7 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
         private string _existingFundingStreamId;
         private string _existingProviderVersionId;
         private int _existingProviderSnapShotId;
+        private string _existingFundingPeriodId;
 
         private SetFundingStreamCurrentProviderVersionRequestValidator _validator;
 
@@ -53,6 +54,7 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
             
 
             _existingFundingStreamId = NewRandomString();
+            _existingFundingPeriodId = NewRandomString();
             _existingProviderSnapShotId = 1;
 
             ProviderSnapshot providerSnapShot = new ProviderSnapshot {
@@ -76,7 +78,8 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
             ValidationResult validationResult = await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ =>
                 _.WithFundingStreamId(null)
                     .WithProviderVersionId(null)
-                    .WithProviderSnapId(null)));
+                    .WithProviderSnapId(null)
+                    .WithFundingPeriodId(null)));
 
             ThenTheValidationResultsAre(validationResult,
                 ("FundingStreamId", "'Funding Stream Id' must not be empty."),
@@ -93,7 +96,8 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
             ValidationResult validationResult = await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ =>
                 _.WithFundingStreamId(missingFundingStreamId)
                     .WithProviderVersionId(missingProviderVersionId)
-                    .WithProviderSnapId(null)));
+                    .WithProviderSnapId(null)
+                    .WithFundingPeriodId(null)));
 
             ThenTheValidationResultsAre(validationResult,
                 ("FundingStreamId", $"No funding stream located with Id {missingFundingStreamId}"),
@@ -118,7 +122,8 @@ namespace CalculateFunding.Services.Providers.UnitTests.Validation
             SetFundingStreamCurrentProviderVersionRequestBuilder requestBuilder = new SetFundingStreamCurrentProviderVersionRequestBuilder()
                 .WithFundingStreamId(_existingFundingStreamId)
                 .WithProviderVersionId(_existingProviderVersionId)
-                .WithProviderSnapId(_existingProviderSnapShotId);
+                .WithProviderSnapId(_existingProviderSnapShotId)
+                .WithFundingPeriodId(_existingFundingPeriodId);
 
             overrides?.Invoke(requestBuilder);
 

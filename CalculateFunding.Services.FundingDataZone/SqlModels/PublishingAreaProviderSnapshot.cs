@@ -19,5 +19,7 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
         public string FundingStreamCode { get; set; }
 
         public string FundingStreamName { get; set; }
+
+        public string FundingPeriodName { get; set; }
     }
 }

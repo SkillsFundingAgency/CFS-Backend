@@ -87,11 +87,12 @@ namespace CalculateFunding.Services.FundingDataZone
                     ProviderSnapshotId = providerSnapshotId
                 });
 
-        public async Task<IEnumerable<PublishingAreaProviderSnapshot>> GetProviderSnapshots(string fundingStreamId) =>
+        public async Task<IEnumerable<PublishingAreaProviderSnapshot>> GetProviderSnapshots(string fundingStreamId, string fundingPeriodId) =>
             await Query<PublishingAreaProviderSnapshot>("sp_getProviderSnapshotsByFundingStream",
                 new
                 {
-                    FundingStreamId = fundingStreamId
+                    FundingStreamId = fundingStreamId,
+                    FundingPeriodName = fundingPeriodId
                 });
 
         public async Task<string> GetTableNameForDataset(string datasetCode,
@@ -122,5 +123,10 @@ namespace CalculateFunding.Services.FundingDataZone
 
             return health;
         }
+        public async Task<IEnumerable<PublishingAreaProviderSnapshot>> GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod()
+        {
+            return await Query<PublishingAreaProviderSnapshot>("sp_getLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod");
+        }
+
     }
 }

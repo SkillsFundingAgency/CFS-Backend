@@ -746,8 +746,24 @@ namespace CalculateFunding.Services.Specs
                                 $"{nameof(createModel.ProviderSnapshotId)} not set when provider source is FDZ for " +
                                 $"funding stream ID '{fundingStreamId}' and funding period ID '{createModel.FundingPeriodId}'.");
                         }
-
-                        specificationVersion.ProviderSnapshotId = createModel.ProviderSnapshotId;
+                        if (createModel.CoreProviderVersionUpdates == CoreProviderVersionUpdates.UseLatest)
+                        {
+                            ApiResponse<CurrentProviderVersionMetadata> providerMetadataResponse = await _providersApiClientPolicy.ExecuteAsync(
+                                () => _providersApiClient.GetCurrentProviderMetadataForFundingStream(fundingStreamId));
+                            var fundingPeriodProviderSnapshotId = providerMetadataResponse.Content.FundingPeriod.Where(_ => _.FundingPeriodName == createModel.FundingPeriodId).FirstOrDefault();
+                            if (providerMetadataResponse.StatusCode.IsSuccess() && providerMetadataResponse.Content != null)
+                            {
+                                specificationVersion.ProviderSnapshotId = fundingPeriodProviderSnapshotId.ProviderSnapshotId;                              
+                            }
+                            else
+                            {
+                                return new InternalServerErrorResult($"No current provider metadata returned for funding stream id '{fundingStreamId}'.");
+                            }
+                        }
+                        else
+                        {
+                            specificationVersion.ProviderSnapshotId = createModel.ProviderSnapshotId;
+                        }
                     }
                 }
             }
@@ -922,9 +938,11 @@ namespace CalculateFunding.Services.Specs
                 ApiResponse<CurrentProviderVersionMetadata> providerMetadataResponse = await _providersApiClientPolicy.ExecuteAsync(
                     () => _providersApiClient.GetCurrentProviderMetadataForFundingStream(fundingStreamId));
 
+                var fundingPeriodProviderSnapshotId = providerMetadataResponse.Content?.FundingPeriod.Where(_ => _.FundingPeriodName == editModel.FundingPeriodId).FirstOrDefault();
+
                 if (providerMetadataResponse.StatusCode.IsSuccess() && providerMetadataResponse.Content != null)
                 {
-                    specificationVersion.ProviderSnapshotId = providerMetadataResponse.Content.ProviderSnapshotId;
+                    specificationVersion.ProviderSnapshotId = fundingPeriodProviderSnapshotId.ProviderSnapshotId;                 
                     triggerProviderSnapshotDataLoadJob = true;
                 }
                 else

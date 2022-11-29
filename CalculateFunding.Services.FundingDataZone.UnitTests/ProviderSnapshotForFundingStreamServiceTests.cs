@@ -34,14 +34,16 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         public async Task GetProviderSnapshotsForFundingStream()
         {
             string fundingStreamId = NewRandomString();
-            
+            string fundingPeriodId = NewRandomString();
+
+
             IEnumerable<PublishingAreaProviderSnapshot> publishingAreaProviderSnapShots = ArraySegment<PublishingAreaProviderSnapshot>.Empty;
             IEnumerable<ProviderSnapshot> expectedProviderSnapShots = ArraySegment<ProviderSnapshot>.Empty;
             
-            GivenThePublishingAreaProviderSnapShots(fundingStreamId, publishingAreaProviderSnapShots);
+            GivenThePublishingAreaProviderSnapShots(fundingStreamId, fundingPeriodId,publishingAreaProviderSnapShots);
             AndTheMappedProviderSnapShots(publishingAreaProviderSnapShots, expectedProviderSnapShots);
 
-            IEnumerable<ProviderSnapshot> actualProviderSnapShots = await WhenTheProvidersSnapShotsAreQueried(fundingStreamId);
+            IEnumerable<ProviderSnapshot> actualProviderSnapShots = await WhenTheProvidersSnapShotsAreQueried(fundingStreamId, fundingPeriodId);
 
             actualProviderSnapShots
                 .Should()
@@ -64,16 +66,16 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
                 .BeSameAs(expectedProviderSnapShots);
         }
 
-        private async Task<IEnumerable<ProviderSnapshot>> WhenTheProvidersSnapShotsAreQueried(string fundingStreamId)
-            => await _service.GetProviderSnapshotsForFundingStream(fundingStreamId);
+        private async Task<IEnumerable<ProviderSnapshot>> WhenTheProvidersSnapShotsAreQueried(string fundingStreamId,string fundingPeriodId)
+            => await _service.GetProviderSnapshotsForFundingStream(fundingStreamId, fundingPeriodId);
 
         private async Task<IEnumerable<ProviderSnapshot>> WhenTheLatestProvidersSnapShotsAreQueried()
            => await _service.GetLatestProviderSnapshotsForAllFundingStreams();
 
-        private void GivenThePublishingAreaProviderSnapShots(string fundingStreamId,
+        private void GivenThePublishingAreaProviderSnapShots(string fundingStreamId,string fundingPeriodId,
             IEnumerable<PublishingAreaProviderSnapshot> publishingAreaProviderSnapShots)
         {
-            _publishingArea.Setup(_ => _.GetProviderSnapshots(fundingStreamId))
+            _publishingArea.Setup(_ => _.GetProviderSnapshots(fundingStreamId, fundingPeriodId))
                 .ReturnsAsync(publishingAreaProviderSnapShots);
         }
 

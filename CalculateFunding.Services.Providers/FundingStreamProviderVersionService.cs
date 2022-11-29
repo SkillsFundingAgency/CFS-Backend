@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -100,7 +101,7 @@ namespace CalculateFunding.Services.Providers
 
             await _providerVersionMetadataPolicy.ExecuteAsync(() => _providerVersionMetadata.UpsertCurrentProviderVersion(new CurrentProviderVersion
             {
-                Id = $"Current_{fundingStreamId}",
+                Id = $"Current_{fundingStreamId}",               
                 ProviderVersionId = providerVersionId,
                 ProviderSnapshotId = providerSnapshotId
             }));
@@ -121,7 +122,7 @@ namespace CalculateFunding.Services.Providers
                     Properties = new Dictionary<string, string>
                             {
                                 {"fundingstream-id", fundingStreamId},
-                                {"providersnapshot-id", providerSnapshotId.ToString()},
+                                {"providersnapshot-id", providerSnapshotId.ToString()}
                             }
                 });
             }

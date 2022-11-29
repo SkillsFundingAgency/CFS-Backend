@@ -219,13 +219,15 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
             };
 
             string fundingStreamId = NewRandomString();
-            
+            string fundingPeriodId = NewRandomString();
+
+
             GivenTheDapperReturnFor("sp_getProviderSnapshotsByFundingStream", 
-                _ => _.ProviderSnapshotId == fundingStreamId, 
+                _ => _.ProviderSnapshotId == fundingStreamId,
                 expectedPublishAreaProviders,
                 CommandType.StoredProcedure);
 
-            IEnumerable<PublishingAreaProviderSnapshot> actualPublishAreaProviders = await WhenTheSnapshotsAreQueried(fundingStreamId);
+            IEnumerable<PublishingAreaProviderSnapshot> actualPublishAreaProviders = await WhenTheSnapshotsAreQueried(fundingStreamId, fundingPeriodId);
 
             actualPublishAreaProviders
                 .Should()
@@ -330,8 +332,8 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         private async Task<IEnumerable<PublishingAreaProvider>> WhenTheProvidersInSnapshotAreQueried(int snapshotId)
             => await _repository.GetProvidersInSnapshot(snapshotId);
         
-        private async Task<IEnumerable<PublishingAreaProviderSnapshot>> WhenTheSnapshotsAreQueried(string fundingStreamId)
-            => await _repository.GetProviderSnapshots(fundingStreamId);
+        private async Task<IEnumerable<PublishingAreaProviderSnapshot>> WhenTheSnapshotsAreQueried(string fundingStreamId,string fundingPeriodId)
+            => await _repository.GetProviderSnapshots(fundingStreamId, fundingPeriodId);
 
         private async Task<IEnumerable<PublishingAreaProviderSnapshot>> WhenTheLatestSnapshotsAreQueried()
            => await _repository.GetLatestProviderSnapshotsForAllFundingStreams();

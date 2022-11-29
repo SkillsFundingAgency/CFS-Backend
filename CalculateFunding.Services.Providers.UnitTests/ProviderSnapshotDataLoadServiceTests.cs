@@ -49,6 +49,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private string _jobId;
         private int _providerSnapshotId;
         private string _disableQueueCalculationJobKey;
+        private string _fundingPeriodId;
 
         [TestInitialize]
         public void Setup()
@@ -261,7 +262,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             => await _service.Process(message);
 
         private void GivenTheProviderSnapshotForTheFundingStream(ProviderSnapshot providerSnapshot)
-            => _fundingDataZone.Setup(_ => _.GetProviderSnapshotsForFundingStream(_fundingStreamId))
+            => _fundingDataZone.Setup(_ => _.GetProviderSnapshotsForFundingStream(_fundingStreamId, _fundingPeriodId))
                 .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK,
                     new[]
                     {

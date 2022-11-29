@@ -88,12 +88,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<IEnumerable<ProviderSnapshot>>> GetProviderSnapshotsForFundingStream(string fundingStreamId)
+        public Task<ApiResponse<IEnumerable<ProviderSnapshot>>> GetProviderSnapshotsForFundingStream(string fundingStreamId,string fundingPeriodId)
         {
             throw new NotImplementedException();
         }
 
         public Task<ApiResponse<IEnumerable<string>>> ListFundingStreamsWithProviderSnapshots()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<ProviderSnapshot>>> GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod()
         {
             throw new NotImplementedException();
         }

@@ -21,6 +21,7 @@ using Serilog.Core;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using System.Runtime.InteropServices;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
@@ -288,6 +289,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             string fundingStreamId = NewRandomString();
             string providerVersionId = NewRandomString();
             int? providerSnapshotId = NewRandomNumber();
+            string fundingPeriodId = NewRandomString();
             CurrentProviderVersion currentProviderVersion = NewCurrentProviderVersion(_ => _.ForFundingStreamId(fundingStreamId)
                                                                                             .WithProviderVersionId(providerVersionId)
                                                                                             .WithProviderSnapshotId(providerSnapshotId));
@@ -427,7 +429,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Times.Never);
 
         private void GivenTheCurrentProviderVersionForFundingStream(string fundingStreamId,
-            CurrentProviderVersion currentProviderVersion)
+            CurrentProviderVersion currentProviderVersion, [Optional] string fundingPeriodId)
         {
             _providerVersionsMetadata.Setup(_ => _.GetCurrentProviderVersion(fundingStreamId))
                 .ReturnsAsync(currentProviderVersion);

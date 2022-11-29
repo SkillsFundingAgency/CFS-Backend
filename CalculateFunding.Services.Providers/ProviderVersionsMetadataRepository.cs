@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -77,15 +78,15 @@ namespace CalculateFunding.Services.Providers
                 m.Content.Id == $"{year}{month:00}{day:00}");
             return providerVersionsByDate.Select(x => x.Content).FirstOrDefault();
         }
-        
+
         public async Task<CurrentProviderVersion> GetCurrentProviderVersion(string fundingStreamId)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
-            
+
             return (await _cosmos.GetAllDocumentsAsync<CurrentProviderVersion>(query: document =>
                 document.Content.Id == $"Current_{fundingStreamId}"))?
                 .Select(document => document.Content)
-                .SingleOrDefault();
+                .SingleOrDefault();          
         }
 
         public async Task<IEnumerable<CurrentProviderVersion>> GetAllCurrentProviderVersions()

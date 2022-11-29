@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Providers
 {
@@ -12,5 +13,8 @@ namespace CalculateFunding.Models.Providers
 
         [JsonProperty("providerSnapshotId")]
         public int? ProviderSnapshotId { get; set; }
+
+        [JsonProperty("fundingPeriod")]
+        public List<ProviderSnapShotByFundingPeriod> FundingPeriod { get; set; }
     }
 }

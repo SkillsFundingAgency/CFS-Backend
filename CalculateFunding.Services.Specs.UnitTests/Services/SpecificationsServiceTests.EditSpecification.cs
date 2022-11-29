@@ -763,7 +763,16 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             CurrentProviderVersionMetadata currentProviderVersionMetadata = new CurrentProviderVersionMetadata
             {
                 FundingStreamId = specFundingStreamId,
-                ProviderSnapshotId = providerSnapshotId
+                ProviderSnapshotId = providerSnapshotId,
+                FundingPeriod = new List<ProviderSnapShotByFundingPeriod>
+                    {
+                        new ProviderSnapShotByFundingPeriod
+                        {
+                            FundingPeriodName = newSpecVersion.FundingPeriod.Id,
+                            ProviderSnapshotId = providerSnapshotId,
+                            ProviderVersionId =NewRandomString()
+                        }
+                    }
             };
 
             AndGetFundingConfiguration(

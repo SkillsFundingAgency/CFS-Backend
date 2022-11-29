@@ -25,7 +25,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Newtonsoft.Json;
 using Polly;
 using Serilog.Core;
 using FundingDataZoneProvider = CalculateFunding.Common.ApiClient.FundingDataZone.Models.Provider;
@@ -149,16 +148,26 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 new CurrentProviderVersion
                 {
                     Id = $"Current_{_fundingStreamId}",
-                    ProviderSnapshotId = _currentProviderSnapshotId
+                    ProviderSnapshotId = _currentProviderSnapshotId,
+                    FundingPeriod = new List<ProviderSnapShotByFundingPeriod>
+                    {
+                        new ProviderSnapShotByFundingPeriod
+                        {
+                            FundingPeriodName = NewRandomString(),
+                            ProviderSnapshotId = _latestProviderSnapshotId,
+                            ProviderVersionId =NewRandomString()
+                        }
+                    }
                 }
-            };
+            };           
 
             ProviderSnapshot latestProviderSnapshot = new ProviderSnapshot
             {
                 TargetDate = DateTime.UtcNow.AddDays(2),
                 Version = 3,
                 ProviderSnapshotId = _latestProviderSnapshotId,
-                FundingStreamCode = _fundingStreamId
+                FundingStreamCode = _fundingStreamId,
+                FundingPeriodName = NewRandomString(),
             };
 
             _providerSnapshots = new List<ProviderSnapshot>
@@ -168,14 +177,16 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     TargetDate = DateTime.UtcNow.AddDays(1),
                     Version = 1,
                     ProviderSnapshotId = previousProviderSnapshotId,
-                    FundingStreamCode = NewRandomString()
+                    FundingStreamCode = NewRandomString(),
+                    FundingPeriodName = NewRandomString(),
                 },
                 new ProviderSnapshot
                 {
                     TargetDate = DateTime.UtcNow.AddDays(2),
                     Version = 2,
                     ProviderSnapshotId = previousProviderSnapshotId,
-                    FundingStreamCode = NewRandomString()
+                    FundingStreamCode = NewRandomString(),
+                    FundingPeriodName = NewRandomString(),
                 },
                 latestProviderSnapshot
             };
@@ -214,6 +225,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             GivenErrorGetFundingConfigurationsByFundingStreamId();
             AndTheCurrentProviderVersionSaved();
             AndTheProviderVersionUploadSucceeds(null);
+            AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod();
+            AndTheMetadataFundingStreams();
             AndTheProviderSnapshotsForFundingStream();
             AndTheFundingDataZoneProvidersForTheSnapshot();
             AndTheSpecificationsUseTheLatestProviderSnapshot();
@@ -230,6 +243,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             AndTheCurrentProviderVersions();
             AndTheCurrentProviderVersionSaved();
             AndTheFundingConfigurationsForTheFundingStreamId();
+            AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod();
+            AndTheMetadataFundingStreams();
             AndTheFundingDataZoneProvidersForTheSnapshot();
             AndTheProviderVersionUploadSucceeds(null);
             AndTheProviderSnapshotsForFundingStream();
@@ -261,6 +276,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             }
             AndTheCurrentProviderVersionSaved();
             AndTheFundingConfigurationsForTheFundingStreamId();
+            AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod();
+            AndTheMetadataFundingStreams();
             AndTheProviderSnapshotsForFundingStream();
             AndTheFundingDataZoneProvidersForTheSnapshot(expectedProviderOne, expectedProviderTwo);
             AndTheSpecificationsUseTheLatestProviderSnapshot();
@@ -278,6 +295,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             AndTheCurrentProviderVersions();
             AndTheCurrentProviderVersionSaved();
             AndTheFundingConfigurationsForTheFundingStreamId();
+            AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod();
+            AndTheMetadataFundingStreams();
             AndTheProviderSnapshotsForFundingStream();
             AndTheFundingDataZoneProvidersForTheSnapshot();
             AndTheProviderVersionUploadSucceeds(null);
@@ -297,6 +316,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             AndTheCurrentProviderVersions();
             AndTheCurrentProviderVersionSaved();
             AndTheFundingConfigurationsForTheFundingStreamId();
+            AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod();
+            AndTheMetadataFundingStreams();
             AndTheFundingDataZoneProvidersForTheSnapshot();
             AndTheProviderSnapshotsForFundingStream();
             AndTheSpecificationsUseTheLatestProviderSnapshot();
@@ -315,6 +336,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             AndTheCurrentProviderVersions();
             AndTheCurrentProviderVersionSaved();
             AndTheFundingConfigurationsForTheFundingStreamId();
+            AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod();
+            AndTheMetadataFundingStreams();
             AndTheProviderSnapshotsForFundingStream();
             AndTheFundingDataZoneProvidersForTheSnapshot();
             AndTheProviderVersionUploadSucceeds(null);
@@ -392,6 +415,16 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private void AndTheProviderVersionUploadSucceeds(IActionResult actionResult = null,
             params string[] providerIds)
             => SetupProviderVersionUpload(_specificationProviderVersionId, providerIds, true, actionResult);
+
+        private void AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod() =>
+           _fundingDataZoneApiClient
+               .Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod())
+               .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, _providerSnapshots));
+
+        private void AndTheMetadataFundingStreams() =>
+            _providerVersionsMetadataRepository
+                .Setup(_ => _.GetCurrentProviderVersion(_fundingStreamId))
+                .ReturnsAsync( _currentProviderVersions.FirstOrDefault());
 
         private void SetupProviderVersionUpload(string providerVersionId,
             string[] providerIds,
