@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FundingGroup = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.FundingGroup;
 using SqlGroupingReason = CalculateFunding.Services.Publishing.FundingManagement.SqlModels.GroupingReason;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.FundingManagement
 {
@@ -787,14 +788,29 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                     specificationId
                 });
         }
-        public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionsForSpecificationId(string specificationId)
+        public async Task<IEnumerable<FundingChannelVersion>> GetFundingGroupVersionsForSpecificationId(string specificationId)
         {
-            return await QuerySql<FundingGroupVersion>($@"
-                SELECT  *
+            return await QuerySql<FundingChannelVersion>($@"
+                SELECT  FGV.FundingId, C.UrlKey AS ChannelCode, FGV.ChannelVersion
                   FROM FundingGroupVersions FGV
                   INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
                   INNER JOIN Channels C ON C.ChannelId=FGV.ChannelId 
-                  WHERE FG.SpecificationId =  @{nameof(specificationId)}",
+                  WHERE FG.SpecificationId =  @{nameof(specificationId)} AND C.UrlKey != 'spectospec'",
+                new
+                {
+                    specificationId
+                });
+        }
+
+        public async Task<IEnumerable<FundingChannelVersion>> GetReleaseProviderVersionsForSpecificationId(string specificationId)
+        {
+            return await QuerySql<FundingChannelVersion>($@"
+                SELECT RPV.FundingId, C.UrlKey AS ChannelCode, RPVC.ChannelVersion
+	                FROM ReleasedProviderVersions RPV
+	                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionId=RPV.ReleasedProviderVersionId
+	                INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId=RPV.ReleasedProviderId
+	                INNER JOIN Channels C ON C.ChannelId=RPVC.ChannelId
+	                WHERE RP.SpecificationId=@{nameof(specificationId)} AND C.UrlKey != 'spectospec'",
                 new
                 {
                     specificationId

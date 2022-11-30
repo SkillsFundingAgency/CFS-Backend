@@ -60,7 +60,5 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.SqlModels
 
         [Required]
         public int ChannelVersion { get; set; }
-
-        public string UrlKey { get; set; }
     }
 }

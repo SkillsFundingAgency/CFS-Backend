@@ -115,7 +115,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
                 row["Provider Id"] = publishedProvider.ProviderId;
                 row["Provider Name"] = publishedProvider.Provider?.Name;
                 row["Provider Major Version"] = publishedProvider.MajorVersion;
-                row["Provider Channel Version"] = publishedFundingVersion.ChannelVersions.FirstOrDefault().value;
+                row["Provider Channel Version"] = publishedProvider.ChannelVersions.FirstOrDefault().value;
                 row["Provider Total Funding"] = publishedProvider.TotalFunding;
                 row["Provider UKPRN"] = publishedProvider.Provider?.UKPRN;
                 row["Provider URN"] = publishedProvider.Provider?.URN;

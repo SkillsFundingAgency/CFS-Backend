@@ -4,6 +4,7 @@ using CalculateFunding.Models.External.V4;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.FundingManagement.SqlModels.QueryResults;
+using CalculateFunding.Services.Publishing.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
@@ -85,7 +86,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(channel);
         }
-        public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionsForSpecificationId(string specificationId)
+        public async Task<IEnumerable<FundingChannelVersion>> GetFundingGroupVersionsForSpecificationId(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
+        public async Task<IEnumerable<FundingChannelVersion>> GetReleaseProviderVersionsForSpecificationId(string specificationId)
         {
             throw new NotImplementedException();
         }

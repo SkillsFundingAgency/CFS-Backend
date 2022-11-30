@@ -9,8 +9,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
-using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
-using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Polly;
@@ -53,7 +51,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         {
             bool outputHeaders = true;
             bool processedResults = false;
-            IEnumerable<FundingGroupVersion> fundingGroupVersions = await _repo.GetFundingGroupVersionsForSpecificationId(specificationId);
+            IEnumerable<FundingChannelVersion> fundingChannelVersions = await _repo.GetFundingGroupVersionsForSpecificationId(specificationId);
+            IEnumerable<FundingChannelVersion> releasedProviderChannelVersions = await _repo.GetReleaseProviderVersionsForSpecificationId(specificationId);
             IDictionary<string, bool> outputHeaderEnabingGroup = new Dictionary<string, bool>();
             await _publishedFundingPolicy.ExecuteAsync(() => _publishedFundingRepository.PublishedGroupBatchProcessing(
                 specificationId,
@@ -72,22 +71,35 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                                 providers = providers.Concat(await _publishedFundingRepository.QueryPublishedProvider(specificationId, fundingIds));
                             }
                         }
-                        IEnumerable<FundingGroupVersion> channelBasedfundingGroupVersion = fundingGroupVersions.Where(_=>_.FundingId.Equals(publishedFunding.Current.FundingId));
-                        channelBasedfundingGroupVersion.ForEach(_ =>
+                        IEnumerable<FundingChannelVersion> fundingChannelVersion = fundingChannelVersions.Where(_=>_.FundingId.Equals(publishedFunding.Current.FundingId));
+                        fundingChannelVersion.ForEach(_ =>
                         {
                             publishedFunding.Current.ChannelVersions = new List<ChannelVersion>() {
                                                                         new ChannelVersion()
                                                                         {
-                                                                            type = _.UrlKey,
+                                                                            type = _.ChannelCode,
                                                                             value = _.ChannelVersion
                                                                         }
                                 };
-                            if (!channelBasedPublishedFundingWithProviders.TryGetValue(_.UrlKey, out List<PublishedFundingWithProvider> outPublishedFundingWithProvider))
+                            if (!channelBasedPublishedFundingWithProviders.TryGetValue(_.ChannelCode, out List<PublishedFundingWithProvider> outPublishedFundingWithProvider))
                             {
                                 outPublishedFundingWithProvider = new List<PublishedFundingWithProvider>();
-                                channelBasedPublishedFundingWithProviders.Add(_.UrlKey, outPublishedFundingWithProvider);
+                                channelBasedPublishedFundingWithProviders.Add(_.ChannelCode, outPublishedFundingWithProvider);
                             }
-                            outPublishedFundingWithProvider.Add(new PublishedFundingWithProvider { PublishedFunding = publishedFunding, PublishedProviders = providers });
+                            List<PublishedProvider> providersList = providers.ToList();
+                            foreach(PublishedProvider p in providersList) 
+                            {
+                                FundingChannelVersion releasedProviderChannelVersion = releasedProviderChannelVersions.Where(r => r.FundingId.Equals(p.Released.FundingId) 
+                                && _.ChannelCode.Equals(r.ChannelCode)).FirstOrDefault();
+                                p.Released.ChannelVersions = new List<ChannelVersion>() {
+                                                                        new ChannelVersion()
+                                                                        {
+                                                                            type = releasedProviderChannelVersion != null?releasedProviderChannelVersion.ChannelCode:string.Empty,
+                                                                            value = releasedProviderChannelVersion != null?releasedProviderChannelVersion.ChannelVersion:0
+                                                                        }
+                                };
+                            }
+                            outPublishedFundingWithProvider.Add(new PublishedFundingWithProvider { PublishedFunding = publishedFunding, PublishedProviders = providersList });
                         });                            
                     }
                     foreach(KeyValuePair<string, List<PublishedFundingWithProvider>> data in channelBasedPublishedFundingWithProviders)

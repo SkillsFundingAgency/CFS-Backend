@@ -15,16 +15,11 @@ using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Publishing.FundingManagement.Interfaces;
-using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
-using CalculateFunding.Common.ApiClient.Models;
 using Microsoft.Azure.Storage.Blob;
 using System.IO;
 using Polly;
 using CalculateFunding.Services.Publishing.Reporting.ChannelLevelPublishedGroup;
-using Microsoft.Azure.Amqp.Framing;
 
 namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderState
 {
