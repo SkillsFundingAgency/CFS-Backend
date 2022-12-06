@@ -7,7 +7,6 @@ using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -15,10 +14,8 @@ using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
-using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
 using Polly;
 using Serilog;
 using System;
@@ -170,7 +167,7 @@ namespace CalculateFunding.Services.Providers
 
             if (specificationSummaries.AnyWithNullCheck())
             {
-                await EditSpecifications(latestProviderSnapshot, specificationSummaries);
+                await EditSpecifications(latestProviderSnapshot, specificationSummaries, latestproviderSnapShotByFundingPeriod);
             }
         }
 
@@ -219,12 +216,13 @@ namespace CalculateFunding.Services.Providers
                 throw new NonRetriableException(errorMessage);
             }
 
-            return specificationsWithProviderVersionUpdateResponse.Content.Where(_ => _.FundingStreams.Any(fs => fs.Id == fundingStreamId) && _.ProviderSnapshotId != providerSnapShotId);
+            return specificationsWithProviderVersionUpdateResponse.Content.Where(_ => _.FundingStreams.Any(fs => fs.Id == fundingStreamId) /*&& _.ProviderSnapshotId != providerSnapShotId*/);
         }
 
         private async Task EditSpecifications(
             ProviderSnapshot latestProviderSnapshot,
-            IEnumerable<SpecificationSummary> specificationSummaries)
+            IEnumerable<SpecificationSummary> specificationSummaries,
+            List<ProviderSnapShotByFundingPeriod> latestproviderSnapShotByFundingPeriod)
         {
             IEnumerable<FundingConfiguration> fundingStreamConfigurations = await GetFundingConfigurationsByFundingStreamId(latestProviderSnapshot.FundingStreamCode);
 
@@ -252,34 +250,36 @@ namespace CalculateFunding.Services.Providers
                     continue;
                 }
 
-                int latestProviderSnapshotId = latestProviderSnapshot.ProviderSnapshotId;
-
-                if (periodsWithUpdatesEnabled.Any(_ => 
-                    _.FundingPeriodId == specificationSummary.FundingPeriod.Id &&
-                    _.FundingStreamId == fundingStreamId) && specificationSummary.ProviderSnapshotId != latestProviderSnapshotId)
+                foreach(ProviderSnapShotByFundingPeriod latestproviderSnapShotId in latestproviderSnapShotByFundingPeriod)
                 {
-                    if (await _publishingJobClashCheck.PublishingJobsClashWithFundingStreamCoreProviderUpdate(specificationSummary.GetSpecificationId()))
+                    if (periodsWithUpdatesEnabled.Any(_ =>
+                    _.FundingPeriodId == specificationSummary.FundingPeriod.Id &&
+                    _.FundingStreamId == fundingStreamId) && specificationSummary.ProviderSnapshotId != latestproviderSnapShotId.ProviderSnapshotId 
+                     && specificationSummary.FundingPeriod.Id == latestproviderSnapShotId.FundingPeriodName)
                     {
-                        _logger.Information($"Skipping Update Specification Provider Version for funding stream ID: {fundingStreamId}. " +
-                                       $"Latest provider snapshot ID: {latestProviderSnapshotId} as detected publishing jobs running for specifications using an earlier snapshot of this provider data");
+                        if (await _publishingJobClashCheck.PublishingJobsClashWithFundingStreamCoreProviderUpdate(specificationSummary.GetSpecificationId()))
+                        {
+                            _logger.Information($"Skipping Update Specification Provider Version for funding stream ID: {fundingStreamId}. " +
+                                           $"Latest provider snapshot ID: {latestproviderSnapShotId.ProviderSnapshotId} as detected publishing jobs running for specifications using an earlier snapshot of this provider data");
 
-                        continue;
+                            continue;
+                        }
+
+                        await _specificationsApiClientPolicy.ExecuteAsync(() =>
+                                _specificationsApiClient.UpdateSpecification(
+                                    specificationSummary.Id,
+                                    new EditSpecificationModel
+                                    {
+                                        Name = specificationSummary.Name,
+                                        Description = specificationSummary.Description,
+                                        FundingStreamId = fundingStreamId,
+                                        FundingPeriodId = specificationSummary.FundingPeriod.Id,
+                                        ProviderVersionId = latestproviderSnapShotId.ProviderVersionId,
+                                        ProviderSnapshotId = latestproviderSnapShotId.ProviderSnapshotId,
+                                        CoreProviderVersionUpdates = CoreProviderVersionUpdates.UseLatest
+                                    }));
                     }
-
-                    await _specificationsApiClientPolicy.ExecuteAsync(() =>
-                            _specificationsApiClient.UpdateSpecification(
-                                specificationSummary.Id,
-                                new EditSpecificationModel
-                                {
-                                    Name = specificationSummary.Name,
-                                    Description = specificationSummary.Description,
-                                    FundingStreamId = fundingStreamId,
-                                    FundingPeriodId = specificationSummary.FundingPeriod.Id,
-                                    ProviderVersionId = specificationSummary.ProviderVersionId,
-                                    ProviderSnapshotId = latestProviderSnapshotId,
-                                    CoreProviderVersionUpdates = CoreProviderVersionUpdates.UseLatest
-                                }));
-                }
+                }              
             }
         }
 

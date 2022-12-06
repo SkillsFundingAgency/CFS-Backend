@@ -17,7 +17,6 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Providers.MappingProfiles;
 using CalculateFunding.Tests.Common.Helpers;
@@ -41,9 +40,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private const string JobId = "jobId";
         private const string FundingStreamId = "fundingstream-id";
         private const string ProviderSnapshotId = "providersnapshot-id";
+        private const string FundingPeriodId = "fundingperiod-id";
 
         private ProviderVersionUpdateService _service;
-        private Mock<ICacheProvider> _cachProvider;
         private Mock<IPoliciesApiClient> _policiesApiClient;
         private Mock<IProviderVersionsMetadataRepository> _providerVersionsMetadataRepository;
         private Mock<IProviderVersionService> _providerVersionService;
@@ -85,7 +84,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _providerVersionService = new Mock<IProviderVersionService>();
             _logger = new Mock<ILogger>();
             _jobManagement = new Mock<IJobManagement>();
-            _cachProvider = new Mock<ICacheProvider>();
 
             ProvidersResiliencePolicies providersResiliencePolicies = new ProvidersResiliencePolicies
             {
@@ -167,7 +165,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Version = 3,
                 ProviderSnapshotId = _latestProviderSnapshotId,
                 FundingStreamCode = _fundingStreamId,
-                FundingPeriodName = NewRandomString(),
+                FundingPeriodName = _fundingPeriodId,
             };
 
             _providerSnapshots = new List<ProviderSnapshot>
@@ -178,7 +176,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     Version = 1,
                     ProviderSnapshotId = previousProviderSnapshotId,
                     FundingStreamCode = NewRandomString(),
-                    FundingPeriodName = NewRandomString(),
+                    FundingPeriodName = _fundingPeriodId,
                 },
                 new ProviderSnapshot
                 {
@@ -186,7 +184,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     Version = 2,
                     ProviderSnapshotId = previousProviderSnapshotId,
                     FundingStreamCode = NewRandomString(),
-                    FundingPeriodName = NewRandomString(),
+                    FundingPeriodName = _fundingPeriodId,
                 },
                 latestProviderSnapshot
             };
@@ -275,10 +273,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 AndTheCurrentProviderVersions();
             }
             AndTheCurrentProviderVersionSaved();
+            AndTheCurrentProviderVersionsMetadata();
             AndTheFundingConfigurationsForTheFundingStreamId();
             AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod();
             AndTheMetadataFundingStreams();
             AndTheProviderSnapshotsForFundingStream();
+            AndTheProviderSnapshotsForFundingStreamWithFundingPeriod();
             AndTheFundingDataZoneProvidersForTheSnapshot(expectedProviderOne, expectedProviderTwo);
             AndTheSpecificationsUseTheLatestProviderSnapshot();
             AndTheProviderVersionUploadSucceeds(null, expectedProviderOne.ProviderId, expectedProviderTwo.ProviderId);
@@ -294,10 +294,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
             GivenTheFundingStreams();
             AndTheCurrentProviderVersions();
             AndTheCurrentProviderVersionSaved();
+            AndTheCurrentProviderVersionsMetadata();
             AndTheFundingConfigurationsForTheFundingStreamId();
             AndTheFundingDataZoneProvidersForTheSnapshotForAllFundingStreamsWithFundingPeriod();
             AndTheMetadataFundingStreams();
             AndTheProviderSnapshotsForFundingStream();
+            AndTheProviderSnapshotsForFundingStreamWithFundingPeriod();
             AndTheFundingDataZoneProvidersForTheSnapshot();
             AndTheProviderVersionUploadSucceeds(null);
             AndNoSpecificationsUseTheLatestProviderVersion();
@@ -377,6 +379,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Setup(_ => _.GetAllCurrentProviderVersions())
                 .ReturnsAsync(new List<CurrentProviderVersion>(_currentProviderVersions));
 
+        private void AndTheCurrentProviderVersionsMetadata() =>
+            _providerVersionsMetadataRepository
+                .Setup(_ => _.GetCurrentProviderVersion(_fundingStreamId))
+                .ReturnsAsync(new CurrentProviderVersion() { ProviderSnapshotId = _latestProviderSnapshotId, Id = $"Current_{_fundingStreamId}"});
+
         private void AndTheCurrentProviderVersionSaved() =>
             _providerVersionsMetadataRepository
                 .Setup(_ => _.UpsertCurrentProviderVersion(It.Is<CurrentProviderVersion>(cpv => cpv.Id == $"Current_{_fundingStreamId}" &&
@@ -387,6 +394,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private void AndTheProviderSnapshotsForFundingStream() =>
             _fundingDataZoneApiClient
                 .Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreams())
+                .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, _providerSnapshots));
+        private void AndTheProviderSnapshotsForFundingStreamWithFundingPeriod() =>
+            _fundingDataZoneApiClient
+                .Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod())
                 .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, _providerSnapshots));
 
         private void AndTheFundingDataZoneProvidersForTheSnapshot(params FundingDataZoneProvider[] providers)
@@ -444,7 +455,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             MessageBuilder messageBuilder = new MessageBuilder()
                 .WithUserProperty(JobId, _jobId)
                 .WithUserProperty(FundingStreamId, _fundingStreamId)
-                .WithUserProperty(ProviderSnapshotId, _latestProviderSnapshotId.ToString());
+                .WithUserProperty(ProviderSnapshotId, _latestProviderSnapshotId.ToString())
+                .WithUserProperty(FundingPeriodId, _fundingPeriodId);
 
             overrides?.Invoke(messageBuilder);
 

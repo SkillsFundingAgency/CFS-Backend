@@ -105,8 +105,10 @@ namespace CalculateFunding.Services.Specs
                         { "specification-id", specificationVersion.SpecificationId},
                         { "fundingstream-id", fundingStream.Id},
                         { "providerSanpshot-id", specificationVersion.ProviderSnapshotId?.ToString() },
-                        { "disableQueueCalculationJob", (!triggerCalculationEngineRunJob).ToString()}
+                        { "disableQueueCalculationJob", (!triggerCalculationEngineRunJob).ToString()},
+                        {"fundingPeriod-id", specificationVersion.FundingPeriod.Id.ToString() }
                         },
+
                         parentJobId: createEditSpecificationJob.Id)
                     );
 

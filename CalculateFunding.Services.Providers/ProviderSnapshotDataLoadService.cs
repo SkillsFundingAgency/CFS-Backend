@@ -43,6 +43,7 @@ namespace CalculateFunding.Services.Providers
         private readonly IJobManagement _jobManagement;
         private readonly AsyncPolicy _fundingDataZoneApiClientPolicy;
         private readonly IProviderSnapshotPersistService _providerSnapshotPersistService;
+        private const string FundingPeriodIdKey = "fundingPeriod-id";
 
         public ProviderSnapshotDataLoadService(ILogger logger,
             ISpecificationsApiClient specificationsApiClient,
@@ -95,6 +96,7 @@ namespace CalculateFunding.Services.Providers
             string fundingStreamId = message.GetUserProperty<string>(FundingStreamIdKey);
             string providerSnapshotIdValue = message.GetUserProperty<string>(ProviderSnapshotIdKey);
             string disableQueueCalculationJob = message.GetUserProperty<string>(DisableQueueCalculationJobKey);
+            string fundingPeriodId = message.GetUserProperty<string>(FundingPeriodIdKey);
 
             Reference user = message.GetUserDetails();
             string correlationId = message.GetCorrelationId();
@@ -104,7 +106,7 @@ namespace CalculateFunding.Services.Providers
                 throw new NonRetriableException("Invalid provider snapshot id");
             }
 
-            ProviderSnapshot providerSnapshot = await GetProviderSnapshot(fundingStreamId, providerSnapshotId);
+            ProviderSnapshot providerSnapshot = await GetProviderSnapshot(fundingStreamId, providerSnapshotId, fundingPeriodId);
 
             bool success = await _providerSnapshotPersistService.PersistSnapshot(providerSnapshot);
 
@@ -199,10 +201,10 @@ namespace CalculateFunding.Services.Providers
             };
         }
 
-        private async Task<ProviderSnapshot> GetProviderSnapshot(string fundingStreamId, int providerSnapshotId)
+        private async Task<ProviderSnapshot> GetProviderSnapshot(string fundingStreamId, int providerSnapshotId, string fundingPeriodId)
         {
             ApiResponse<IEnumerable<ProviderSnapshot>> fundingStreamProviderSnapshotsResponse = await _fundingDataZoneApiClientPolicy.ExecuteAsync(
-                            () => _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(fundingStreamId));
+                            () => _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(fundingStreamId, fundingPeriodId));
 
             if (!fundingStreamProviderSnapshotsResponse.StatusCode.IsSuccess())
             {

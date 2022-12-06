@@ -12,5 +12,7 @@ namespace CalculateFunding.Models.Specs
 
         [Required]
         public string FundingStreamId { get; set; }
+
+        public string FundingPeriodId { get; set; }
     }
 }

@@ -86,6 +86,7 @@ namespace CalculateFunding.Services.Specs
                     FundingStreamId = fundingStream.Id,
                     ProviderSnapshotId = specificationVersion.ProviderSnapshotId.Value,
                     SpecificationId = versionSpecificationId,
+                    FundingPeriodId = fundingPeriodId,
                 }, user, correlationId);
             }
         }
@@ -103,7 +104,8 @@ namespace CalculateFunding.Services.Specs
                 {
                         {"specification-id", request.SpecificationId},
                         {"fundingstream-id", request.FundingStreamId },
-                        {"providerSanpshot-id", request.ProviderSnapshotId.ToString() }
+                        {"providerSanpshot-id", request.ProviderSnapshotId.ToString() },
+                        {"fundingPeriod-id", request.FundingPeriodId.ToString() }
                 }));
 
             GuardAgainstNullJob(createProviderSnapshotDataLoadJob, errorMessage);

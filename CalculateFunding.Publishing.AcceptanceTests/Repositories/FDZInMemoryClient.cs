@@ -100,7 +100,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<ApiResponse<IEnumerable<ProviderSnapshot>>> GetLatestProviderSnapshotsForAllFundingStreamsWithFundingPeriod()
         {
-            throw new NotImplementedException();
+            return (Task<ApiResponse<IEnumerable<ProviderSnapshot>>>)Enumerable.Empty<ProviderSnapshot>();
         }
     }
 }
