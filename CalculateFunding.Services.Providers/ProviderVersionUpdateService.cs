@@ -127,11 +127,13 @@ namespace CalculateFunding.Services.Providers
             }
 
             CurrentProviderVersionMetadata currentProviderSnapshot = await GetMetadataForFundingStream(latestProviderSnapshot.FundingStreamCode);
-            var currentProviderSnapShotByFundingPeriodMeta = currentProviderSnapshot.FundingPeriod;
-
+    
             var latestproviderSnapShotByFundingPeriod = SnapshotIdWithFundingPeriod.Where(_ => _.FundingStreamCode == fundingStreamId)
                 .Select(_ => new ProviderSnapShotByFundingPeriod() { FundingPeriodName = _.FundingPeriodName, ProviderSnapshotId = _.ProviderSnapshotId, ProviderVersionId = _.ProviderVersionId }).ToList();
-            bool isLatestSnapShotByFundingPeriodAvailable = latestproviderSnapShotByFundingPeriod.Where(_ => !currentProviderSnapShotByFundingPeriodMeta.Select(_ => _.ProviderSnapshotId).Contains(_.ProviderSnapshotId)).ToList().Any();
+            
+            bool isLatestSnapShotByFundingPeriodAvailable = (currentProviderSnapshot != null)
+                  ? latestproviderSnapShotByFundingPeriod.Where(_ => !currentProviderSnapshot.FundingPeriod.Select(_ => _.ProviderSnapshotId).Contains(_.ProviderSnapshotId)).ToList().Any()
+                  : true;
 
             if (currentProviderSnapshot?.ProviderSnapshotId != latestProviderSnapshot.ProviderSnapshotId || isLatestSnapShotByFundingPeriodAvailable)
             {
