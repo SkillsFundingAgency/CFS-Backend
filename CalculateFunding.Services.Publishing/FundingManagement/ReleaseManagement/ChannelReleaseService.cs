@@ -12,6 +12,7 @@ using CalculateFunding.Services.Publishing.Models;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using VariationReason = CalculateFunding.Models.Publishing.VariationReason;
@@ -258,7 +259,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             #endregion
 
             #region SavePublishedFundingContents
-
+            Stopwatch stopwatch = Stopwatch.StartNew();
             _logger.Information("Retrieving funding group channel versions for specification '{Id}'", specification.Id);
             IEnumerable<LatestProviderVersionInFundingGroup> fundingGroupVersions = await _repo.GetLatestProviderVersionChannelVersionInFundingGroups(specification.Id);
             _logger.Information("Building funding group dictionary for specification '{Id}'", specification.Id);
@@ -297,6 +298,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 .SavePublishedFundingContents(publishedFundingVersions, channel);
 
             _logger.Information("Completed release for channel '{ChannelCode}'", channel.ChannelCode);
+            stopwatch.Stop();
+            _logger.Information("Time taken to complete the performance improved code block execution ********** -  " + stopwatch.ElapsedMilliseconds);
             #endregion
         }
     }
