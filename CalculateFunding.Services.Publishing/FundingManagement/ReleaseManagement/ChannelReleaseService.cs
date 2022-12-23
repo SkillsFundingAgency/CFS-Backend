@@ -230,6 +230,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             await _fundingGroupProviderPersistenceService.PersistFundingGroupProviders(channel.ChannelId, fundingGroupData, providersInGroupsToRelease);
 
             #region SavePublishedProviderContents
+            Stopwatch stopwatch = Stopwatch.StartNew();
             _logger.Information("Retrieving existing latest versions of providers in channel after updating the ChannelVersions");
             IEnumerable<Channel> channels = await _repo.GetChannels();
             //ReleaseManagement: No need to add SpecToSpec for now
@@ -256,17 +257,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _logger.Information("Persisting released provider blob document contents for channel '{ChannelCode}'", channel.ChannelCode);
             await _publishedProviderContentChannelPersistenceService
                 .SavePublishedProviderContents(specification, providersToReleaseInBatch, channel, variationReasonsForProviders);
+            stopwatch.Stop();
+            _logger.Information("1. SavePublishedProviderContents - Time taken to complete the performance improved code block execution ********** -  " + stopwatch.ElapsedMilliseconds);
             #endregion
 
             #region SavePublishedFundingContents
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            stopwatch = Stopwatch.StartNew();
             _logger.Information("Retrieving funding group channel versions for specification '{Id}'", specification.Id);
             IEnumerable<LatestProviderVersionInFundingGroup> fundingGroupVersions = await _repo.GetLatestProviderVersionChannelVersionInFundingGroups(specification.Id);
             _logger.Information("Building funding group dictionary for specification '{Id}'", specification.Id);
-            Dictionary<string, LatestProviderVersionInFundingGroup> fundingGroupVersionsDict = 
-                fundingGroupVersions?.ToDictionary(_ => $"{_.ChannelId}-{_.ProviderId}-{_.GroupingReasonCode}-{_.OrganisationGroupTypeCode}-{_.OrganisationGroupIdentifierValue}", _ => _) 
-                                                                                                    ?? new Dictionary<string, LatestProviderVersionInFundingGroup>();
-
+            
             IEnumerable<PublishedFundingVersion> publishedFundingVersions = fundingGroupData.Select(_ => _.PublishedFundingVersion);
             
             _logger.Information("Adding funding group channel version for channel '{ChannelCode}'", channel.ChannelCode);
@@ -277,10 +277,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     List<ChannelVersion> channelVersions = new List<ChannelVersion>();
                     channels.ForEach(c =>
                     {
-                        LatestProviderVersionInFundingGroup fundingGroupVersion = null;
-                        fundingGroupVersionsDict.TryGetValue(
-                            $"{c.ChannelId}-{p.ProviderId}-{fgd.PublishedFundingVersion.GroupingReason}-{fgd.PublishedFundingVersion.OrganisationGroupTypeCode}-{fgd.PublishedFundingVersion.OrganisationGroupIdentifierValue}",
-                            out fundingGroupVersion);
+                        var fundingGroupVersionList = fundingGroupVersions.Where(_ => _.ProviderId == p.ProviderId && _.ChannelId == c.ChannelId).ToList();
+                        var fundingGroupVersion = (fundingGroupVersionList.Count() > 1)
+                                ? fundingGroupVersionList.Where(_ => _.FundingId.Contains(fgd.PublishedFundingVersion.OrganisationGroupIdentifierValue)).FirstOrDefault()
+                                : fundingGroupVersionList.FirstOrDefault();
 
                         int fundingGroupChannelVersion = fundingGroupVersion != null ? fundingGroupVersion.ChannelVersion : 0;
                         channelVersions.Add(new ChannelVersion
@@ -299,7 +299,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             _logger.Information("Completed release for channel '{ChannelCode}'", channel.ChannelCode);
             stopwatch.Stop();
-            _logger.Information("Time taken to complete the performance improved code block execution ********** -  " + stopwatch.ElapsedMilliseconds);
+            _logger.Information("2. SavePublishedFundingContents - Time taken to complete the performance improved code block execution ********** -  " + stopwatch.ElapsedMilliseconds);
             #endregion
         }
     }
