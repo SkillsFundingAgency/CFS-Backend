@@ -310,7 +310,7 @@ Scenario Outline: Release a new major version of a provider to a single channel 
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
-		| ChannelVersion                   | 1                                    |
+		| ChannelVersion                   | 2                                    |
 	And there are a total of '5' released provider version channel records created in the release management repository
 
 	And there is a released provider channel variation created in the release management repository

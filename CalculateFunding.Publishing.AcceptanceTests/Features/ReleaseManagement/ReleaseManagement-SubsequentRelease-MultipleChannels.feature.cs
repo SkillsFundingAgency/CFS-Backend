@@ -1041,7 +1041,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", authorName)});
                 table1290.AddRow(new string[] {
                             "ChannelVersion",
-                            "1"});
+                            "2"});
 #line 307
  testRunner.And("there is a released provider version channel record created in the release manage" +
                         "ment repository", ((string)(null)), table1290, "And ");
@@ -1069,7 +1069,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", authorName)});
                 table1291.AddRow(new string[] {
                             "ChannelVersion",
-                            "1"});
+                            "2"});
 #line 316
  testRunner.And("there is a released provider version channel record created in the release manage" +
                         "ment repository", ((string)(null)), table1291, "And ");

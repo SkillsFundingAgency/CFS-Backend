@@ -312,7 +312,7 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
-		| ChannelVersion                   | 1                                    |
+		| ChannelVersion                   | 2                                    |
 	And there is a released provider version channel record created in the release management repository
 		| Field                            | Value                                |
 		| ReleasedProviderVersionChannelId | 00000000-0000-0000-0000-000000000006 |
@@ -321,7 +321,7 @@ Scenario Outline: Release a new major version of a provider which has already be
 		| StatusChangedDate                | <CurrentDateTime>                    |
 		| AuthorId                         | <AuthorId>                           |
 		| AuthorName                       | <AuthorName>                         |
-		| ChannelVersion                   | 1                                    |
+		| ChannelVersion                   | 2                                    |
 	And there are a total of '6' released provider version channel records created in the release management repository
 
 	And there is a released provider channel variation created in the release management repository

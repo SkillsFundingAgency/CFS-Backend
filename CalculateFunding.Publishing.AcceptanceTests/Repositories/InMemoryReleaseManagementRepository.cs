@@ -1097,5 +1097,33 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(GetReleasedProviders(specificationId, ids).Result.FirstOrDefault());
         }
+
+        public Task<IEnumerable<ReleasedProviderVersionChannelResult>> GetLatestReleasedProviderVersionsId(string specificationId, int channelId, ISqlTransaction transaction = null)
+        {
+            IEnumerable<ReleasedProviderVersionChannel> versionChannels = _releasedProviderVersionChannels.Values
+                    .Where(_ => _.ChannelId == channelId);
+
+            var mapping = versionChannels.Join(_releasedProviderVersions.Values,
+                rpvc => rpvc.ReleasedProviderVersionId,
+                rpv => rpv.ReleasedProviderVersionId,
+                (rpvc, rpv) => (rpvc, rpvc.ReleasedProviderVersionChannelId, rpv.ReleasedProviderVersionId, rpv.ReleasedProviderId))
+                
+                .Join(_releasedProviders.Values,
+                rpvc => rpvc.ReleasedProviderId,
+                rp => rp.ReleasedProviderId,
+                (rpvc, rp) => (rpvc.rpvc, rpvc.ReleasedProviderVersionChannelId, rpvc.ReleasedProviderVersionId, rpvc.ReleasedProviderId, rp.ProviderId));
+
+            return Task.FromResult(mapping.Select(_ => new ReleasedProviderVersionChannelResult
+            {
+                ProviderId = _.ProviderId,
+                ReleasedProviderVersionChannelId = _.rpvc.ReleasedProviderVersionChannelId,
+                ReleasedProviderVersionId = _.rpvc.ReleasedProviderVersionId,
+                ChannelId = _.rpvc.ChannelId,
+                StatusChangedDate = _.rpvc.StatusChangedDate,
+                AuthorId = _.rpvc.AuthorId,
+                AuthorName = _.rpvc.AuthorName,
+                ChannelVersion = _.rpvc.ChannelVersion
+            }));
+        }
     }
 }

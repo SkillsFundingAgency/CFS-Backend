@@ -1122,6 +1122,27 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 new { specificationId, providerIds, channelId }, transaction);
         }
 
+        public async Task<IEnumerable<ReleasedProviderVersionChannelResult>> GetLatestReleasedProviderVersionsId(string specificationId, int channelId, ISqlTransaction transaction = null)
+        {
+            return await QuerySql<ReleasedProviderVersionChannelResult>(@$"
+                SELECT RPVC.*, RP.ProviderId
+                FROM ReleasedProviderVersionChannels RPVC
+                INNER JOIN ReleasedProviderVersions RPV on RPV.ReleasedProviderVersionId = RPVC.ReleasedProviderVersionId
+                INNER JOIN (
+                SELECT Max(MajorVersion) As MajorVersion, RPV.ReleasedProviderId, RPVC.ChannelId
+                FROM ReleasedProviderVersions RPV
+                INNER JOIN ReleasedProviders RP ON RPV.ReleasedProviderId = RP.ReleasedProviderId
+                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
+                WHERE RP.SpecificationId = @{nameof(specificationId)}
+                GROUP BY RPV.ReleasedProviderId, RPVC.ChannelId) LatestVersion ON LatestVersion.ChannelId = RPVC.[ChannelId]
+                AND LatestVersion.MajorVersion = RPV.MajorVersion
+                AND LatestVersion.ReleasedProviderId = RPV.ReleasedProviderId
+               INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+                INNER JOIN Channels C ON C.ChannelId = RPVC.ChannelId
+                WHERE RPVC.ChannelId =  @{nameof(channelId)}",
+                new { specificationId, channelId }, transaction);
+        }
+
         public async Task<ReleasedProvider> CheckIsExistingReleaseProviderId(string providerId ,string specificationId)
         {         
             return await QuerySingleSql<ReleasedProvider>(@$"SELECT * FROM ReleasedProviders  
