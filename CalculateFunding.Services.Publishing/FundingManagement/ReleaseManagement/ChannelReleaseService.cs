@@ -266,7 +266,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _logger.Information("Retrieving funding group channel versions for specification '{Id}'", specification.Id);
             IEnumerable<LatestProviderVersionInFundingGroup> fundingGroupVersions = await _repo.GetLatestProviderVersionChannelVersionInFundingGroups(specification.Id);
             _logger.Information("Building funding group dictionary for specification '{Id}'", specification.Id);
-            
+            Dictionary<string, LatestProviderVersionInFundingGroup> fundingGroupVersionsDict =
+                fundingGroupVersions?.ToDictionary(_ => $"{_.ChannelId}-{_.ProviderId}-{_.GroupingReasonCode}-{_.OrganisationGroupTypeCode}-{_.OrganisationGroupIdentifierValue}", _ => _)
+                                                                                                    ?? new Dictionary<string, LatestProviderVersionInFundingGroup>();
+
             IEnumerable<PublishedFundingVersion> publishedFundingVersions = fundingGroupData.Select(_ => _.PublishedFundingVersion);
             
             _logger.Information("Adding funding group channel version for channel '{ChannelCode}'", channel.ChannelCode);
@@ -277,10 +280,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     List<ChannelVersion> channelVersions = new List<ChannelVersion>();
                     channels.ForEach(c =>
                     {
-                        var fundingGroupVersionList = fundingGroupVersions.Where(_ => _.ProviderId == p.ProviderId && _.ChannelId == c.ChannelId).ToList();
-                        var fundingGroupVersion = (fundingGroupVersionList.Count() > 1)
-                                ? fundingGroupVersionList.Where(_ => _.FundingId.Contains(fgd.PublishedFundingVersion.OrganisationGroupIdentifierValue)).FirstOrDefault()
-                                : fundingGroupVersionList.FirstOrDefault();
+                        LatestProviderVersionInFundingGroup fundingGroupVersion = null;
+                        fundingGroupVersionsDict.TryGetValue(
+                            $"{c.ChannelId}-{p.ProviderId}-{fgd.PublishedFundingVersion.GroupingReason}-{fgd.PublishedFundingVersion.OrganisationGroupTypeCode}-{fgd.PublishedFundingVersion.OrganisationGroupIdentifierValue}",
+                            out fundingGroupVersion);
 
                         int fundingGroupChannelVersion = fundingGroupVersion != null ? fundingGroupVersion.ChannelVersion : 0;
                         channelVersions.Add(new ChannelVersion
