@@ -12,7 +12,6 @@ using CalculateFunding.Services.Publishing.Models;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using VariationReason = CalculateFunding.Models.Publishing.VariationReason;
@@ -230,7 +229,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             await _fundingGroupProviderPersistenceService.PersistFundingGroupProviders(channel.ChannelId, fundingGroupData, providersInGroupsToRelease);
 
             #region SavePublishedProviderContents
-            Stopwatch stopwatch = Stopwatch.StartNew();
             _logger.Information("Retrieving existing latest versions of providers in channel after updating the ChannelVersions");
             IEnumerable<Channel> channels = await _repo.GetChannels();
             //ReleaseManagement: No need to add SpecToSpec for now
@@ -257,17 +255,15 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _logger.Information("Persisting released provider blob document contents for channel '{ChannelCode}'", channel.ChannelCode);
             await _publishedProviderContentChannelPersistenceService
                 .SavePublishedProviderContents(specification, providersToReleaseInBatch, channel, variationReasonsForProviders);
-            stopwatch.Stop();
-            _logger.Information("1. SavePublishedProviderContents - Time taken to complete the performance improved code block execution ********** -  " + stopwatch.ElapsedMilliseconds);
             #endregion
 
             #region SavePublishedFundingContents
-            stopwatch = Stopwatch.StartNew();
+
             _logger.Information("Retrieving funding group channel versions for specification '{Id}'", specification.Id);
             IEnumerable<LatestProviderVersionInFundingGroup> fundingGroupVersions = await _repo.GetLatestProviderVersionChannelVersionInFundingGroups(specification.Id);
             _logger.Information("Building funding group dictionary for specification '{Id}'", specification.Id);
-            Dictionary<string, LatestProviderVersionInFundingGroup> fundingGroupVersionsDict =
-                fundingGroupVersions?.ToDictionary(_ => $"{_.ChannelId}-{_.ProviderId}-{_.GroupingReasonCode}-{_.OrganisationGroupTypeCode}-{_.OrganisationGroupIdentifierValue}", _ => _)
+            Dictionary<string, LatestProviderVersionInFundingGroup> fundingGroupVersionsDict = 
+                fundingGroupVersions?.ToDictionary(_ => $"{_.ChannelId}-{_.ProviderId}-{_.GroupingReasonCode}-{_.OrganisationGroupTypeCode}-{_.OrganisationGroupIdentifierValue}", _ => _) 
                                                                                                     ?? new Dictionary<string, LatestProviderVersionInFundingGroup>();
 
             IEnumerable<PublishedFundingVersion> publishedFundingVersions = fundingGroupData.Select(_ => _.PublishedFundingVersion);
@@ -301,8 +297,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 .SavePublishedFundingContents(publishedFundingVersions, channel);
 
             _logger.Information("Completed release for channel '{ChannelCode}'", channel.ChannelCode);
-            stopwatch.Stop();
-            _logger.Information("2. SavePublishedFundingContents - Time taken to complete the performance improved code block execution ********** -  " + stopwatch.ElapsedMilliseconds);
             #endregion
         }
     }

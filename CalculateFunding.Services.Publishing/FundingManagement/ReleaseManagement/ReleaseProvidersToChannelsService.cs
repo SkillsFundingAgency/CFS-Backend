@@ -19,7 +19,6 @@ using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -166,7 +165,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
         public override async Task Process(Message message)
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
             Guard.ArgumentNotNull(message, nameof(message));
 
             string jobId = Job?.Id;
@@ -247,12 +245,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                 _logger.Information("Queued published provider search indexer in release to channels job '{jobId}' in specification '{specificationId}'", jobId, specificationId);
 
                 _logger.Error(ex, "Error releasing provider versions in specification '{specificationId}'", specificationId);
-                stopwatch.Stop();
-                _logger.Information("Exception Time taken to complete the entire releasing code block execution with exception ********** -  " + stopwatch.ElapsedMilliseconds);
                 throw;
             }
-            stopwatch.Stop();
-            _logger.Information("Time taken to complete the entire releasing code block execution without exception ********** -  " + stopwatch.ElapsedMilliseconds);
+
             _logger.Information("Completed release to channels job '{jobId}' on specification '{specificationId}' successfully", jobId,  specificationId);
         }
 
