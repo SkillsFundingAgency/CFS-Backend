@@ -236,13 +236,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             IEnumerable<ProviderVersionInChannel> latestVersionOfProvidersInChannel = await _repo.GetLatestPublishedProviderVersionsByChannelIdUsingAmbientTransaction(specification.Id, channels.Select(c => c.ChannelId));
             _logger.Information($"Retrieved total of '{latestVersionOfProvidersInChannel.Count()}' latest versions of providers in channel");
 
+            Dictionary<string, ProviderVersionInChannel> latestVersionOfProvidersInChannelDict = (latestVersionOfProvidersInChannel?
+                .ToDictionary(_ => $"{_.ChannelId}-{_.ProviderId}", _ => _)) ?? new Dictionary<string, ProviderVersionInChannel>();
+
             providersToReleaseInBatch.ForEach(providerToRelease =>
             {
-                var publishedVersionChannels = latestVersionOfProvidersInChannel.Where(s => s.ProviderId == providerToRelease.ProviderId);
                 List<ChannelVersion> channelVersions = new List<ChannelVersion>();
                 channels.ForEach(channel =>
                 {
-                    var publishedVersionChannel = publishedVersionChannels.Where(s => s.ChannelId == channel.ChannelId).FirstOrDefault();
+                    ProviderVersionInChannel publishedVersionChannel = null;
+                    latestVersionOfProvidersInChannelDict.TryGetValue($"{channel.ChannelId}-{providerToRelease.ProviderId}", out publishedVersionChannel);
                     channelVersions.Add(new ChannelVersion
                     {
                         type = channel.ChannelName,
