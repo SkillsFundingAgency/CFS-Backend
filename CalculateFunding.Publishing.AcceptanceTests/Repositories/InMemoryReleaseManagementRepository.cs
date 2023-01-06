@@ -1006,6 +1006,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                         _.FundingGroupId == fundingGroupId
                         && _.ChannelId == channelId));
         }
+        public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionChannelForAllFundingId(IEnumerable<Guid> fundingGroupIds, int channelId, ISqlTransaction transaction = null)
+        {
+            return (_fundingGroupVersions.Values
+                    .Where(_ =>
+                    fundingGroupIds.Contains(_.FundingGroupId) && _.ChannelId == channelId)).GroupBy(_ => _.FundingGroupId).Select(_=>_.First());
+        }
         public async Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionChannelVersionInFundingGroups(string specificationId)
         {
             return Enumerable.Empty<LatestProviderVersionInFundingGroup>();
