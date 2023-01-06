@@ -11,7 +11,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 {
     public class ReleaseCandidateService : IReleaseCandidateService
     {
-        private string[] fundsTransferChannels1 = { "Contracting", "Payment" , "SpecToSpec" };
         private string[] fundsTransferChannels = { ChannelType.Contracting.ToString(), ChannelType.Payment.ToString(), ChannelType.SpecToSpec.ToString() };
 
         public bool IsReleaseCandidate(PublishedProviderVersion publishedProviderVersion, IEnumerable<ReleaseChannel> releaseChannels)
@@ -25,7 +24,10 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             {
                 return false;
             }
-
+            if (publishedProviderVersion.Status == PublishedProviderStatus.Released && publishedProviderVersion.IsIndicative)
+            {
+                return false;
+            }
             List<int> releasedMajorVersions = releaseChannels.Where(_ => !fundsTransferChannels.Contains(_.ChannelCode))
                 .Select(_ => _.MajorVersion)
                 .ToList();
