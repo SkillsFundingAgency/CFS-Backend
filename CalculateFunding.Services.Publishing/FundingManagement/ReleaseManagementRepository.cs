@@ -795,7 +795,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                   FROM FundingGroupVersions FGV
                   INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
                   INNER JOIN Channels C ON C.ChannelId=FGV.ChannelId 
-                  WHERE FG.SpecificationId =  @{nameof(specificationId)}
+                  WHERE FG.SpecificationId =  @{nameof(specificationId)} AND C.UrlKey != 'spectospec'
                   AND FGV.ChannelVersion > 0", // To Avoid V3 version data
                 new
                 {
@@ -811,7 +811,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 	                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionId=RPV.ReleasedProviderVersionId
 	                INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId=RPV.ReleasedProviderId
 	                INNER JOIN Channels C ON C.ChannelId=RPVC.ChannelId
-	                WHERE RP.SpecificationId=@{nameof(specificationId)}
+	                WHERE RP.SpecificationId=@{nameof(specificationId)} AND C.UrlKey != 'spectospec'
                     AND RPVC.ChannelVersion > 0", // To Avoid V3 version data
                 new
                 {

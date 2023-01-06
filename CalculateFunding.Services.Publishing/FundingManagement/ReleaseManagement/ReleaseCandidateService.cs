@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 {
     public class ReleaseCandidateService : IReleaseCandidateService
     {
-        private string[] fundsTransferChannels = { ChannelType.Contracting.ToString(), ChannelType.Payment.ToString(), ChannelType.SpecToSpec.ToString() };
+        private string[] fundsTransferChannels = { ChannelType.Contracting.ToString(), ChannelType.Payment.ToString()};
 
         public bool IsReleaseCandidate(PublishedProviderVersion publishedProviderVersion, IEnumerable<ReleaseChannel> releaseChannels)
         {
