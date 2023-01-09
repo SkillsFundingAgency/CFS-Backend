@@ -93,7 +93,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<ReleasedProvider> CreateReleasedProvider(ReleasedProvider releasedProvider);
         Task<ReleasedProviderVersion> CreateReleasedProviderVersion(ReleasedProviderVersion releasedProviderVersion);
         Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionChannel(Guid fundingGroupId, int channelId, ISqlTransaction transaction = null);
-        Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionChannelForAllFundingId(IEnumerable<Guid> fundingGroupIds, int channelId, ISqlTransaction transaction = null);
 
         /// <summary>
         /// Get all released providers

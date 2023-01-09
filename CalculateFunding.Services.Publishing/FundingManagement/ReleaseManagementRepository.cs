@@ -1085,25 +1085,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 }, transaction);
         }
 
-        public async Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionChannelForAllFundingId(IEnumerable<Guid> fundingGroupIds, int channelId, ISqlTransaction transaction = null)
-        {
-            return await QuerySql<FundingGroupVersion>($@"
-                WITH ps_cte AS (
-	                SELECT
-		                ps.*,
-		                rownum = ROW_NUMBER() OVER (PARTITION BY  ps.FundingGroupId ORDER BY ps.MajorVersion DESC)
-	                FROM dbo.FundingGroupVersions ps
-	                                WHERE FundingGroupId IN @{nameof(fundingGroupIds)}
-				                AND ChannelId = @{nameof(channelId)}
-                )
-                SELECT 	a.* FROM ps_cte a WHERE a.rownum = 1",
-                new
-                {
-                    fundingGroupIds,
-                    channelId
-                }, transaction);
-        }
-
         public async Task<IEnumerable<ReleasedProviderVersionChannel>> BulkCreateReleasedProviderVersionChannelsUsingAmbientTransaction(IEnumerable<ReleasedProviderVersionChannel> releasedProviderVersionChannels)
         {
             Guard.ArgumentNotNull(_transaction, nameof(_transaction));

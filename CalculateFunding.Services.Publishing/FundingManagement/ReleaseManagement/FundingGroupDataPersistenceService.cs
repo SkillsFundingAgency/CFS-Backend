@@ -44,19 +44,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 
             List<FundingGroupVersion> fundingGroupVersions = new List<FundingGroupVersion>();
             List<FundingGroupVersionVariationReason> createVariationReasons = new List<FundingGroupVersionVariationReason>();
-            List<Guid> fundingGroupIds = new List<Guid>();
-            #region Get all the FGV data from DB to get the channelVersion and to avoid multiple DB call
-            foreach (GeneratedPublishedFunding fundingGroupDataItem in fundingGroupData)
-            {
-                if (_releaseToChannelSqlMappingContext.FundingGroups[channelId].TryGetValue(fundingGroupDataItem.OrganisationGroupResult, out Guid fundingGroupId))
-                { 
-                    fundingGroupIds.Add(fundingGroupId);
-                }
-            }
-            IEnumerable<FundingGroupVersion> fundingGroupVersionsFromDb = await _releaseManagementRepository.GetFundingGroupVersionChannelForAllFundingId(fundingGroupIds, channelId);
-            Dictionary<Guid, FundingGroupVersion> fundingGroupVersionDict = fundingGroupVersionsFromDb?.ToDictionary(_=>_.FundingGroupId, _=>_)
-                ?? new Dictionary<Guid, FundingGroupVersion>();
-            #endregion
+
             foreach (GeneratedPublishedFunding fundingGroupDataItem in fundingGroupData)
             {
                 if (!_releaseToChannelSqlMappingContext.FundingGroups[channelId].TryGetValue(fundingGroupDataItem.OrganisationGroupResult, out Guid fundingGroupId))
@@ -64,13 +52,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     throw new KeyNotFoundException(
                         $"OrganisationGroupResult not found in sql context for published funding id = {fundingGroupDataItem.PublishedFundingVersion.FundingId}");
                 }
+
                 PublishedFundingVersion pfv = fundingGroupDataItem.PublishedFundingVersion;
 
                 if (string.IsNullOrWhiteSpace(pfv.FundingId))
                 {
                     throw new InvalidOperationException("Funding ID is null or empty");
-                }
-                fundingGroupVersionDict.TryGetValue(fundingGroupId, out FundingGroupVersion fgvFromDb);
+                }                
+
                 FundingGroupVersion fundingGroupVersion = new FundingGroupVersion
                 {
                     FundingGroupVersionId = _fundingGroupIdentifierGenerator.GenerateIdentifier(),
@@ -90,7 +79,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     TotalFunding = pfv.TotalFunding ?? 0m,
                     ExternalPublicationDate = pfv.ExternalPublicationDate,
                     EarliestPaymentAvailableDate = pfv.EarliestPaymentAvailableDate,
-                    ChannelVersion = (fgvFromDb != null) ? (fgvFromDb.ChannelVersion + 1) : await GetFundingGroupChannelVersion(fundingGroupId, channelId)
+                    ChannelVersion = await GetFundingGroupChannelVersion(fundingGroupId, channelId)
                 };
 
                 createVariationReasons.AddRange(pfv.VariationReasons.Select(variationReason =>
