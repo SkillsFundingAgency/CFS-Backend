@@ -44,6 +44,12 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canReleaseFunding")]
         public bool CanReleaseFunding { get; set; }
 
+        [JsonProperty("canReleaseFundingForStatement")]
+        public bool CanReleaseFundingForStatement { get; set; }
+
+        [JsonProperty("canReleaseFundingForPaymentOrContract")]
+        public bool CanReleaseFundingForPaymentOrContract { get; set; }
+
         [JsonProperty("canCreateTemplates")]
         public bool CanCreateTemplates { get; set; }
 
@@ -90,6 +96,8 @@ namespace CalculateFunding.Models.Users
                 fundingStreamPermission.CanRefreshFunding == CanRefreshFunding &&
                 fundingStreamPermission.CanApproveFunding == CanApproveFunding &&
                 fundingStreamPermission.CanReleaseFunding == CanReleaseFunding &&
+                fundingStreamPermission.CanReleaseFundingForStatement == CanReleaseFundingForStatement &&
+                fundingStreamPermission.CanReleaseFundingForPaymentOrContract == CanReleaseFundingForPaymentOrContract &&
                 fundingStreamPermission.CanAdministerFundingStream == CanAdministerFundingStream &&
                 fundingStreamPermission.CanApproveSpecification == CanApproveSpecification &&
                 fundingStreamPermission.CanCreateTemplates == CanCreateTemplates &&
@@ -116,6 +124,8 @@ namespace CalculateFunding.Models.Users
                 || CanRefreshFunding
                 || CanApproveFunding
                 || CanReleaseFunding
+                || CanReleaseFundingForStatement
+                || CanReleaseFundingForPaymentOrContract
                 || CanAdministerFundingStream
                 || CanApproveSpecification
                 || CanCreateTemplates

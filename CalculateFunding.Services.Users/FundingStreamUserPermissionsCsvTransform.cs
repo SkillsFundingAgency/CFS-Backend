@@ -52,6 +52,10 @@ namespace CalculateFunding.Services.Users
                     = userFundingStreamPermission.FundingStreamPermission.CanApproveFunding;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanReleaseFunding)]
                     = userFundingStreamPermission.FundingStreamPermission.CanReleaseFunding;
+                row[nameof(userFundingStreamPermission.FundingStreamPermission.CanReleaseFundingForStatement)]
+                   = userFundingStreamPermission.FundingStreamPermission.CanReleaseFundingForStatement;
+                row[nameof(userFundingStreamPermission.FundingStreamPermission.CanReleaseFundingForPaymentOrContract)]
+                  = userFundingStreamPermission.FundingStreamPermission.CanReleaseFundingForPaymentOrContract;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanCreateProfilePattern)]
                     = userFundingStreamPermission.FundingStreamPermission.CanCreateProfilePattern;
                 row[nameof(userFundingStreamPermission.FundingStreamPermission.CanEditProfilePattern)]

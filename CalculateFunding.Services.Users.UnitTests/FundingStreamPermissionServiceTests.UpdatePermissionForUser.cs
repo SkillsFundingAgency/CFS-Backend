@@ -115,6 +115,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanCreateTemplates = true,
                 CanEditTemplates = true,
                 CanApproveTemplates = true,
@@ -159,6 +161,8 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanCreateTemplates = true,
                     CanEditTemplates = true,
                     CanApproveTemplates = true,
@@ -183,6 +187,8 @@ namespace CalculateFunding.Services.Users
                     !p.CanEditSpecification &&
                     !p.CanMapDatasets &&
                     !p.CanReleaseFunding &&
+                    !p.CanReleaseFundingForStatement &&
+                    !p.CanReleaseFundingForPaymentOrContract &&
                     p.CanCreateTemplates &&
                     p.CanEditTemplates &&
                     p.CanApproveTemplates &&
@@ -236,6 +242,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
                 CanAssignProfilePattern = false,
@@ -264,6 +272,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanApproveTemplates = true,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
@@ -306,6 +316,8 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanApproveTemplates = true,
                     CanCreateProfilePattern = false,
                     CanEditProfilePattern = false,
@@ -328,6 +340,8 @@ namespace CalculateFunding.Services.Users
                    !p.CanEditSpecification &&
                    !p.CanMapDatasets &&
                    !p.CanReleaseFunding &&
+                   !p.CanReleaseFundingForStatement &&
+                   !p.CanReleaseFundingForPaymentOrContract &&
                    !p.CanCreateTemplates &&
                    !p.CanEditTemplates &&
                    p.CanApproveTemplates &&
@@ -378,6 +392,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanApproveTemplates = true,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
@@ -407,6 +423,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanApproveTemplates = true,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
@@ -445,6 +463,8 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanApproveTemplates = true,
                     CanCreateProfilePattern = false,
                     CanEditProfilePattern = false,
@@ -497,6 +517,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
                 CanAssignProfilePattern = false,
@@ -525,6 +547,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
                 CanAssignProfilePattern = false,
@@ -582,6 +606,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanApproveTemplates = true,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
@@ -611,6 +637,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanApproveTemplates = false,
                 CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
@@ -649,6 +677,8 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanApproveTemplates = false,
                     CanCreateProfilePattern = false,
                     CanEditProfilePattern = false,
