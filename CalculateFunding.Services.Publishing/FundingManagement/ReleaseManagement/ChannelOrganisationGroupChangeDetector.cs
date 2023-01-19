@@ -32,7 +32,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
         }
 
         public async Task<(IEnumerable<OrganisationGroupResult>, Dictionary<string, PublishedProviderVersion>)> DetermineFundingGroupsToCreateBasedOnProviderVersions(
-            IEnumerable<OrganisationGroupResult> channelOrganisationGroups, 
+            IEnumerable<OrganisationGroupResult> channelOrganisationGroups,
+            Dictionary<string, PublishedProviderVersion> providersToRelease,
             SpecificationSummary specification, 
             Channel channel)
         {
@@ -56,13 +57,14 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
                     continue;
                 }
 
-                IEnumerable<(string,int)> missingProviders = existingProviders.Where(p => organisationGroupResult.Providers.Select(_ => _.ProviderId).All(p2 => p2 != p.ProviderId)).Select(_ => (_.ProviderId, _.MajorVersion));
+                IEnumerable<(string,int,int)> missingProviders = existingProviders.Where(p => organisationGroupResult.Providers.Select(_ => _.ProviderId).All(p2 => p2 != p.ProviderId)).Select(_ => (_.ProviderId, _.MajorVersion, _.LatestReleasedProviderMajorVersion));
+                missingProviders = missingProviders.Where(_ => !providersToRelease.ContainsKey(_.Item1) && (_.Item2 == _.Item3));
                 if (missingProviders.Any())
                 {
                     
                     List<ApiClientProviderModels.Provider> organisationGroupProviders = organisationGroupResult.Providers.ToList();
 
-                    foreach ((string, int) missingProvider in missingProviders)
+                    foreach ((string, int, int) missingProvider in missingProviders)
                     {
                         PublishedProviderVersion providerVersion =
                             await _publishedProvidersLoadContext.LoadProviderVersion(missingProvider.Item1, missingProvider.Item2);

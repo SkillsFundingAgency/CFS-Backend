@@ -19,5 +19,6 @@
         public int ChannelVersion { get; set; }
         public int ChannelId { get; set; }
         public string FundingId { get; set; }
+        public int LatestReleasedProviderMajorVersion { get; set; }
     }
 }

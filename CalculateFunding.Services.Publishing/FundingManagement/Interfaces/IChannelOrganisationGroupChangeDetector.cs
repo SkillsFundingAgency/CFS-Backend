@@ -9,6 +9,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
 {
     public interface IChannelOrganisationGroupChangeDetector
     {
-        Task<(IEnumerable<OrganisationGroupResult>, Dictionary<string, PublishedProviderVersion>)> DetermineFundingGroupsToCreateBasedOnProviderVersions(IEnumerable<OrganisationGroupResult> channelOrganisationGroups, SpecificationSummary specification, Channel channel);
+        Task<(IEnumerable<OrganisationGroupResult>, Dictionary<string, PublishedProviderVersion>)> DetermineFundingGroupsToCreateBasedOnProviderVersions(
+            IEnumerable<OrganisationGroupResult> channelOrganisationGroups, Dictionary<string, PublishedProviderVersion> providersToRelease, SpecificationSummary specification, Channel channel);
     }
 }

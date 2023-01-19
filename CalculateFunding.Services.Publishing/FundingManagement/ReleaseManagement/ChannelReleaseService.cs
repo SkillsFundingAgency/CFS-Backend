@@ -154,6 +154,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
             _logger.Information("Determing which organisation groups to persist with new data for channel '{ChannelCode}'", channel.ChannelCode);
             (IEnumerable<OrganisationGroupResult> organisationGroupsToCreate, Dictionary<string, PublishedProviderVersion> providersInGroupsToCreate) =
                 await _channelOrganisationGroupChangeDetector.DetermineFundingGroupsToCreateBasedOnProviderVersions(allOrganisationGroups,
+                    providersToRelease,
                     specification,
                     channel);
             _logger.Information("A total of '{Count}' new FundingGroups should be created for channel '{ChannelCode}'", organisationGroupsToCreate.Count(), channel.ChannelCode);
