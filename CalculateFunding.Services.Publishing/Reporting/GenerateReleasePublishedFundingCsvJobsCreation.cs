@@ -38,8 +38,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
             tasks.Add(CreatePublishedOrganisationGroupCsvJobs(publishedFundingCsvJobsRequest));
             tasks.Add(CreatePublishedGroupsCsvJob(publishedFundingCsvJobsRequest));
             tasks.Add(CreateProviderCurrentStateSummaryCsvJob(publishedFundingCsvJobsRequest));
-            //Todo Disablinging the  Channel level release functionality for the produciton release
-            //tasks.Add(CreateChannelLevelPublishedGroupCsvJob(publishedFundingCsvJobsRequest));
+            tasks.Add(CreateChannelLevelPublishedGroupCsvJob(publishedFundingCsvJobsRequest));
 
             IEnumerable<Job>[] jobs = await TaskHelper.WhenAllAndThrow(tasks.ToArray());
 

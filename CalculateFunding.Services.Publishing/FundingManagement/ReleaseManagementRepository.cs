@@ -809,12 +809,38 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         public async Task<IEnumerable<FundingChannelVersion>> GetFundingGroupVersionsForSpecificationId(string specificationId)
         {
             return await QuerySql<FundingChannelVersion>($@"
-                SELECT  FGV.FundingId, C.UrlKey AS ChannelCode, FGV.ChannelVersion
-                  FROM FundingGroupVersions FGV
-                  INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
-                  INNER JOIN Channels C ON C.ChannelId=FGV.ChannelId 
-                  WHERE FG.SpecificationId =  @{nameof(specificationId)} AND C.UrlKey != 'spectospec'
-                  AND FGV.ChannelVersion > 0", // To Avoid V3 version data
+                SELECT  FGV.FundingId, 
+		            FGV.MajorVersion AS FundingMajorVersion,
+		            FGV.ChannelVersion AS GroupChannelVersion,
+		            GR.GroupingReasonName AS GroupingReason,
+		            FG.OrganisationGroupTypeCode AS GroupingCode,
+	                FG.OrganisationGroupName AS GroupingName,
+	                FG.OrganisationGroupTypeIdentifier AS GroupingTypeIdentifier,
+		            FG.OrganisationGroupIdentifierValue AS GroupingIdentifierValue,
+		            FG.OrganisationGroupTypeClassification AS GroupingTypeClassification,
+	                FGV.TotalFunding AS GroupingTotalFunding,
+		            FGV.StatusChangedDate AS ReleaseDate,
+		            C.UrlKey AS ChannelCode,
+	                RPV.FundingId AS ProviderFundingId,
+		            RP.ProviderId AS ProviderId,
+		            RPV.MajorVersion AS ProviderMajorVersion,
+		            RPV.TotalFunding AS ProviderTotalFunding,
+		            RPVC.AuthorName AS Auther, 
+		            RPVC.ChannelVersion AS ProviderChannelVersion,
+                    C.ChannelId
+                FROM FundingGroupVersions FGV
+                INNER JOIN 
+	                (SELECT FundingGroupId, MAX(MajorVersion) AS LatestVersion FROM FundingGroupVersions FGVAgg
+	                GROUP BY FundingGroupId) LatestFundingGroupVersion ON FGV.FundingGroupId = LatestFundingGroupVersion.FundingGroupId AND FGV.MajorVersion = LatestFundingGroupVersion.LatestVersion
+                INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
+                INNER JOIN FundingGroupProviders FGP ON FGP.FundingGroupVersionId = FGV.FundingGroupVersionId
+                INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionChannelId = FGP.ReleasedProviderVersionChannelId
+                INNER JOIN ReleasedProviderVersions RPV ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
+                INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+                INNER JOIN GroupingReasons GR ON GR.GroupingReasonId = FGV.GroupingReasonId 
+                INNER JOIN Channels C ON C.ChannelId=FGV.ChannelId 
+                WHERE FG.SpecificationId = @{nameof(specificationId)} 
+                AND FGV.ChannelVersion > 0 AND C.UrlKey != 'spectospec'", // To Avoid V3 version data
                 new
                 {
                     specificationId
