@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Select(_ => (IVariationStrategy)Activator.CreateInstance(_))
                 .ToArray();
 
-            variationStrategies = variationStrategies.Concat(new[] { (IVariationStrategy)new ClosureWithSuccessorVariationStrategy(_providerService.Object) }).ToArray();
+            variationStrategies = variationStrategies.Concat(new[] { (IVariationStrategy)new ClosureWithSuccessorVariationStrategy(_providerService.Object, _logger.Object) }).ToArray();
 
             _batchProfilingService = new Mock<IBatchProfilingService>();
 
@@ -382,7 +382,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders(_publishedProviders);
             AndNewMissingPublishedProviders();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
-            GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object));
+            GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object, _logger.Object));
             AndFundingConfiguration();
             AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
             AndTheFundingPeriod();
@@ -420,7 +420,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders(_publishedProviders);
             AndNewMissingPublishedProviders();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
-            GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object));
+            GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object, _logger.Object));
             AndFundingConfiguration();
             AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
             AndTheFundingPeriod();
@@ -509,7 +509,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
-            GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object));
+            GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService.Object, _logger.Object));
             AndFundingConfiguration("NoApplicableVariationErrorDetector");
             AndFundingConfigurationIndicativeStatuses("Proposed to open", "Pending approval");
             AndTheFundingPeriod();
@@ -653,7 +653,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndProfilePatternsForFundingStreamAndFundingPeriod();
             AndTheFundingPeriod();
 
-            GivenFundingConfiguration(new ProviderMetadataVariationStrategy(), new ClosureWithSuccessorVariationStrategy(_providerService.Object));
+            GivenFundingConfiguration(new ProviderMetadataVariationStrategy(), new ClosureWithSuccessorVariationStrategy(_providerService.Object, _logger.Object));
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
