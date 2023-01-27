@@ -6,18 +6,23 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
     [TestClass]
     public class PupilNumberSuccessorVariationStrategyTest : SuccessorVariationStrategyTestBase
     {
+        private Mock<ILogger> _logger;
         [TestInitialize]
         public void SetUp()
         {
             VariationName = "PupilNumberSuccessor";
-            
-            ClosureVariationStrategy = new PupilNumberSuccessorVariationStrategy(ProviderService.Object);
+
+            _logger = new Mock<ILogger>();
+
+            ClosureVariationStrategy = new PupilNumberSuccessorVariationStrategy(ProviderService.Object, _logger.Object);
         }
         
         [TestMethod]

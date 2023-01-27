@@ -7,16 +7,19 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations.Changes;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
     public class PupilNumberSuccessorVariationStrategy : SuccessorVariationStrategy, IVariationStrategy
     {
         private string _successorId;
+        ILogger _logger;
 
-        public PupilNumberSuccessorVariationStrategy(IProviderService providerService) 
+        public PupilNumberSuccessorVariationStrategy(IProviderService providerService, ILogger logger) 
             : base(providerService)
         {
+            _logger = logger;
         }
 
         public override string Name => "PupilNumberSuccessor";
@@ -27,7 +30,21 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
 
-            _successorId = updatedProvider.GetSuccessors().SingleOrDefault();
+            //Adding logs to get the successors
+            _logger.Information("Getting the successor for provider '{ProviderId}'", updatedProvider?.ProviderId);
+            var successorList = updatedProvider?.GetSuccessors();
+            if (successorList.Any() && successorList.Count() > 1)
+            {
+                foreach (var successor in successorList)
+                {
+                    _logger.Information("List of the successors '{SuccessorList}'", successor);
+                }
+            }
+            //Changing the logic to FirstorDefault from SingleorDefault for PSG issue
+
+            //_successorId = updatedProvider.GetSuccessors().SingleOrDefault();
+
+            _successorId = updatedProvider.GetSuccessors().FirstOrDefault();
 
             if (priorState == null ||
                 ShouldSkipIfClosed(priorState.Provider) ||
