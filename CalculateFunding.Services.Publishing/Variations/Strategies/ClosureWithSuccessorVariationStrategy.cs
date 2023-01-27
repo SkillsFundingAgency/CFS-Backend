@@ -41,7 +41,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                     _logger.Information("List of the successors '{SuccessorList}'", successor);
                 }
             }
-            _successorId = updatedProvider.GetSuccessors().SingleOrDefault();
+            //Changing the logic to FirstorDefault from SingleorDefault for PSG issue
+            _successorId = updatedProvider.GetSuccessors().FirstOrDefault();
 
             if (priorState == null ||
                 ShouldSkipIfClosed(priorState.Provider) || 
