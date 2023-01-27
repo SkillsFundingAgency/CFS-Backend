@@ -7,23 +7,18 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
     [TestClass]
     public class ClosureWithSuccessorVariationStrategyTests : SuccessorVariationStrategyTestBase
-    {
-        private Mock<ILogger> _logger;
+    {      
         [TestInitialize]
         public void SetUp()
         {
             VariationName = "ClosureWithSuccessor";
 
-            _logger = new Mock<ILogger>();
-
-            ClosureVariationStrategy = new ClosureWithSuccessorVariationStrategy(ProviderService.Object, _logger.Object );
+            ClosureVariationStrategy = new ClosureWithSuccessorVariationStrategy(ProviderService.Object);
         }
         
         [TestMethod]
