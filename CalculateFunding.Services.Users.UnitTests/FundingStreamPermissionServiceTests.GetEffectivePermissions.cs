@@ -104,6 +104,8 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanRefreshFunding = false,
@@ -212,6 +214,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanRefreshFunding = false,
@@ -252,6 +256,8 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanRefreshFunding = false,
@@ -279,6 +285,8 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanReleaseFunding &&
+                        !p.CanReleaseFundingForStatement &&
+                        !p.CanReleaseFundingForPaymentOrContract &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanRefreshFunding &&
@@ -334,6 +342,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanRefreshFunding = false,
@@ -374,6 +384,8 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanRefreshFunding = false,
@@ -401,6 +413,8 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanReleaseFunding &&
+                        !p.CanReleaseFundingForStatement &&
+                        !p.CanReleaseFundingForPaymentOrContract &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanRefreshFunding &&
@@ -454,6 +468,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanRefreshFunding = false,
@@ -477,6 +493,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanRefreshFunding = false,
@@ -514,6 +532,8 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanRefreshFunding = false,
@@ -532,6 +552,8 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanReleaseFunding &&
+                        !p.CanReleaseFundingForStatement &&
+                        !p.CanReleaseFundingForPaymentOrContract &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanRefreshFunding &&
@@ -598,6 +620,8 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanRefreshFunding = false,
@@ -616,6 +640,8 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanReleaseFunding &&
+                        !p.CanReleaseFundingForStatement &&
+                        !p.CanReleaseFundingForPaymentOrContract &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanRefreshFunding &&
@@ -664,6 +690,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanRefreshFunding = false,
@@ -687,6 +715,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanReleaseFundingForStatement = false,
+                CanReleaseFundingForPaymentOrContract = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanRefreshFunding = false,
@@ -734,6 +764,8 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanRefreshFunding = false,
@@ -757,6 +789,8 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanReleaseFunding &&
+                        !p.CanReleaseFundingForStatement &&
+                        !p.CanReleaseFundingForPaymentOrContract &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanRefreshFunding &&
@@ -830,6 +864,8 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanRefreshFunding = false,
@@ -848,6 +884,8 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanReleaseFunding &&
+                        !p.CanReleaseFundingForStatement &&
+                        !p.CanReleaseFundingForPaymentOrContract &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanRefreshFunding &&

@@ -275,6 +275,8 @@ namespace CalculateFunding.Services.Users
                             CanEditSpecification = false,
                             CanMapDatasets = false,
                             CanReleaseFunding = false,
+                            CanReleaseFundingForStatement = false,
+                            CanReleaseFundingForPaymentOrContract = false,
                             CanAdministerFundingStream = false,
                             CanApproveSpecification = false,
                             CanRefreshFunding = false,
@@ -352,7 +354,7 @@ namespace CalculateFunding.Services.Users
                 return new BadRequestObjectResult($"{nameof(fundingStreamId)} is empty or null");
             }
 
-            IEnumerable<FundingStreamPermission> adminUsersPermissions 
+            IEnumerable<FundingStreamPermission> adminUsersPermissions
                 = await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.GetAdminFundingStreamPermissionsWithFundingStream(fundingStreamId));
 
             List<User> adminUsers = new List<User>();
@@ -383,6 +385,8 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = false,
+                    CanReleaseFundingForStatement = false,
+                    CanReleaseFundingForPaymentOrContract = false,
                     CanRefreshFunding = false,
                     CanApproveSpecification = false,
                     CanAdministerFundingStream = false,
@@ -406,6 +410,8 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = permissionsForUser.All(p => p.CanEditSpecification),
                 CanMapDatasets = permissionsForUser.All(p => p.CanMapDatasets),
                 CanReleaseFunding = permissionsForUser.All(p => p.CanReleaseFunding),
+                CanReleaseFundingForStatement = permissionsForUser.All(p => p.CanReleaseFundingForStatement),
+                CanReleaseFundingForPaymentOrContract = permissionsForUser.All(p => p.CanReleaseFundingForPaymentOrContract),
                 CanAdministerFundingStream = permissionsForUser.All(p => p.CanAdministerFundingStream),
                 CanApproveSpecification = permissionsForUser.All(p => p.CanApproveSpecification),
                 CanRefreshFunding = permissionsForUser.All(p => p.CanRefreshFunding),
