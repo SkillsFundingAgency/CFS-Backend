@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using NSubstitute;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.FundingManagement.ReleaseManagement;
@@ -9,6 +10,7 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.SqlExport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VariationReason = CalculateFunding.Models.Publishing.VariationReason;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 {
@@ -19,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private const int PaymentMajorVersion = 2;
         private const int ContractingMajorVersion = 3;
         private const int ChannelCodeOneMajorVersion = 4;
+        private ILogger _logger = Substitute.For<ILogger>();
 
         [DataRow(SqlExportSource.CurrentPublishedProviderVersion, true)]
         [DataRow(SqlExportSource.CurrentPublishedProviderVersion, false)]
@@ -38,7 +41,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             };
 
             DataTableBuilder = new PublishedProviderVersionDataTableBuilder(
-                new ReleaseCandidateService(),
+                new ReleaseCandidateService(_logger),
                 providerVersionInChannels,
                 sqlExportSource,
                 latestReleasedVersionChannelPopulationEnabled);

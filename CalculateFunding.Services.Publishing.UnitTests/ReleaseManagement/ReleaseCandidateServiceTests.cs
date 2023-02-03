@@ -7,12 +7,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
+using NSubstitute;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 {
     [TestClass]
     public class ReleaseCandidateServiceTests
     {
+        private ILogger _logger;
         static IEnumerable<object[]> DataSetupNoChannelsButApproved =>
             new[] 
             {
@@ -103,7 +106,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.ReleaseManagement
 
         private bool IsReleaseCandidateResult(PublishedProviderVersion publishedProviderVersion, IEnumerable<ReleaseChannel> releaseChannels)
         {
-            ReleaseCandidateService releaseCandidateService = new ReleaseCandidateService();
+            _logger = Substitute.For<ILogger>();
+            ReleaseCandidateService releaseCandidateService = new ReleaseCandidateService(_logger);
             return releaseCandidateService.IsReleaseCandidate(publishedProviderVersion, releaseChannels);
         }
     }
