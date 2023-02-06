@@ -403,7 +403,7 @@ namespace CalculateFunding.Services.Datasets
 
             return new OkObjectResult(responseModel);
         }
-        
+
         public async Task<IActionResult> DatasetVersionUpdate(DatasetVersionUpdateModel model, Reference author)
         {
             if (model == null)
@@ -428,7 +428,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             int version = await _versionDatasetRepository.GetNextVersionNumber(dataset.Current);
-            
+
             string blobUrl = _blobClient.GetBlobSasUrl(GetUploadedBlobFilepath(model.Filename, model.DatasetId, version),
                 DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
 
@@ -554,7 +554,7 @@ namespace CalculateFunding.Services.Datasets
 
                 return new NotFoundResult();
             }
-            
+
             ICloudBlob uploadedBlob = await _blobClient.GetBlobReferenceFromServerAsync(uploadedBlobFilepath);
             if (uploadedBlob == null)
             {
@@ -712,7 +712,7 @@ namespace CalculateFunding.Services.Datasets
 
             string uploadedBlobPath = GetUploadedBlobFilepath(model.Filename, model.DatasetId, model.Version);
             string blobPath = GetMergedBlobFilepath(model.Filename, model.DatasetId, model.Version);
-            
+
             ICloudBlob blob = await _blobClient.CopyBlobAsync(uploadedBlobPath, blobPath);
 
             if (blob == null)
@@ -788,13 +788,13 @@ namespace CalculateFunding.Services.Datasets
                 await NotifyPercentComplete(25);
 
                 using ExcelPackage excel = new ExcelPackage(datasetStream);
-                
+
                 validationResult = _dataWorksheetValidator.Validate(excel);
 
                 if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
                 {
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
-                    throw new NonRetriableException($"Failed validation - {GetValidationResultErrors(validationResult)}"); 
+                    throw new NonRetriableException($"Failed validation - {GetValidationResultErrors(validationResult)}");
                 }
                 else if (model.MergeExistingVersion && dataset != null)
                 {
@@ -808,13 +808,13 @@ namespace CalculateFunding.Services.Datasets
                     await NotifyPercentComplete(35);
                     await SetValidationStatus(operationId, DatasetValidationStatus.MergeInprogress);
 
-                    mergeResult = await _datasetDataMergeService.Merge(datasetDefinition, 
-                        dataset.Current.BlobName, 
-                        blobPath, 
+                    mergeResult = await _datasetDataMergeService.Merge(datasetDefinition,
+                        dataset.Current.BlobName,
+                        blobPath,
                         model.EmptyFieldEvaluationOption);
 
                     dataset.Current.ChangeType = DatasetChangeType.Merge;
-                    
+
                     if (!mergeResult.HasChanges)
                     {
                         // no need to update index as we are just saving the merge results
@@ -888,7 +888,7 @@ namespace CalculateFunding.Services.Datasets
 
             await SaveDataset(message, operationId, datasetDefinition, blob, uploadedBlobPath, model, fundingStream, mergeResult, validationRowCount);
         }
-        
+
 
         private static string GetValidationResultErrors(ValidationResult validationResult) =>
             string.Join(";", validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
@@ -904,13 +904,13 @@ namespace CalculateFunding.Services.Datasets
             return errors;
         }
 
-        private async Task SaveDataset(Message message, 
-            string operationId, 
+        private async Task SaveDataset(Message message,
+            string operationId,
             DatasetDefinition datasetDefinition,
-            ICloudBlob blob, 
+            ICloudBlob blob,
             string uploadedBlobFilePath,
-            GetDatasetBlobModel model, 
-            PoliciesApiModels.FundingStream fundingStream, 
+            GetDatasetBlobModel model,
+            PoliciesApiModels.FundingStream fundingStream,
             DatasetDataMergeResult mergeResult, int rowCount)
         {
             Dataset dataset;
@@ -1112,7 +1112,7 @@ namespace CalculateFunding.Services.Datasets
 
                 return new StatusCodeResult(412);
             }
-            
+
             string fullBlobName = datasetVersion == -1 ? dataset.Current?.BlobName : (await _versionDatasetRepository.GetVersions(dataset.Id))?.FirstOrDefault(dh => dh.Version == datasetVersion)?.BlobName;
 
             return await DownloadDatasetFile(currentDatasetId, fullBlobName, datasetVersion);
@@ -1505,7 +1505,7 @@ namespace CalculateFunding.Services.Datasets
 
             ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
-            
+
             SpecificationSummary specificationSummary = specificationSummaryApiResponse?.Content;
 
             if (specificationSummary == null || (!specificationSummaryApiResponse.StatusCode.IsSuccess() && specificationSummaryApiResponse.StatusCode != HttpStatusCode.NotFound))
@@ -1538,7 +1538,7 @@ namespace CalculateFunding.Services.Datasets
 
                 IDictionary<string, ObsoleteItem> obsoleteDataFieldsForRelationship = obsoleteItemsForRelationship?.ToDictionary(_ => _.DatasetFieldId);
 
-                if (definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration != null && 
+                if (definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration != null &&
                     !definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.FundingLines.IsNullOrEmpty())
                 {
                     // reset all obsolete flags so that if they don't get re-flagged then they have come back into the template
@@ -1573,7 +1573,7 @@ namespace CalculateFunding.Services.Datasets
                     }
                 }
 
-                if (definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration != null && 
+                if (definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration != null &&
                     !definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.Calculations.IsNullOrEmpty())
                 {
                     // reset all obsolete flags so that if they don't get re-flagged then they have come back into the template
@@ -1637,7 +1637,7 @@ namespace CalculateFunding.Services.Datasets
         private async Task ProcessObsoleteItems(string specificationId,
             string relationshipId,
             string relationshipName,
-            IEnumerable<PublishedSpecificationItem> publishedItems, 
+            IEnumerable<PublishedSpecificationItem> publishedItems,
             string prefix,
             IDictionary<string, ObsoleteItem> obsoleteDataFieldsForRelationship,
             Func<string, Task<IEnumerable<GraphCalculation>>> getGraphEntities)
@@ -1946,7 +1946,7 @@ namespace CalculateFunding.Services.Datasets
         }
 
         private async Task<(IDictionary<string, IEnumerable<string>> validationFailures, int providersProcessed)> ValidateTableResults(
-            DatasetDefinition datasetDefinition, 
+            DatasetDefinition datasetDefinition,
             Stream datasetStream,
             DatasetEmptyFieldEvaluationOption datasetEmptyFieldEvaluationOption,
             string currentBlobName)
@@ -1958,6 +1958,12 @@ namespace CalculateFunding.Services.Datasets
 
             if (datasetDefinition.ValidateProviders)
             {
+                FieldDefinition fieldDefinition = new FieldDefinition();
+
+                datasetDefinition.TableDefinitions?.ForEach((p) => {
+                    fieldDefinition = p.FieldDefinitions?.Where(_ => _.IdentifierFieldType != null).FirstOrDefault();
+                });
+
                 ApiResponse<ApiClientProviders.Models.ProviderVersion> currentProviderVersionResponse
                     = await _providersApiClientPolicy.ExecuteAsync(() =>
                         _providersApiClient.GetCurrentProvidersForFundingStream(datasetDefinition.FundingStreamId));
@@ -2034,13 +2040,14 @@ namespace CalculateFunding.Services.Datasets
                             {
                                 Parallel.ForEach(providerVersionResponse.Content.Providers, (provider) =>
                                 {
-                                    if (!summaries.Any(x => x.UKPRN.Equals(provider.UKPRN)))
+                                    if ((fieldDefinition?.IdentifierFieldType == IdentifierFieldType.UKPRN && !summaries.Any(x => x.UKPRN.Equals(provider.UKPRN))) ||
+                                       (fieldDefinition?.IdentifierFieldType == IdentifierFieldType.LACode && !summaries.Any(x => x.LACode.Equals(provider.LACode))))
                                     {
                                         summaries.Add(_mapper.Map<ProviderSummary>(provider));
                                     }
                                 });
                             }
-                        }                       
+                        }
                     }
                     else
                     {
@@ -2057,13 +2064,13 @@ namespace CalculateFunding.Services.Datasets
 
                     return (validationFailures, rowCount);
                 }
-            }           
+            }
 
             using ExcelPackage excelPackage = new ExcelPackage(datasetStream);
             DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(
-                excelPackage, 
-                () => summaries, 
-                datasetDefinition, 
+                excelPackage,
+                () => summaries,
+                datasetDefinition,
                 datasetEmptyFieldEvaluationOption,
                 currentBlobName);
             ValidationResult validationResult = await _datasetUploadValidator.ValidateAsync(uploadModel);
@@ -2228,7 +2235,7 @@ namespace CalculateFunding.Services.Datasets
 
             return new OkObjectResult(new DatasetValidationErrorSasUrlResponseModel {ValidationErrorFileUrl = blobUrl});
         }
-        
+
         private string GetUploadedBlobFilepath(string filename, string datasetId, int version = 1)
         {
             string nameWithoutExtension = filename.Substring(0, filename.LastIndexOf('.'));
