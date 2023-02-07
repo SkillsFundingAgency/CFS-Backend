@@ -228,7 +228,8 @@ namespace CalculateFunding.Services.Publishing
 
             newPublishedProviderVersion.RemoveCarryOver(fundingLineCode);
 
-            if (reProfileResponse.CarryOverAmount > 0)
+            _logger.Information($"Add the carry over amount : {reProfileResponse.CarryOverAmount} ");
+            if (reProfileResponse.CarryOverAmount != 0)
             {
                 newPublishedProviderVersion.AddCarryOver(fundingLineCode,
                     ProfilingCarryOverType.CustomProfile,
