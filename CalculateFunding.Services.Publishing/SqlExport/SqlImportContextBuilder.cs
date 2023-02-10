@@ -81,8 +81,13 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             TemplateMetadataContents template = await GetTemplateMetadataContents(specification, fundingStreamId);
 
             IEnumerable<FundingLine> allFundingLines = template.RootFundingLines.Flatten(_ => _.FundingLines);
-            IEnumerable<FundingLine> informationFundingLines = allFundingLines.Where(_ => _.Type == FundingLineType.Information);
-            IEnumerable<FundingLine> paymentFundingLines = allFundingLines.Where(_ => _.Type == FundingLineType.Payment);
+            IEnumerable<FundingLine> infoTypeFundingLines = allFundingLines.Where(_ => _.Type == FundingLineType.Information);
+            IEnumerable<FundingLine> paymentTypeFundingLines = allFundingLines.Where(_ => _.Type == FundingLineType.Payment);
+
+            // Added below code lines to exclude the duplicate TemplateLine Id's (Bug Id (120760) - DSG Bug Fix )
+            IEnumerable<FundingLine> informationFundingLines = Enumerable.DistinctBy(infoTypeFundingLines, _ => _.TemplateLineId);
+            IEnumerable<FundingLine> paymentFundingLines = Enumerable.DistinctBy(paymentTypeFundingLines, _ => _.TemplateLineId);
+
             IEnumerable<Calculation> allCalculations = allFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations));
             IEnumerable<Calculation> uniqueCalculations = Enumerable.DistinctBy(allCalculations, _ => _.TemplateCalculationId);
             IDictionary<uint, string> calculationNames = GetCalculationNames(uniqueCalculations);
