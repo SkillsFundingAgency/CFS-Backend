@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.ReleaseManageme
 {
     public class ReleaseCandidateService : IReleaseCandidateService
     {
-        private string[] fundsTransferChannels = { ChannelType.Contracting.ToString(), ChannelType.Payment.ToString()};
+        private string[] fundsTransferChannels = { ChannelType.Contracting.ToString(), ChannelType.Payment.ToString(), ChannelType.Statement.ToString()};
 
         private readonly ILogger _logger;
 
