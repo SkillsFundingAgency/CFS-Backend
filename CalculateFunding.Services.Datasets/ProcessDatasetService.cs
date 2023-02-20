@@ -774,6 +774,15 @@ namespace CalculateFunding.Services.Datasets
                             {
                                 rows.Add(key, row.Fields[key]);
                             }
+                            if (relationshipSummary.PublishedSpecificationConfiguration.IncludeCarryForward)
+                            {
+                                string keyCarryOver = $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{fundingLine.TemplateId}_{fundingLine.Name}_CarryOver";
+
+                                if (row.Fields.ContainsKey(keyCarryOver))
+                                {
+                                    rows.Add(keyCarryOver, row.Fields[keyCarryOver]);
+                                }
+                            }
                         }
 
                         foreach (PublishedSpecificationItem calcTemplate in relationshipSummary.PublishedSpecificationConfiguration.Calculations)
@@ -991,6 +1000,15 @@ namespace CalculateFunding.Services.Datasets
                     Name = $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{publishedSpecificationItem.TemplateId}_{publishedSpecificationItem.Name}",
                     Type = publishedSpecificationItem.FieldType
                 });
+
+                if (configuration.IncludeCarryForward)
+                {
+                    datasetDefinition.TableDefinitions.First().FieldDefinitions.Add(new FieldDefinition
+                    {
+                        Name = $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{publishedSpecificationItem.TemplateId}_{publishedSpecificationItem.Name}_CarryOver",
+                        Type = publishedSpecificationItem.FieldType
+                    });
+                }
             }
 
             foreach (PublishedSpecificationItem publishedSpecificationItem in configuration.Calculations)
