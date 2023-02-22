@@ -75,7 +75,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
         public async Task<IActionResult> QueueReleaseManagementDataMigrationJob(Reference author,
             string correlationId,
-            string[] fundingStreamIds = null)
+            string[] fundingStreamIds = null,
+            string fundingPeriodId =  null)
         {
             IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(new string[] {
                     JobConstants.DefinitionNames.ReleaseManagementDataMigrationJob
@@ -95,7 +96,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 MessageBody = JsonExtensions.AsJson(fundingStreamIds),
                 Properties = new Dictionary<string, string>
                 {
-                    {MigrationKey, MigrationKeyValue}
+                    {MigrationKey, MigrationKeyValue},
+                    {"fundingPeriodId", fundingPeriodId }
                 },
                 Trigger = new Trigger
                 {
@@ -114,20 +116,31 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             string[] fundingStreamIds = message.GetPayloadAsInstanceOf<string[]>();
 
-            await PopulateData(fundingStreamIds);
+            string fundingPeriodId = message.GetUserProperty<string>("fundingPeriodId");
+
+            await PopulateData(fundingStreamIds, fundingPeriodId);
         }
 
-        private async Task PopulateData(string[] fundingStreamIds)
+        private async Task PopulateData(string[] fundingStreamIds, string fundingPeriodId)
         {
             fundingStreamIds = fundingStreamIds.IsNullOrEmpty() ? null : fundingStreamIds;
+
 
             ApiResponse<IEnumerable<SpecificationSummary>> publishedSpecificationsRequest = await _specsClientPolicy.ExecuteAsync(() => _specsClient.GetSpecificationsSelectedForFunding());
 
             IEnumerable<SpecificationSummary> publishedSpecifications = publishedSpecificationsRequest?.Content;
 
+            //Adding funding period id logic for migration for period specific value
             if (fundingStreamIds.AnyWithNullCheck() && publishedSpecifications.AnyWithNullCheck())
             {
-                publishedSpecifications = publishedSpecifications.Where(_ => fundingStreamIds.Any(fs => fs == _.FundingStreams.First().Id));
+                if (!fundingPeriodId.IsNullOrEmpty())
+                {
+                    publishedSpecifications = publishedSpecifications.Where(_ => fundingStreamIds.Any(fs => fs == _.FundingStreams.First().Id) && _.FundingPeriod.Id == fundingPeriodId);
+                }
+                else
+                {
+                    publishedSpecifications = publishedSpecifications.Where(_ => fundingStreamIds.Any(fs => fs == _.FundingStreams.First().Id));
+                }
             }
 
             if (publishedSpecifications.IsNullOrEmpty())
