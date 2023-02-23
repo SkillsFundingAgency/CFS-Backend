@@ -39,7 +39,8 @@ namespace CalculateFunding.Models.Datasets
 
             foreach ((string fieldName, object value) fieldOverride in fieldOverrides ?? ArraySegment<(string fieldName, object value)>.Empty)
             {
-                copy.Fields[fieldOverride.fieldName] = fieldOverride.value;
+                copy.Fields[fieldOverride.fieldName] = (fieldOverride.fieldName == IdentifierFieldType.UKPRN.ToString()) ? 
+                    Convert.ToInt64(fieldOverride.value) : fieldOverride.value;
             }
 
             return copy;
