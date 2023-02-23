@@ -8,6 +8,7 @@ trigger:
     include:
     - providers
     - fdps
+    - releases/*
   paths:
     include:
     - CalculateFunding.Api.Providers

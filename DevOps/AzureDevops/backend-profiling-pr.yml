@@ -13,6 +13,7 @@ trigger:
     - master
     - providers
     - fdps
+    - releases/*
   paths:
     include:
     - CalculateFunding.Api.Profiling
