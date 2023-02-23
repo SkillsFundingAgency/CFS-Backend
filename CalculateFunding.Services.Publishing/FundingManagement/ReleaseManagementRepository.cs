@@ -764,7 +764,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await deleteTask;
         }
 
-        public async Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds)
+        public async Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds, string fundingPeriodId)
         {
             string queryString;
             object queryParams = null;
@@ -776,10 +776,22 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
             else
             {
-                queryString = @$"SELECT TOP 1 fs.fundingStreamId FROM FundingGroups fg
+                //Check added for funding period
+                if (!fundingPeriodId.IsNullOrEmpty())
+                {
+                    queryString = @$" SELECT TOP 1 fs.fundingStreamId FROM FundingGroups fg
+                INNER JOIN Specifications s on fg.SpecificationId = s.SpecificationId
+                INNER JOIN FundingStreams fs on s.FundingStreamId = fs.FundingStreamId
+                INNER JOIN FundingPeriods fp on s.FundingPeriodId = fp.FundingPeriodId
+                WHERE fs.FundingStreamCode IN @{nameof(fundingStreamIds)} and fp.FundingPeriodCode IN @{nameof(fundingPeriodId)}";
+                }
+                else
+                {
+                    queryString = @$"SELECT TOP 1 fs.fundingStreamId FROM FundingGroups fg
                 INNER JOIN Specifications s on fg.SpecificationId = s.SpecificationId
                 INNER JOIN FundingStreams fs on s.FundingStreamId = fs.FundingStreamId
                 WHERE fs.FundingStreamCode IN @{nameof(fundingStreamIds)}";
+                }
 
                 queryParams = new
                        {

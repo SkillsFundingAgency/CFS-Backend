@@ -149,7 +149,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
 
             // await ClearDatabase();
-            if (await DatabaseHasExistingFundingData(fundingStreamIds))
+            if (await DatabaseHasExistingFundingData(fundingStreamIds, fundingPeriodId))
             {
                 throw new NonRetriableException($"Unable to run release managment data migration job as there is existing data in release management database");
             }
@@ -169,9 +169,9 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await _repo.ClearDatabase();
         }
 
-        private async Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds)
+        private async Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds, string fundingPeriodId)
         {
-            return await _repo.DatabaseHasExistingFundingData(fundingStreamIds);
+            return await _repo.DatabaseHasExistingFundingData(fundingStreamIds, fundingPeriodId);
         }
 
         private async Task PopulateSpecifications(IEnumerable<Common.ApiClient.Specifications.Models.SpecificationSummary> specifications)

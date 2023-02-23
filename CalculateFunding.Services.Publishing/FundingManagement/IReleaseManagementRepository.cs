@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<FundingGroupProvider> CreateFundingGroupProvider(FundingGroupProvider fundingGroupProvider);
         Task<ReleasedProviderVersionChannel> CreateReleasedProviderVersionChannel(ReleasedProviderVersionChannel providerVersionChannel);
         Task ClearDatabase();
-        Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds);
+        Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds, string fundingPeriodId);
         Task<IEnumerable<FundingGroupVersion>> GetFundingGroupVersionsBySpecificationId(string specificationId);
         Task<IEnumerable<FundingGroupVersion>> GetLatestFundingGroupVersionsBySpecificationId(string specificationId);
         Task<IEnumerable<LatestFundingGroupVersion>> GetLatestFundingGroupMajorVersionsBySpecificationId(string specificationId, int channelId);

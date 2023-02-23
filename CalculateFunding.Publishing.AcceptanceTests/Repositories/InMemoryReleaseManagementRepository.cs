@@ -1085,7 +1085,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return null;
         }
 
-        public Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds)
+        public Task<bool> DatabaseHasExistingFundingData(IEnumerable<string> fundingStreamIds, string fundingPeriodId)
         {
             throw new NotImplementedException();
         }
