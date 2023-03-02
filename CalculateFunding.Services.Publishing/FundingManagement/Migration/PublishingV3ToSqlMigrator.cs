@@ -161,7 +161,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             await PopulateFundingStreamsAndPeriods(publishedSpecifications);
             await PopulateSpecifications(publishedSpecifications);
 
-            await PopulateFundingAndProviders(fundingStreamIds);
+            await PopulateFundingAndProviders(fundingStreamIds, fundingPeriodId);
         }
 
         private async Task ClearDatabase()
@@ -198,13 +198,16 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
             }
         }
 
-        private async Task PopulateFundingAndProviders(string[] fundingStreamIds)
+        private async Task PopulateFundingAndProviders(string[] fundingStreamIds, string fundingPeriodId)
         {
             Dictionary<string, SqlModels.FundingStream> fundingStreamsToMigrate =
                 fundingStreamIds == null ? _fundingStreams : _fundingStreams.Where(_ => fundingStreamIds.Contains(_.Key)).ToDictionary(_ => _.Key, _ => _.Value);
 
+            Dictionary<string, SqlModels.FundingPeriod> fundingPeriodToMigrate =
+                _fundingPeriods == null ? _fundingPeriods : _fundingPeriods.Where(_ => fundingPeriodId.Contains(_.Key)).ToDictionary(_ => _.Key, _ => _.Value);
+
             await _fundingMigrator.Migrate(fundingStreamsToMigrate,
-                                           _fundingPeriods,
+                                           fundingPeriodToMigrate,
                                            _channels,
                                            _groupingReasons,
                                            _variationReasons,

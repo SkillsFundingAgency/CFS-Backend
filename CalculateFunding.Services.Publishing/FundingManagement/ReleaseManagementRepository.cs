@@ -779,11 +779,11 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 //Check added for funding period
                 if (!fundingPeriodId.IsNullOrEmpty())
                 {
-                    queryString = @$" SELECT TOP 1 fs.fundingStreamId FROM FundingGroups fg
+                    queryString = @$"SELECT TOP 1 fs.fundingStreamId FROM FundingGroups fg
                 INNER JOIN Specifications s on fg.SpecificationId = s.SpecificationId
                 INNER JOIN FundingStreams fs on s.FundingStreamId = fs.FundingStreamId
                 INNER JOIN FundingPeriods fp on s.FundingPeriodId = fp.FundingPeriodId
-                WHERE fs.FundingStreamCode IN @{nameof(fundingStreamIds)} and fp.FundingPeriodCode IN @{nameof(fundingPeriodId)}";
+                WHERE fs.FundingStreamCode IN @{nameof(fundingStreamIds)} and fp.FundingPeriodCode = @{nameof(fundingPeriodId)}";
                 }
                 else
                 {
@@ -795,7 +795,8 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
 
                 queryParams = new
                        {
-                           fundingStreamIds
+                           fundingStreamIds,
+                           fundingPeriodId
                        };
             }
 

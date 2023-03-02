@@ -119,16 +119,18 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
         {
             IDataTableImporter dataImporter = _dataTableImporter as IDataTableImporter;
 
+            var fundingPeriodId = fundingPeriods.Count() == 1 ? fundingPeriods.Keys.FirstOrDefault() : null;
+
             _logger.Information("Loading PublishedFundingVersions for migration");
             await _fundingMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications,
-                _cosmosRepo.GetPublishedFundingVersionDocumentIdIterator(CosmosBatchSize, fundingStreams.Keys.ToArray()), ProcessPublishedFundingVersions);
+                _cosmosRepo.GetPublishedFundingVersionDocumentIdIterator(CosmosBatchSize, fundingStreams.Keys.ToArray(), fundingPeriodId), ProcessPublishedFundingVersions);
             _logger.Information($"Loaded '{_publishedFundingVersions.Count}' PublishedFundingVersions for migration");
 
             _logger.Information("Loading PublishedProviderVersions for migration");
             await _providerMigrator.RunAsync(fundingStreams, fundingPeriods, channels,
                 groupingReasons, variationReasons, specifications,
-                _cosmosRepo.GetReleasedPublishedProviderVersionIdIterator(CosmosBatchSize, fundingStreams.Keys.ToArray()), ProcessPublishedProviderVersions);
+                _cosmosRepo.GetReleasedPublishedProviderVersionIdIterator(CosmosBatchSize, fundingStreams.Keys.ToArray(), fundingPeriodId), ProcessPublishedProviderVersions);
             _logger.Information($"Loaded '{_publishedProviderVersions.Count}' PublishedProviderVersions for migration");
 
             DetectMissingPublishedProviderVersionRecordsFromFundingGroups();
@@ -197,6 +199,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 });
 
                 if (missingFunding.AnyWithNullCheck())
+
                 {
                     // don't throw an exception instead log that there are missing versions and move on
                     throw new InvalidOperationException("The following PublishedProviderVersions are missing in cosmos: " + string.Join(", ", missingFunding));
