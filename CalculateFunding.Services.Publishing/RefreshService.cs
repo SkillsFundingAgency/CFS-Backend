@@ -579,7 +579,7 @@ namespace CalculateFunding.Services.Publishing
         IDictionary<string, PublishedProvider> newProviders,
         IDictionary<string, GeneratedProviderResult> generatedPublishedProviderData)
         {
-            BatchProfilingContext batchProfilingContext = new BatchProfilingContext();
+            BatchProfilingContext batchProfilingContext = new BatchProfilingContext(generatedPublishedProviderData);
 
             foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
             {

@@ -52,6 +52,9 @@ namespace CalculateFunding.Services.Profiling.Models
         [JsonProperty("profilePatternKey")]
         public string ProfilePatternKey { get; set; }
 
+        [JsonProperty("profilePatternType")]
+        public ProfilePatternType? ProfilePatternType { get; set; }
+
         [JsonProperty("fundingStreamPeriodStartDate")]
         public DateTime FundingStreamPeriodStartDate { get; set; }
 

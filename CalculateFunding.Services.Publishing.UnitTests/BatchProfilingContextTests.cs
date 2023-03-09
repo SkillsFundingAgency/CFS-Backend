@@ -9,6 +9,7 @@ using CalculateFunding.Services.Publishing.UnitTests.Errors;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using ApiProfilePeriod = CalculateFunding.Common.ApiClient.Profiling.Models.ProfilingPeriod;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -17,11 +18,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class BatchProfilingContextTests
     {
         private BatchProfilingContext _context;
+        private Mock<IDictionary<string, GeneratedProviderResult>> _generatedPublishedProviderData;
 
         [TestInitialize]
         public void SetUp()
         {
-            _context = new BatchProfilingContext();
+            _generatedPublishedProviderData = new Mock<IDictionary<string, GeneratedProviderResult>>();
+            _context = new BatchProfilingContext(_generatedPublishedProviderData.Object);
+            
         }
 
         [TestMethod]

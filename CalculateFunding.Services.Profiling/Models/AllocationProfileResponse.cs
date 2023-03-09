@@ -20,5 +20,7 @@
         public string ProfilePatternKey { get; set; }
 
         public string ProfilePatternDisplayName { get; set; }
+
+        public ProfilePatternType ProfilePatternType { get; set; }
     }
 }

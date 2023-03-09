@@ -52,6 +52,12 @@ namespace CalculateFunding.Services.Profiling.Services
                 return new BadRequestObjectResult("Re-profiling is not enabled for this scenario or the strategy was not found");
             }
 
+            // if the profiling pattern associated with the selected funding stream and code is a distribution of calculation template values then we should skip re-profiling
+            if (profilePattern.ProfilePatternType == ProfilePatternType.Calculation)
+            {
+                return new ReProfileResponse { SkipReProfiling = true };
+            }
+
             ReProfileContext context = CreateReProfilingContext(reProfileRequest, profilePattern);
 
             ReProfileStrategyResult strategyResult = Strategy.ReProfile(context);

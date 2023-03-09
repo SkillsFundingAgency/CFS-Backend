@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using CalculateFunding.Services.Profiling.Models;
 using FluentValidation;
+using Microsoft.Azure.Cosmos.Serialization.HybridRow;
 
 namespace CalculateFunding.Services.Profiling.Services
 {
@@ -93,6 +94,40 @@ namespace CalculateFunding.Services.Profiling.Services
                         ctx.AddFailure(nameof(FundingStreamPeriodProfilePattern.ProfilePatternKey), "Default pattern not allowed to have ProviderTypeSubTypes");
                     }
                 });
+
+            //Need to write a rule for when calc ids are referenced in the profile to make sure that
+            //the calc ids exist in the funding template for the selected funding stream
+            // Check CalculationIds in the profile pattern must be unique
+            RuleFor(_ => _.Pattern)
+              .Custom((pattern, ctx) =>
+              {
+                  if (pattern == null)
+                  {
+                      return;
+                  }
+
+                  if (pattern.FundingStreamId == "ILPREC")
+                  {
+                      ProfilePeriodPattern[] patterns = pattern.ProfilePattern;
+                      if (patterns.IsNullOrEmpty())
+                      {
+                          ctx.AddFailure(nameof(FundingStreamPeriodProfilePattern.ProfilePattern),
+                              "The profile pattern must have at least one period");
+
+                          return;
+                      }
+
+                      bool result = false;
+                      var calsIds = patterns.Select(x => x.PeriodPatternCalculationId);
+                      var distinctList = calsIds.Distinct().ToList();
+                      result = (calsIds.Count() == distinctList.Count());
+                      if (!result)
+                      {
+                          ctx.AddFailure(nameof(FundingStreamPeriodProfilePattern.ProfilePattern),
+                              "The profile period for calculationId must be unique ");
+                      }
+                  }                 
+              });
         }
     }
 }

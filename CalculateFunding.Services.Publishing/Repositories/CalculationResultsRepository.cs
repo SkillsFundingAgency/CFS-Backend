@@ -43,10 +43,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
 	                                                FROM   calcResult IN doc.content.calcResults) AS Results
                                         FROM 	doc
                                         WHERE   doc.documentType='ProviderResult'
-                                        AND     doc.content.specificationId = @specificationId",
+                                        AND     doc.content.specificationId = @specificationId",                                       
                     Parameters = new[]
                          {
-                             new CosmosDbQueryParameter("@specificationId", specificationId)
+                             new CosmosDbQueryParameter("@specificationId", specificationId)                           
                          }
                 },
                 partitionEntityId: providerId);

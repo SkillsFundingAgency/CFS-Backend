@@ -255,5 +255,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<TemplateMetadataFundingLineCashCalculationsContents>> GetCashCalcsForFundingLines(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

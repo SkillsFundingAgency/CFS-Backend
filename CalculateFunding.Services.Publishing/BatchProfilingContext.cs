@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.Extensions;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Threading;
@@ -13,8 +14,13 @@ namespace CalculateFunding.Services.Publishing
 {
     public class BatchProfilingContext : PagedContext<BatchProfilingRequestModel>, IBatchProfilingContext
     {
-        public BatchProfilingContext() : base(null)
+        private readonly IDictionary<string, GeneratedProviderResult> _generatedPublishedProviderData;
+
+        public BatchProfilingContext(IDictionary<string, GeneratedProviderResult> generatedPublishedProviderData) : base(null)
         {
+            Guard.ArgumentNotNull(generatedPublishedProviderData, nameof(generatedPublishedProviderData));
+
+            _generatedPublishedProviderData = generatedPublishedProviderData;
         }
 
         public ICollection<ProviderProfilingRequestData> ProfilingRequests { get; set; } = new List<ProviderProfilingRequestData>();
@@ -89,7 +95,7 @@ namespace CalculateFunding.Services.Publishing
                     $"Unable to reconcile profiling response. Could not locate batch for response {response.Key}");
             }
 
-            UpdateFundingLineDistributionPeriods(response, batch);
+            UpdateFundingLineDistributionPeriods(response, batch, _generatedPublishedProviderData);
             EnsurePublishedProvidersHaveProfilePatternDetails(response, batch);
         }
 
@@ -112,8 +118,43 @@ namespace CalculateFunding.Services.Publishing
         }
 
         private static void UpdateFundingLineDistributionPeriods(BatchProfilingResponseModel response,
-            ProfilingBatch batch)
+             ProfilingBatch batch,
+            IDictionary<string, GeneratedProviderResult> generatedPublishedProviderData)
         {
+            if (response.ProfilePatternType == ProfilePatternType.Calculation)
+            {
+                foreach (PublishedProviderVersion publishedProvider in batch.PublishedProviders)
+                {
+                    GeneratedProviderResult generatedProviderResult = generatedPublishedProviderData[publishedProvider.ProviderId];
+
+                    DistributionPeriod[] publishedProviderDistributionPeriods = response.DistributionPeriods.Select(_ => new DistributionPeriod
+                    {
+                        DistributionPeriodId = _.DistributionPeriodCode,
+                        Value = _.Value,
+                        ProfilePeriods = response.DeliveryProfilePeriods.Where(pp =>
+                                pp.DistributionPeriod == _.DistributionPeriodCode)
+                    .Select(pp => new ProfilePeriod
+                    {
+                        Occurrence = pp.Occurrence,
+                        Type = pp.Type.AsEnum<ProfilePeriodType>(),
+                        Year = pp.Year,
+                        TypeValue = pp.Period,
+                        ProfiledValue = Convert.ToDecimal(generatedPublishedProviderData[publishedProvider.ProviderId].Calculations?.FirstOrDefault(_ => _.TemplateCalculationId == pp.CalculationId)?.Value ?? 0),
+                        DistributionPeriodId = _.DistributionPeriodCode
+                    })
+                    .ToArray()
+                    }).ToArray();
+
+                    FundingLine fundingLine = generatedProviderResult.FundingLines.FirstOrDefault(_ => _.FundingLineCode == batch.FundingLineCode);
+                    if (fundingLine != null)
+                    {
+                        fundingLine.DistributionPeriods = publishedProviderDistributionPeriods.DeepCopy();
+                    }
+                }
+
+                return;
+            }
+
             DistributionPeriod[] distributionPeriods = response.DistributionPeriods.Select(_ => new DistributionPeriod
             {
                 DistributionPeriodId = _.DistributionPeriodCode,

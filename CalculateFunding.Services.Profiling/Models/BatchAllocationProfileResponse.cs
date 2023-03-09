@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Profiling.Models
         {
             ProfilePatternKey = allocationProfileResponse.ProfilePatternKey;
             ProfilePatternDisplayName = allocationProfileResponse.ProfilePatternDisplayName;
+            ProfilePatternType = allocationProfileResponse.ProfilePatternType;
 
             Key = key;
             FundingValue = fundingValue;

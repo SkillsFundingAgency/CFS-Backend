@@ -22,5 +22,11 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<PublishedFundingTemplate>> GetFundingTemplates(string fundingStreamId, string fundingPeriodId);
 
         Task<IEnumerable<string>> GetDistinctFundingLineNames(string fundingStreamId, string fundingPeriodId);
+
+        Task<TemplateMetadataFundingLineCashCalculationsContents> GetCashCalcsForFundingLines(string fundingStreamId, string fundingPeriodId, string templateId);
+
+        Task<TemplateMetadataDistinctCalculationsContents> GetDistinctTemplateMetadataCalculationsContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
+
+
     }
 }

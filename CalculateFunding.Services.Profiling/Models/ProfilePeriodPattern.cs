@@ -15,8 +15,9 @@ namespace CalculateFunding.Services.Profiling.Models
             DateTime periodEndDate, 
             int periodYear, 
             int occurrence, 
-            string distributionPeriod, 
-            decimal periodPatternPercentage)
+            string distributionPeriod,
+            decimal? periodPatternPercentage = null,
+            int? periodPatternCalculationId = null)
         {
             PeriodType = periodType;
             Period = period;
@@ -26,6 +27,7 @@ namespace CalculateFunding.Services.Profiling.Models
             Occurrence = occurrence;
             DistributionPeriod = distributionPeriod;
             PeriodPatternPercentage = periodPatternPercentage;
+            PeriodPatternCalculationId = periodPatternCalculationId;
         }
 
         [JsonProperty("periodType")]
@@ -50,6 +52,9 @@ namespace CalculateFunding.Services.Profiling.Models
         public string DistributionPeriod { get; set; }
 
         [JsonProperty("periodPatternPercentage")]
-        public decimal PeriodPatternPercentage { get; set; }
+        public decimal? PeriodPatternPercentage { get; set; }
+
+        [JsonProperty("periodPatternCalculationId")]
+        public int? PeriodPatternCalculationId { get; set; }
     }
 }

@@ -18,6 +18,7 @@ using ApiPeriodType = CalculateFunding.Common.ApiClient.Profiling.Models.PeriodT
 using CalculateFunding.Services.Core.Extensions;
 using Polly;
 using CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems;
+using Types = CalculateFunding.Common.TemplateMetadata.Enums;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -156,6 +157,88 @@ namespace CalculateFunding.Services.Publishing
 
                     _logger.Error(errorMessage);
                     return new string[] { errorMessage };
+                }
+
+                //97065 :Validation for Enable calculation Ids to be used as references for profile values instead of pattern percentages only for fundingStreamId is ILPREC
+                if (fundingStreamPeriodProfilePatterns.Any() && fundingStream.Id == "ILPREC")
+                {
+                    foreach(var periodProfilePattern in fundingStreamPeriodProfilePatterns)
+                    {
+                        var calsIdsFromConfig = periodProfilePattern.ProfilePattern.Select(x => x.PeriodPatternCalculationId).ToList();
+
+                        TemplateMetadataDistinctCalculationsContents gettemplateContentMetaData = await _policiesService.GetDistinctTemplateMetadataCalculationsContents(fundingStream.Id, specification.FundingPeriod.Id, specification.TemplateIds[fundingStream.Id]);
+                        if (gettemplateContentMetaData == null)
+                        {
+                            string errorMessage = $"Unable to retrive the templatemetadata distinct calculations contents for funding stream: - {fundingStream.Id}, fundingPeriodId - {specification.FundingPeriod.Id} and templateId - {specification.TemplateIds[fundingStream.Id]}.";
+                            _logger.Error(errorMessage);
+                            return new string[] { errorMessage };
+                        }
+
+                        //Check Calculation id is Cash Type or Not
+                        if (gettemplateContentMetaData.Calculations.Any())
+                        {
+                            List<TemplateMetadataCalculation> templateMetadataCalculations = new List<TemplateMetadataCalculation>();
+                            List<TemplateMetadataCalculation> getCalculationIdsForAllfundingLine = gettemplateContentMetaData.Calculations.ToList();
+                            
+                            foreach(var calc in calsIdsFromConfig)
+                            {
+                                TemplateMetadataCalculation getMatchingCalsId = getCalculationIdsForAllfundingLine.Where(x => x.TemplateCalculationId == calc).FirstOrDefault();
+                                if (getMatchingCalsId != null)
+                                {
+                                    templateMetadataCalculations.Add(getMatchingCalsId);
+                                }
+                            }
+
+                            IEnumerable<TemplateMetadataCalculation> checkCalsIdsIsNotCashType = templateMetadataCalculations.Where(x => x.Type != Types.CalculationType.Cash).ToList();
+
+                            if(checkCalsIdsIsNotCashType.Any())
+                            {
+                                var calsIds = checkCalsIdsIsNotCashType.Select(x => x.TemplateCalculationId).ToList();
+                                string errorMessage = $"calculation id '{string.Join(", ", calsIds)}' is not cash type";                            
+                                _logger.Error(errorMessage);
+                                return new string[] { errorMessage };
+                            }
+                       
+                        }
+                      
+                        TemplateMetadataFundingLineCashCalculationsContents getCashCalcsForFundingLines =
+                        await _policiesService.GetCashCalcsForFundingLines(fundingStream.Id, specification.FundingPeriod.Id, specification.TemplateIds[fundingStream.Id]);
+
+                        if (getCashCalcsForFundingLines == null)
+                        {
+                            string errorMessage = $"Unable to locate template meta data contents for funding stream: - {fundingStream.Id}, fundingPeriodId - {specification.FundingPeriod.Id} and templateId - {specification.TemplateIds[fundingStream.Id]} for enable calculation Ids.";
+                            _logger.Error(errorMessage);
+                            return new string[] { errorMessage };
+                        }
+
+                        List<TemplateMetadataCalculation> templateMetadataCalculation = getCashCalcsForFundingLines.CashCalculations.Where(x => x.Key == periodProfilePattern.FundingLineId)
+                            .SelectMany(x => x.Value).ToList();
+
+                        if(!templateMetadataCalculation.Any())
+                        {
+                            string errorMessage = $"CashType Ids for'{fundingStream.Id}' is not present in the Tempalate";
+                            _logger.Error(errorMessage);
+                            return new string[] { errorMessage };
+                        }
+
+
+                        if (periodProfilePattern.ProfilePattern.Count() != templateMetadataCalculation.Count())
+                        {
+                            string errorMessage = $"No extra cash type calculations exist as children of the payment funding line '{fundingStream.Id}' that should match the sum of profile values";
+                            _logger.Error(errorMessage);
+                            return new string[] { errorMessage };
+                        }
+
+                        var incorrectCalIds = calsIdsFromConfig.Cast<int>().Except(templateMetadataCalculation.Select(x => Convert.ToInt32(x.TemplateCalculationId))).ToList();
+
+                        if (incorrectCalIds.Any())
+                        {
+                            string errorMessage = $"calculation id '{string.Join(", ", incorrectCalIds)}' are not children of funding line {periodProfilePattern.FundingLineId}";
+                            _logger.Error(errorMessage);
+                            return new string[] { errorMessage };
+                        }  
+                    }
+                    
                 }
             }
 

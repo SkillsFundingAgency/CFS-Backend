@@ -158,5 +158,29 @@ namespace CalculateFunding.Services.Publishing
 
             return fundingLines.Distinct();
         }
+
+        public async Task<TemplateMetadataFundingLineCashCalculationsContents> GetCashCalcsForFundingLines(string fundingStreamId, string fundingPeriodId, string templateId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNullOrWhiteSpace(templateId, nameof(templateId));
+
+            ApiResponse<TemplateMetadataFundingLineCashCalculationsContents> distinctTemplateMetadataContents =
+                    await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetCashCalcsForFundingLines(fundingStreamId, fundingPeriodId, templateId));
+
+            return distinctTemplateMetadataContents?.Content;
+        }
+
+        public async Task<TemplateMetadataDistinctCalculationsContents> GetDistinctTemplateMetadataCalculationsContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNullOrWhiteSpace(templateVersion, nameof(templateVersion));
+
+            ApiResponse<TemplateMetadataDistinctCalculationsContents> apiResponse
+                    = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetDistinctTemplateMetadataCalculationsContents(fundingStreamId, fundingPeriodId, templateVersion));
+
+            return apiResponse.Content;
+        }
     }
 }

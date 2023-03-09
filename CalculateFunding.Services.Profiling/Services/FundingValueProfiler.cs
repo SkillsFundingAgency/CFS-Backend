@@ -21,7 +21,8 @@ namespace CalculateFunding.Services.Profiling.Services
 
             IReadOnlyCollection<DeliveryProfilePeriod> profilePeriods = GetProfiledAllocationPeriodsWithPatternApplied(fundingValue,
                 profilePattern.ProfilePattern,
-                profilePattern.RoundingStrategy);
+                profilePattern.RoundingStrategy,
+                profilePattern.ProfilePatternType);
 
             IReadOnlyCollection<DistributionPeriods> distributionPeriods = GetDistributionPeriodWithPatternApplied(
                 profilePeriods);
@@ -31,7 +32,8 @@ namespace CalculateFunding.Services.Profiling.Services
                 distributionPeriods.ToArray())
             {
                 ProfilePatternKey = profilePattern.ProfilePatternKey,
-                ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
+                ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName,
+                ProfilePatternType = profilePattern.ProfilePatternType.GetValueOrDefault(ProfilePatternType.Percent)
             };
         }
 
@@ -48,7 +50,7 @@ namespace CalculateFunding.Services.Profiling.Services
             IReadOnlyCollection<DeliveryProfilePeriod> profilePattern)
         {
             return profilePattern
-                .Select(ppp => DeliveryProfilePeriod.CreateInstance(ppp.TypeValue, ppp.Occurrence, ppp.Type, ppp.Year, ppp.ProfileValue, ppp.DistributionPeriod))
+                .Select(ppp => DeliveryProfilePeriod.CreateInstance(ppp.TypeValue, ppp.Occurrence, ppp.Type, ppp.Year, ppp.ProfileValue, ppp.DistributionPeriod, ppp.CalculationId))
                 .ToList();
         }
 
@@ -106,10 +108,16 @@ namespace CalculateFunding.Services.Profiling.Services
 
         private IReadOnlyCollection<DeliveryProfilePeriod> GetProfiledAllocationPeriodsWithPatternApplied(decimal fundingValue,
             IReadOnlyCollection<ProfilePeriodPattern> profilePattern,
-            RoundingStrategy roundingStrategy)
+             RoundingStrategy roundingStrategy,
+            ProfilePatternType? type)
         {
             IReadOnlyCollection<DeliveryProfilePeriod> allocationProfilePeriods =
                 GetProfilePeriodsForAllocation(profilePattern);
+
+            if (type == ProfilePatternType.Calculation)
+            {
+                return allocationProfilePeriods;
+            }
 
             return fundingValue == 0 ? 
                     allocationProfilePeriods : 
@@ -120,7 +128,7 @@ namespace CalculateFunding.Services.Profiling.Services
             IReadOnlyCollection<ProfilePeriodPattern> profilePattern)
         {
             return profilePattern
-                .Select(ppp => DeliveryProfilePeriod.CreateInstance(ppp.Period, ppp.Occurrence, ppp.PeriodType, ppp.PeriodYear, 0m, ppp.DistributionPeriod))
+                .Select(ppp => DeliveryProfilePeriod.CreateInstance(ppp.Period, ppp.Occurrence, ppp.PeriodType, ppp.PeriodYear, 0m, ppp.DistributionPeriod, ppp.PeriodPatternCalculationId))
                 .Distinct()
                 .ToList();
         }
@@ -155,7 +163,7 @@ namespace CalculateFunding.Services.Profiling.Services
                                    && pattern.Occurrence == pp.Occurrence);
 
                     decimal profilePercentage = profilePeriodPattern
-                        .PeriodPatternPercentage;
+                         .PeriodPatternPercentage ?? 0;
 
                     decimal profiledValue = profilePercentage * allocationValueToBeProfiled;
                     if (profiledValue != 0)
