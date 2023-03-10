@@ -236,7 +236,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                                                HasParameter(_, "@fundingStreamId", _fundingStreamId) &&
                                                HasParameter(_, "@fundingPeriodId", _fundingPeriodId)),
-                50);
+                20);
         }
 
         [TestMethod]
@@ -271,7 +271,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                                                HasParameter(_, "@fundingStreamId", _fundingStreamId) &&
                                                HasParameter(_, "@fundingPeriodId", _fundingPeriodId)),
-                    50);
+                    20);
         }
 
         [TestMethod]
@@ -305,7 +305,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                                                HasParameter(_, "@fundingStreamId", _fundingStreamId) &&
                                                HasParameter(_, "@fundingPeriodId", _fundingPeriodId)),
-                    50);
+                    20);
         }
 
         [TestMethod]
@@ -338,7 +338,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                                                HasParameter(_, "@fundingStreamId", _fundingStreamId) &&
                                                HasParameter(_, "@fundingPeriodId", _fundingPeriodId)),
-                    50);
+                    20);
         }
 
         [TestMethod]

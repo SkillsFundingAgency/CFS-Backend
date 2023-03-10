@@ -745,7 +745,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     await _repository.BulkDeleteAsync(matches.ToDictionary(_ => _.PartitionKey, _ => _), hardDelete: true);
                 },
                 cosmosDbQuery: query,
-                itemsPerPage: 50);
+                itemsPerPage: 20);
         }
 
         public async Task DeleteAllPublishedProviderVersionsByFundingStreamAndPeriod(string fundingStreamId,
@@ -785,7 +785,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedProviderVersion>(_.PartitionKey, _)), hardDelete: true);
                 },
                 cosmosDbQuery: query,
-                itemsPerPage: 50);
+                itemsPerPage: 20);
         }
 
         public async Task DeleteAllPublishedFundingsByFundingStreamAndPeriod(string fundingStreamId,
@@ -824,7 +824,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedFunding>(_.Content.ParitionKey, _.Content)), hardDelete: true);
             },
             cosmosDbQuery: query,
-            itemsPerPage: 50);
+            itemsPerPage: 20);
         }
 
         public async Task DeleteAllPublishedFundingVersionsByFundingStreamAndPeriod(string fundingStreamId,
@@ -862,7 +862,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedFundingVersion>(_.Content.PartitionKey, _.Content)), hardDelete: true);
             },
             cosmosDbQuery: query,
-            itemsPerPage: 50);
+            itemsPerPage: 20);
         }
 
         public ICosmosDbFeedIterator GetPublishedFundingForBatchProcessing(string specificationId,
