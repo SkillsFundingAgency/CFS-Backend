@@ -160,7 +160,7 @@ namespace CalculateFunding.Services.Publishing
                 }
 
                 //97065 :Validation for Enable calculation Ids to be used as references for profile values instead of pattern percentages only for fundingStreamId is ILPREC
-                if (fundingStreamPeriodProfilePatterns.Any() && fundingStream.Id == "ILPREC")
+                if (fundingStreamPeriodProfilePatterns.Any() && fundingStream.Id == "ILPREC" && specification.FundingPeriod.Id == "IL-2223")
                 {
                     foreach(var periodProfilePattern in fundingStreamPeriodProfilePatterns)
                     {
@@ -194,7 +194,7 @@ namespace CalculateFunding.Services.Publishing
                             if(checkCalsIdsIsNotCashType.Any())
                             {
                                 var calsIds = checkCalsIdsIsNotCashType.Select(x => x.TemplateCalculationId).ToList();
-                                string errorMessage = $"calculation id '{string.Join(", ", calsIds)}' is not cash type";                            
+                                string errorMessage = $"calculation id '{string.Join(", ", calsIds)}' is not cash type.";                            
                                 _logger.Error(errorMessage);
                                 return new string[] { errorMessage };
                             }
@@ -224,7 +224,7 @@ namespace CalculateFunding.Services.Publishing
 
                         if (periodProfilePattern.ProfilePattern.Count() != templateMetadataCalculation.Count())
                         {
-                            string errorMessage = $"No extra cash type calculations exist as children of the payment funding line '{fundingStream.Id}' that should match the sum of profile values";
+                            string errorMessage = $"No extra cash type calculations exist as children of the payment funding line '{fundingStream.Id}' for '{specification.FundingPeriod.Id}' that should match the sum of profile values.";
                             _logger.Error(errorMessage);
                             return new string[] { errorMessage };
                         }
