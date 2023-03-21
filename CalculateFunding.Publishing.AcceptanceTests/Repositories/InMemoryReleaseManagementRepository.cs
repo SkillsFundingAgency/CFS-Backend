@@ -1125,5 +1125,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 ChannelVersion = _.rpvc.ChannelVersion
             }));
         }
+
+        Task<IEnumerable<PublishedFundingChannelVersion>> IReleaseManagementRepository.GetChannelPublishedFundingGroupsForSpecificationId(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

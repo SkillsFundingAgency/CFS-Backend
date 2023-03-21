@@ -188,21 +188,21 @@ namespace CalculateFunding.Functions.Publishing
             });
 
             builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
-             {
-                 TemplateMetadataResolver resolver = new TemplateMetadataResolver();
-                 ILogger logger = ctx.GetService<ILogger>();
+            {
+                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+                ILogger logger = ctx.GetService<ILogger>();
 
-                 TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
-                 resolver.Register("1.0", schema10Generator);
+                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+                resolver.Register("1.0", schema10Generator);
 
-                 TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
-                 resolver.Register("1.1", schema11Generator);
+                TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+                resolver.Register("1.1", schema11Generator);
 
-                 TemplateMetadataSchema12.TemplateMetadataGenerator schema12Generator = new TemplateMetadataSchema12.TemplateMetadataGenerator(logger);
-                 resolver.Register("1.2", schema12Generator);
+                TemplateMetadataSchema12.TemplateMetadataGenerator schema12Generator = new TemplateMetadataSchema12.TemplateMetadataGenerator(logger);
+                resolver.Register("1.2", schema12Generator);
 
-                 return resolver;
-             });
+                return resolver;
+            });
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
@@ -452,13 +452,13 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IProviderFilter, ProviderFilter>();
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
-                    {
-                        PublishedProviderStatusUpdateSettings settings = new PublishedProviderStatusUpdateSettings();
+                {
+                    PublishedProviderStatusUpdateSettings settings = new PublishedProviderStatusUpdateSettings();
 
-                        config.Bind("PublishedProviderStatusUpdateSettings", settings);
+                    config.Bind("PublishedProviderStatusUpdateSettings", settings);
 
-                        return settings;
-                    }
+                    return settings;
+                }
                 );
 
             builder
@@ -725,6 +725,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>, ReleaseManagementMigrationCosmosProducerConsumer<PublishedProviderVersion>>();
 
             builder.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
+
             builder.AddReleaseManagementServices(config);
 
             return builder.BuildServiceProvider();

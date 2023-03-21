@@ -52,6 +52,7 @@ namespace CalculateFunding.Services.Publishing.FundingManagement.Interfaces
         Task<IEnumerable<LatestProviderVersionInFundingGroup>> GetLatestProviderVersionInFundingGroups(string id, int channelId);
         Task<FundingGroupVersion> GetFundingGroupVersion(int fundingGroupId, int majorVersion);
         Task<IEnumerable<ProviderVersionInChannel>> GetLatestPublishedProviderVersions(string specificationId, IEnumerable<int> channelIds);
+        Task<IEnumerable<PublishedFundingChannelVersion>> GetChannelPublishedFundingGroupsForSpecificationId(string specificationId);
 
         Task<IEnumerable<FundingChannelVersion>> GetFundingGroupVersionsForSpecificationId(string specificationId);
         Task<IEnumerable<FundingChannelVersion>> GetReleaseProviderVersionsForSpecificationId(string specificationId);

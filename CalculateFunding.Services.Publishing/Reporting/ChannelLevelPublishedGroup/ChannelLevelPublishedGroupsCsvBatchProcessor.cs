@@ -14,28 +14,48 @@ using CalculateFunding.Services.Publishing.FundingManagement.SqlModels;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Polly;
+using CalculateFunding.Common.ApiClient.Models;
+using System;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Providers.Models;
+using CalculateFunding.Services.Core.Extensions;
+using Newtonsoft.Json;
+using static Dapper.SqlMapper;
+using System.Reflection.Metadata;
+using Microsoft.Azure.Search.Common;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
     public class ChannelLevelPublishedGroupsCsvBatchProcessor : CsvBatchProcessBase, IFundingLineCsvBatchProcessor
     {
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-        private readonly AsyncPolicy _publishedFundingPolicy;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly IProvidersApiClient _providersApiClient;
+
         private readonly IReleaseManagementRepository _repo;
 
-        public ChannelLevelPublishedGroupsCsvBatchProcessor(IPublishedFundingRepository publishedFundingRepository,
+        public ChannelLevelPublishedGroupsCsvBatchProcessor(
             IPublishingResiliencePolicies resiliencePolicies,
             IFileSystemAccess fileSystemAccess,
             ICsvUtils csvUtils,
-            IReleaseManagementRepository repo) : base(fileSystemAccess, csvUtils)
+            IReleaseManagementRepository repo,
+            ISpecificationsApiClient specificationsApiClient,
+            IProvidersApiClient providersApiClient) : base(fileSystemAccess, csvUtils)
         {
-            Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
 
-            _publishedFundingRepository = publishedFundingRepository;
-            _publishedFundingPolicy = resiliencePolicies.PublishedFundingRepository;
             _repo = repo;
+            _specificationsApiClient = specificationsApiClient;
+            _providersApiClient = providersApiClient;
         }
+
 
         public bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {
@@ -53,85 +73,60 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         {
             bool outputHeaders = true;
             bool processedResults = false;
-            IEnumerable<FundingChannelVersion> fundingChannelVersions = await _repo.GetFundingGroupVersionsForSpecificationId(specificationId);
+            IEnumerable<PublishedFundingChannelVersion> fundingChannelVersions = await _repo.GetChannelPublishedFundingGroupsForSpecificationId(specificationId);
 
-            IDictionary<string, bool> outputHeaderEnabingGroup = new Dictionary<string, bool>();
-            await _publishedFundingPolicy.ExecuteAsync(() => _publishedFundingRepository.PublishedGroupBatchProcessing(
-                specificationId,
-                async publishedFundings =>
+            var specApiResponse = await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
+            if (specApiResponse.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new Exception($"Failed to retrieve specification summary {specificationId} from API");
+
+            var providerVersionApiResponse = await _providersApiClient.GetProvidersByVersion(specApiResponse.Content.ProviderVersionId);
+            if (providerVersionApiResponse.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new Exception($"Failed to retrieve provider version {specApiResponse.Content.ProviderVersionId} from API");
+            var providers = providerVersionApiResponse.Content.Providers.ToDictionary(x=> x.ProviderId);
+
+            var publishedFundingGroups = fundingChannelVersions.GroupBy(x=> x.ProviderId).ToDictionary(g => g.Key, g => g.ToList());
+            publishedFundingGroups.ForEach(group => 
+            {
+                var provider = providers[group.Key];
+                if (provider == null)
+                    throw new Exception($"Failed to find details of provider {group.Key} from API");
+                group.Value.ForEach(y => 
                 {
-                    List<PublishedFundingWithProvider> publishedfundingsWithProviders = new List<PublishedFundingWithProvider>();
-                    IDictionary<string, List<PublishedFundingWithProvider>> channelBasedPublishedFundingWithProviders = new Dictionary<string, List<PublishedFundingWithProvider>>();
-                    foreach (PublishedFunding publishedFunding in publishedFundings)
-                    {
-                        IEnumerable<PublishedProvider> providers = Enumerable.Empty<PublishedProvider>();
+                    y.ProviderName = provider.Name;
+                    y.ProviderUKPRN = provider.UKPRN;
+                    y.ProviderURN = provider.URN;
+                    y.ProviderUPIN = provider.UPIN;
+                    y.ProviderLACode = provider.LACode;
+                    y.ProviderStatus = provider.Status;
+                    y.ProviderSuccessor = provider.Successor;
+                    y.ProviderPredecessors = provider.Predecessors.Join("|");
+                });
+            });
 
-                        if (publishedFunding.Current.ProviderFundings.Any())
-                        {
-                            foreach (IEnumerable<string> fundingIds in publishedFunding.Current.ProviderFundings.ToBatches(100))
-                            {
-                                providers = providers.Concat(await _publishedFundingRepository.QueryPublishedProvider(specificationId, fundingIds));
-                            }
-                        }
+            IDictionary<string, List<PublishedFundingChannelVersion>> channelBasedPublishedFundingWithProviders = fundingChannelVersions.GroupBy(o => o.ChannelCode).ToDictionary(g => g.Key, g => g.ToList());
+            IDictionary<string, bool> outputHeaderEnabingGroup = new Dictionary<string, bool>();
+            foreach (KeyValuePair<string, List<PublishedFundingChannelVersion>> data in channelBasedPublishedFundingWithProviders)
+            {
+                var providersCount = data.Value.GroupBy(_ => _.FundingId).Select(x => new { FundingId = x.Key, Count = x.Count() }).ToList();
+                var fundingGroups = data.Value.GroupBy(_ => _.FundingId).ToDictionary(g => g.Key, g => g.ToList());
+                providersCount.ForEach(x => {
+                    fundingGroups[x.FundingId].ForEach(y => { y.ProviderCount = x.Count; });
+                });
 
-                        IEnumerable<FundingChannelVersion> fundingChannelVersion = fundingChannelVersions.Where(_ =>
-                                            _.GroupingReason.Equals(publishedFunding.Current.GroupingReason.ToString()) &&
-                                            _.GroupingCode.Equals(publishedFunding.Current.OrganisationGroupTypeCode) &&
-                                            _.GroupingIdentifierValue.Equals(publishedFunding.Current.OrganisationGroupIdentifierValue))
-                                            .GroupBy(_ => _.ChannelId).Select(_ => _.FirstOrDefault());
-
-                        fundingChannelVersion.ForEach(_ =>
-                        {
-                            publishedFunding.Current.ChannelVersions = new List<ChannelVersion>() {
-                                                                        new ChannelVersion()
-                                                                        {
-                                                                            type = _.ChannelCode,
-                                                                            value = _.GroupChannelVersion
-                                                                        }
-                                };
-                            if (!channelBasedPublishedFundingWithProviders.TryGetValue(_.ChannelCode, out List<PublishedFundingWithProvider> outPublishedFundingWithProvider))
-                            {
-                                outPublishedFundingWithProvider = new List<PublishedFundingWithProvider>();
-                                channelBasedPublishedFundingWithProviders.Add(_.ChannelCode, outPublishedFundingWithProvider);
-                            }
-                            List<PublishedProvider> providersList = providers.ToList();
-                            foreach(PublishedProvider p in providersList) 
-                            {
-                                FundingChannelVersion releasedProviderChannelVersion = fundingChannelVersions.Where(r =>
-                                            r.GroupingReason.Equals(publishedFunding.Current.GroupingReason.ToString()) &&
-                                            r.GroupingCode.Equals(publishedFunding.Current.OrganisationGroupTypeCode) &&
-                                            r.GroupingIdentifierValue.Equals(publishedFunding.Current.OrganisationGroupIdentifierValue) &&
-                                            r.ProviderId.Equals(p.Released.ProviderId) &&
-                                            r.ChannelCode.Equals(r.ChannelCode)).FirstOrDefault();
-
-                                p.Released.ChannelVersions = new List<ChannelVersion>() {
-                                                                        new ChannelVersion()
-                                                                        {
-                                                                            type = releasedProviderChannelVersion != null?releasedProviderChannelVersion.ChannelCode:string.Empty,
-                                                                            value = releasedProviderChannelVersion != null?releasedProviderChannelVersion.ProviderChannelVersion:0
-                                                                        }
-                                };
-                            }
-                            outPublishedFundingWithProvider.Add(new PublishedFundingWithProvider { PublishedFunding = publishedFunding, PublishedProviders = providersList });
-                        });                            
-                    }
-                    foreach(KeyValuePair<string, List<PublishedFundingWithProvider>> data in channelBasedPublishedFundingWithProviders)
-                    {
-                        IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(data.Value, jobType);
-                        string tempPath = temporaryFilePath.Replace("<channelCode>", data.Key.ToPascalCase());
-                        if (!outputHeaderEnabingGroup.TryGetValue(data.Key, out bool outputHeader))
-                        {
-                            outputHeaders = true;
-                            outputHeaderEnabingGroup.Add(data.Key, true);
-                        } else
-                        {
-                            outputHeaders = false;
-                        }
-                        AppendCsvFragment(tempPath, csvRows, outputHeaders);
-                        processedResults = true;
-                    }
-                }, BatchSize)
-            );
+                IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(data.Value, jobType);
+                string tempPath = temporaryFilePath.Replace("<channelCode>", data.Key.ToPascalCase());
+                if (!outputHeaderEnabingGroup.TryGetValue(data.Key, out bool outputHeader))
+                {
+                    outputHeaders = true;
+                    outputHeaderEnabingGroup.Add(data.Key, true);
+                }
+                else
+                {
+                    outputHeaders = false;
+                }
+                AppendCsvFragment(tempPath, csvRows, outputHeaders);
+                processedResults = true;
+            }
 
             return processedResults;
 

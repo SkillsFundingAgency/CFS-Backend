@@ -860,6 +860,70 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                 });
         }
 
+        async Task<IEnumerable<PublishedFundingChannelVersion>> IReleaseManagementRepository.GetChannelPublishedFundingGroupsForSpecificationId(string specificationId)
+        {
+            return await QuerySql<PublishedFundingChannelVersion>($@"
+                SELECT
+					FGV.FundingId, 
+		            FGV.MajorVersion AS FundingMajorVersion,
+		            FGV.ChannelVersion AS GroupChannelVersion,
+		            GR.GroupingReasonName AS GroupingReason,
+		            FG.OrganisationGroupTypeCode AS GroupingCode,
+	                FG.OrganisationGroupName AS GroupingName,
+	                FG.OrganisationGroupTypeIdentifier AS GroupingTypeIdentifier,
+		            FG.OrganisationGroupIdentifierValue AS GroupingIdentifierValue,
+		            FG.OrganisationGroupTypeClassification AS GroupingTypeClassification,
+	                FGV.TotalFunding AS GroupingTotalFunding,
+		            FGV.StatusChangedDate AS ReleaseDate,
+		            C.UrlKey AS ChannelCode,
+	                RPV.FundingId AS ProviderFundingId,
+		            RP.ProviderId AS ProviderId,
+		            RPV.MajorVersion AS ProviderMajorVersion,
+		            RPV.TotalFunding AS ProviderTotalFunding,
+		            RPVC.AuthorName AS Author, 
+		            RPVC.ChannelVersion AS ProviderChannelVersion,
+                    C.ChannelId,
+					ISNULL(STRING_AGG(VR.VariationReasonCode, ';' ),'') AS ProviderVariationReasons										
+                FROM FundingGroupVersions FGV
+					INNER JOIN 
+						(SELECT FundingGroupId, MAX(MajorVersion) AS LatestVersion FROM FundingGroupVersions FGVAgg
+						GROUP BY FundingGroupId) LatestFundingGroupVersion ON FGV.FundingGroupId = LatestFundingGroupVersion.FundingGroupId AND FGV.MajorVersion = LatestFundingGroupVersion.LatestVersion
+					INNER JOIN FundingGroups FG ON FG.FundingGroupID = FGV.FundingGroupId
+					INNER JOIN FundingGroupProviders FGP ON FGP.FundingGroupVersionId = FGV.FundingGroupVersionId
+					INNER JOIN ReleasedProviderVersionChannels RPVC ON RPVC.ReleasedProviderVersionChannelId = FGP.ReleasedProviderVersionChannelId
+					LEFT OUTER JOIN ReleasedProviderChannelVariationReasons RPCVR ON RPVC.ReleasedProviderVersionChannelId = RPCVR.ReleasedProviderVersionChannelId
+					LEFT OUTER JOIN VariationReasons VR ON RPCVR.VariationReasonId = VR.VariationReasonId
+					INNER JOIN ReleasedProviderVersions RPV ON RPVC.ReleasedProviderVersionId = RPV.ReleasedProviderVersionId
+					INNER JOIN ReleasedProviders RP ON RP.ReleasedProviderId = RPV.ReleasedProviderId
+					INNER JOIN GroupingReasons GR ON GR.GroupingReasonId = FGV.GroupingReasonId 
+					INNER JOIN Channels C ON C.ChannelId=FGV.ChannelId 
+                WHERE FG.SpecificationId = @{nameof(specificationId)} 
+					AND C.UrlKey != 'spectospec'
+				GROUP BY
+					FGV.FundingId, 
+		            FGV.MajorVersion,
+		            FGV.ChannelVersion,
+		            GR.GroupingReasonName,
+		            FG.OrganisationGroupTypeCode,
+	                FG.OrganisationGroupName,
+	                FG.OrganisationGroupTypeIdentifier,
+		            FG.OrganisationGroupIdentifierValue,
+		            FG.OrganisationGroupTypeClassification,
+	                FGV.TotalFunding,
+		            FGV.StatusChangedDate,
+		            C.UrlKey,
+	                RPV.FundingId,
+		            RP.ProviderId,
+		            RPV.MajorVersion,
+		            RPV.TotalFunding,
+		            RPVC.AuthorName, 
+		            RPVC.ChannelVersion,
+                    C.ChannelId", 
+                new
+                {
+                    specificationId
+                });
+        }
         public async Task<IEnumerable<FundingChannelVersion>> GetReleaseProviderVersionsForSpecificationId(string specificationId)
         {
             return await QuerySql<FundingChannelVersion>($@"
@@ -1211,5 +1275,6 @@ namespace CalculateFunding.Services.Publishing.FundingManagement
                    specificationId
                });
         }
+
     }
 }
