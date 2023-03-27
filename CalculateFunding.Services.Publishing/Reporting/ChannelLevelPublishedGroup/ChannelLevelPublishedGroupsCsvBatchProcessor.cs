@@ -26,6 +26,9 @@ using static Dapper.SqlMapper;
 using System.Reflection.Metadata;
 using Microsoft.Azure.Search.Common;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
@@ -73,6 +76,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         {
             bool outputHeaders = true;
             bool processedResults = false;
+
             IEnumerable<PublishedFundingChannelVersion> fundingChannelVersions = await _repo.GetChannelPublishedFundingGroupsForSpecificationId(specificationId);
 
             var specApiResponse = await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
@@ -87,23 +91,34 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             var publishedFundingGroups = fundingChannelVersions.GroupBy(x=> x.ProviderId).ToDictionary(g => g.Key, g => g.ToList());
             publishedFundingGroups.ForEach(group => 
             {
-                var provider = providers[group.Key];
-                if (provider == null)
-                    throw new Exception($"Failed to find details of provider {group.Key} from API");
-                group.Value.ForEach(y => 
+                if (!providers.ContainsKey(group.Key))
                 {
-                    y.ProviderName = provider.Name;
-                    y.ProviderUKPRN = provider.UKPRN;
-                    y.ProviderURN = provider.URN;
-                    y.ProviderUPIN = provider.UPIN;
-                    y.ProviderLACode = provider.LACode;
-                    y.ProviderStatus = provider.Status;
-                    y.ProviderSuccessor = provider.Successor;
-                    y.ProviderPredecessors = provider.Predecessors.Join("|");
-                });
+                    group.Value.ForEach(y =>
+                    {
+                        y.ProviderName = "Provider details not available from current providers snapshot";
+                        y.ProviderUKPRN = y.ProviderId;
+                    });
+                }
+                else
+                {
+                    var provider = providers[group.Key];
+                    group.Value.ForEach(y => 
+                    {
+                        y.ProviderName = provider.Name;
+                        y.ProviderUKPRN = provider.UKPRN;
+                        y.ProviderURN = provider.URN;
+                        y.ProviderUPIN = provider.UPIN;
+                        y.ProviderLACode = provider.LACode;
+                        y.ProviderStatus = provider.Status;
+                        y.ProviderSuccessor = provider.Successor;
+                        y.ProviderPredecessors = provider.Predecessors.Join("|");
+                    });
+                }
+
             });
 
             IDictionary<string, List<PublishedFundingChannelVersion>> channelBasedPublishedFundingWithProviders = fundingChannelVersions.GroupBy(o => o.ChannelCode).ToDictionary(g => g.Key, g => g.ToList());
+
             IDictionary<string, bool> outputHeaderEnabingGroup = new Dictionary<string, bool>();
             foreach (KeyValuePair<string, List<PublishedFundingChannelVersion>> data in channelBasedPublishedFundingWithProviders)
             {
